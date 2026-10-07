@@ -1,0 +1,117 @@
+{
+  "features": [
+    {
+      "id": "F1",
+      "area": "ui",
+      "title": "Farmer can select profile (2 toques: secano/regadío + convencional/ecológica)",
+      "user_visible_behavior": "On first run, farmer sees two selector screens: (1) 'Mi olivar es: secano / regadío / los dos' and (2) 'Producción: convencional / ecológica'. Selection is saved locally and pre-selects on subsequent opens.",
+      "depends_on": [],
+      "status": "not_started",
+      "verification": "Profile persists in SharedPreferences; app opens with pre-selected profile; profile can be changed anytime",
+      "evidence": null,
+      "notes": "Critical MVP foundation — all subsequent features filter by this profile"
+    },
+    {
+      "id": "F2",
+      "area": "ui",
+      "title": "Farmer can submit a question in the chat interface",
+      "user_visible_behavior": "After selecting profile, farmer sees chat screen with large input field and keyboard. Can type or use suggested questions. Taps send to transmit to server.",
+      "depends_on": ["F1"],
+      "status": "not_started",
+      "verification": "Chat screen compiles; input transmits without error; suggested questions render as tappable buttons",
+      "evidence": null,
+      "notes": "Depends on F1 profile being displayed first"
+    },
+    {
+      "id": "F3",
+      "area": "rag",
+      "title": "System returns answer with citations from official documents",
+      "user_visible_behavior": "After submitting question, farmer sees burbujas with 'pensando…' state. Response includes text with citations [1], [2], ..., tarjeta de fuente (norma, artículo, enlace, fecha), fecha de verificación, and aviso legal.",
+      "depends_on": ["F2"],
+      "verification": "End-to-end: question submitted → answer displayed with ≥1 citation; fuentes existentes en contexto; formato JSON {found, answer, sources}; aviso legal visible; fecha verificación en dd/mm/aaaa",
+      "evidence": null,
+      "notes": "Core RAG pipeline — depends on backend embedding/search being configured"
+    },
+    {
+      "id": "F4",
+      "area": "local",
+      "title": "Profile of 2 toques persists locally between app sessions",
+      "user_visible_behavior": "After selecting profile, closing and reopening the app the same profile is displayed pre-selected. No user account required — data stored in device SharedPreferences.",
+      "depends_on": ["F1"],
+      "status": "not_started",
+      "verification": "Profile value read from SharedPreferences on app restart matches last selection; changes persist across sessions",
+      "evidence": null,
+      "notes": "Depends on F1 — local persistence mechanism for the profile"
+    },
+    {
+      "id": "F5",
+      "area": "rag",
+      "title": "App says 'no lo fijo' when answer not found in corpus (below threshold)",
+      "user_visible_behavior": "When hybrid search similarity is below minimum threshold, response shows fixed message: 'No he encontrado esta información en los documentos oficiales que tengo. Te recomiendo consultar con tu oficina comarcal agraria o con tu cooperativa.' without calling the LLM.",
+      "depends_on": ["F3"],
+      "status": "not_started",
+      "verification": "Question submitted where answer not in corpus → fixed 'no lo fijo' message appears; LLM not called (latency saved); mensaje fijo sin texto libre; incluye remisión a oficina/comarcal",
+      "evidence": null,
+      "notes": "Critical for reliability — avoids invented answers; depends on F3 having LLM response path"
+    },
+    {
+      "id": "F6",
+      "area": "legal",
+      "title": "Legal notice and verification date displayed with answers",
+      "user_visible_behavior": "Every answer includes: (1) 'Información orientativa basada en documentos oficiales. No sustituye el asesoramiento profesional.' fixed text, (2) 'Tu cooperativa puede tener plazos internos anteriores a los oficiales. Confírmalo con ella.' when plazos present, (3) 'Documentos verificados por última vez dd/mm/aaaa.' with actual date.",
+      "depends_on": ["F3"],
+      "status": "not_started",
+      "verification": "Answer displayed with all three legal notice components; dates in dd/mm/aaaa format; no libres texto en avisos; PII filter active before LLM",
+      "evidence": null,
+      "notes": "Mandatory by policy — separates orientativo from asesoramiento profesional"
+    },
+    {
+      "id": "F7",
+      "area": "feedback",
+      "title": "Farmer can submit feedback (👍/👎 with motive) after answer",
+      "user_visible_behavior": "After receiving answer, farmer sees 👍/👎 buttons with optional text field '¿Por qué?' . Selection is recorded and sent to backend. No personal data collected.",
+      "depends_on": ["F3"],
+      "status": "not_started",
+      "verification": "👍 and 👎 buttons render; optional motive field accepts text; feedback transmits to /feedback endpoint without PII; logged in backend with pregunta hash",
+      "evidence": null,
+      "notes": "Feeds 'no lo fijo' task queue and golden dataset; depends on F3 answer being displayed"
+    },
+    {
+      "id": "F8",
+      "area": "ui",
+      "title": "Coverage screen shows what topics are covered and what are not",
+      "user_visible_behavior": "From main screen or profile selector, farmer taps 'Cobertura' badge. Screen shows green checkmarks for covered topics (PAC, plazos, ayudasdirectas) and 'beta' label for ecological segment. Explainslimits.",
+      "depends_on": ["F1"],
+      "status": "not_started",
+      "verification": "Coverage screen compiles; topics with docs show checkmark; ecological segment labeled 'beta'; no topics without docs shown as checkmark; text explains 'what we don't cover yet'",
+      "evidence": null,
+      "notes": "Depends on F1 — needs profile to determine which coverage map to show"
+    },
+    {
+      "id": "F9",
+      "area": "ui",
+      "title": "Ecológico segment labeled 'beta' on coverage screen",
+      "user_visible_behavior": "On coverage screen, ecological segment items have 'beta' badge/text. Tapping explains 'ainfo still being validated with ecological users.' Other segments (convencional) have no badge.",
+      "depends_on": ["F8"],
+      "status": "not_started",
+      "verification": "Coverage screen renders; ecological items have 'beta' visual treatment; convencional items have no badge; tapping ecological items shows validation message",
+      "evidence": null,
+      "notes": "Depends on F8 — UI refinement on top of coverage screen"
+    },
+    {
+      "id": "F10",
+      "area": "legal",
+      "title": "Critical mode shows literal fragment + source + date for critico:true topics",
+      "user_visible_behavior": "When answer involves plazos, importes, umbrales, or requisitos (critico:true in metadata), response includes: literal fragment from document, fuente citation with URL and date, and explicit statement 'modo extractivo: fragmento literal'. Fixed closing line added by code.",
+      "depends_on": ["F3"],
+      "status": "not_started",
+      "verification": "Question about plazo/importe/umbral → response includes [fragmento literal] with [fuente] and [fecha]; 'modo extractivo' label visible; 'No inventamos datos' principle observed; PII not in fragment",
+      "evidence": null,
+      "notes": "Depends on F3 — requires chunk metadata critico flag and extractivo code path"
+    }
+  ],
+  "last_updated": "2026-10-07",
+  "total_features": 10,
+  "in_progress": null,
+  "next_feature": "F1"
+}
