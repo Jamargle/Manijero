@@ -1,117 +1,217 @@
 {
+  "last_updated": "2026-10-08",
+  "total_features": 19,
+  "in_progress": null,
+  "next_feature": "F1",
   "features": [
     {
       "id": "F1",
-      "area": "ui",
-      "title": "Farmer can select profile (2 toques: secano/regadío + convencional/ecológica)",
-      "user_visible_behavior": "On first run, farmer sees two selector screens: (1) 'Mi olivar es: secano / regadío / los dos' and (2) 'Producción: convencional / ecológica'. Selection is saved locally and pre-selects on subsequent opens.",
+      "area": "profile",
+      "title": "Farmer selects a profile on first run",
+      "user_visible_behavior": "On first launch, the farmer selects secano, regadío, or both, then selects conventional or ecological production. Completing both choices opens the app.",
       "depends_on": [],
       "status": "not_started",
-      "verification": "Profile persists in SharedPreferences; app opens with pre-selected profile; profile can be changed anytime",
+      "verification": "First launch presents both choices, accepts each valid option, and proceeds only after both are selected.",
       "evidence": null,
-      "notes": "Critical MVP foundation — all subsequent features filter by this profile"
+      "notes": "First implementation feature. Keep the flow to two clear choices, as defined in CONTEXT.md."
     },
     {
       "id": "F2",
-      "area": "ui",
-      "title": "Farmer can submit a question in the chat interface",
-      "user_visible_behavior": "After selecting profile, farmer sees chat screen with large input field and keyboard. Can type or use suggested questions. Taps send to transmit to server.",
+      "area": "profile",
+      "title": "Profile choices persist between launches",
+      "user_visible_behavior": "After choosing a profile, the farmer can close and reopen the app and continue with the saved choices without signing in.",
       "depends_on": ["F1"],
       "status": "not_started",
-      "verification": "Chat screen compiles; input transmits without error; suggested questions render as tappable buttons",
+      "verification": "Save each supported profile combination, restart the app, and confirm the same values load.",
       "evidence": null,
-      "notes": "Depends on F1 profile being displayed first"
+      "notes": "Use a local persistence mechanism appropriate for the shared Android and Desktop targets."
     },
     {
       "id": "F3",
-      "area": "rag",
-      "title": "System returns answer with citations from official documents",
-      "user_visible_behavior": "After submitting question, farmer sees burbujas with 'pensando…' state. Response includes text with citations [1], [2], ..., tarjeta de fuente (norma, artículo, enlace, fecha), fecha de verificación, and aviso legal.",
+      "area": "profile",
+      "title": "Farmer can change a saved profile",
+      "user_visible_behavior": "The farmer can reopen the profile choices from the app and replace either saved choice.",
       "depends_on": ["F2"],
-      "verification": "End-to-end: question submitted → answer displayed with ≥1 citation; fuentes existentes en contexto; formato JSON {found, answer, sources}; aviso legal visible; fecha verificación en dd/mm/aaaa",
+      "status": "not_started",
+      "verification": "Change each profile dimension, leave and reopen the profile flow, and confirm the new choices remain selected.",
       "evidence": null,
-      "notes": "Core RAG pipeline — depends on backend embedding/search being configured"
+      "notes": ""
     },
     {
       "id": "F4",
-      "area": "local",
-      "title": "Profile of 2 toques persists locally between app sessions",
-      "user_visible_behavior": "After selecting profile, closing and reopening the app the same profile is displayed pre-selected. No user account required — data stored in device SharedPreferences.",
-      "depends_on": ["F1"],
+      "area": "chat",
+      "title": "Farmer can enter a question in the chat",
+      "user_visible_behavior": "After onboarding, the farmer sees a readable chat screen with a text field and a send action.",
+      "depends_on": ["F2"],
       "status": "not_started",
-      "verification": "Profile value read from SharedPreferences on app restart matches last selection; changes persist across sessions",
+      "verification": "The chat screen opens after profile setup, accepts text, and enables sending only when the question is non-empty.",
       "evidence": null,
-      "notes": "Depends on F1 — local persistence mechanism for the profile"
+      "notes": "Use plain Spanish labels and large, accessible controls."
     },
     {
       "id": "F5",
-      "area": "rag",
-      "title": "App says 'no lo fijo' when answer not found in corpus (below threshold)",
-      "user_visible_behavior": "When hybrid search similarity is below minimum threshold, response shows fixed message: 'No he encontrado esta información en los documentos oficiales que tengo. Te recomiendo consultar con tu oficina comarcal agraria o con tu cooperativa.' without calling the LLM.",
-      "depends_on": ["F3"],
+      "area": "chat",
+      "title": "Farmer can start with a suggested question",
+      "user_visible_behavior": "The chat offers suggested questions, and choosing one places it into the question flow for the farmer to submit.",
+      "depends_on": ["F4"],
       "status": "not_started",
-      "verification": "Question submitted where answer not in corpus → fixed 'no lo fijo' message appears; LLM not called (latency saved); mensaje fijo sin texto libre; incluye remisión a oficina/comarcal",
+      "verification": "At least one configured suggestion is visible, selectable, and submitted as the question text.",
       "evidence": null,
-      "notes": "Critical for reliability — avoids invented answers; depends on F3 having LLM response path"
+      "notes": "Suggestions should reflect only topics represented in the verified corpus."
     },
     {
       "id": "F6",
-      "area": "legal",
-      "title": "Legal notice and verification date displayed with answers",
-      "user_visible_behavior": "Every answer includes: (1) 'Información orientativa basada en documentos oficiales. No sustituye el asesoramiento profesional.' fixed text, (2) 'Tu cooperativa puede tener plazos internos anteriores a los oficiales. Confírmalo con ella.' when plazos present, (3) 'Documentos verificados por última vez dd/mm/aaaa.' with actual date.",
-      "depends_on": ["F3"],
+      "area": "knowledge-base",
+      "title": "Official source documents can be indexed",
+      "user_visible_behavior": "The system can make approved BOE, BOJA, and FEGA source material available to the answer pipeline with its source, date, validity, and applicability metadata.",
+      "depends_on": [],
       "status": "not_started",
-      "verification": "Answer displayed with all three legal notice components; dates in dd/mm/aaaa format; no libres texto en avisos; PII filter active before LLM",
+      "verification": "Index a small approved fixture set and confirm each indexed record retains its text and required source metadata.",
       "evidence": null,
-      "notes": "Mandatory by policy — separates orientativo from asesoramiento profesional"
+      "notes": "Never treat unverified web content or nominal listings as approved corpus material."
     },
     {
       "id": "F7",
-      "area": "feedback",
-      "title": "Farmer can submit feedback (👍/👎 with motive) after answer",
-      "user_visible_behavior": "After receiving answer, farmer sees 👍/👎 buttons with optional text field '¿Por qué?' . Selection is recorded and sent to backend. No personal data collected.",
-      "depends_on": ["F3"],
+      "area": "retrieval",
+      "title": "System retrieves relevant official passages with hybrid search",
+      "user_visible_behavior": "For a submitted question, the system combines vector and BM25 results with RRF and returns ranked official passages with source metadata.",
+      "depends_on": ["F6"],
       "status": "not_started",
-      "verification": "👍 and 👎 buttons render; optional motive field accepts text; feedback transmits to /feedback endpoint without PII; logged in backend with pregunta hash",
+      "verification": "A retrieval fixture finds the expected official source for a semantic query and an acronym query, with stable ranked results.",
       "evidence": null,
-      "notes": "Feeds 'no lo fijo' task queue and golden dataset; depends on F3 answer being displayed"
+      "notes": "Use ChromaDB and BM25 as specified by the technical discovery."
     },
     {
       "id": "F8",
-      "area": "ui",
-      "title": "Coverage screen shows what topics are covered and what are not",
-      "user_visible_behavior": "From main screen or profile selector, farmer taps 'Cobertura' badge. Screen shows green checkmarks for covered topics (PAC, plazos, ayudasdirectas) and 'beta' label for ecological segment. Explainslimits.",
-      "depends_on": ["F1"],
+      "area": "retrieval",
+      "title": "Retrieval respects profile, campaign, and validity filters",
+      "user_visible_behavior": "The system excludes passages that do not apply to the selected profile or campaign and excludes regulations marked invalid.",
+      "depends_on": ["F2", "F7"],
       "status": "not_started",
-      "verification": "Coverage screen compiles; topics with docs show checkmark; ecological segment labeled 'beta'; no topics without docs shown as checkmark; text explains 'what we don't cover yet'",
+      "verification": "A fixture with matching and non-matching profile, campaign, and validity metadata returns only eligible passages.",
       "evidence": null,
-      "notes": "Depends on F1 — needs profile to determine which coverage map to show"
+      "notes": "Resolve the profile transport boundary consistently with the local-only profile constraint before wiring the client to the backend."
     },
     {
       "id": "F9",
-      "area": "ui",
-      "title": "Ecológico segment labeled 'beta' on coverage screen",
-      "user_visible_behavior": "On coverage screen, ecological segment items have 'beta' badge/text. Tapping explains 'ainfo still being validated with ecological users.' Other segments (convencional) have no badge.",
+      "area": "safety",
+      "title": "System abstains when retrieved evidence is insufficient",
+      "user_visible_behavior": "When retrieval is below the configured evidence threshold, the farmer receives the fixed referral message and no generated answer.",
       "depends_on": ["F8"],
       "status": "not_started",
-      "verification": "Coverage screen renders; ecological items have 'beta' visual treatment; convencional items have no badge; tapping ecological items shows validation message",
+      "verification": "A below-threshold query returns the fixed Spanish referral message and confirms the LLM was not called.",
       "evidence": null,
-      "notes": "Depends on F8 — UI refinement on top of coverage screen"
+      "notes": "Do not invent a threshold value; calibrate it against the golden dataset."
     },
     {
       "id": "F10",
-      "area": "legal",
-      "title": "Critical mode shows literal fragment + source + date for critico:true topics",
-      "user_visible_behavior": "When answer involves plazos, importes, umbrales, or requisitos (critico:true in metadata), response includes: literal fragment from document, fuente citation with URL and date, and explicit statement 'modo extractivo: fragmento literal'. Fixed closing line added by code.",
-      "depends_on": ["F3"],
+      "area": "answers",
+      "title": "System generates grounded answers from retrieved passages",
+      "user_visible_behavior": "When adequate evidence exists, the system returns a concise answer based only on retrieved official passages and identifies the supporting source references.",
+      "depends_on": ["F8", "F9"],
       "status": "not_started",
-      "verification": "Question about plazo/importe/umbral → response includes [fragmento literal] with [fuente] and [fecha]; 'modo extractivo' label visible; 'No inventamos datos' principle observed; PII not in fragment",
+      "verification": "A supported question returns a structured answer whose claims and source references are supported by the supplied passages.",
       "evidence": null,
-      "notes": "Depends on F3 — requires chunk metadata critico flag and extractivo code path"
+      "notes": "Use the configured Gemini Flash model behind an interface; keep generation parameters in configuration."
+    },
+    {
+      "id": "F11",
+      "area": "api",
+      "title": "Backend exposes the question and answer contract",
+      "user_visible_behavior": "The client can send a question to POST /ask and receive a defined response for either a grounded answer or an abstention.",
+      "depends_on": ["F9", "F10"],
+      "status": "not_started",
+      "verification": "Contract tests cover valid questions, grounded answers, abstentions, and malformed requests.",
+      "evidence": null,
+      "notes": "Backend implementation is not present in the repository yet."
+    },
+    {
+      "id": "F12",
+      "area": "chat",
+      "title": "Farmer receives the answer in the chat",
+      "user_visible_behavior": "Submitting a question shows a waiting state and then displays the backend answer or a clear recoverable error.",
+      "depends_on": ["F4", "F11"],
+      "status": "not_started",
+      "verification": "A successful response appears in the conversation, a failed request shows a retry path, and the waiting state ends in both cases.",
+      "evidence": null,
+      "notes": ""
+    },
+    {
+      "id": "F13",
+      "area": "answers",
+      "title": "Answer citations show source details",
+      "user_visible_behavior": "The farmer can match each [n] citation to its official document, article or section, source link, and verification date.",
+      "depends_on": ["F12"],
+      "status": "not_started",
+      "verification": "A cited answer displays numbered references and each reference resolves to the correct source metadata and date.",
+      "evidence": null,
+      "notes": "Use dates supplied by the verified corpus; never substitute the current date for a document verification date."
+    },
+    {
+      "id": "F14",
+      "area": "safety",
+      "title": "Answers display the required legal guidance",
+      "user_visible_behavior": "Answers show the fixed professional-advice notice, and deadline answers also show the cooperative timing reminder.",
+      "depends_on": ["F13"],
+      "status": "not_started",
+      "verification": "The fixed notice is visible with every answer; the cooperative reminder appears when a deadline is discussed and is absent when irrelevant.",
+      "evidence": null,
+      "notes": "Use the exact Spanish wording in CONTEXT.md."
+    },
+    {
+      "id": "F15",
+      "area": "safety",
+      "title": "Critical answers include a literal source passage",
+      "user_visible_behavior": "For critical deadlines, amounts, thresholds, or requirements, the answer includes the literal supporting passage with its source and date.",
+      "depends_on": ["F13"],
+      "status": "not_started",
+      "verification": "A critical-topic fixture displays the unaltered supporting excerpt, its source, and its date; a non-critical fixture does not enter extractive mode.",
+      "evidence": null,
+      "notes": "Criticality comes from verified metadata; do not infer legal figures from unsupported text."
+    },
+    {
+      "id": "F16",
+      "area": "coverage",
+      "title": "Farmer can see which topics are covered",
+      "user_visible_behavior": "A coverage screen lists supported topics and makes clear which topics are not yet covered for the selected profile.",
+      "depends_on": ["F2", "F6"],
+      "status": "not_started",
+      "verification": "The screen marks only topics backed by indexed sources as covered and explains uncovered topics plainly.",
+      "evidence": null,
+      "notes": ""
+    },
+    {
+      "id": "F17",
+      "area": "coverage",
+      "title": "Ecological coverage is marked as beta",
+      "user_visible_behavior": "The coverage screen labels ecological topics as beta and explains that this information is still being validated.",
+      "depends_on": ["F16"],
+      "status": "not_started",
+      "verification": "Ecological coverage displays the beta label and explanation; conventional coverage does not display the ecological beta label.",
+      "evidence": null,
+      "notes": ""
+    },
+    {
+      "id": "F18",
+      "area": "feedback",
+      "title": "Farmer can send feedback on an answer",
+      "user_visible_behavior": "After an answer, the farmer can select a positive or negative rating and optionally explain why.",
+      "depends_on": ["F13"],
+      "status": "not_started",
+      "verification": "Both ratings and the optional explanation are accepted, sent to the feedback endpoint, and stored without personal identifiers.",
+      "evidence": null,
+      "notes": ""
+    },
+    {
+      "id": "F19",
+      "area": "evaluation",
+      "title": "Golden questions enforce answer quality gates",
+      "user_visible_behavior": "Changes to retrieval and answering can be evaluated against verified questions, including source recall, abstention, and unsupported figures.",
+      "depends_on": ["F7", "F9", "F10"],
+      "status": "not_started",
+      "verification": "The documented golden dataset runs in CI and reports hit@5, fidelity, and fabricated-figure checks against the agreed thresholds.",
+      "evidence": null,
+      "notes": "Build-brief targets include hit@5 >= 85%, fidelity >= 95%, and zero invented figures; these gates do not exist yet."
     }
-  ],
-  "last_updated": "2026-10-07",
-  "total_features": 10,
-  "in_progress": null,
-  "next_feature": "F1"
+  ]
 }

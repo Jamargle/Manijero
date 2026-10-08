@@ -1,47 +1,30 @@
-# Ayudante Agrícola — Progress Log
+# Manijero — Progress
 
-## Current Verified State
+## Current state
 
-- ✅ Discovery phase complete (build-brief workflow executed)
-- ✅ CONTEXT.md created with 25+ canonical domain terms
-- ✅ docs/build-brief.md created — problem, users, goals, non-goals, MVP slice
-- ✅ docs/domain-model.md created — domain entities, relationships, lifecycle rules
-- ✅ docs/risks-and-open-questions.md created — 16 risks registered, 15 open questions (P1-P15)
-- ✅ AGENTS.md created — project landing page and operating rules
-- ✅ init.sh created — provisional startup/verification path
-- ⏳ Feature list to be created (harness-starter output)
-- ⏳ Docker backend setup pending (technical bootstrap phase)
-- ⏳ First feature implementation (profile selection screen)
+- Product discovery is documented in `CONTEXT.md`, `docs/build-brief.md`, `docs/domain-model.md`, and `docs/risks-and-open-questions.md`.
+- The repository contains a Kotlin Multiplatform client scaffold with Android, Desktop (JVM), and an iOS scaffold. The MVP targets Android and Desktop; iOS is out of scope.
+- The next planned feature is F1: first-run selection of the grower's land type and production type.
+- Backend, Docker Compose services, official-document ingestion, RAG answering, and golden-dataset quality gates are not present yet.
+- No product feature is currently marked in progress.
 
-## Session Log
+## Start and verify
 
-| Date | Action | Evidence |
-|------|--------|----------|
+Run `./init.sh` to confirm the Gradle project root and print the available commands.
+
+- Desktop: `./gradlew :desktopApp:run`
+- Android build: `./gradlew :androidApp:assembleDebug`
+- Shared JVM tests: `./gradlew :shared:jvmTest`
+- Android host tests: `./gradlew :shared:testAndroidHostTest`
+
+The Gradle test tasks are the checks currently available in the repository. Retrieval metrics and golden-dataset checks are planned; they are not implemented by these tasks yet.
+
+## Session log
+
+| Date | Change | Evidence |
+|---|---|---|
 | 2026-10-05 | Build brief initiated | User described project: olive tree field manager app with AI chatbot |
 | 2026-10-05 | Discovery documents created | CONTEXT.md, build-brief.md, domain-model.md, risks-and-open-questions.md |
 | 2026-10-07 | Harness starter started | AGENTS.md, init.sh created; feature_list.json in progress |
 | 2026-10-07 | Harness starter completed | Minimal repo harness created |
-
-## Standard Startup and Verification Paths
-
-**To start the app:**
-```
-./init.sh           # Confirm directory (this script)
-docker compose up -d  # Start backend services
-./gradlew :desktopApp:run  # Run desktop app
-# or open in Android Studio and run androidApp
-```
-
-**To verify the work:**
-```
-./gradlew :shared:jvmTest     # Quality gates (CI blocking if thresholds not met)
-./gradlew :shared:jvmTest     # Golden dataset validation
-# Manual: use app, ask questions, verify citations and legal notice
-```
-
-## Pending Items
-
-- Create feature_list.json with session-sized features
-- Set up Docker Compose (backend, ChromaDB, etc.)
-- Implement first feature: profile selection (2 toques)
-- Begin technical bootstrap phase
+| 2026-10-08 | Refreshed the startup harness and split MVP work into session-sized features. | Repository inspection; no tests run in this harness update. |
