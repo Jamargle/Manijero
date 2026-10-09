@@ -1,0 +1,299 @@
+{
+  "project": "Manijero — Olive Grove Assistant",
+  "source_of_truth": [
+    "CONTEXT.md",
+    "docs/build-brief.md",
+    "docs/domain-model.md",
+    "docs/risks-and-open-questions.md",
+    "DESIGN.md",
+    "MasterPlanV3.md"
+  ],
+  "features": [
+    {
+      "id": "chat_home",
+      "area": "client",
+      "title": "Chat starting screen",
+      "user_visible_behavior": "A person can open the app and see a clear Spanish prompt field and a simple way to begin, even before adding any lands.",
+      "depends_on": [],
+      "status": "not_started",
+      "verification": ["On Android and Desktop, open the app with no configured lands and find the question field without assistance."],
+      "evidence": [],
+      "notes": "Implement the shared Compose UI in commonMain. Keep the first screen calm, readable, and focused on asking a question."
+    },
+    {
+      "id": "suggested_questions",
+      "area": "client",
+      "title": "Example questions",
+      "user_visible_behavior": "A person can tap a short example question and see it placed into the chat flow without needing to understand how to phrase a prompt.",
+      "depends_on": ["chat_home"],
+      "status": "not_started",
+      "verification": ["Tap an example and confirm that its Spanish text is submitted or ready to submit in the question composer."],
+      "evidence": [],
+      "notes": "Use examples drawn from topics actually covered by the approved MVP corpus."
+    },
+    {
+      "id": "answer_api_contract",
+      "area": "backend-contract",
+      "title": "Structured answer contract",
+      "user_visible_behavior": "The app and answer service agree on a response state for answered, abstained, and needs-land-clarification outcomes, with typed sources and minimal land context.",
+      "depends_on": [],
+      "status": "not_started",
+      "verification": ["Validate representative request and response examples against the agreed contract."],
+      "evidence": [],
+      "notes": "Define the contract before implementing client/service integration. Keep local land labels out of the payload unless a reviewed use case requires them."
+    },
+    {
+      "id": "backend_health",
+      "area": "backend",
+      "title": "Service health response",
+      "user_visible_behavior": "The service exposes a health response that lets the app or operator distinguish an available service from an outage.",
+      "depends_on": [],
+      "status": "not_started",
+      "verification": ["Request the health endpoint when running the service and confirm its documented success response."],
+      "evidence": [],
+      "notes": "The backend is proposed in MasterPlanV3.md but is not present in the current repository scaffold."
+    },
+    {
+      "id": "source_catalog_validation",
+      "area": "knowledge",
+      "title": "Approved source catalog validation",
+      "user_visible_behavior": "Only catalog entries with approved provenance and required metadata can enter the MVP corpus.",
+      "depends_on": ["answer_api_contract"],
+      "status": "not_started",
+      "verification": ["Accept a valid official-source fixture and reject a malformed or non-approved fixture."],
+      "evidence": [],
+      "notes": "Keep the MVP corpus curated and manually reviewed; automated discovery is deferred."
+    },
+    {
+      "id": "source_retrieval",
+      "area": "backend",
+      "title": "Search reviewed source passages",
+      "user_visible_behavior": "A question retrieves relevant passages from the reviewed corpus with enough metadata to identify the source and its applicability.",
+      "depends_on": ["source_catalog_validation"],
+      "status": "not_started",
+      "verification": ["Run source-anchored questions and confirm the expected source passage appears in the returned candidates."],
+      "evidence": [],
+      "notes": "Start with a measured retrieval baseline before treating candidate thresholds as release gates."
+    },
+    {
+      "id": "grounded_answer_generation",
+      "area": "backend",
+      "title": "Generate an evidence-grounded answer",
+      "user_visible_behavior": "For a covered question, the assistant returns a plain-Spanish answer whose material claims are supported by retrieved approved passages.",
+      "depends_on": ["answer_api_contract", "source_retrieval"],
+      "status": "not_started",
+      "verification": ["Evaluate a covered source-anchored question and check each material claim against its cited passage."],
+      "evidence": [],
+      "notes": "Never treat the language model as the source of legal facts."
+    },
+    {
+      "id": "safe_abstention",
+      "area": "backend",
+      "title": "Abstain when evidence is inadequate",
+      "user_visible_behavior": "For unsupported, stale, conflicting, or insufficient evidence, the assistant clearly says it cannot answer safely and gives an appropriate next step.",
+      "depends_on": ["grounded_answer_generation"],
+      "status": "not_started",
+      "verification": ["Submit out-of-corpus and false-premise questions and confirm they return an abstention without invented legal facts."],
+      "evidence": [],
+      "notes": "Critical dates and amounts require especially strong source evidence."
+    },
+    {
+      "id": "chat_question_submission",
+      "area": "client",
+      "title": "Submit a chat question",
+      "user_visible_behavior": "A person can enter a question, submit it once, see that the assistant is working, and receive the service response in the conversation.",
+      "depends_on": ["chat_home", "answer_api_contract", "backend_health"],
+      "status": "not_started",
+      "verification": ["Submit a question to a local or mocked service and confirm the response appears once in the conversation."],
+      "evidence": [],
+      "notes": "Preserve the user's original wording."
+    },
+    {
+      "id": "response_states",
+      "area": "client",
+      "title": "Show answer and abstention states",
+      "user_visible_behavior": "The conversation makes a supported answer visibly different from an abstention and presents the limitation in plain Spanish.",
+      "depends_on": ["chat_question_submission", "safe_abstention"],
+      "status": "not_started",
+      "verification": ["Show one answered and one abstained response and confirm their states and next steps are understandable."],
+      "evidence": [],
+      "notes": "Do not use a confident visual treatment to imply legal certainty."
+    },
+    {
+      "id": "answer_source_cards",
+      "area": "client",
+      "title": "Inspect cited sources",
+      "user_visible_behavior": "A person can see the source title, relevant location, verification date, and open the official source from an answer.",
+      "depends_on": ["response_states"],
+      "status": "not_started",
+      "verification": ["Open each source card in a sample answer and confirm its link reaches the cited official document."],
+      "evidence": [],
+      "notes": "Display critical source excerpts prominently when required by the answer policy."
+    },
+    {
+      "id": "network_error_recovery",
+      "area": "client",
+      "title": "Recover from service errors",
+      "user_visible_behavior": "If a request fails or the service is unavailable, the person sees a clear Spanish explanation and can retry without losing the question.",
+      "depends_on": ["chat_question_submission"],
+      "status": "not_started",
+      "verification": ["Simulate a timeout and a service error; confirm the question remains available and retry is clear."],
+      "evidence": [],
+      "notes": "Do not describe a failed or offline request as an answered one."
+    },
+    {
+      "id": "local_land_store",
+      "area": "lands",
+      "title": "Persist multiple lands locally",
+      "user_visible_behavior": "The app can store zero or more distinct lands on the device and retains them after the app is closed and reopened.",
+      "depends_on": [],
+      "status": "not_started",
+      "verification": ["Create two distinct records through the repository boundary and confirm both remain after reopening the app."],
+      "evidence": [],
+      "notes": "Choose persistence technology during implementation. Define migration and recovery behavior before a real-user pilot."
+    },
+    {
+      "id": "add_land",
+      "area": "lands",
+      "title": "Add a land",
+      "user_visible_behavior": "A person can add a named land and leave unknown attributes unset instead of guessing.",
+      "depends_on": ["local_land_store"],
+      "status": "not_started",
+      "verification": ["Add a land with only a name and another with known water and production details; confirm both save."],
+      "evidence": [],
+      "notes": "Keep setup short; area and notes remain optional pending validation."
+    },
+    {
+      "id": "land_list",
+      "area": "lands",
+      "title": "Find a saved land",
+      "user_visible_behavior": "A person can see their saved lands by their chosen names, distinguish similar lands, and reach an add action.",
+      "depends_on": ["local_land_store", "add_land"],
+      "status": "not_started",
+      "verification": ["With two saved lands, confirm both are visible and distinguishable; confirm the empty state explains how to add one."],
+      "evidence": [],
+      "notes": "Use a simple list rather than a map-first or spreadsheet-style layout."
+    },
+    {
+      "id": "edit_land",
+      "area": "lands",
+      "title": "Edit a land",
+      "user_visible_behavior": "A person can correct the name or known details of one land without changing another land.",
+      "depends_on": ["land_list"],
+      "status": "not_started",
+      "verification": ["Edit one of two saved lands and confirm the other record remains unchanged."],
+      "evidence": [],
+      "notes": "Unknown values remain valid after editing."
+    },
+    {
+      "id": "remove_land",
+      "area": "lands",
+      "title": "Remove a land",
+      "user_visible_behavior": "A person can remove a land they no longer manage after seeing which record will be removed.",
+      "depends_on": ["land_list"],
+      "status": "not_started",
+      "verification": ["Remove one of two lands and confirm only that land is absent from future lists and requests."],
+      "evidence": [],
+      "notes": "Use one simple removal path; decide whether undo is needed during implementation."
+    },
+    {
+      "id": "minimal_land_context",
+      "area": "lands-chat",
+      "title": "Use minimal land context",
+      "user_visible_behavior": "For a land-relevant question, the app supplies all active lands by default using only the attributes needed for that question.",
+      "depends_on": ["land_list", "chat_question_submission", "answer_api_contract"],
+      "status": "not_started",
+      "verification": ["Inspect a request for a land-relevant question and confirm it contains relevant attributes without names or free-text notes by default."],
+      "evidence": [],
+      "notes": "A general question must remain usable when no land is configured."
+    },
+    {
+      "id": "land_clarification",
+      "area": "lands-chat",
+      "title": "Ask which land applies",
+      "user_visible_behavior": "When the answer materially differs between lands, the assistant asks the person to choose the relevant land or lands before giving land-specific guidance.",
+      "depends_on": ["minimal_land_context", "source_retrieval"],
+      "status": "not_started",
+      "verification": ["Use two lands with different relevant attributes and confirm the assistant requests a choice instead of selecting one arbitrarily."],
+      "evidence": [],
+      "notes": "Candidate choices come from the local list; preserve the original question through the clarification."
+    },
+    {
+      "id": "answer_land_scope",
+      "area": "lands-chat",
+      "title": "Show which land context was used",
+      "user_visible_behavior": "A person can tell whether an answer is general, based on all lands, or based on the land they selected.",
+      "depends_on": ["land_clarification", "answer_source_cards"],
+      "status": "not_started",
+      "verification": ["View general, all-land, and selected-land responses and confirm the scope is clear in plain Spanish."],
+      "evidence": [],
+      "notes": "Never imply that land details prove eligibility."
+    },
+    {
+      "id": "land_data_disclosure",
+      "area": "privacy",
+      "title": "Explain land data handling",
+      "user_visible_behavior": "Before using land-aware answers, a person can understand in plain Spanish what is saved on the device and what may be sent with a question.",
+      "depends_on": ["local_land_store", "minimal_land_context"],
+      "status": "not_started",
+      "verification": ["Ask a low-digital-confidence reviewer what is stored locally and what leaves the device after reading the notice."],
+      "evidence": [],
+      "notes": "Do not promise backup or confidentiality beyond verified system behavior and provider terms."
+    },
+    {
+      "id": "chat_accessibility",
+      "area": "accessibility",
+      "title": "Read and operate the chat comfortably",
+      "user_visible_behavior": "A person can use the chat with enlarged system text, clear control labels, and keyboard or assistive-technology navigation.",
+      "depends_on": ["chat_home", "response_states", "answer_source_cards"],
+      "status": "not_started",
+      "verification": ["Check text scaling, screen-reader labels, keyboard focus, and visible focus on Android and Desktop."],
+      "evidence": [],
+      "notes": "Also apply large touch targets, high contrast, and plain Spanish."
+    },
+    {
+      "id": "land_form_accessibility",
+      "area": "accessibility",
+      "title": "Complete a land form accessibly",
+      "user_visible_behavior": "A person can add or edit a land with readable labels, understandable unknown options, and recoverable validation errors.",
+      "depends_on": ["add_land", "edit_land"],
+      "status": "not_started",
+      "verification": ["Complete and correct a land form using enlarged text and keyboard or assistive-technology navigation."],
+      "evidence": [],
+      "notes": "Validate the form with people who have low digital confidence."
+    },
+    {
+      "id": "land_safety_evaluation",
+      "area": "evaluation",
+      "title": "Evaluate land-aware answer safety",
+      "user_visible_behavior": "Changes to retrieval or land context can be checked against reviewed cases for correct sources, safe abstention, and correct land clarification.",
+      "depends_on": ["safe_abstention", "land_clarification"],
+      "status": "not_started",
+      "verification": ["Run source-anchored covered, uncovered, mixed-land, unknown-attribute, and false-premise cases; review critical facts against original sources."],
+      "evidence": [],
+      "notes": "Set numerical gates only after measuring a baseline."
+    },
+    {
+      "id": "android_mvp_build",
+      "area": "release",
+      "title": "Build the Android MVP artifact",
+      "user_visible_behavior": "The MVP can be built as an Android debug APK with shared product UI and behavior.",
+      "depends_on": ["suggested_questions", "network_error_recovery", "land_list", "edit_land", "remove_land", "land_data_disclosure", "chat_accessibility", "land_form_accessibility", "land_safety_evaluation", "answer_land_scope"],
+      "status": "not_started",
+      "verification": ["Run `./init.sh --verify` and install the generated debug APK on an Android device or emulator for a smoke check."],
+      "evidence": [],
+      "notes": "iOS is not part of MVP acceptance."
+    },
+    {
+      "id": "desktop_mvp_build",
+      "area": "release",
+      "title": "Build the Desktop MVP artifact",
+      "user_visible_behavior": "The MVP can be built and launched on Desktop with the same shared Compose UI and business behavior.",
+      "depends_on": ["suggested_questions", "network_error_recovery", "land_list", "edit_land", "remove_land", "land_data_disclosure", "chat_accessibility", "land_form_accessibility", "land_safety_evaluation", "answer_land_scope"],
+      "status": "not_started",
+      "verification": ["Run `./init.sh --verify`, launch the Desktop app, and complete one question and one land-management scenario."],
+      "evidence": [],
+      "notes": "Adapt layout and keyboard behavior for large windows rather than stretching the phone layout."
+    }
+  ]
+}

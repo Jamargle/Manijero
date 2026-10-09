@@ -1,105 +1,82 @@
-# Build Brief — Agricultural Assistant
+# Build Brief — Olive Grove Assistant
 
-## Problem
+## Product
 
-Olive growers (aceituneros) in Jaén have traditionally relied on paper-based processes and specialists (often cooperative advisors) to handle agricultural bureaucracy, PAC regulations, and government aids. As these processes slowly digitalize, farmers lack proper training on the new tools and remain dependent on specialists. The "Agricultural Assistant" app aims to reduce this dependence by providing an AI-powered conversational assistant that answers questions about official regulations, using only verified official documents as source.
+A Kotlin Multiplatform app for people who own or manage one or more olive groves and have little experience with computers or apps. The MVP makes it easy to ask questions in plain Spanish and receive cautious, source-backed guidance about official agricultural rules and procedures. It also lets a person keep a simple local record of their groves so answers can account for their situation.
 
-## Users
+The MVP targets Android and Desktop (JVM). iOS is out of MVP release scope, but implement business logic and Compose UI in `commonMain` so iOS can later reuse both without rewriting product behavior. Keep only platform integrations and app entry points in platform-specific source sets.
 
-- **Primary: Olive growers (aceituneros)** in Jaén with small parcels (20-150 olive trees per parcel). Mostly small-scale farmers with limited tech knowledge. The primary user profile is Spanish-speaking with colloquial language, limited formal training, and who currently delegate most paperwork to their cooperative. They use mobile phones but are not computer-literate. The best tester is the person who has the least ease of use with mobile phones.
+## Users and problem
 
-- **Secondary: Cooperative advisors** who currently handle paperwork for farmers. Not currently available; collaboration will be offered after demo.
+- **Primary users:** olive grove owners and managers, including people with several small or scattered lands. They may delegate paperwork to a cooperative and want to understand what applies, what to bring, and what questions to ask.
+- **Access needs:** low digital confidence, everyday Spanish, short explanations, forgiving navigation, clear next steps, readable text, and large touch targets.
+- **Validation:** test with the least digitally confident intended users. Family feedback can validate clarity and usability, not legal correctness.
 
-- **Tertiary: Technical specialists** (not in MVP scope).
+## Product goals
 
-## Goals
+1. Make asking an agricultural question easier than navigating official documents.
+2. Give answers grounded in approved official sources, with citations, source dates, and an honest “I don't know” when evidence is missing.
+3. Let people create and manage multiple olive lands with a small set of understandable details.
+4. Use land context when relevant; consider all of a user's lands by default and ask which land they mean when answers materially differ.
+5. Keep the interaction usable for people who are not comfortable with computers.
 
-1. **Provide accurate answers** about PAC, BOE, BOJA, FEGA regulations based exclusively on official documents.
-2. **Reduce dependence** on specialists for basic inquiries about deadlines, requirements, and procedures.
-3. **Be accessible** to farmers with basic smartphone knowledge — large buttons, high contrast, plain Spanish, few screens.
-4. **Say "I don't know" reliably** when information isn't in the verified corpus, with helpful referral to cooperative or agricultural extension office.
-5. **Maintain budget ≈ 0 €** using only free-tier services and local processing where possible.
+## MVP scope
 
-## Non-Goals (for MVP)
+The MVP is one complete journey: set up a local land record (or several), ask a question in plain Spanish, receive a grounded answer that uses relevant land context, inspect its official sources, and correct land details later.
 
-- Parcel management, wages, fertilizers, income, and expenses
-- User accounts and login/register
-- Document upload or letter photos
-- Semi-automatic Knowledge Ops (Scouts, automatic reindexing)
-- iOS support
-- Voice input (STT)
-- Agent with tools or AI Advisor
-- Personalized amount calculation
-- Google Play integration
+Included:
 
-## MVP Slice
+- Conversational assistant with typed questions and example prompts.
+- Cited answers, source links, verification date, plain-language explanation, and explicit abstention when evidence is inadequate.
+- Basic create, list, view, edit, and remove actions for multiple lands.
+- Minimum useful land details: a name or nickname, municipality, dryland/irrigated status, and conventional/organic production. Area and notes may be included if they help answer an identified MVP question; avoid collecting precise identifiers by default.
+- Local persistence on the device for land records and preferences; no account or cross-device sync is assumed for MVP.
+- All-lands context by default, with a simple clarification choice when land-specific answers differ.
+- Android and Desktop builds using shared Kotlin Multiplatform business logic and Compose UI.
+- Accessible interaction basics: large controls, readable type, plain Spanish, visible progress, and recoverable errors.
 
-The vertical slice that proves the riskiest useful behavior:
+## Explicitly out of scope for MVP
 
-- **Chat interface** where farmers can type or select suggested questions
-- **Profile selection** (first screen): "Mi olivar es: secano / regadío / los dos" and "Producción: convencional / ecológica" — stored locally on device, no user account
-- **Hybrid search**: ChromaDB (vector) + BM25 (lexical) with RRF fusion
-- **Filters**: profile (2-touch), campaign, valid=true
-- **Threshold check**: If similarity below minimum → "No lo sé" without calling LLM
-- **LLM generation**: Gemini Flash T=0, temperature=0, top_p=1, structured JSON response `{found, answer, sources}`
-- **Citations**: Numbers [1], [2]... referencing chunks with numbered context
-- **Legal notice**: "Información orientativa basada en documentos oficiales. No sustituye el asesoramiento profesional."
-- **Verification date**: "Documentos verificados por última vez dd/mm/aaaa"
-- **Fallback**: If found=false → fixed message: "No he encontrado esta información en los documentos oficiales que tengo. Te recomiendo consultar con tu oficina comarcal agraria o con tu cooperativa."
-- **Critical mode**: For `critico:true` topics → extractive mode with literal snippet, source, and date
+- iOS release or platform-specific iOS features (keep the shared layers ready for a later target).
+- Accounts, cloud sync, collaboration, roles, or shared land ownership.
+- Full farm management: tasks, workers, wages, expenses, inventory, machinery, yields, or accounting.
+- Precise cadastral/SIGPAC parcel editing or mapping, document/photo upload, and personalized aid calculations.
+- Voice input, autonomous agents, and automatic ingestion of unreviewed web content.
+- Cooperative-specific practices as authoritative content.
 
-## Core Domain Concepts (from CONTEXT.md)
+## Answer policy
 
-- PAC, PEPAC, Solicitud única, SIGPAC, FEGA, MAPA, BOE, BOJA
-- RAG, BM25, RRF, hit@k, Grounding, Extractive mode
-- 2-touch profile (secano/regadío + convencional/ecológica)
-- Campaña, critico, vigente, valid_until
-- Golden dataset, quality gates
+- Use approved official material only for legal or regulatory claims; every material claim must be traceable to its source.
+- Never invent deadlines, amounts, eligibility, or article numbers. If evidence is missing, stale, contradictory, or does not match the user's land context, say so and provide an appropriate human referral.
+- Keep the distinction between general guidance and professional advice clear. Critical dates and amounts need especially visible evidence and review.
+- Land records help choose applicable context; they do not establish legal eligibility or replace an official application review.
 
-## Technology Constraints
+## Technology direction
 
-- **Framework**: Kotlin Multiplatform + Compose Multiplatform
-- **Targets**: Android + Desktop (JVM); no iOS in MVP
-- **LLM**: Gemini Flash (fixed model), free tier
-- **Embeddings**: bge-m3 local (requires >20 GB RAM server)
-- **Vector DB**: ChromaDB, free, serverless
-- **Lexical search**: BM25 with rank_bm25
-- **Reranker**: Optional, bge-reranker-v2-m3 local (only if eval improves)
-- **Parsing**: pymupdf4llm (PDF→Markdown); Docling (tables); Tesseract (Spanish OCR)
-- **Chunking**: By legal structure (Article, Chapter, Annex); 500-800 tokens, 10-15% overlap; contextual prefix `[Regulation · Chapter · Article]`
-- **Backend**: Python 3.11 + FastAPI with endpoint POST `/ask`
-- **Client**: Ktor Client, `kotlinx.serialization`
-- **Hosting**: Self-hosted server + Docker Compose + Cloudflare Tunnel (free tier)
-- **CI/CD**: GitHub Actions (lint, pytest, contract tests, build, caches)
-- **Observability**: Langfuse self-hosted (Docker) or SQLite
-- **Tests**: kotlin-test, MockEngine, Compose UI tests, quality in CI
-- **Budget**: ≈ 0 €, all free and migratable via interfaces in case the product scales
+- Kotlin Multiplatform + Compose Multiplatform client; Android and Desktop are the MVP targets. Put business logic, presentation state, navigation, and Compose UI in shared `commonMain`. Put platform services and app entry points behind small platform-specific adapters; avoid Android/JVM-only types in shared code.
+- Preserve shared Android/Desktop/iOS business logic and Compose UI, but do not spend MVP effort on iOS build/release, Apple-specific integrations, or iOS acceptance criteria.
+- The existing Master Plan proposes a Python/FastAPI RAG service and official-document corpus. Treat model/provider and hosting choices as replaceable and validate them before release; land data must be minimized and protected in transit and in logs.
+- The existing “approximately zero budget” assumption is a constraint to validate, not a promise that third-party free tiers are safe or permanent.
 
-## Discovery Questions (Open)
+## MVP validation and success
 
-1. What is the exact structure of the catalog of official documents? (We have catalogo.csv with 10 seed documents, but structure may evolve.)
-2. How should the "campaign" field be handled? (Auto-injected per question, or user-selected?)
-3. What is the exact format for the legal notice and verification date? (User testing needed.)
-4. Should the 2-touch profile be selectable on first run only, or every time the app opens?
-5. What happens when the free tier of Gemini changes or ends? (Migration plan needed.)
-6. How will the corpus be kept up to date after MVP? (Semi-automatic Knowledge Ops?)
+Validate both usefulness and usability with realistic questions and people who have low digital confidence. Track:
 
-## Success Criteria (for MVP)
+- Whether a new user can add more than one land and later find/edit the right one without assistance.
+- Whether questions are answered with relevant sources, or safely declined when evidence is inadequate.
+- Whether a land-dependent question uses the correct context or asks a clear follow-up when needed.
+- Retrieval coverage, citation correctness, unsupported-claim rate, and response time on a source-anchored evaluation set.
+- User comprehension: can the person explain what the answer says, what it applies to, and where to get help?
 
-- ✅ hit@5 ≥ 85% on golden dataset (minimum 40 questions)
-- ✅ Correct abstention on trap questions: 100% (no hallucination)
-- ✅ Fidelity (judge) ≥ 95%
-- ✅ 0 invented numbers/dates in golden dataset
-- ✅ p95 latency < 8 s
-- ✅ Chat compiles on Android and Desktop
-- ✅ 2-touch profile persistent on device
-- ✅ Coverage screen shows which topics are covered and which are not
-- ✅ Organic labeled "beta"
-- ✅ Legal notices visible in responses with deadlines/amounts
-- ✅ Citation quality: each source in sent context verified
+Keep numerical thresholds in the evaluation plan and set them after the first measured baseline; do not treat inherited thresholds as verified performance.
 
-## Risks and Open Questions (summary)
+## Assumptions and unresolved items
 
-See `docs/risks-and-open-questions.md` for detailed risk register.
+- Land records are device-local in MVP; backup, migration, and data loss recovery need an explicit stance before a real-user release.
+- The exact land fields and whether area belongs in the first release should be validated against real questions and user comfort.
+- Define behavior for an empty land list, unknown land attributes, conflicting land contexts, and an ambiguous “my grove” reference.
+- Review the privacy, retention, and provider terms for questions sent to a hosted LLM before real-user release.
+- Existing design assets: no product design source found; the app icon is not a UI design system.
+- Visual design direction: see [DESIGN.md](../DESIGN.md).
 
-Last updated: 2026-10-05
+Last reviewed: 2026-10-09

@@ -1,35 +1,50 @@
-This is a Kotlin Multiplatform project targeting Android, iOS, Desktop (JVM).
+# Manijero — Olive Grove Assistant
 
-* [/iosApp](./iosApp/iosApp) contains an iOS application. Even if you’re sharing your UI with Compose Multiplatform,
-  you need this entry point for your iOS app. This is also where you should add SwiftUI code for your project.
+Manijero is a Kotlin Multiplatform app for people who own or manage one or more olive lands and want straightforward, source-backed help with agricultural questions. The MVP centers on an AI chat assistant and basic local management of multiple lands.
 
-* [/shared](./shared/src) is for code that will be shared across your Compose Multiplatform applications.
-  It contains several subfolders:
-  - [commonMain](./shared/src/commonMain/kotlin) is for code that’s common for all targets.
-  - Other folders are for Kotlin code that will be compiled for only the platform indicated in the folder name.
-    For example, if you want to use Apple’s CoreCrypto for the iOS part of your Kotlin app,
-    the [iosMain](./shared/src/iosMain/kotlin) folder would be the right place for such calls.
-    Similarly, if you want to edit the Desktop (JVM) specific part, the [jvmMain](./shared/src/jvmMain/kotlin)
-    folder is the appropriate location.
+## MVP platforms
 
-### Running the apps
+- **Android**
+- **Desktop (JVM)**
+- **iOS:** outside MVP delivery. Keep shared domain logic and reusable Compose UI suitable for a future iOS target; do not treat the existing iOS scaffold as an MVP release commitment.
 
-Use the run configurations provided by the run widget in your IDE's toolbar. You can also use these commands and options:
+The intended user has little experience with computers or apps. The interface and assistant should use plain Spanish, clear next steps, readable text, and source links. Land information is local by default; only the minimum context needed for a question should be sent to the answer service.
 
-- Android app: `./gradlew :androidApp:assembleDebug`
-- Desktop app:
-  - Hot reload: `./gradlew :desktopApp:hotRun --auto`
-  - Standard run: `./gradlew :desktopApp:run`
-- iOS app: open the [/iosApp](./iosApp) directory in Xcode and run it from there.
+See [the build brief](docs/build-brief.md), [domain model](docs/domain-model.md), [risks and open questions](docs/risks-and-open-questions.md), and [design direction](DESIGN.md) before changing product behavior. [MasterPlanV3.md](MasterPlanV3.md) contains the broader technical and delivery plan; its prior schedule was retired pending a new estimate.
 
-### Running tests
+## Project structure
 
-Use the run button in your IDE's editor gutter, or run tests using Gradle tasks:
+- [`shared/src/commonMain`](shared/src/commonMain/kotlin): shared Kotlin business logic and Compose UI for Android/Desktop and later iOS reuse.
+- [`androidApp`](androidApp): Android application entry point.
+- [`shared`](shared/src): shared Kotlin and Compose code. Current targets are defined in Gradle.
+- [`desktopApp`](desktopApp): Desktop launcher.
+- `iosApp`: existing project scaffold; not part of MVP build/release acceptance.
 
-- Android tests: `./gradlew :shared:testAndroidHostTest`
-- Desktop tests: `./gradlew :shared:jvmTest`
-- iOS tests: `./gradlew :shared:iosSimulatorArm64Test`
+Implement product behavior and Compose UI in shared `commonMain`. Keep platform integrations and app entry points in platform-specific source sets so a later iOS target can reuse the same UI and business logic.
 
----
+## Running the MVP targets
 
-Learn more about [Kotlin Multiplatform](https://www.jetbrains.com/help/kotlin-multiplatform-dev/get-started.html)…
+Use the run configurations in Android Studio/IntelliJ. Common Gradle tasks in the current template may include:
+
+```sh
+./gradlew :androidApp:assembleDebug
+./gradlew :desktopApp:run
+```
+
+Confirm task names against the current Gradle project before relying on them; template module names can change.
+
+## Product principles
+
+- The assistant grounds legal or regulatory claims in approved official sources, cites them, and says when it cannot answer safely.
+- Multiple lands are supported. Use all lands by default and ask the user to choose when the answer differs by land.
+- Unknown land details stay unknown; stored details do not prove legal eligibility.
+- Collect and transmit as little information as possible, and explain data handling in plain Spanish.
+
+## Documentation
+
+- [Build brief](docs/build-brief.md): users, goals, MVP slice, constraints, and validation.
+- [Domain model](docs/domain-model.md): lands, questions, source-backed answers, and lifecycle rules.
+- [Risks and open questions](docs/risks-and-open-questions.md): unresolved decisions and mitigations.
+- [Design direction](DESIGN.md): visual and accessibility guidance for the MVP UI.
+- [Project glossary](CONTEXT.md): stable terms and product constraints.
+- [Master Plan v3](MasterPlanV3.md): RAG, knowledge operations, evaluation, and delivery notes.
