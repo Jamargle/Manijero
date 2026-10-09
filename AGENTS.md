@@ -9,6 +9,11 @@ Manijero is a Kotlin Multiplatform olive-grove assistant for people with little 
 - Run `./init.sh` to check the local toolchain and show standard commands. Run `./init.sh --verify` for the documented Android, Desktop, and shared test/build checks.
 - Track user-visible work in [feature_list.json](feature_list.json); record verified progress in [PROGRESS.md](PROGRESS.md).
 
+## Project skills
+
+- Read the matching skill under `.agents/skills/` for Compose components, data, dependency injection, errors, module structure, navigation, MVI presentation or unit tests.
+- These are opinionated patterns; adapt them to this repository's existing KMP modules and shared `commonMain` architecture. Do not add modules, frameworks, or dependencies solely because a skill example assumes them.
+
 ## Operating rules
 
 - Do not invent legal facts. Ground regulatory claims in approved official sources, cite them, and abstain when evidence is inadequate.

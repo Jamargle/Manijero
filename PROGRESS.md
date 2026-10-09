@@ -27,3 +27,4 @@ Preferred next feature: `chat_home` — build the accessible, plain-Spanish star
 
 - Recorded the MVP direction: chat first, basic local management of multiple lands, all-land context by default, and land clarification when answers differ.
 - Added the initial harness. No product implementation or builds were performed in this session.
+- Installed nine project skills under `.agents/skills/`, added routing guidance to `AGENTS.md`.
