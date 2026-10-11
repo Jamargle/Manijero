@@ -6,7 +6,7 @@
 - The repository contains the Kotlin Multiplatform starter scaffold: `shared`, `androidApp`, `desktopApp`, and an existing iOS target. Shared Compose UI is in `commonMain`; the iOS target is not an MVP deliverable.
 - `shared/src/commonMain/.../App.kt` now contains the shared Spanish chat starting screen; answer service, land management, and official-source retrieval are not implemented.
 - Shared tests include reducer coverage for the chat composer; backend and full UI behavior are deferred to later features.
-- Product features are tracked in `feature_list.json`. `chat_home` is implemented and passing self-verification; independent acceptance and Android verification await SDK configuration.
+- Product features are tracked in `feature_list.json`. `chat_home` is implemented and passing shared/Desktop self-verification; independent acceptance can review it, while Android verification awaits SDK configuration.
 
 ## Start and verify
 
@@ -15,7 +15,13 @@
 - Android build: `./init.sh --android`
 - Launch Desktop: `./init.sh --desktop`
 
-These are the documented paths; they have not been run as part of this harness update.
+Verification evidence for `chat_home`:
+
+- `./init.sh` passes with the restored Gradle 9.8.0 wrapper and reports the current feature state.
+- `./gradlew :shared:jvmTest` passes.
+- `./gradlew :desktopApp:build` passes.
+- `./init.sh --verify`, `./gradlew :shared:testAndroidHostTest`, and `./init.sh --android` stop before compilation because neither `ANDROID_HOME` nor `local.properties` with `sdk.dir` is configured in this worktree. No Android result is claimed.
+- Desktop launch/manual smoke was not run because it is an interactive long-running target; compilation is covered by `:desktopApp:build`.
 
 ## Next feature
 
@@ -33,3 +39,4 @@ Preferred next feature: `suggested_questions` — add example prompts after the 
 | 2026-10-09 | Product discovery and harness with OpenAI Luna High. | Some conflicts manually solved 😂 and additional skills.|
 | 2026-10-11 | Added subagent workflow agents | .opencode/agents workflow files |
 | 2026-10-11 | Completed `chat_home` | Added shared Spanish chat starting screen and composer, pure reducer tests, Compose resources, and implementation spec. `:shared:jvmTest` and `:desktopApp:build` pass. Android checks are blocked by missing Android SDK configuration in the worktree. |
+| 2026-10-11 | Repaired `chat_home` reproducibility evidence | Restored the project’s Gradle 9.8.0 wrapper artifacts, corrected stale `init.sh` status text, reran host checks successfully, and recorded the exact Android SDK blocker without claiming Android verification. |
