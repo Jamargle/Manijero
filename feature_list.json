@@ -15,9 +15,16 @@
       "title": "Chat starting screen",
       "user_visible_behavior": "A person can open the app and see a clear Spanish prompt field and a simple way to begin, even before adding any lands.",
       "depends_on": [],
-      "status": "not_started",
+      "status": "accepted",
       "verification": ["On Android and Desktop, open the app with no configured lands and find the question field without assistance."],
-      "evidence": [],
+      "evidence": [
+        "Spec: docs/specs/chat_home.md.",
+        "Reproducible project wrapper restored from the project setup (Gradle 9.8.0); ./init.sh completes successfully.",
+        "./gradlew :shared:jvmTest passes; ./gradlew :desktopApp:build passes and compiles the shared Compose screen.",
+        "./init.sh --verify, ./gradlew :shared:testAndroidHostTest, and ./init.sh --android are blocked before compilation because this worktree has no ANDROID_HOME or local.properties sdk.dir.",
+        "Self-verification passes for the implemented shared/Desktop scope; Android verification remains environment-blocked and is not claimed.",
+        "Independent validator accepted commit 47e80c8 after confirming scope, accessibility labels, wrapper reproducibility, and all feasible checks."
+      ],
       "notes": "Implement the shared Compose UI in commonMain. Keep the first screen calm, readable, and focused on asking a question."
     },
     {
@@ -48,10 +55,14 @@
       "title": "Service health response",
       "user_visible_behavior": "The service exposes a health response that lets the app or operator distinguish an available service from an outage.",
       "depends_on": [],
-      "status": "not_started",
+      "status": "accepted",
       "verification": ["Request the health endpoint when running the service and confirm its documented success response."],
-      "evidence": [],
-      "notes": "The backend is proposed in MasterPlanV3.md but is not present in the current repository scaffold."
+      "evidence": [
+        "Implemented FastAPI GET /health with documented HTTP 200 response.",
+        "backend/tests: 2 passed; Uvicorn HTTP smoke check returned the documented JSON body.",
+        "Independent validation: accept (2026-10-11)."
+      ],
+      "notes": "The backend is proposed in MasterPlanV3.md but was not present in the repository scaffold; this feature establishes its initial service boundary."
     },
     {
       "id": "source_catalog_validation",

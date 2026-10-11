@@ -1,0 +1,9 @@
+<resources>
+    <string name="chat_home_title">¿En qué puedo ayudarte?</string>
+    <string name="chat_home_description">Pregunta sobre tus olivares con palabras sencillas. Puedes empezar sin añadir ningún terreno.</string>
+    <string name="chat_home_question_label">Escribe tu pregunta</string>
+    <string name="chat_home_question_hint">Por ejemplo: ¿Qué necesito preparar para la solicitud única?</string>
+    <string name="chat_home_ask">Preguntar</string>
+    <string name="chat_home_lands">Mis terrenos</string>
+    <string name="chat_home_submitted">Tu pregunta está lista para continuar.</string>
+</resources>
