@@ -31,3 +31,4 @@ Preferred next feature: `chat_home` — build the accessible, plain-Spanish star
 | 2026-10-07 | Harness starter completed | Minimal repo harness created |
 | 2026-10-08 | Refreshed the startup harness and split MVP work into session-sized features. | Repository inspection; no tests run in this harness update. |
 | 2026-10-09 | Product discovery and harness with OpenAI Luna High. | Some conflicts manually solved 😂 and additional skills.|
+| 2026-10-11 | Added subagent workflow agents | .opencode/agents workflow files |
