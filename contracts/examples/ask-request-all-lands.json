@@ -1,0 +1,10 @@
+{
+  "question": "¿Qué régimen de agua debo indicar para esta consulta?",
+  "land_context": {
+    "mode": "all_active",
+    "lands": [
+      {"id": "land-001", "municipality": "Úbeda", "water_regime": "dryland", "production_method": "unknown"},
+      {"id": "land-002", "water_regime": "unknown", "production_method": "organic"}
+    ]
+  }
+}

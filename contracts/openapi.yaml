@@ -1,0 +1,136 @@
+openapi: 3.1.0
+info:
+  title: Manijero Answer Service API
+  version: 0.1.0
+  description: >-
+    Contract for source-grounded Spanish answers. Land context is deliberately minimal:
+    local names, notes, precise parcel identifiers, and arbitrary personal data are not sent.
+servers:
+  - url: https://api.example.invalid
+paths:
+  /ask:
+    post:
+      operationId: askQuestion
+      summary: Ask for a source-grounded answer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AskRequest'
+      responses:
+        '200':
+          description: Answer state; inspect `status` for the next client action.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AskResponse'
+        '400':
+          description: Malformed request.
+        '422':
+          description: Request shape or enum validation failed.
+components:
+  schemas:
+    AskRequest:
+      type: object
+      additionalProperties: false
+      required: [question, land_context]
+      properties:
+        question:
+          type: string
+          minLength: 1
+          maxLength: 2000
+          description: Original user wording; do not silently rewrite it.
+        land_context:
+          $ref: '#/components/schemas/LandContext'
+    LandContext:
+      type: object
+      additionalProperties: false
+      required: [mode, lands]
+      properties:
+        mode:
+          type: string
+          enum: [general, all_active, selected]
+        lands:
+          type: array
+          description: Empty for general; all relevant active records for all_active; selected records for selected.
+          items:
+            $ref: '#/components/schemas/MinimalLandContext'
+    MinimalLandContext:
+      type: object
+      additionalProperties: false
+      required: [id]
+      properties:
+        id:
+          type: string
+          minLength: 1
+          maxLength: 128
+          description: Opaque stable local ID; the client resolves it to a label locally.
+        municipality:
+          type: string
+          minLength: 1
+          maxLength: 160
+        water_regime:
+          type: string
+          enum: [dryland, irrigated, mixed, unknown]
+        production_method:
+          type: string
+          enum: [conventional, organic, mixed, unknown]
+    AskResponse:
+      type: object
+      additionalProperties: false
+      required: [status, answer, sources, land_scope, land_ids_to_choose]
+      properties:
+        status:
+          type: string
+          enum: [answered, abstained, needs_land_clarification]
+        answer:
+          type: string
+          maxLength: 1200
+          description: Empty only while asking the client to choose lands.
+        sources:
+          type: array
+          items:
+            $ref: '#/components/schemas/AnswerSource'
+        land_scope:
+          type: string
+          enum: [general, all_active, selected]
+        land_ids_to_choose:
+          type: array
+          description: Existing opaque IDs only; populated only for clarification.
+          items:
+            type: string
+            minLength: 1
+            maxLength: 128
+    AnswerSource:
+      type: object
+      additionalProperties: false
+      required: [title, issuing_body, url, location, published_or_updated_on, verified_on, excerpt]
+      properties:
+        title:
+          type: string
+          minLength: 1
+          maxLength: 300
+        issuing_body:
+          type: string
+          minLength: 1
+          maxLength: 200
+        url:
+          type: string
+          format: uri
+          description: Stable official source URL.
+        location:
+          type: string
+          minLength: 1
+          maxLength: 200
+          description: Article, page, section, or equivalent location.
+        published_or_updated_on:
+          type: string
+          format: date
+        verified_on:
+          type: string
+          format: date
+        excerpt:
+          type: string
+          minLength: 1
+          maxLength: 2000

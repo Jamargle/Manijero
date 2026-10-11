@@ -32,7 +32,7 @@ case "$mode" in
     ./gradlew --version
     cat <<'EOF'
 
-Product features are not implemented yet; this checkout contains the KMP starter scaffold.
+This checkout contains the shared chat starting screen; later product features remain deferred.
 Standard verification:
   ./init.sh --verify
 
