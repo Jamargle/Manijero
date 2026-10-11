@@ -23,8 +23,11 @@ Preferred next feature: `chat_home` — build the accessible, plain-Spanish star
 
 ## Session log
 
-### 2026-10-09 · Product discovery and harness
-
-- Recorded the MVP direction: chat first, basic local management of multiple lands, all-land context by default, and land clarification when answers differ.
-- Added the initial harness. No product implementation or builds were performed in this session.
-- Installed nine project skills under `.agents/skills/`, added routing guidance to `AGENTS.md`.
+| Date | Change | Evidence |
+|---|---|---|
+| 2026-10-05 | Build brief initiated | User described project: olive tree field manager app with AI chatbot |
+| 2026-10-05 | Discovery documents created | CONTEXT.md, build-brief.md, domain-model.md, risks-and-open-questions.md |
+| 2026-10-07 | Harness starter started | AGENTS.md, init.sh created; feature_list.json in progress |
+| 2026-10-07 | Harness starter completed | Minimal repo harness created |
+| 2026-10-08 | Refreshed the startup harness and split MVP work into session-sized features. | Repository inspection; no tests run in this harness update. |
+| 2026-10-09 | Product discovery and harness with OpenAI Luna High. | Some conflicts manually solved 😂 and additional skills.|
