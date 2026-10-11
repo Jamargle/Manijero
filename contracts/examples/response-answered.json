@@ -1,0 +1,17 @@
+{
+  "status": "answered",
+  "answer": "La solicitud única reúne determinadas ayudas de la PAC en una declaración anual. Revisa la convocatoria y confirma los requisitos con la oficina agraria antes de presentarla.",
+  "sources": [
+    {
+      "title": "Solicitud única de la PAC",
+      "issuing_body": "Ministerio de Agricultura, Pesca y Alimentación",
+      "url": "https://www.mapa.gob.es/",
+      "location": "Información de la solicitud única",
+      "published_or_updated_on": "2026-01-15",
+      "verified_on": "2026-10-01",
+      "excerpt": "La solicitud única es el procedimiento anual para solicitar determinadas ayudas de la PAC."
+    }
+  ],
+  "land_scope": "general",
+  "land_ids_to_choose": []
+}
