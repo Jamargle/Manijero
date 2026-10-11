@@ -7,7 +7,7 @@
 - `shared/src/commonMain/.../App.kt` now contains the shared Spanish chat starting screen; answer service, land management, and official-source retrieval are not implemented.
 - Shared tests include reducer coverage for the chat composer; backend and full UI behavior are deferred to later features.
 - The backend now has a minimal FastAPI service with a documented liveness endpoint.
-- Product features are tracked in `feature_list.json`. `backend_health` is accepted; `answer_api_contract` is accepted; `chat_home` is implemented and passing shared/Desktop self-verification; independent acceptance can review it, while Android verification awaits SDK configuration.
+- Product features are tracked in `feature_list.json`. `backend_health` is accepted; `answer_api_contract` is accepted; `local_land_store` is accepted; `chat_home` is implemented and passing shared/Desktop self-verification; independent acceptance can review it, while Android verification awaits SDK configuration.
 
 ## Start and verify
 
@@ -42,3 +42,18 @@ Preferred next feature: `suggested_questions` — add example prompts after the 
 | 2026-10-11 | Implemented and independently validated `backend_health` | `backend/tests`: 2 passed; live Uvicorn `/health` smoke check returned HTTP 200 and the documented JSON response |
 | 2026-10-11 | Completed `chat_home` | Added shared Spanish chat starting screen and composer, pure reducer tests, Compose resources, and implementation spec. `:shared:jvmTest` and `:desktopApp:build` pass. Android checks are blocked by missing Android SDK configuration in the worktree. |
 | 2026-10-11 | Accepted `answer_api_contract` | OpenAPI 3.1 contract, five representative fixtures, dependency-free validator, and independent validation record; focused checks passed. |
+| 2026-10-11 | Implemented and independently reviewed `local_land_store` | Shared `LandRepository`, versioned local format, Android/Desktop adapters; `:shared:jvmTest` passed (5 tests); Android compile blocked by missing SDK configuration. |
+
+## Feature evidence
+
+### local_land_store — accepted
+
+- `LandRepository` supports create/list/update/delete with stable generated ids,
+  required trimmed names, explicit unknown attributes, and optional fields.
+- `SharedPreferencesLandStorage` persists Android records; `FileLandStorage`
+  persists Desktop/JVM records. Both use the shared versioned format.
+- Malformed individual records are skipped during recovery; writes replace the
+  complete snapshot.
+- Verification: `/Users/jose/AndroidStudioProjects/Manijero/gradlew -p . :shared:jvmTest`
+  passed. Android compilation could not run because the worktree has no Android
+  SDK location (`ANDROID_HOME`/`local.properties`).

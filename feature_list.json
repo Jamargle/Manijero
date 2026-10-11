@@ -158,9 +158,12 @@
       "title": "Persist multiple lands locally",
       "user_visible_behavior": "The app can store zero or more distinct lands on the device and retains them after the app is closed and reopened.",
       "depends_on": [],
-      "status": "not_started",
+      "status": "accepted",
       "verification": ["Create two distinct records through the repository boundary and confirm both remain after reopening the app."],
-      "evidence": [],
+      "evidence": [
+        "Implemented shared LandRepository with versioned local serialization and Android SharedPreferences/Desktop file adapters.",
+        "Independent review accepted: :shared:jvmTest passes, including two-record reopen persistence, update/delete isolation, unknown values, and validation; Android compilation is environment-blocked because no SDK/local.properties is available."
+      ],
       "notes": "Choose persistence technology during implementation. Define migration and recovery behavior before a real-user pilot."
     },
     {
