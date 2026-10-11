@@ -48,10 +48,14 @@
       "title": "Service health response",
       "user_visible_behavior": "The service exposes a health response that lets the app or operator distinguish an available service from an outage.",
       "depends_on": [],
-      "status": "not_started",
+      "status": "accepted",
       "verification": ["Request the health endpoint when running the service and confirm its documented success response."],
-      "evidence": [],
-      "notes": "The backend is proposed in MasterPlanV3.md but is not present in the current repository scaffold."
+      "evidence": [
+        "Implemented FastAPI GET /health with documented HTTP 200 response.",
+        "backend/tests: 2 passed; Uvicorn HTTP smoke check returned the documented JSON body.",
+        "Independent validation: accept (2026-10-11)."
+      ],
+      "notes": "The backend is proposed in MasterPlanV3.md but was not present in the repository scaffold; this feature establishes its initial service boundary."
     },
     {
       "id": "source_catalog_validation",
