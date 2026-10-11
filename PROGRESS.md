@@ -1,23 +1,25 @@
-# Manijero — Progress
+# Project Progress
 
 ## Current state
 
-- Product discovery is documented in `CONTEXT.md`, `docs/build-brief.md`, `docs/domain-model.md`, and `docs/risks-and-open-questions.md`.
-- The repository contains a Kotlin Multiplatform client scaffold with Android, Desktop (JVM), and an iOS scaffold. The MVP targets Android and Desktop; iOS is out of scope.
-- The next planned feature is F1: first-run selection of the grower's land type and production type.
-- Backend, Docker Compose services, official-document ingestion, RAG answering, and golden-dataset quality gates are not present yet.
-- No product feature is currently marked in progress.
+- Product discovery is documented in `CONTEXT.md`, `docs/build-brief.md`, `docs/domain-model.md`, `docs/risks-and-open-questions.md`, and `DESIGN.md`.
+- The repository contains the Kotlin Multiplatform starter scaffold: `shared`, `androidApp`, `desktopApp`, and an existing iOS target. Shared Compose UI is in `commonMain`; the iOS target is not an MVP deliverable.
+- `shared/src/commonMain/.../App.kt` is still the generated click-to-reveal greeting sample. Chat, land management, backend, and official-source retrieval are not implemented.
+- The existing shared tests are template examples and do not verify product behavior.
+- Product features are tracked in `feature_list.json`. No product feature is currently in progress.
 
 ## Start and verify
 
-Run `./init.sh` to confirm the Gradle project root and print the available commands.
+- Startup/toolchain check: `./init.sh`
+- Standard verification: `./init.sh --verify`
+- Android build: `./init.sh --android`
+- Launch Desktop: `./init.sh --desktop`
 
-- Desktop: `./gradlew :desktopApp:run`
-- Android build: `./gradlew :androidApp:assembleDebug`
-- Shared JVM tests: `./gradlew :shared:jvmTest`
-- Android host tests: `./gradlew :shared:testAndroidHostTest`
+These are the documented paths; they have not been run as part of this harness update.
 
-The Gradle test tasks are the checks currently available in the repository. Retrieval metrics and golden-dataset checks are planned; they are not implemented by these tasks yet.
+## Next feature
+
+Preferred next feature: `chat_home` — build the accessible, plain-Spanish starting screen and question composer in shared Compose UI. Keep it usable for general questions when the user has not added any lands.
 
 ## Session log
 
@@ -28,3 +30,4 @@ The Gradle test tasks are the checks currently available in the repository. Retr
 | 2026-10-07 | Harness starter started | AGENTS.md, init.sh created; feature_list.json in progress |
 | 2026-10-07 | Harness starter completed | Minimal repo harness created |
 | 2026-10-08 | Refreshed the startup harness and split MVP work into session-sized features. | Repository inspection; no tests run in this harness update. |
+| 2026-10-09 | Product discovery and harness with OpenAI Luna High. | Some conflicts manually solved 😂 and additional skills.|

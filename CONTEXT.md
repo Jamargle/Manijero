@@ -1,78 +1,54 @@
-# CONTEXT.md — Glossary and Domain Language
+# CONTEXT.md — Project Glossary and Product Constraints
 
-This file contains the canonical terms and domain language for the project. Use these precise terms in all project documentation, prompts, code comments, and agent instructions.
+Use these terms consistently across product and engineering documents. This is a glossary and stable context, not a roadmap.
 
-## Core Domain Terms
+## Domain terms
 
 | Term | Definition |
-|------|-----------|
-| **PAC** | Common Agricultural Policy (EU) |
-| **PEPAC** | Strategic Plan of Spain's PAC 2023-2027 |
-| **Solicitud única** | Annual application integrating direct aid and other PAC aids |
-| **SIGPAC** | Geographic Information System of Agricultural Parcels |
-| **FEGA** | Spanish Agricultural Guarantee Fund |
-| **MAPA** | Ministry of Agriculture, Fisheries and Food |
-| **BOE** | Official State Gazette |
-| **BOJA** | Official Gazette of the Junta de Andalucía |
-| **ELI** | European Legislation Identifier: stable URL of a regulation |
-| **Texto consolidado** | Updated version of a regulation; in BOE it is informative and without legal value |
-| **RAG** | Retrieval-Augmented Generation: retrieve chunks and generate response using only them |
-| **BM25** | Lexical word search |
-| **RRF** | Reciprocal Rank Fusion: ranking fusion |
-| **hit@k** | Proportion of questions whose correct source appears among the first k results |
-| **Grounding** | Ensuring every claim is supported by the context |
-| **Extractive mode** | Displaying the literal document snippet along with the explanation |
-| **Golden dataset** | Set of questions with verified answer and source, used for evaluation |
-| **Quality gate** | Metric threshold a change must pass to be merged |
-| **Ports and adapters** | Pattern isolating external services behind interfaces |
-| **Domain Mapper** | Agent that reads official guides and proposes procedure taxonomy |
-| **Scout** | Agent that discovers candidates from their source (BOE, BOJA, Web) |
-| **Classifier** | Agent that determines relevance and topic (JSON, T=0, confidence) |
-| **Vigencia Checker** | Agent that verifies BOE states, "is repealed" patterns, valid_until |
-| **2-touch profile** | How the user identifies: dryland/irrigated / both and conventional/organic |
-| **Campaña** | Season/aid period (e.g., 2026 campaign) |
-| **critico** | Mark indicating a topic includes critical deadlines, amounts, thresholds; mandatory extractive mode |
+|---|---|
+| Olive grower / land manager | Person who owns or manages one or more olive-growing lands |
+| Land | A user-managed olive-growing area represented in the app; not necessarily a legal cadastral parcel |
+| Water regime | Whether a land is dryland, irrigated, mixed, or not yet known |
+| Production method | Whether production is conventional, organic, mixed, or not yet known |
+| PAC | Common Agricultural Policy of the European Union |
+| PEPAC | Spain's Strategic Plan for the PAC |
+| Solicitud única | Annual application that combines direct aid and other PAC aid |
+| SIGPAC | Geographic Information System for Agricultural Parcels |
+| FEGA | Spanish Agricultural Guarantee Fund |
+| MAPA | Spain's Ministry of Agriculture, Fisheries and Food |
+| BOE / BOJA | Spain's Official State Gazette / Official Gazette of Andalusia |
+| RAG | Retrieval-Augmented Generation: retrieve source passages, then generate a response grounded in them |
+| Abstention | A clear response that the assistant cannot answer safely from available evidence |
+| Source-anchored question | Evaluation question with a reviewed expected answer and authoritative source |
 
-## User Types
+## Users and interaction
 
-| Role | Description |
-|------|-----------|
-| **Farmers/aceituneros** | End users: Jaén olive growers with small parcels (20-150 olive trees). Most delegate paperwork to the cooperative. 2-touch profile (dryland/irrigated, conventional/organic). Colloquial language, low technical training. |
-| **Cooperative advisor** | Cooperative staff currently handling paperwork for farmers. None available yet; collaboration will be offered after demo. |
-| **System** | The RAG + LLM + backend stack that processes questions and returns answers based on official documents. |
+- **Primary audience:** people with little computer or app experience who own or manage one or multiple olive lands.
+- **Language:** user-facing MVP copy and assistant responses are Spanish, using plain everyday language. Project documentation is English.
+- **Accessibility baseline:** readable text, high contrast, large controls, short steps, clear recovery, and no unexplained technical terms.
+- **Land context:** use all active lands by default; ask the user to choose when the answer materially differs by land. Unknown attributes remain unknown.
+- **Privacy:** no account is assumed for MVP. Land records are local by default. Send only the minimum land context needed for a query and exclude personal data from telemetry.
 
-## Key Constraints
+## Product and platform constraints
 
-| Constraint | Value                                                                                                                                                   |
-|------------|---------------------------------------------------------------------------------------------------------------------------------------------------------|
-| **Target surface** | Olive groves in Jaén, parcels of 20-150 olive trees (order of magnitude: tenths of a hectare to a bit more than one)                                    |
-| **Dryland/Irrigated** | There are dryland and irrigated lands. The 2-touch profile allows selecting both.                                                                       |
-| **Production** | Conventional and organic. The 2-touch profile includes both.                                                                                            |
-| **Interface language** | The app is implemented in English (code/UI structure), but users use Spanish (colloquial, with sector jargon).                                          |
-| **No user accounts** | MVP does not include login/register. The 2-touch profile is stored locally on device.                                                                   |
-| **Budget** | ≈ 0 €: all free but migratable in case product scale.                                                                                                   |
-| **LLM** | Gemini Flash (model fixed in config), free tier.                                                                                                        |
-| **Embeddings** | bge-m3 local, free (server with >20 GB RAM).                                                                                                            |
-| **Vector DB** | ChromaDB, free, serverless.                                                                                                                             |
-| **DOMAIN** | Official documents only: BOE, BOJA, FEGA. Do not index nominal listings, cooperative notices as content, or free web search.                            |
-| **Privacy** | No personal data. PII filter before sending to LLM and before recording logs. Process sensitive material locally (Ollama), never with Gemini free tier. |
-| **Legal notice** | "Información orientativa basada en documentos oficiales. No sustituye el asesoramiento profesional." Always visible in responses with deadlines or amounts.        |
+- **MVP platforms:** Android and Desktop (JVM).
+- **Future platform:** iOS is outside MVP delivery; implement business logic and Compose UI in shared `commonMain` so both can be reused later. Keep only platform integrations and entry points platform-specific.
+- **Client:** Kotlin Multiplatform + Compose Multiplatform; keep platform-specific services behind narrow boundaries.
+- **Answer sources:** approved official material for regulatory claims. A non-official or unverified source must not be presented as legal authority.
+- **Budget:** near-zero is a goal/constraint, not a guarantee of ongoing free service. Provider terms, privacy, limits, and migration paths must be reviewed.
 
-## Language Guidelines
+## Response principles
 
-- **Respond exclusively with retrieved context information**
-- **If not found: "No he encontrado esta información en los documentos oficiales que tengo. Te recomiendo consultar con tu oficina comarcal agraria o con tu cooperativa."**
-- **NEVER invent dates, deadlines, amounts, percentages, requirements, or article numbers**
-- **Cite with [1], [2]... and include source and date**
-- **Plain language: short sentences, no legal jargon, no technology jargon**
-- **If snippets contradict each other: notify the user**
-- **Extractive mode on critico:true topics: include literal snippet, source, and date**
-- **Standard closing: "Tu cooperativa puede tener plazos internos anteriores a los oficiales. Confírmalo con ella."**
-- **Documents last verified mm/dd/yyyy**
+- Use only retrieved, approved evidence for factual legal claims.
+- Do not invent dates, deadlines, amounts, thresholds, eligibility, or article numbers.
+- Cite sources in a way a non-technical user can open and understand.
+- Clearly distinguish a general explanation from what is known about the user's specific lands.
+- If evidence is absent, ambiguous, expired, conflicting, or not applicable, say what is unknown and suggest a suitable human contact such as the cooperative or Oficina Comarcal Agraria.
+- Critical amounts and deadlines need prominent source excerpts and dates.
 
-## MVP Scope Markers
+## Scope markers
 
-- **✅ IN MVP:** RAG chat with cited sources, verification date, legal notice; 2-touch profile; suggested questions; coverage screen; "No lo sé" responses with cooperative referral; 0 € budget; Gemini Flash free tier; ChromaDB + local BM25; Kotlin Multiplatform Android + Desktop.
-- **❌ OUT OF MVP:** Parcel management, wages, expenses; user accounts and login; document upload or photos; semi-automatic Knowledge Ops; iOS; voice input; agent with tools.
+- **In MVP:** grounded AI chat, source display, abstention, basic multiple-land create/read/update/delete, land-aware clarification, Android and Desktop, local land storage, usability validation.
+- **Out of MVP:** iOS release, account/cloud sync, shared ownership, precise parcel mapping, full farm/business management, document/photo upload, aid calculations, voice input, and unreviewed autonomous content ingestion.
 
-Last updated: 2026-10-05
+Last reviewed: 2026-10-09

@@ -1,24 +1,60 @@
 #!/usr/bin/env bash
-# Check the local project layout and print the supported startup commands.
-
 set -euo pipefail
 
-PROJECT_ROOT="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
-cd "$PROJECT_ROOT"
+REPO_ROOT="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
+cd "$REPO_ROOT"
 
-if [[ ! -f settings.gradle.kts || ! -f gradlew ]]; then
-  echo "Error: Manijero Gradle project files were not found in $PROJECT_ROOT" >&2
+usage() {
+  cat <<'EOF'
+Usage: ./init.sh [--check|--verify|--android|--desktop|--help]
+
+  --check    Check Java and the Gradle wrapper, then print standard commands (default)
+  --verify   Run shared host tests and build Android and Desktop targets
+  --android  Build the Android debug APK
+  --desktop  Launch the Desktop app
+  --help     Show this help
+EOF
+}
+
+if [[ ! -x "$REPO_ROOT/gradlew" ]]; then
+  printf 'Gradle wrapper is missing or not executable: %s/gradlew\n' "$REPO_ROOT" >&2
   exit 1
 fi
 
-echo "Manijero project: $PROJECT_ROOT"
-echo "Kotlin Multiplatform client scaffold is present. Backend and Docker services are not configured yet."
-echo
-echo "Start Desktop:                            ./gradlew :desktopApp:run"
-echo "Build Android:                            ./gradlew :androidApp:assembleDebug"
-echo "Start backend services (ChromaDB, etc.):  docker compose up -d"
-echo "Run shared JVM tests:                     ./gradlew :shared:jvmTest"
+if ! command -v java >/dev/null 2>&1; then
+  printf 'Java is required. Install a compatible JDK, then rerun ./init.sh.\n' >&2
+  exit 1
+fi
 
-# Exit successfully — this is intentional for the pre-bootstrap phase
-echo "✅ Directory confirmed. Bootstrap pending — run 'docker compose up -d' to start services."
-exit 0
+mode="${1:---check}"
+case "$mode" in
+  --check)
+    ./gradlew --version
+    cat <<'EOF'
+
+Product features are not implemented yet; this checkout contains the KMP starter scaffold.
+Standard verification:
+  ./init.sh --verify
+
+Run targets:
+  ./init.sh --android
+  ./init.sh --desktop
+EOF
+    ;;
+  --verify)
+    ./gradlew :shared:jvmTest :shared:testAndroidHostTest :androidApp:assembleDebug :desktopApp:build
+    ;;
+  --android)
+    ./gradlew :androidApp:assembleDebug
+    ;;
+  --desktop)
+    ./gradlew :desktopApp:run
+    ;;
+  --help|-h)
+    usage
+    ;;
+  *)
+    usage >&2
+    exit 2
+    ;;
+esac

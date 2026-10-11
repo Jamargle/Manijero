@@ -1,8 +1,8 @@
 # 🫒 Agricultural Assistant — Master Plan v3
 
-> **Project Context Document.** Contains the complete plan, decisions made, verified data, tasks
+> **Project Context Document.** Contains the product direction, architecture decisions, verified data, tasks
 > with their dependencies, and the guide for working.
-> **Version:** 3.0 · **Date:** October 4, 2026 · **Status:** Planning (no code yet)
+> **Version:** 3.1 · **Date:** October 9, 2026 · **Status:** Product direction updated; existing KMP scaffold present; delivery plan needs re-baselining
 > **Convention:** ✅ = data verified against official source · ⚠️ = pending verification · 🔴 =
 > critical · P0/P1/P2 = priority.
 
@@ -13,21 +13,22 @@
 ### 0.1 Working Rules (copy into project instructions)
 
 ```text
-You are my primary technical mentor: Senior Software Architect, AI expert
-(RAG/LLMs), and Product Manager. Project: "Agricultural Assistant" app for olive
-growers in Jaén. ALWAYS read the attached "Master Plan" document before responding.
+Project: Manijero, a Kotlin Multiplatform olive-grove assistant for people with low
+computer skills who own or manage one or more lands.
 
-RULES:
-1. When in doubt or if information is missing to decide, ASK ME (max. 1 question per response).
-2. Briefly explain the "why" of each architecture decision (especially RAG/LLMs).
-3. Prioritize simplicity, speed, and viability. Avoid overengineering.
-4. Free and quality tools, migratable behind interfaces. If a paid option is worth it, ask me first.
-5. Legal/financial domain: NEVER invent deadlines, amounts, articles, or requirements.
-   Any legal data must come from an official document; if you don't have it, say so.
-6. Respect the closed decisions of the plan (section 2) unless I change them.
-7. Work by WBS tasks (section 13): always indicate the task ID.
-8. At the end of a session, summarize what changed so I can update the document.
-9. Responses in English, Markdown format, professional and constructive tone.
+PRODUCT RULES:
+1. Read the current product brief, domain model, design direction, and relevant plan sections.
+2. MVP: AI chat first, basic multiple-land management; Android and Desktop only.
+3. Implement product behavior and Compose UI in commonMain for later iOS reuse.
+4. Use all lands by default; ask the user to choose when a material answer differs by land.
+   Never infer unknown details or legal eligibility.
+5. Never invent legal deadlines, amounts, thresholds, requirements, or article numbers.
+   Trace claims to approved official sources or state that they are unverified.
+6. Prefer simple, accessible workflows and plain Spanish user-facing language.
+7. Minimize land data and explain what is stored locally and what is sent to a provider.
+8. Verify changed behavior on Android and Desktop; include land ambiguity and abstention cases.
+9. Treat this plan as technical context; the current brief and domain model own product decisions.
+10. Report changed files, evidence, and remaining risks clearly.
 ```
 
 ### 0.2 How the Document is Organized
@@ -40,34 +41,30 @@ RULES:
 | 10-12      | Agents/parallelism, verified domain data, and golden dataset     |
 | 13-14      | **WBS (tasks, subtasks, dependencies) and roadmap**              |
 | 15-20      | Risks, privacy, UX, post-MVP, defense, and decisions             |
-| Appendices | Guide for working with Claude, sources, and changelog            |
+| Appendices | Coding-agent guidance, sources, and changelog                    |
 
 ---
 
 ## 1. Vision and MVP Scope
 
-**Product.** Free app for olive growers in Jaén with a **conversational assistant (RAG)** that
-resolves questions about regulations, bureaucracy, PAC, and Junta de Andalucía aid, responding
-**exclusively with official documents**. If it cannot find the information, it states that it
-doesn't know.
+**Product.** A Kotlin Multiplatform app for people with low computer skills who own or manage one or more olive lands. The MVP prioritizes a plain-Spanish AI chat assistant grounded in approved official sources, plus basic local management of multiple lands so relevant answers can account for the user's operation.
 
-**Long-term vision (out of MVP scope).** Parcel management, wages, fertilizers, income and expenses,
-pruning permits, olive transport, and an AI Advisor to boost income.
+**MVP targets.** Android and Desktop (JVM). iOS is not an MVP release target. Implement business logic and Compose UI in shared `commonMain` so a later iOS target can reuse both; keep only platform integrations and app entry points platform-specific.
 
-**MVP Scope (frozen).**
+**MVP vertical slice.** A person can ask a general question without setup, add one or more lands, ask a land-dependent question, clarify which land applies when the answer differs, inspect cited sources, and edit or remove a land. See [docs/build-brief.md](docs/build-brief.md), [docs/domain-model.md](docs/domain-model.md), and [DESIGN.md](DESIGN.md) for durable product detail.
 
-| In Scope                                                                     | Out of Scope                       |
-|------------------------------------------------------------------------------|------------------------------------|
-| RAG chat with cited sources, verification date, and legal notice             | Parcel management, wages, expenses |
-| Minimum 2-touch profile (dryland/irrigated, conventional/organic)            | User accounts and login            |
-| Suggested questions and coverage screen                                      | Document upload or letter photos   |
-| Semi-automatic Knowledge Ops (BOE, BOJA, official pages) with human approval | Cooperative data as content        |
-| **Android and Desktop** clients                                              | iOS                                |
-| Text-to-speech (Android)                                                     | Voice input                        |
+| In Scope | Out of Scope |
+|---|---|
+| Grounded chat, citations, verification date, clear abstention, and source links | iOS release and platform-specific iOS work |
+| Basic add/view/edit/remove for multiple lands | Accounts, cloud sync, shared ownership |
+| All-land context by default; ask user to choose when answers materially differ | Full farm/business management, accounting, workers, inventory |
+| Local land storage and minimal query context | Precise SIGPAC mapping, document/photo upload, personalized aid calculations |
+| Android + Desktop with shared Kotlin logic and Compose UI | Voice input, autonomous answering agents, unreviewed content ingestion |
+| Plain Spanish and usability testing with low-confidence users | Cooperative-specific practices presented as authoritative rules |
 
-**Core idea.** *The LLM is not the knowledge source: it only writes with what the system provides.*
-Reliability comes from controlling what is fed into it (retrieval, validity, threshold) and what it
-is allowed to say (prompt and validation).
+Land records provide context, not proof of legal eligibility. Minimize data sent to the answer service and do not imply local records are backed up.
+
+**Core idea.** *The LLM is not the knowledge source: it only writes with the approved evidence provided.* Retrieval, source validity, context selection, and answer checks control what it can say.
 
 ---
 
@@ -77,20 +74,22 @@ is allowed to say (prompt and validation).
 
 | #   | Decision                                                                           | Reason                                                                |
 |-----|------------------------------------------------------------------------------------|-----------------------------------------------------------------------|
-| D1  | **Kotlin Multiplatform + Compose Multiplatform client: Android and Desktop**       | No Apple Developer account. Keep `commonMain` clean to add iOS later  |
+| D1  | **Kotlin Multiplatform + Compose Multiplatform: Android and Desktop MVP; iOS later** | Shared business logic and UI should be reused; platform-specific integrations remain isolated |
 | D2  | **Python 3.11 + FastAPI backend**                                                  | Mature RAG ecosystem (parsers, evaluation, embeddings)                |
 | D3  | **Generation LLM: Gemini Flash** (stable model fixed in config) behind `LLMClient` | Free tier sufficient to start                                         |
 | D4  | **Local embeddings: bge-m3**                                                       | A server with over 20 GB of RAM is available; zero cost and no quotas |
 | D5  | **Vector DB: ChromaDB** + BM25                                                     | Free, serverless                                                      |
-| D6  | **Budget ≈ 0 €:** all free and migratable via interfaces                           | The app will be free                                                  |
+| D6  | **Near-zero budget is a constraint to validate**, providers replaceable             | Free tiers can change terms, limits, privacy, and availability         |
 | D7  | **`/ask` is a deterministic pipeline, not an agent**                               | Predictable and testable in a legal domain                            |
-| D8  | **Agents live in Knowledge Ops (offline)**                                         | Batch processing, parallelizable                                      |
-| D9  | **Automatically detect, manually approve** (Git PR)                                | An erroneous document is worse than a missing one                     |
+| D8  | **Agents, if added, belong in offline Knowledge Ops rather than `/ask`**            | Batch processing is latency-tolerant; MVP can operate with a curated corpus |
+| D9  | **MVP corpus changes are curated and reviewed; automation is later**                | An erroneous document is worse than a missing one                     |
 | D10 | **Source of truth = official document**, not anyone's opinion                      | No expert available right now                                         |
 | D11 | **Retiring obsolete information can be automatic; adding requires approval**       | An "I don't know" is better than misinformation                       |
-| D12 | **Declared scope**: coverage screen and ecological segment labeled "beta"          | Honesty about limits                                                  |
+| D12 | **Declared coverage and limitations**                                               | The app must not imply unsupported topics are covered                  |
+| D13 | **Multiple lands are in MVP; local-first, no account assumed**                     | Basic records make land-aware questions useful without cloud identity  |
+| D14 | **Use all lands by default; clarify when a material answer differs by land**        | Avoid arbitrary selection and unnecessary setup                        |
 
-### 2.2 User Profile (validated with the author's family)
+### 2.2 Early User Context (partly validated with the author's family)
 
 - **Family farming operation with small, scattered parcels** across the municipality: from about 20
   to about 150 olive trees per parcel (order of magnitude: tenths of a hectare to slightly more than
@@ -104,6 +103,7 @@ is allowed to say (prompt and validation).
   There are no legal experts in the family.
 - Cooperative technicians **are not available right now**; collaboration will be offered after the
   demo.
+- The intended product audience includes people with little computer experience who may own or manage multiple lands. Validate onboarding and land workflows with the least digitally confident participants.
 
 ### 2.3 User Segments
 
@@ -111,7 +111,7 @@ is allowed to say (prompt and validation).
 |-----------------------------------------|---------------------------------|----------------------------------|
 | A. Conventional, dryland, small         | Family (language and usability) | 🟢 Core                          |
 | B. Conventional, irrigated              | Family + official documents     | 🟢 Core                          |
-| C. Organic                              | Nobody yet                      | 🟡 Basic coverage labeled "beta" |
+| C. Organic                              | Not yet validated by intended users | ⚪ Include only where reviewed sources support it; disclose coverage limits |
 | D. Young farmer, livestock, other crops | n/a                             | ⚪ Out of MVP                    |
 
 ### 2.4 Assumptions (correct if they fail)
@@ -144,14 +144,14 @@ is allowed to say (prompt and validation).
 5. **Everything is measured.** If a change doesn't pass the golden dataset, it is not deployed.
 6. **Verifiability by design.** If there is no expert, make verification trivial: critical data with
    literal snippet, source, and date.
-7. **Simplicity first.** Prototype the RAG with Streamlit before investing in the KMP app.
+7. **Simplicity first.** Validate retrieval independently, but keep the planned end-user journey and acceptance criteria centered on the KMP app and multiple lands.
 
 ---
 
 ## 4. Architecture v3
 
 ```
-┌──────────────────── KNOWLEDGE OPS (agents, offline, scheduled) ──────────────────────┐
+┌────────────── FUTURE KNOWLEDGE OPS (offline, scheduled; not MVP critical path) ───────┐
 │ Scheduler (cron / GitHub Actions)                                                     │
 │   ├─► Scout BOE ──────┐                                                               │
 │   ├─► Scout BOJA ─────┤ (in parallel)                                                 │
@@ -168,10 +168,12 @@ is allowed to say (prompt and validation).
                                        │ versioned index
                                        ▼
 ┌────────────────────────── QUERY (each question, deterministic) ──────────────────────┐
-│ 📱 KMP App ─► FastAPI /ask ─► rate limit + semantic cache                             │
+│ 📱 KMP App: shared UI/business logic; local land store                                │
+│   ─► context builder uses all lands or asks user to choose when answers differ        │
+│   ─► send minimum needed attributes to FastAPI /ask ─► rate limit + semantic cache    │
 │   ─► input guardrails (domain, injection, PII)                                        │
 │   ─► rewriting (colloquial glossary → official terms)                                 │
-│   ─► hybrid search (Chroma + BM25 + RRF) with profile, campaign, and validity filters │
+│   ─► hybrid search (Chroma + BM25 + RRF) with applicability, campaign, and validity filters │
 │   ─► threshold ──(low)──► "I don't know" (without calling LLM)                        │
 │   ─► LLMClient (Gemini T=0 ► fallback) ─► VALIDATION CASCADE                          │
 │   ─► response + sources + verification date + legal notice                            │
@@ -180,14 +182,18 @@ is allowed to say (prompt and validation).
 ```
 
 **Why this shape.** Separating ingestion (offline) from querying (online) allows reindexing without
-touching the app. The threshold avoids calling the LLM when retrieval is poor, so it cannot
-hallucinate. Agents are used where latency does not matter and work is parallelizable.
+touching the app. Land records remain local; a context builder supplies only relevant attributes
+and asks the user when the answer differs by land. The retrieval threshold prevents an LLM call when
+evidence is poor, reducing (but not eliminating) unsupported answers. Agents are reserved for
+latency-tolerant batch work.
+
+**MVP corpus operation.** Start with a small, manually curated, reviewed official-source set. Automated discovery, classifiers, and automatic pull requests are later work, not prerequisites for the chat-and-lands MVP.
 
 ---
 
 ## 5. Technology Stack and Migration Path
 
-| Layer               | Today (Free)                                                                            | Interface           | If You Need Something Better                                                                     |
+| Layer               | Current Proposal (validate before adoption)                                              | Interface           | If You Need Something Better                                                                     |
 |---------------------|-----------------------------------------------------------------------------------------|---------------------|--------------------------------------------------------------------------------------------------|
 | LLM                 | **Gemini Flash** (stable model fixed)                                                   | `LLMClient`         | Claude Haiku, OpenAI mini, Ollama                                                                |
 | LLM Fallback        | Groq/OpenRouter (free quota) → local Ollama                                             | `LLMClient` (chain) | Any paid option                                                                                  |
@@ -213,6 +219,8 @@ requires a one-time registration fee ⚠️ (verify). Desktop: Compose Desktop i
 
 **LangChain vs LlamaIndex vs Own Code.** A RAG of this size is about 200 lines. Starting with few
 dependencies makes it easier to debug and defend every decision.
+
+These are existing planning options, not validated current provider terms or mandatory product requirements. Recheck cost, privacy, quota, operational burden, and migration before adoption.
 
 ---
 
@@ -267,7 +275,7 @@ dependencies makes it easier to debug and defend every decision.
 1. Question rewriting (colloquial glossary → official terms).
 2. **Hybrid search:** vector (Chroma) + BM25 (acronyms: SIGPAC, DUN, eco-scheme). Fusion with
    **Reciprocal Rank Fusion**.
-3. **Metadata filters:** profile (`aplica_a`), campaign, `vigente=true`, and `valid_until` after
+3. **Metadata filters:** source applicability (`aplica_a`) compared with only the relevant user-provided land attributes, campaign, `vigente=true`, and `valid_until` after
    today's date.
 4. 20 candidates → (optional) reranker → top-k = 6-8.
 5. **Minimum similarity threshold**, calibrated with the golden dataset. If not exceeded: fixed
@@ -425,13 +433,13 @@ def validate(ans: RagAnswer, chunks: dict[int, Chunk]) -> Verdict:
 You are the "Manijero", an assistant for olive growers in Jaén regarding regulations,
 bureaucracy, PAC, and Junta de Andalucía aid.
 TODAY'S DATE: {fecha_hoy}. CURRENT CAMPAIGN: {campana}.
-USER PROFILE (may be empty): {perfil}
+LAND CONTEXT (minimum attributes needed for this question only; may be empty): {contexto_terrenos}
 
 MANDATORY RULES:
 1. Respond EXCLUSIVELY with information from the fragments between <context> and
    </contexto>. Do not use your own knowledge or assumptions.
 2. If the context does not contain the answer, or only partially, respond with
-   found=false and the message: "No he encontrado esta información en los documentos
+   status="abstained" and the message: "No he encontrado esta información en los documentos
    oficiales que tengo. Te recomiendo consultar con tu oficina comarcal agraria o
    con tu cooperativa."
 3. NEVER invent dates, deadlines, amounts, percentages, requirements, or article numbers.
@@ -446,16 +454,20 @@ MANDATORY RULES:
 9. Always distinguish between "presentation deadline" and "modification deadline" of the single
    application, and state which campaign each date refers to.
 10. If a deadline in the context is prior to today's date, indicate that it has already passed.
-11. If the answer depends on the profile (dryland/irrigated, conventional/organic) and
-    is unknown, explain cases separately using only context.
-12. Many users delegate procedures to a cooperative. When the document describes
+11. If the answer depends on land attributes (dryland/irrigated, conventional/organic) and
+    the user has not provided them, ask a short clarification or explain the cases separately using only evidence.
+12. When multiple lands are provided and the answer differs materially by land, do not choose one arbitrarily. Ask the user to select the relevant land(s) before giving personalized guidance.
+13. Land attributes are user-provided context, not evidence of legal status or eligibility. Do not infer missing attributes.
+14. Many users delegate procedures to a cooperative. When the document describes
     a procedure, explain WHAT IT IS, WHAT IT IS FOR, WHAT DOCUMENTS OR DATA the user must
     provide, and WHAT SHOULD BE CONSULTED with their cooperative.
-13. Do not respond regarding specific cooperative practices (schedules, appointments, fees):
+15. Do not respond regarding specific cooperative practices (schedules, appointments, fees):
     state that you do not know and refer them to their cooperative.
 
 OUTPUT FORMAT (valid JSON, no additional text):
-{"found": true|false, "answer": "...", "sources": [1, 3]}
+{"status":"answered|abstained|needs_land_clarification","answer":"...","sources":[1,3],"land_ids_to_choose":[]}
+
+For `needs_land_clarification`, keep `answer` empty, cite no user-facing legal conclusion, and return only the relevant local land IDs for the client to display. The client supplies names and collects the selection. Final contract details remain subject to task 0.2 review.
 ```
 
 **Fixed lines added by code (not by the LLM):**
@@ -489,18 +501,23 @@ OUTPUT FORMAT (valid JSON, no additional text):
 | Adversarial   | Injection, out-of-domain, false premises, "is X still current?", jargon and typos | Specific dataset                    | Every PR                           |
 | Knowledge Ops | Scouts with recorded responses (BOE/BOJA); validity with known repeals            | `pytest` + fixtures                 | Every PR                           |
 | Client        | Logic with `kotlin-test` and Ktor `MockEngine`; Android UI; Desktop *smoke test*  | Compose UI tests                    | Every PR                           |
-| Load          | Latency with N users                                                              | Locust / k6                         | Week 4                             |
-| Real Users    | Usability (family and surroundings)                                               | Unobtrusive observation             | Weeks 3-4                          |
+| Load          | Latency under expected pilot usage                                                 | Locust / k6                         | Before pilot                       |
+| Real Users    | Low-digital-confidence users complete land, chat, and source-inspection journeys   | Unobtrusive observation             | Before pilot                       |
 
-### 9.2 Quality Gates in CI (PRs failing these are not merged)
+### 9.2 Proposed Quality Gates (calibrate against a measured baseline)
 
-| Metric                               | Initial Threshold |
-|--------------------------------------|-------------------|
-| Retrieval hit@5                      | ≥ 85%             |
-| Correct abstention on trap questions | **100%**          |
-| Fidelity (judge)                     | ≥ 95%             |
-| Invented numbers/dates               | **0**             |
-| p95 latency                          | < 8 s             |
+| Metric                               | Proposed starting point |
+|--------------------------------------|-------------------------|
+| Retrieval hit@5                      | 85% candidate            |
+| Correct abstention on trap questions | 100% candidate           |
+| Fidelity (judge)                     | 95% candidate            |
+| Invented numbers/dates               | 0 candidate              |
+| p95 latency                          | 8 s candidate            |
+
+These values are inherited proposals, not proven performance or release promises. Measure the
+baseline, define the evaluation set (including land ambiguity and unknown attributes), and agree
+which metrics are hard gates before enforcing thresholds in CI. Any unsupported critical claim
+should block release even if aggregate metrics pass.
 
 To avoid exhausting free tier quota: response caching by hash (prompt + context + model version),
 subset per PR, and complete set overnight.
@@ -538,7 +555,7 @@ assistant requires a fixed path.
 
 Rules:
 
-1. **Contracts first** (week 0): `openapi.yaml`, JSON schemas (catalog, chunk, golden, response),
+1. **Contracts before parallel implementation:** `openapi.yaml`, JSON schemas (catalog, chunk, golden, response),
    and `LLMClient`, `Embedder`, `VectorStore` interfaces. This allows each lane to advance without
    waiting.
 2. **One lane, one directory**, to avoid edit conflicts.
@@ -552,7 +569,7 @@ Rules:
 | A. Ingestion and Knowledge Ops | `/knowledge`        | Catalog schema                    |
 | B. RAG Backend                 | `/backend`          | `openapi.yaml`, interfaces        |
 | C. Evaluation and Validation   | `/eval`             | `golden.jsonl`, schemas           |
-| D. Android + Desktop Client    | `/app`              | `openapi.yaml` (uses mock server) |
+| D. Android + Desktop Client    | `androidApp`, `desktopApp`, `shared` | `openapi.yaml` (uses mock server) |
 | E. Infra and CI                | `/infra`, `.github` | Repo structure                    |
 
 ---
@@ -687,6 +704,7 @@ Save **two URLs per regulation** (original published and consolidated) and field
 | Conventional, irrigated                        | ~12         | Family + documents      |
 | Organic                                        | ~8          | Official FAQs           |
 | Transversal (deadlines, SIGPAC, active farmer) | ~10         | Mixed                   |
+| Land context (multiple, different, or unknown attributes) | Included across blocks | Source-anchored scenarios |
 | Traps                                          | 15+         | See 12.4                |
 
 Types to cover: **preparation** ("¿qué tengo que aportar?"), **control** ("¿cómo sé si han
@@ -710,7 +728,7 @@ presentado mi solicitud?"), **deadlines**, **notifications and rectifications**,
 
 - Out of corpus or out of domain.
 - **Specific cooperative practices** (schedules, appointments, processing fees).
-- **Another profile premise** ("I am organic, does conventional requirement X apply to me?").
+- **Land ambiguity** (multiple lands with different water/production attributes, or a required attribute is unknown).
 - False premise (non-existent or repealed regulation).
 - Organic profile without sufficient data (do not extrapolate from conventional).
 - Prompt injection.
@@ -727,23 +745,23 @@ olive grower's language.
 ## 13. WBS: Tasks, Subtasks, and Dependencies
 
 **How to read it.** Each task has an ID. "Depends on" lists tasks that must be done (or their agreed
-contract) before starting. When asking Claude for help, always indicate the ID. Lanes (A-F) can
+contract) before starting. When using an agent for help, include the task ID. Lanes (A-F) can
 advance in parallel once module 0 is closed.
 
-### Module 0 · Foundations (Lane E) — Week 0
+### Module 0 · Foundations (Lane E)
 
 | ID  | Task                     | Subtasks                                                                                                                            | Depends On | Definition of Done                    |
 |-----|--------------------------|-------------------------------------------------------------------------------------------------------------------------------------|------------|---------------------------------------|
-| 0.1 | Monorepo                 | Structure `/backend /app /knowledge /eval /infra /docs /contracts`; `.gitignore` (exclude personal data and keys); README           | n/a        | Repo created on GitHub                |
-| 0.2 | Contracts                | `openapi.yaml` (`POST /ask`, `GET /health`, `POST /feedback`); JSON schemas for catalog, chunk, golden, and response; example JSONs | 0.1        | Contracts reviewed and frozen (v1)    |
+| 0.1 | Repository Baseline      | Inspect the existing KMP scaffold; agree where planned backend, corpus, evaluation, contracts, and infrastructure live; keep secrets/data ignored | n/a | Current tree and planned modules documented; no duplicate app scaffold |
+| 0.2 | Contracts                | `openapi.yaml` (`POST /ask`, `GET /health`, `POST /feedback`); response/source schemas; minimal land-context and clarification fields; catalog, chunk, and golden schemas | 0.1 | Contracts reviewed with privacy minimization |
 | 0.3 | Python Interfaces        | `LLMClient`, `Embedder`, `VectorStore`, `Reranker`, `Judge`, `Tracer`, `Parser`; *fake* implementations for tests                   | 0.2        | Tests with *fakes* pass               |
 | 0.4 | CI Skeleton              | GitHub Actions: lint, `pytest`, contract tests, build; caches                                                                       | 0.1        | Green CI on each PR                   |
 | 0.5 | Local Environment        | `docker-compose` (backend, Chroma, Ollama; optional Langfuse); `.env.example`                                                       | 0.1        | `docker compose up` starts everything |
 | 0.6 | Catalog v0 and Golden v0 | `catalogo.csv` with 10 documents; 15 questions from 12.3                                                                            | 0.2        | Files validated against schema        |
-| 0.7 | Context for Claude       | This document; instructions per lane (`CLAUDE.md`/`AGENTS.md`)                                                                      | 0.1        | Document uploaded to project          |
+| 0.7 | Agent Context            | This plan and product docs; repository instructions if needed                                                                       | 0.1        | Current product source of truth linked |
 | 0.8 | Mock Server              | Server serving example responses from `openapi.yaml`                                                                                | 0.2        | Client can develop without backend    |
 
-### Module A · Ingestion and Knowledge Ops (Lane A)
+### Module A · Corpus and Knowledge Ops (A1-A5 MVP; A6-A17 Later)
 
 | ID  | Task                  | Subtasks                                                                                                                                                                                                                                                               | Depends On  | Definition of Done                                |
 |-----|-----------------------|------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|-------------|---------------------------------------------------|
@@ -769,7 +787,7 @@ advance in parallel once module 0 is closed.
 
 | ID  | Task                      | Subtasks                                                                       | Depends On | Definition of Done                                 |
 |-----|---------------------------|--------------------------------------------------------------------------------|------------|----------------------------------------------------|
-| B1  | Hybrid Retriever          | Chroma + BM25 + RRF; profile, campaign, validity filters                       | A4         | Measurable hit@5                                   |
+| B1  | Hybrid Retriever          | Chroma + BM25 + RRF; source applicability, campaign, and validity filters      | A4         | Measurable hit@k                                   |
 | B2  | Threshold                 | Calibration with golden; fixed response without calling LLM                    | B1, C1     | Traps rejected without LLM                         |
 | B3  | System Prompt & Generator | Template 8.2; JSON; `T=0`                                                      | 0.3        | Responses with valid format                        |
 | B4  | Input Guardrails          | Domain, injection, PII filter                                                  | 0.3        | Adversarial tests pass                             |
@@ -781,8 +799,7 @@ advance in parallel once module 0 is closed.
 | B10 | FastAPI API               | `/ask`, `/health`, `/feedback`; Pydantic validation                            | 0.2, B1-B9 | Complies with `openapi.yaml` (contract tests)      |
 | B11 | Logs and Traces           | Langfuse or SQLite: question, chunks, response, latency; no PII                | B10        | Trace per query                                    |
 | B12 | Reranker (Optional)       | Enable only if metrics improve                                                 | B1, C3     | Measured improvement or discarded                  |
-| B13 | Profile as Filter         | Anonymous profile (dryland/irrigated, conventional/organic) as metadata filter | B1         | Case-by-case responses if no profile               |
-| B14 | Streamlit Prototype       | Validate RAG before app (days 1-3)                                             | A4, B3     | Internal demo with citations                       |
+| B13 | Land Context Applicability | Compare minimal user land attributes with source applicability; preserve unknowns and detect materially different cases | B1 | Returns clarification-needed when context changes the answer |
 
 ### Module C · Evaluation and Validation (Lane C)
 
@@ -800,21 +817,22 @@ advance in parallel once module 0 is closed.
 
 ### Module D · Android + Desktop Client (Lane D)
 
-| ID  | Task                | Subtasks                                                                                                                     | Depends On | Definition of Done              |
-|-----|---------------------|------------------------------------------------------------------------------------------------------------------------------|------------|---------------------------------|
-| D1  | KMP Project         | `androidMain` and `desktopMain`; clean `commonMain` (no platform dependencies); accessible theme (large font, high contrast) | 0.1        | Compiles on Android and Desktop |
-| D2  | 2-Touch Profile     | Large buttons: dryland/irrigated/both and conventional/organic; local storage                                                | D1         | Persistent profile on device    |
-| D3  | Chat                | Bubbles, "thinking..." state, against mock server                                                                            | D1, 0.8    | Functional chat with mock       |
-| D4  | Suggested Questions | Reoriented to "what I bring to the cooperative", notifications, deadlines                                                    | D3         | Home screen                     |
-| D5  | Sources and Notices | Source card with link; verification date; legal notice; **literal block** on critical topics                                 | D3         | Always visible                  |
-| D6  | Ktor Client         | `ApiClient`; error handling; offline mode                                                                                    | 0.2        | Clear messages on failure       |
-| D7  | Voice               | Native TTS on Android (`expect/actual`); optional Desktop                                                                    | D3         | 🔊 button on Android            |
-| D8  | Feedback            | 👍/👎 with reason                                                                                                            | D6, B10    | Recorded in backend             |
-| D9  | Coverage Screen     | What topics are covered and which are not; ecological "beta"                                                                 | A13        | Static screen                   |
-| D10 | Calendar (Optional) | Static olive grower calendar by months                                                                                       | A13        | If time permits                 |
-| D11 | Packaging           | APK and Desktop installer                                                                                                    | E2         | Downloadable                    |
-| D12 | Client Testing      | `kotlin-test`, `MockEngine`, Compose UI tests, Desktop *smoke test*                                                          | D3         | Green in CI                     |
-| D13 | Connect to Real API | Replace mock with deployed backend                                                                                           | B10, E2    | Chat against public API         |
+| ID  | Task                  | Subtasks                                                                                                                       | Depends On | Definition of Done                         |
+|-----|-----------------------|--------------------------------------------------------------------------------------------------------------------------------|------------|--------------------------------------------|
+| D1  | KMP Project           | `androidMain` and `desktopMain`; clean `commonMain`; accessible shared foundation; iOS excluded from MVP build/release         | 0.1        | Android and Desktop compile                |
+| D2  | Local Land Store      | Agree minimal fields; persist zero or more lands locally; define migration/removal behavior                                    | D1         | Data survives restart and can be edited/removed |
+| D3  | Land Management UI    | Accessible list and add/view/edit/remove flows; unknown attributes allowed                                                     | D2         | User manages two distinguishable lands    |
+| D4  | Chat                  | Plain Spanish composer, progress/error states, against mock server                                                              | D1, 0.8    | Functional chat with mock                 |
+| D5  | Land Context Choice   | All lands by default; ask which land(s) when applicability differs; never guess missing values                                 | D3, B13    | Clarification cases covered                |
+| D6  | Suggested Questions   | Short examples relevant to questions users bring to their cooperative                                                          | D4         | Home screen                               |
+| D7  | Sources and Notices   | Source card/link, verification date, legal notice, literal excerpt for critical claims                                          | D4         | Evidence is inspectable                    |
+| D8  | Ktor Client           | `ApiClient`; request minimization; clear network, rate-limit, and service errors                                                | 0.2        | Useful messages on failure                |
+| D9  | Feedback (Optional)   | Simple rating with minimal data collection                                                                                     | D8, B10    | Feedback flow documented                  |
+| D10 | Coverage and Help     | Declare content limits and human referral paths                                                                                | A13        | User can tell where coverage ends          |
+| D11 | Packaging             | Android APK and Desktop installer                                                                                              | E2         | Downloadable                              |
+| D12 | Client Verification   | Shared logic checks, Ktor `MockEngine`, Compose UI checks, Android/Desktop smoke checks                                        | D3         | MVP targets verified                      |
+| D13 | Real API Integration  | Replace mock with deployed backend; exercise minimal land context                                                               | B10, E2, D5, D8 | Chat works end to end                     |
+| D14 | Local Data Disclosure | Explain local storage, provider transmission, deletion, and recovery stance                                                     | D2, G1     | Plain-language disclosure checked         |
 
 ### Module E · Infrastructure (Lane E)
 
@@ -833,9 +851,9 @@ advance in parallel once module 0 is closed.
 |----|-------------------------------|--------------------------------------------------------------------------------------------------|------------|----------------------------------|
 | F1 | Family Session                | Procedure map; question journal (voice notes); lived calendar (father's voice note, ~10 min)     | n/a        | Material gathered                |
 | F2 | Question Journal → Golden     | Transcribe, anonymize, anchor to source                                                          | F1         | ≥ 20 candidate questions         |
-| F3 | WhatsApp Notices              | Copy cooperative notices only (until March 2026), with date; anonymize; do not export full chats | F1         | Anonymized local archive         |
-| F4 | Usability Test                | Family: 30 minutes each, unobtrusive                                                             | D3, B10    | Friction notes                   |
-| F5 | Qualitative Mini-Pilot        | 8-10 people from surroundings for one week; no personal data                                     | E2, D11    | Report with declared limitations |
+| F3 | User Question Notes (Optional)| Collect only voluntary, de-identified question themes; do not export chat histories or retain messages containing personal data | F1 | Candidate questions reviewed for privacy |
+| F4 | Usability Test                | People with low digital confidence try setup, two-land management, a land-dependent question, and source inspection | D13, D14 | Friction and comprehension findings |
+| F5 | Qualitative Mini-Pilot        | 8-10 people from surroundings; collect only necessary feedback and explain local/provider data handling | E2, D11 | Report with declared limitations |
 | F6 | Official Inquiries (Optional) | 5-10 questions via official support channel                                                      | n/a        | Written responses                |
 | F7 | Cooperative (Phase 2)         | Offer review of working app                                                                      | F5         | After demo                       |
 
@@ -852,28 +870,24 @@ advance in parallel once module 0 is closed.
 
 `0.2 → A1 → A2 → A3 → A4 → B1 → B2 → B7 → B10 → E1 → E2 → D13 → F4 → F5`
 
----
-
-## 14. Roadmap
-
-The scope requires **4 weeks for the core** (with semi-automatic Knowledge Ops) and **2 optional
-weeks** for complete autonomy.
-
-| Week                 | Parallel Lanes                                                                                                                                                             | Measurable Milestones                                                                                           |
-|----------------------|----------------------------------------------------------------------------------------------------------------------------------------------------------------------------|-----------------------------------------------------------------------------------------------------------------|
-| **0** (2-3 days)     | Complete **Module 0**; F1 (family session)                                                                                                                                 | ✅ Frozen contracts · ✅ Green CI · ✅ Golden v0 · ✅ `docker compose up`                                       |
-| **1**                | A1-A5 (seed corpus indexed) · B3, B14 (Streamlit prototype) · C1 (golden ≥ 40) · D1, D3 (chat with mock) · F2, F3                                                          | ✅ **Measured baseline** (hit@5, fidelity) · ✅ Chat compiles on Android and Desktop                            |
-| **2**                | A6-A8, A10 (Scouts in report mode + validity) · B1, B2, B4-B10 (hybrid, threshold, cascade, fallback, cache, API) · C2, C5 (gates) · D2, D4-D6 · E1, E2 (deployment) · A14 | ✅ **Public API** · ✅ hit@5 ≥ 85% · ✅ **Traps 100%** · ✅ Gates block PRs                                     |
-| **3**                | A9, A11-A13, A15-A17 (classifier, automatic PR, web monitor) · B11-B13 · C4, C6-C9 · D7-D9, D13 · F4                                                                       | ✅ **First complete cycle:** discovery → PR → approval → reindex → deploy · ✅ Procedure map validated as users |
-| **4**                | E4-E6 · D11, D12 · F5 (mini-pilot) · G1-G4                                                                                                                                 | ✅ p95 < 8 s · ✅ Evaluation report · ✅ APK + Desktop installer · ✅ Rehearsed demo                            |
-| **5-6** *(optional)* | More sources, "I don't know" loop → Scouts, voice input, D10                                                                                                               | ✅ Expanded corpus with measured coverage                                                                       |
-
-**Recuts if delayed (in this order):** Desktop polish → reranker (B12) → calendar (D10) → classifier
-sophistication (A9). **Never recut** the validation cascade (B7) or quality gates (C5).
-
-**After the demo:** offer the cooperative to review the working app (F7).
+Client data path: `0.1 → D1 → D2 → D3 → D5 → D13 → D14 → F4 → F5`.
 
 ---
+
+## 14. Delivery Plan and Milestones
+
+The previous fixed four-week schedule assumed a frozen scope that excluded land management and included voice, broad Knowledge Ops automation, and other work not required for the updated MVP. It is retired. Re-estimate after the MVP contracts and the available weekly effort are known; do not report calendar dates or performance thresholds as commitments before that baseline exists.
+
+| Milestone | Focus | Exit evidence |
+|---|---|---|
+| M0 · Product and data contract | Agree minimal land fields, local data lifecycle, API context minimization, answer/source shape, and first corpus coverage | Reviewed contracts; unresolved privacy and backup questions have owners |
+| M1 · Trustworthy chat | End-to-end general question to retrieval to answer; citations, source freshness, clear loading/error states, and abstention | Source-anchored evaluation covers in-scope topics, traps, and critical claims |
+| M2 · Land foundation | Shared Android/Desktop app flow to add, edit, distinguish, and remove multiple lands; general chat works with no land configured | Low-confidence user can manage two lands and recover from form mistakes |
+| M3 · Land-aware answers | All-land default; ask user to choose when answers differ; send only context required for the question | Tests show no arbitrary land selection, no inference of unknown fields, and visible context in the answer |
+| M4 · Pilot readiness | Android and Desktop packaging, privacy/data-use explanation, outage behavior, recovery stance, basic operations and corpus ownership | Usability sessions completed; data flow and operational owner reviewed; release checklist passed |
+| Later | Voice, cloud sync, precise parcel mapping, cooperative content, autonomous Knowledge Ops expansion, iOS release | Revisit only after MVP evidence supports the added cost and complexity |
+
+**Priority rule:** protect the core chat and land workflows. Defer optional calendar, TTS, reranker unless measured, feedback collection, broad automatic ingestion, and elaborate observability before cutting source traceability, data minimization, usability checks, or safe abstention.
 
 ## 15. Risks and Mitigation
 
@@ -886,16 +900,16 @@ sophistication (A9). **Never recut** the validation cascade (B7) or quality gate
 | Erroneous or malicious document enters corpus                                        | Medium | 🔴 High     | Whitelist, human approval per PR, provenance, text treated as data                                             |
 | Official deadline different from cooperative's internal deadline                     | Medium | 🟠 High     | Fixed closing line; do not respond regarding specific cooperative practices                                    |
 | User acts solely based on bot output                                                 | Medium | 🟠 High     | Visible legal notice and "consult with your cooperative" as standard closing                                   |
-| Choosing **non-applicable fragment** (dryland vs irrigated, conventional vs organic) | Medium | 🟠 High     | Metadata `aplica_a`, 2-touch profile, case-by-case response                                                    |
-| Validation bias (everything validated with conventional profile)                     | Medium | 🟠 Medium   | Ecological segment labeled "beta"; expand with neighbors and official FAQs; cooperative review after demo      |
+| Choosing **non-applicable fragment** (land attributes differ or are unknown) | Medium | 🟠 High | Compare `aplica_a` with supplied attributes; use all-land default, clarify material differences, never infer unknowns |
+| Validation bias (only familiar land types/questions evaluated)                       | Medium | 🟠 Medium   | Track dryland, irrigated, organic, mixed, unknown, and multi-land scenarios; declare uncovered topics plainly |
 | Change or reduction of Gemini free tier                                              | Medium | 🟠 Medium   | Fixed model, `LLMClient`, fallback, cache, migration to paid tier                                              |
-| Privacy: questions sent to a free tier                                               | Medium | 🟠 Medium   | No personal data, PII filter, privacy notice, migration to paid tier if real users exist                       |
+| Privacy: land context or questions sent to a provider                                | Medium | 🟠 High     | Minimize per-request fields, avoid names/notes by default, disclose processing, redact logs, review provider terms |
 | Personal data in notices, letters, or listings                                       | Medium | 🟠 Medium   | Anonymize, process locally, do not upload to Git, do not index nominal listings                                |
 | Own server down                                                                      | Medium | 🟠 Medium   | Hosting plan B, backups, reproducible `docker-compose`, alerts                                                 |
 | Quota exhausted by CI or agents                                                      | High   | 🟡 Medium   | Hash cache, subsets in PR, call budget                                                                         |
 | False positives of Validity Checker                                                  | Medium | 🟡 Medium   | Withdraws automatically only; proposes and human confirms ambiguous ones                                       |
 | Scanned PDFs or broken tables                                                        | Medium | 🟡 Medium   | Docling/OCR, manual review of key tables, snapshot tests                                                       |
-| Scope creep (Knowledge Ops grows out of control)                                     | High   | 🟠 High     | Semi-automatic version in core; full autonomy in weeks 5-6                                                     |
+| Scope creep (Knowledge Ops grows out of control)                                     | High   | 🟠 High     | Curate MVP corpus manually; defer automated discovery, classification, and pull-request flow                    |
 | Conflicts between development agents                                                 | Medium | 🟡 Medium   | Contracts first, one lane per directory, PR + CI                                                               |
 | False sense of authority                                                             | Medium | 🟠 Medium   | "Guidance", literal source, date, declared scope                                                               |
 
@@ -903,10 +917,10 @@ sophistication (A9). **Never recut** the validation cascade (B7) or quality gate
 
 ## 16. Privacy, Legal, and Compliance
 
-- **Do not request or store personal data.** 2-touch profile stored on device and sent only as an
-  anonymous filter.
-- **PII filter** (names, ID, phone numbers) before sending question to LLM and before recording
-  logs.
+- **Minimize data.** Land records stay on device by default. Send only the minimum attributes needed for a specific question; do not send land names or free-text notes by default.
+- **Logs and traces:** avoid raw land details, notes, personal identifiers, and raw questions by default. Define retention, access, and deletion before pilot.
+- **Explain data use** in plain Spanish before first use and make land data inspectable, editable, and removable.
+- **PII filter** before model calls and before operational logging; filtering does not replace minimization.
 - **Privacy policy** mentioning the use of an external AI provider and free tier conditions.
 - **Visible legal notice:** guidance information based on official documents; does not replace
   professional advice.
@@ -914,29 +928,23 @@ sophistication (A9). **Never recut** the validation cascade (B7) or quality gate
 - **WhatsApp notices:** cooperative notices only, anonymized, processed locally, outside Git; not
   published literally (paraphrased or permission requested).
 - **Do not process third-party data** (notices, letters, listings) with Gemini free tier.
-- **GDPR:** no accounts or identifiers in MVP; review when adding users.
+- No account does not mean no personal-data risk. Review applicable privacy obligations and provider terms before a real-user release.
 
 ---
 
 ## 17. Product and UX
 
-### 17.1 Principles
+The primary audience has little computer experience and may manage multiple small lands. Keep the first journey short, allow general questions without setup, use plain Spanish, and test with the person least comfortable with apps. See [DESIGN.md](DESIGN.md) for persistent visual and accessibility guidance.
 
-Large font and high contrast, large buttons, few screens, short sentences in plain Spanish,
-text-to-speech (Android), and clear error messages. The user is not computer-literate: **the best
-tester is the person with the least ease of use with mobile phones**.
+### 17.1 MVP Screens
 
-### 17.2 MVP Screens
-
-1. **2-Touch Profile** (first time): "My olive grove is: dryland / irrigated / both" and
-   "Production: conventional / organic".
-2. **Home:** suggested questions in large buttons and input field.
-3. **Chat:** bubbles, "thinking..." state, 🔊 button on Android.
-4. **Response:** simple text, literal block on critical topics, **source card** (regulation,
-   article, link, date), verification date, and legal notice.
-5. **Coverage:** what topics are covered and which are not; organic "beta".
-6. **Feedback:** 👍/👎 with optional reason.
-7. *(Optional)* **Olive grower calendar** static by months.
+1. **Welcome / first use:** short explanation of capabilities, limits, privacy, and optional land setup.
+2. **Home / ask:** prominent question field, a few example prompts, and access to “Mis terrenos”.
+3. **My lands:** simple named list with add, view, edit, and remove flows for multiple lands.
+4. **Add/edit land:** minimal fields; unknown values allowed; do not require area or sensitive identifiers absent a validated need.
+5. **Chat and answer:** plain explanation, visible source cards, verification date, and prominent limitations for uncertain or critical claims.
+6. **Land clarification:** when answer applicability differs, show named lands and ask which one(s) the user means.
+7. **Coverage and help:** make corpus limits clear and provide a path to human help. Feedback is optional if it can be captured without unnecessary personal data.
 
 ### 17.3 Suggested Questions (Hypotheses to Validate with Family)
 
@@ -959,11 +967,11 @@ tester is the person with the least ease of use with mobile phones**.
 
 | Phase    | Improvement                                                                                                                                                  | Value                                      |
 |----------|--------------------------------------------------------------------------------------------------------------------------------------------------------------|--------------------------------------------|
-| **v1.1** | Voice input (STT, e.g., Whisper); deadline push notifications; photo of a letter to explain it (paid tier only for privacy)                                  | Accessibility and retention                |
-| **v1.2** | Accounts, **parcel management** (SIGPAC, enclosures), wages, fertilizers, income vs. expenses                                                                | Solves the pain of scattered smallholdings |
-| **v1.3** | Personalized responses (RAG + parcel data); olive transport and pruning permits; **"My cooperative notices"** as a separate source labeled with consent      | Differentiation                            |
-| **v2.0** | Agent with tools (aid estimation, oil prices, weather) as AI Advisor; partial offline mode; automatic corpus update with human review; cooperative dashboard | Scale                                      |
-| Scale    | Reranker, semantic cache, admin panel (approve PR from mobile), analytics, migration to pgvector/Qdrant, iOS                                                 | Quality and cost                           |
+| **v1.1** | Voice input; land export/backup and restore; improve land-aware follow-ups based on pilot evidence | Accessibility and data continuity |
+| **v1.2** | Accounts, sync, shared access, SIGPAC references or mapping, land records beyond the MVP minimum | Continuity and precise land workflows |
+| **v1.3** | Tasks, yields, expenses, cooperative notices with explicit consent and provenance | Broader farm management |
+| **v2.0** | Carefully evaluated tools, aid estimation only with validated inputs and safeguards, offline capabilities, cooperative dashboard | New workflows and scale |
+| Scale | Reranking, observability, corpus operations, provider migration, and iOS release | Quality and reach |
 
 ---
 
@@ -999,8 +1007,8 @@ tester is the person with the least ease of use with mobile phones**.
 | What if the law changes?                     | Knowledge Ops, validity metadata, reproducible reindexing, human approval                                      |
 | How did you validate without an expert?      | Source first, critical data manually verified, judge different from generator, extractive mode, declared scope |
 | How much does each query cost?               | Measure tokens per query; cost ≈ 0 on free tier; migration plan to paid                                        |
-| What about privacy?                          | No personal data, PII filter, notice, local processing of sensitive material                                   |
-| What would you do with more time?            | Voice, parcels, personalization, agent with tools, cooperative review                                          |
+| What about privacy?                          | Local-first land data, per-request minimization, clear notice, log redaction, provider review                  |
+| What would you do with more time?            | iOS release, sync, precise parcel mapping, voice, broader farm management, cooperative review                 |
 
 ### 19.3 Mini-Pilot: What to Measure (and How to Tell It)
 
@@ -1016,24 +1024,29 @@ drawn**; declare the limitation.
 
 | #   | Issue                                                                                          | When to Decide |
 |-----|------------------------------------------------------------------------------------------------|----------------|
-| P1  | Exact Gemini model (stable) and free tier current terms                                        | Week 0-1       |
-| P2  | Confirm Cloudflare Tunnel conditions and hosting plan B                                        | Week 2         |
-| P3  | Publish on Google Play (one-time registration fee, verify) or APK only                         | Week 4         |
+| P1  | Exact model/provider and current privacy, price, and free-tier terms                              | Before provider integration |
+| P2  | Hosting approach, availability, and operational owner                                            | Before pilot deployment |
+| P3  | Distribution channel and current store/distribution requirements                                 | Before release |
 | P4  | Gemini paid tier if app is published to real users                                             | Before release |
-| P5  | Verify Law 39/2015, the current regulation governing SIGPAC, and digital notebook modifying RD | Week 1 (A1.3)  |
-| P6  | Check if the cooperative's "May 15" has official backing                                       | Week 1         |
-| P7  | Relevance of aid 6613 (natural constraints) for family municipality                            | Week 1         |
-| P8  | Reranker: enable or discard based on metrics                                                   | Week 3         |
-| P9  | Offer collaboration to cooperative after demo                                                  | After week 4   |
-| P10 | Actual available hours per week                                                                | Week 0         |
+| P5  | Verify the legal sources needed by the selected MVP topic list                                   | Corpus review |
+| P6  | Check whether family/cooperative timing assumptions have an official source                      | Before answering timing questions |
+| P7  | Confirm relevance of optional aid topics for intended pilot geography                              | Corpus scoping |
+| P8  | Reranker: enable or discard based on measured improvement                                        | After baseline |
+| P9  | Offer collaboration to cooperative after pilot evidence                                           | After pilot |
+| P10 | Actual available hours per week                                                                | Before schedule baseline |
+| P11 | Minimum land fields and whether area is needed in MVP                                           | Before land model/API contract |
+| P12 | Local land export/backup and recovery stance                                                    | Before real-user pilot |
+| P13 | Whether and how land details are sent per request; minimization and redaction                    | Before backend integration |
+| P14 | Data retention, operational owner, and corpus refresh/rollback process                           | Before public deployment |
 
 ### 20.2 Discarded Decisions
 
 - **Agent with free web search** for corpus: risk of non-official sources and hallucination.
 - **Indexing cooperative notices as content:** local practices, not regulations.
 - **Indexing award lists:** personal data, expire, do not answer regulatory questions.
-- **Calculating personalized amounts in MVP:** personalized advice and requires parcel data.
-- **iOS in MVP:** no developer account.
+- **Personalized aid calculations in MVP:** local land records do not establish eligibility or provide complete calculation inputs.
+- **iOS release in MVP:** explicitly deferred; preserve shared code for later reuse.
+- **Full farm management in MVP:** only basic multiple-land records are included.
 
 ---
 
@@ -1067,99 +1080,46 @@ drawn**; declare the limitation.
 
 ---
 
-## Appendix A · How to Work, Step by Step
+## Appendix A · Working with Coding Agents
 
-### A.1 Prepare the Ground (Once) (some steps are for Claude only)
+Use the product brief, domain model, design direction, and risk register as the current product sources of truth. This Master Plan adds technical context; it does not override more recent product decisions in those documents.
 
-1. **Save this document** (`.md`) in your repository under `/docs`.
-2. **Create a Project in Claude.ai.** Projects are available to all users, including free accounts,
-   with a maximum of five projects on free ones. Each project has a knowledge base and custom
-   instructions.
-3. **Upload this document to "Project knowledge"** and paste the rules from section 0.1 into
-   "Project instructions".
-4. **Important:** context **is not shared between conversations** of a project unless it is in the
-   knowledge base. That is why this document is your memory: **update it and re-upload it** when
-   something changes.
-5. Optional: also upload `catalogo.csv` and `golden.jsonl` when they exist.
+### A.1 Before a task
 
-### A.2 One Conversation per Task
+- Name the intended user outcome and the relevant WBS ID, if one exists.
+- Read the relevant product and technical contracts before changing code.
+- Confirm the current repository modules and available commands instead of assuming the planned backend structure already exists.
+- Keep land data and credentials out of prompts, logs, and Git unless a reviewed, minimal test fixture is necessary.
 
-Open a new conversation in the project **for each WBS task** (e.g., "A3 Legal Chunker"). Very long
-conversations lose focus; starting from scratch with the document as context usually yields better
-results.
-
-### A.3 Template for Requesting a Task
+### A.2 Task request template
 
 ```text
-Task: [WBS ID and name, e.g., A3 Legal Chunker]
-Objective: [what it must achieve, in one sentence]
-Context: read sections [6, 11] of the Master Plan and the contract [openapi / schema].
-Constraints: [language, allowed libraries, free, no overengineering]
-Deliverable: [specific files and their path]
-Definition of done: [WBS definition + tests that must pass]
-Before writing code: tell me your plan in 5 lines and any doubts you have.
+Task: [ID and name]
+User outcome: [one sentence]
+Read: [specific brief/model/plan sections and contracts]
+Scope: [files or module; explicit exclusions]
+Acceptance: [observable behavior and required checks]
+Constraints: shared commonMain UI/business logic; Android/Desktop MVP; plain Spanish UX;
+minimal land context; no invented legal facts.
+Before editing: summarize the approach and unresolved blockers.
 ```
 
-### A.4 Recommended Flow for Each Task
+### A.3 Review discipline
 
-1. **Ask for the plan first**, not the code. Correct it before implementing.
-2. **Work in small increments** (one module, one test).
-3. **Ask for tests alongside the code** and run them yourself. Paste the **complete error** when it
-   fails.
-4. **Ask for the "why"** of each decision: it is material for the defense.
-5. **Close the session** with: *"Summarize what was decided and what changed to update the Master
-   Plan"*, and copy the summary to section 22.
+- Check legal dates, amounts, thresholds, and article references against the original official source; model output is not verification.
+- Keep behavior testable and add evaluation cases for changes to retrieval, citations, land selection, abstention, or critical claims.
+- Check Android and Desktop behavior for shared UI changes. Keep shared UI and product logic in `commonMain` to support the planned iOS reuse.
+- Report what changed, how it was verified, evidence, and known limitations. Update this plan only for decisions that materially change product scope or architecture.
 
-### A.5 Golden Rules for a Legal Domain
+### A.4 Useful prompts
 
-- **Never accept a legal fact (deadline, amount, article) just because AI says so.** Always ask
-  for the source and check the original in BOE, BOJA, or FEGA.
-- For data that may have changed, ask it to **search for current information** or cross-check it
-  yourself.
-- If AI doesn't know something, have it state so. If it hallucinates, warn it and correct it: it
-  is the same discipline you demand of the bot.
-
-### A.6 When Something Goes Wrong
-
-- **Vague or long response:** ask for a specific format ("5-row table", "diff only").
-- **Forgets a decision:** remind it "section 2.1, D7" or open a new conversation with the document.
-- **Code doesn't work:** paste the error, your environment version, and the command you ran.
-- **Not sure about a decision:** ask it "give me 2 alternatives with pros, contras, and your
-  recommendation".
-- **Want it to challenge you:** "act as the tribunal and ask me the 5 most difficult questions about
-  this decision".
-
-### A.7 Security
-
-- **Never paste API keys** into chat or upload them to Git; use a `.env` file outside the
-  repository.
-- Do not upload personal data (un anonymized notices, letters, nominal listings).
-- Always review code before executing it, especially commands that delete or install things.
-
-### A.8 When You Start Programming: Agents and Subagents
-
-For development, AI agent can read a `AGENTS.md` file in the project root with persistent 
-instructions, and supports **subagents**.
-This fits with the lanes of section 10.2: a root `AGENTS.md` with rules from 0.1 and a plan summary,
-and an instruction file per lane.
-
-- Memory and `AGENTS.md` (Claude): `https://code.claude.com/docs/en/memory`
-- Custom subagents (Claude): `https://code.claude.com/docs/en/sub-agents`
-- ⚠️ **Verify what subscription or access Claude Code requires** before planning it: I haven't
-  checked it and your budget is close to zero. Meanwhile, you can work with **one chat per lane**
-  inside the Claude.ai project.
-
-### A.9 Useful Prompts
-
-| Moment                    | Prompt                                                                                                                            |
-|---------------------------|-----------------------------------------------------------------------------------------------------------------------------------|
-| Starting a session        | "Read the Master Plan. We will work on task [ID]. Summarize in 5 lines what the plan says about it and what dependencies it has." |
-| Reviewing a design        | "Critique this design: risks, possible simplifications, and what would cause the definition of done to fail."                     |
-| Debugging                 | "This is the complete error, my environment, and the command. Give me the 3 most likely causes ordered and how to check them."    |
-| Code review               | "Review this module: correct, secure, testable, and simple. Mark what is unnecessary."                                            |
-| Preventing hallucinations | "For each legal fact, indicate document, article, and date. If you don't have it, write 'unverified'."                            |
-| Preparing defense         | "Ask me the 5 most difficult tribunal questions about [decision] and evaluate my response."                                       |
-| Closing a session         | "Summarize what changed, what we decided, and what remains pending, in the format of section 22."                                 |
+| Moment | Prompt |
+|---|---|
+| Start | “Read the current brief, domain model, and task sections. Summarize the user behavior, dependencies, and acceptance checks before editing.” |
+| Design review | “Identify unclear states, accessibility problems, unnecessary steps, and failure cases for a user with low digital confidence.” |
+| Land-aware behavior | “Show how this works for two lands with different attributes and for an unknown attribute. Do not infer eligibility.” |
+| Legal answer review | “For every deadline, amount, threshold, or article, identify the exact official source. Mark anything unsupported as unverified.” |
+| Close | “Summarize the change, verification evidence, decisions, and remaining questions. Update the Master Plan only if scope or architecture changed.” |
 
 ---
 
@@ -1190,24 +1150,17 @@ and an instruction file per lane.
 - Infoagro, news of 30/04/2026 and 21/05/2026 regarding PAC deadlines in Andalusia.
 - ASAJA Sevilla and ASAJA Almería, news on deadline extension (May 2026).
 
-**Claude Product**
-
-- Claude.ai, projects:
-  `https://support.claude.com/en/articles/9519177-how-can-i-create-and-manage-projects`,
-  `https://support.claude.com/en/articles/9517075-what-are-projects`
-- Claude Code: `https://code.claude.com/docs/en/memory`,
-  `https://code.claude.com/docs/en/sub-agents`
-
 ---
 
 ## 22. Change Log and Session Register
 
 | Version / Date      | Changes                                                                                                                                                                                                                                                                                          |
 |---------------------|--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| v1                  | Initial plan: RAG architecture, stack, WBS, 4-week roadmap, risks, improvements, and defense                                                                                                                                                                                                     |
+| v1                  | Initial plan: RAG architecture, stack, WBS, schedule estimate, risks, improvements, and defense                                                                                                                                                                                                     |
 | v2                  | Zero budget and migration via interfaces; **Knowledge Ops** (discovery and validity with human approval); output validation and testing with quality gates; **agents and subagents** and parallel work; Gemini Flash and local bge-m3; **Android + Desktop**                                     |
 | v2.1                | User profile (scattered smallholding, dryland/irrigated, conventional/organic); 2-touch profile and `aplica_a` metadata; delegation to cooperative as product core; no expert validators: verifiability by design and extractive mode; WhatsApp notices as signals, not content source           |
 | **v3 · 04/10/2026** | **Unified document.** Verified seed corpus (10 documents); findings H1-H5 (presentation vs. modification, RD 1077/2014 repealed, voluntary notebook, outdated notice, surface thresholds); CSV catalog; golden with seed questions; WBS with IDs and dependencies; guide for working with Claude |
+| **v3.1 · 09/10/2026** | Updated MVP around AI chat plus basic management of multiple local lands; all-land context with clarification; Android/Desktop delivery with shared Compose UI and business logic for later iOS; replaced the superseded fixed schedule with evidence-based milestones; added privacy, recovery, and low-digital-confidence risks. |
 
 ### Template for Registering Each Working Session
 
