@@ -44,9 +44,9 @@
       "title": "Structured answer contract",
       "user_visible_behavior": "The app and answer service agree on a response state for answered, abstained, and needs-land-clarification outcomes, with typed sources and minimal land context.",
       "depends_on": [],
-      "status": "not_started",
+      "status": "accepted",
       "verification": ["Validate representative request and response examples against the agreed contract."],
-      "evidence": [],
+      "evidence": ["Accepted after independent contract review: python3 contracts/validate_examples.py, Python syntax compilation, Ruby YAML parse, and git diff --check all passed; answered, abstained, and needs_land_clarification fixtures plus privacy rules were reviewed."],
       "notes": "Define the contract before implementing client/service integration. Keep local land labels out of the payload unless a reviewed use case requires them."
     },
     {
