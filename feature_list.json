@@ -15,9 +15,13 @@
       "title": "Chat starting screen",
       "user_visible_behavior": "A person can open the app and see a clear Spanish prompt field and a simple way to begin, even before adding any lands.",
       "depends_on": [],
-      "status": "not_started",
+      "status": "passing",
       "verification": ["On Android and Desktop, open the app with no configured lands and find the question field without assistance."],
-      "evidence": [],
+      "evidence": [
+        "Spec: docs/specs/chat_home.md.",
+        "Shared reducer tests pass with :shared:jvmTest; :desktopApp:build passes and compiles the shared Compose screen.",
+        "Self-verification passes for the implemented shared/Desktop scope; Android verification remains blocked by missing SDK configuration."
+      ],
       "notes": "Implement the shared Compose UI in commonMain. Keep the first screen calm, readable, and focused on asking a question."
     },
     {

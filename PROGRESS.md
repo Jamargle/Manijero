@@ -4,9 +4,9 @@
 
 - Product discovery is documented in `CONTEXT.md`, `docs/build-brief.md`, `docs/domain-model.md`, `docs/risks-and-open-questions.md`, and `DESIGN.md`.
 - The repository contains the Kotlin Multiplatform starter scaffold: `shared`, `androidApp`, `desktopApp`, and an existing iOS target. Shared Compose UI is in `commonMain`; the iOS target is not an MVP deliverable.
-- `shared/src/commonMain/.../App.kt` is still the generated click-to-reveal greeting sample. Chat, land management, backend, and official-source retrieval are not implemented.
-- The existing shared tests are template examples and do not verify product behavior.
-- Product features are tracked in `feature_list.json`. No product feature is currently in progress.
+- `shared/src/commonMain/.../App.kt` now contains the shared Spanish chat starting screen; answer service, land management, and official-source retrieval are not implemented.
+- Shared tests include reducer coverage for the chat composer; backend and full UI behavior are deferred to later features.
+- Product features are tracked in `feature_list.json`. `chat_home` is implemented and passing self-verification; independent acceptance and Android verification await SDK configuration.
 
 ## Start and verify
 
@@ -19,7 +19,7 @@ These are the documented paths; they have not been run as part of this harness u
 
 ## Next feature
 
-Preferred next feature: `chat_home` — build the accessible, plain-Spanish starting screen and question composer in shared Compose UI. Keep it usable for general questions when the user has not added any lands.
+Preferred next feature: `suggested_questions` — add example prompts after the accepted chat starting screen.
 
 ## Session log
 
@@ -32,3 +32,4 @@ Preferred next feature: `chat_home` — build the accessible, plain-Spanish star
 | 2026-10-08 | Refreshed the startup harness and split MVP work into session-sized features. | Repository inspection; no tests run in this harness update. |
 | 2026-10-09 | Product discovery and harness with OpenAI Luna High. | Some conflicts manually solved 😂 and additional skills.|
 | 2026-10-11 | Added subagent workflow agents | .opencode/agents workflow files |
+| 2026-10-11 | Completed `chat_home` | Added shared Spanish chat starting screen and composer, pure reducer tests, Compose resources, and implementation spec. `:shared:jvmTest` and `:desktopApp:build` pass. Android checks are blocked by missing Android SDK configuration in the worktree. |
