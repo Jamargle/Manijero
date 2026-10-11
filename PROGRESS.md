@@ -6,7 +6,7 @@
 - The repository contains the Kotlin Multiplatform starter scaffold: `shared`, `androidApp`, `desktopApp`, and an existing iOS target. Shared Compose UI is in `commonMain`; the iOS target is not an MVP deliverable.
 - `shared/src/commonMain/.../App.kt` is still the generated click-to-reveal greeting sample. Chat, land management, backend, and official-source retrieval are not implemented.
 - The existing shared tests are template examples and do not verify product behavior.
-- Product features are tracked in `feature_list.json`. No product feature is currently in progress.
+- Product features are tracked in `feature_list.json`. `local_land_store` is accepted; no other product feature is in progress.
 
 ## Start and verify
 
@@ -32,3 +32,18 @@ Preferred next feature: `chat_home` — build the accessible, plain-Spanish star
 | 2026-10-08 | Refreshed the startup harness and split MVP work into session-sized features. | Repository inspection; no tests run in this harness update. |
 | 2026-10-09 | Product discovery and harness with OpenAI Luna High. | Some conflicts manually solved 😂 and additional skills.|
 | 2026-10-11 | Added subagent workflow agents | .opencode/agents workflow files |
+| 2026-10-11 | Implemented and independently reviewed `local_land_store` | Shared `LandRepository`, versioned local format, Android/Desktop adapters; `:shared:jvmTest` passed (5 tests); Android compile blocked by missing SDK configuration. |
+
+## Feature evidence
+
+### local_land_store — accepted
+
+- `LandRepository` supports create/list/update/delete with stable generated ids,
+  required trimmed names, explicit unknown attributes, and optional fields.
+- `SharedPreferencesLandStorage` persists Android records; `FileLandStorage`
+  persists Desktop/JVM records. Both use the shared versioned format.
+- Malformed individual records are skipped during recovery; writes replace the
+  complete snapshot.
+- Verification: `/Users/jose/AndroidStudioProjects/Manijero/gradlew -p . :shared:jvmTest`
+  passed. Android compilation could not run because the worktree has no Android
+  SDK location (`ANDROID_HOME`/`local.properties`).
