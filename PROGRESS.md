@@ -4,9 +4,9 @@
 
 - Product discovery is documented in `CONTEXT.md`, `docs/build-brief.md`, `docs/domain-model.md`, `docs/risks-and-open-questions.md`, and `DESIGN.md`.
 - The repository contains the Kotlin Multiplatform starter scaffold: `shared`, `androidApp`, `desktopApp`, and an existing iOS target. Shared Compose UI is in `commonMain`; the iOS target is not an MVP deliverable.
-- `shared/src/commonMain/.../App.kt` is still the generated click-to-reveal greeting sample. Chat, land management, backend, and official-source retrieval are not implemented.
+- `shared/src/commonMain/.../App.kt` is still the generated click-to-reveal greeting sample. Chat, land management, and official-source retrieval are not implemented. The backend now has a minimal FastAPI service with a documented liveness endpoint.
 - The existing shared tests are template examples and do not verify product behavior.
-- Product features are tracked in `feature_list.json`. No product feature is currently in progress.
+- Product features are tracked in `feature_list.json`. `backend_health` is accepted; no other product feature is in progress.
 
 ## Start and verify
 
@@ -32,3 +32,4 @@ Preferred next feature: `chat_home` — build the accessible, plain-Spanish star
 | 2026-10-08 | Refreshed the startup harness and split MVP work into session-sized features. | Repository inspection; no tests run in this harness update. |
 | 2026-10-09 | Product discovery and harness with OpenAI Luna High. | Some conflicts manually solved 😂 and additional skills.|
 | 2026-10-11 | Added subagent workflow agents | .opencode/agents workflow files |
+| 2026-10-11 | Implemented and independently validated `backend_health` | `backend/tests`: 2 passed; live Uvicorn `/health` smoke check returned HTTP 200 and the documented JSON response |
