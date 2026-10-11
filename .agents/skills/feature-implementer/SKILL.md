@@ -70,6 +70,7 @@ Make the smallest coherent set of changes needed to satisfy the spec.
 
 Rules:
 
+- Load skill `clean-code-solid-architecture` and follow it pragmatically.
 - Follow existing repository patterns.
 - Keep WIP=1.
 - Do not implement adjacent features from `feature_list.json`.
