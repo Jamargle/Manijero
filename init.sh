@@ -1,6 +1,27 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
+# Auto-detect ANDROID_HOME and local.properties if not already set
+# Works from any subdirectory (including git worktrees)
+if [[ -z "${ANDROID_HOME:-}" && -z "${ANDROID_SDK_ROOT:-}" ]]; then
+  # Try common macOS locations
+  ANDROID_HOME="$HOME/Library/Android/sdk"
+  ANDROID_SDK_ROOT="$ANDROID_HOME"
+fi
+
+# Ensure local.properties exists in current directory with SDK path
+# This handles git worktrees correctly - each worktree gets its own file
+if [[ ! -f "local.properties" ]]; then
+  cat > local.properties <<EOF
+sdk.dir=$ANDROID_HOME
+EOF
+  echo "Created local.properties with SDK path: $ANDROID_HOME"
+fi
+
+# Export environment variables for Gradle
+export ANDROID_HOME
+export ANDROID_SDK_ROOT
+
 REPO_ROOT="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
 cd "$REPO_ROOT"
 
