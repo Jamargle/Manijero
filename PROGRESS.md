@@ -6,7 +6,8 @@
 - The repository contains the Kotlin Multiplatform starter scaffold: `shared`, `androidApp`, `desktopApp`, and an existing iOS target. Shared Compose UI is in `commonMain`; the iOS target is not an MVP deliverable.
 - `shared/src/commonMain/.../App.kt` now contains the shared Spanish chat starting screen; answer service, land management, and official-source retrieval are not implemented.
 - Shared tests include reducer coverage for the chat composer; backend and full UI behavior are deferred to later features.
-- Product features are tracked in `feature_list.json`. `chat_home` is implemented and passing shared/Desktop self-verification; independent acceptance can review it, while Android verification awaits SDK configuration.
+- The backend now has a minimal FastAPI service with a documented liveness endpoint.
+- Product features are tracked in `feature_list.json`. `backend_health` is accepted; `chat_home` is implemented and passing shared/Desktop self-verification; independent acceptance can review it, while Android verification awaits SDK configuration.
 
 ## Start and verify
 
@@ -38,5 +39,5 @@ Preferred next feature: `suggested_questions` — add example prompts after the 
 | 2026-10-08 | Refreshed the startup harness and split MVP work into session-sized features. | Repository inspection; no tests run in this harness update. |
 | 2026-10-09 | Product discovery and harness with OpenAI Luna High. | Some conflicts manually solved 😂 and additional skills.|
 | 2026-10-11 | Added subagent workflow agents | .opencode/agents workflow files |
+| 2026-10-11 | Implemented and independently validated `backend_health` | `backend/tests`: 2 passed; live Uvicorn `/health` smoke check returned HTTP 200 and the documented JSON response |
 | 2026-10-11 | Completed `chat_home` | Added shared Spanish chat starting screen and composer, pure reducer tests, Compose resources, and implementation spec. `:shared:jvmTest` and `:desktopApp:build` pass. Android checks are blocked by missing Android SDK configuration in the worktree. |
-| 2026-10-11 | Repaired `chat_home` reproducibility evidence | Restored the project’s Gradle 9.8.0 wrapper artifacts, corrected stale `init.sh` status text, reran host checks successfully, and recorded the exact Android SDK blocker without claiming Android verification. |
