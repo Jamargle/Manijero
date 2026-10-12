@@ -1,0 +1,26 @@
+{
+  "schema_version": "source-catalog-v1",
+  "sources": [
+    {
+      "id": "rd_1048_2022",
+      "title": "Real Decreto 1048/2022, de 27 de diciembre (catalog fixture)",
+      "issuing_body": "BOE",
+      "original_url": "https://example.com/boe/doc?id=BOE-A-2022-23048",
+      "consolidated_url": "https://www.boe.es/eli/es/rd/2022/12/27/1048/con",
+      "published_on": "2022-12-29",
+      "downloaded_on": "2026-10-01",
+      "verified_on": "2026-10-05",
+      "content_sha256": "3f2a1b0c9d8e7f60514233241506f7e8d9c0b1a2938475665748392011fedcba",
+      "review_status": "approved",
+      "reviewed_by": "fixture reviewer (synthetic, not a real approval)",
+      "reviewed_on": "2026-10-06",
+      "lifecycle_status": "current",
+      "critical": true,
+      "applicability": {
+        "crop": "olivar",
+        "water_regime": "dryland",
+        "production_method": "conventional"
+      }
+    }
+  ]
+}

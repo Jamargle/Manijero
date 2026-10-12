@@ -1,0 +1,61 @@
+{
+  "schema_version": "source-catalog-v1",
+  "sources": [
+    {
+      "id": "rd_1048_2022",
+      "title": "Real Decreto 1048/2022, de 27 de diciembre (catalog fixture)",
+      "issuing_body": "BOE",
+      "original_url": "https://www.boe.es/buscar/doc.php?id=BOE-A-2022-23048",
+      "consolidated_url": "https://www.boe.es/eli/es/rd/2022/12/27/1048/con",
+      "published_on": "2022-12-29",
+      "downloaded_on": "2026-10-01",
+      "verified_on": "2026-10-05",
+      "content_sha256": "3f2a1b0c9d8e7f60514233241506f7e8d9c0b1a2938475665748392011fedcba",
+      "review_status": "approved",
+      "reviewed_by": "fixture reviewer (synthetic, not a real approval)",
+      "reviewed_on": "2026-10-06",
+      "lifecycle_status": "current",
+      "critical": true,
+      "applicability": {
+        "crop": "olivar",
+        "water_regime": "dryland",
+        "production_method": "conventional"
+      }
+    },
+    {
+      "id": "orden_20230324",
+      "title": "Orden de 24 de marzo de 2023, solicitud única en Andalucía (catalog fixture)",
+      "issuing_body": "Junta de Andalucía",
+      "original_url": "https://www.juntadeandalucia.es/boja/2023/61/BOJA23-061-00030-5898-01_00280950.pdf",
+      "published_on": "2023-03-30",
+      "downloaded_on": "2026-09-28",
+      "verified_on": "2026-10-02",
+      "content_sha256": "a1b2c3d4e5f60718293a4b5c6d7e8f90112233445566778899aabbccddeeff00",
+      "review_status": "approved",
+      "reviewed_by": "fixture reviewer (synthetic, not a real approval)",
+      "reviewed_on": "2026-10-03",
+      "lifecycle_status": "current",
+      "critical": false,
+      "campaign": "2026"
+    },
+    {
+      "id": "res_fega_20260520",
+      "title": "Resolución FEGA de 20 de mayo de 2026, plazo de modificación (catalog fixture)",
+      "issuing_body": "FEGA",
+      "original_url": "https://fega.gob.es/es/noticias/node-16804",
+      "published_on": "2026-05-20",
+      "downloaded_on": "2026-05-25",
+      "verified_on": "2026-05-30",
+      "content_sha256": "00112233445566778899aabbccddeeff00112233445566778899aabbccddeeff",
+      "review_status": "approved",
+      "reviewed_by": "fixture reviewer (synthetic, not a real approval)",
+      "reviewed_on": "2026-05-31",
+      "lifecycle_status": "current",
+      "critical": false,
+      "applicability": {
+        "water_regime": "mixed"
+      },
+      "valid_until": "2026-12-31"
+    }
+  ]
+}

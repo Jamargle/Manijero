@@ -42,6 +42,7 @@ enum class Speaker { USER, ASSISTANT }
 
 sealed interface ChatHomeAction {
     data class QuestionChanged(val value: String) : ChatHomeAction
+    data class SuggestedQuestionSelected(val question: String) : ChatHomeAction
     data object AskClicked : ChatHomeAction
     data class ResponseReceived(val response: AskResponse) : ChatHomeAction
     data object RequestFailed : ChatHomeAction
@@ -59,7 +60,11 @@ data class ChatReduction(val state: ChatHomeState, val effect: ChatEffect? = nul
  * message and the request always carry the original text.
  */
 fun ChatHomeState.reduce(action: ChatHomeAction): ChatReduction = when (action) {
-    is ChatHomeAction.QuestionChanged -> ChatReduction(copy(question = action.value))
+    is ChatHomeAction.QuestionChanged ->
+        ChatReduction(copy(question = action.value, submittedQuestion = null))
+
+    is ChatHomeAction.SuggestedQuestionSelected ->
+        ChatReduction(copy(question = action.question, submittedQuestion = null))
 
     ChatHomeAction.AskClicked -> {
         if (!canAsk) ChatReduction(this) else {
