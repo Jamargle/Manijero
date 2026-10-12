@@ -25,6 +25,44 @@ Use the existing olive-grove identity as a restrained cue. These initial tokens 
 | `caution-surface` | `#FFF2D4` | Caution callout background |
 | `danger` | `#A12622` | Errors and destructive actions, paired with text/icon |
 
+The ten tokens above are shipped verbatim by the shared theme in
+`shared/src/commonMain/kotlin/com/jamarglex/manijero/theme/ManijeroColors.kt`, which is also the only
+place in the repository allowed to declare a hex colour. Screens read Material 3 roles or the
+`LocalManijeroSemanticColors` values instead of raw hex. The launcher artwork is still the stock
+Android Studio template, so no token was changed on that basis.
+
+### Derived tokens
+
+`DESIGN.md` names only the ten tokens above. Material 3 needs a value for every other colour role it
+exposes, and leaving a role unset would leak the default purple/teal palette. The following derived
+values fill those roles. They stay in the same warm-neutral/olive families (no new hue) and are
+documented where they are declared in `ManijeroColors.kt`.
+
+| Derived value | Hex | Use |
+|---|---|---|
+| `surfaceVariant` / `surfaceContainerHighest` | `#E7E5DD` | Low-emphasis container (the person's own message bubble) |
+| `surfaceContainerLow` / `surfaceContainer` / `surfaceContainerHigh` | `#FCFBF6` / `#F2F0E9` / `#EDEBE3` | Warm lift family for cards, menus, and sheets |
+| `surfaceContainerLowest` / `surfaceBright` | `#FFFFFF` / `#FFFFFC` | Surface extremes |
+| `surfaceDim` | `#DFDDD4` | Recessed surface |
+| `outlineVariant` | `#7E8479` | Softer separator/bubble border; still clears 3:1 against canvas, surface, and `surfaceVariant` |
+| `primaryContainer` / `onPrimaryContainer` | `#D9E2D2` / `#263724` | Light olive fill for selected/tonal containers |
+| `secondaryContainer` / `onSecondaryContainer` | `#DFE4D8` / `#263724` | Second tonal fill in the same family |
+| `tertiary` / `onTertiary` | `#40573C` / `#FFFFFF` | Third olive emphasis step (no brown, which would read as caution) |
+| `tertiaryContainer` / `onTertiaryContainer` | `#E9EDE2` / `#263724` | Lightest tonal fill |
+| `inverseSurface` / `inverseOnSurface` / `inversePrimary` | `#2E332C` / `#F1F2EC` / `#B6C4AC` | Snackbar/reverse surfaces without purple leakage |
+| `errorContainer` / `onErrorContainer` | `#F9DEDA` / `#6E1714` | Calm danger container derived from `danger` |
+
+`caution`, `caution-surface`, and `olive-900` (as `primaryStrong`) have no Material 3 role and are
+provided through `LocalManijeroSemanticColors`. `danger` is `colorScheme.error` and `border` is
+`colorScheme.outline`, so each value keeps a single source.
+
+### Light-only decision
+
+The shared theme is light-only for the MVP: no dark tokens exist, and only this one warm palette is
+verified. The theme deliberately does not call `isSystemInDarkTheme()`, so a person whose system is in
+dark mode still sees the warm light theme instead of an unverified dark palette. A dark palette is a
+follow-up feature, not part of `visual_foundation`.
+
 Typography uses the platform system sans-serif, generous line height, and a base body size comfortable at phone distance. Support platform text scaling without clipping. Use simple rounded cards and buttons; avoid decorative gradients, dense dashboards, and tiny icon-only controls. Verify final text/background and control contrasts against WCAG AA during implementation.
 
 ## Layout and interaction principles

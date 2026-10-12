@@ -12,8 +12,7 @@
 - The offline retrieval boundary now exists: `knowledge/passages.schema.json` (`passage-set-v1`), `backend/app/retrieval.py` (strict passage-set validator, Spanish tokenizer, deterministic BM25 `Retriever`/`RetrievedPassage`), and `backend/scripts/evaluate_retrieval.py` (report-only baseline CLI). It re-validates the accepted catalog, fails closed on an ineligible catalog, and searches only synthetic reviewed fixture passages, because no canonical `passages.json` exists yet. Measured fixture baseline: `hit@5 = 0.857 (6/7)`, `recall@5 = 0.857`, `MRR = 0.857`.
 - `add_land` is accepted: shared `AddLandState`/`AddLandScreen`, resource-backed Spanish copy, and Android/Desktop composition roots wired to the accepted storage adapters. Android and Desktop checks ran in this worktree because `init.sh` created `local.properties` with the installed SDK; independent validation recorded in `docs/validations/add_land.md`.
 - The Desktop app stores lands in `~/.manijero/lands-v1.txt`; Android uses the `manijero_lands` SharedPreferences file. Both go through the shared versioned `land-store-v1` format.
-- Product features are tracked in `feature_list.json`. `backend_health`, `answer_api_contract`, `local_land_store`, `chat_home`, `suggested_questions`, `add_land`, `source_catalog_validation`, `chat_question_submission`, and `source_retrieval` are accepted.
-- `visual_foundation` (apply the shared olive-toned theme in `commonMain`) was added to `feature_list.json` on 2026-10-13 as a `not_started` client feature with no dependencies; `response_states`, `answer_source_cards`, `network_error_recovery`, `land_list`, `edit_land`, `remove_land`, and `chat_accessibility` now also depend on it, so those features are blocked until it is accepted.
+- `visual_foundation` (the shared olive-toned theme in `commonMain`) is accepted: `shared/src/commonMain/kotlin/com/jamarglex/manijero/theme/ManijeroColors.kt`, `ManijeroTheme.kt`, and `ManijeroTypography.kt` define the `DESIGN.md` tokens, a fully specified `lightColorScheme`, a `LocalManijeroSemanticColors` local for caution/strong olive, and the `bodySmall` line-height override; `ManijeroTheme` is applied once inside `App()` and all fifteen existing previews use it (record: `docs/validations/visual_foundation.md`). `response_states`, `answer_source_cards`, `network_error_recovery`, `land_list`, `edit_land`, `remove_land`, and `chat_accessibility` now have their `visual_foundation` dependency satisfied.
 
 ## Start and verify
 
@@ -25,9 +24,6 @@
 - Retrieval baseline (fixture, report-only): `python3 backend/scripts/evaluate_retrieval.py --catalog backend/tests/fixtures/retrieval/catalog.json --passages backend/tests/fixtures/retrieval/passages.json --eval backend/tests/fixtures/retrieval/eval_questions.jsonl --as-of 2026-10-13 --k 5`
 - Backend tests: `cd backend && python -m pytest` (note: bare `pytest` cannot collect `tests/test_health.py`, because nothing puts `backend/` on `sys.path`; use `python -m pytest` or install the test runner into a local virtualenv)
 
-## Next feature
-
-`source_retrieval` is accepted (record: `docs/validations/source_retrieval.md`). Dependency-ready *unfinished* features now include `visual_foundation` (no dependencies) and `grounded_answer_generation` (its dependencies `answer_api_contract` and `source_retrieval` are both accepted). `network_error_recovery` and `land_list` are **not** dependency-ready: both now also depend on `visual_foundation`, which is `not_started`. `POST /ask` itself still has no backend implementation, so the `/ask` wiring and Android/Desktop manual smoke remain follow-ups (validator finding F1 on `chat_question_submission`).
 
 ## Session log
 
@@ -54,6 +50,8 @@
 | 2026-10-12 | Accepted `chat_question_submission` | Independent validator (docs/validations/chat_question_submission.md) confirmed all four acceptance scenarios, re-ran the contract validator, JVM (24) and Android host (22) tests, a full `--rerun-tasks` Android+Desktop build, the iOS compile, and `./init.sh --verify`; decoded all three contract fixtures with the shipped DTO and confirmed no logging, no hard-coded production URL, and no contract/backend changes. Findings F1-F3 carried forward to the `/ask` wiring, `network_error_recovery`, and `chat_accessibility`. |
 | 2026-10-13 | Added `visual_foundation` as a feature definition and wired the visual-foundation dependency into `response_states`, `answer_source_cards`, `network_error_recovery`, `land_list`, `edit_land`, `remove_land`, and `chat_accessibility` | `feature_list.json` (commit 139d460); definition only, no implementation or checks run. |
 | 2026-10-13 | Documentation consistency pass over accepted features | Added `docs/validations/chat_home.md` (reconstructed acceptance record), linked each accepted feature's validation record from `feature_list.json`, and corrected the `PROGRESS.md` next-feature and `visual_foundation` status. No product code changed. |
+| 2026-10-13 | Implemented `visual_foundation` (self-verified; awaiting independent validation) | Added the shared `theme` package (`ManijeroColors.kt`, `ManijeroTheme.kt`, `ManijeroTypography.kt`) with the `DESIGN.md` tokens, a complete `lightColorScheme` mapping, a `LocalManijeroSemanticColors` local for caution/strong olive, and the single `bodySmall` line-height override; applied `ManijeroTheme` once in `App()` and repointed all fifteen previews. Tests: `:shared:jvmTest` 54 (incl. `ManijeroColorsTest` 10, `ManijeroTypographyTest` 4), `:shared:testAndroidHostTest` 51, all 0 failures; `:androidApp:assembleDebug` and `:desktopApp:build` pass via `./init.sh --verify`. Updated `DESIGN.md` with the derived-token table and light-only decision. |
+| 2026-10-13 | Accepted `visual_foundation` | Independent validator re-ran `./init.sh --verify` and `:shared:jvmTest :shared:testAndroidHostTest --rerun-tasks` (54 JVM / 51 Android host tests, 0 failures), reproduced the WCAG AA contrast pairs with an independent computation, and confirmed scope discipline (commonMain-only theme, no new module/dependency, hosts/strings/Gradle untouched, no logging). Record: `docs/validations/visual_foundation.md`. |
 | 2026-10-13 | Implemented `source_retrieval` (passing, awaiting independent validation) | Added `knowledge/passages.schema.json` (`passage-set-v1`), `backend/app/retrieval.py`, `backend/scripts/evaluate_retrieval.py`, `backend/tests/test_retrieval.py`, and synthetic retrieval fixtures under `backend/tests/fixtures/retrieval/`; updated `knowledge/README.md` and `backend/README.md`. Fixture catalog validated exit 0; measured baseline `hit@5 = 0.857 (6/7)`, `recall@5 = 0.857`, `MRR = 0.857`; `python -m pytest tests/test_retrieval.py` 76 passed; `python -m pytest` 121 passed; `git diff --check` clean. |
 | 2026-10-13 | Accepted `source_retrieval` | Independent validator reproduced the fixture gate, the measured baseline and per-question ranks, determinism, k-window semantics, the empty-corpus case, and fail-closed exits 2 with located paths; confirmed no-network behavior with an independent socket/DNS/TLS guard, schema/validator sync, synthetic-only fixtures, scope discipline, and 76/121 passing tests in an out-of-repo venv. Findings F1-F4 non-blocking. See `docs/validations/source_retrieval.md`. |
 
@@ -358,3 +356,50 @@ logging, and the copy contract. Record: `docs/validations/add_land.md`.
   horizontal overflow.
 - Desktop smoke: `:desktopApp:run` launched the shared `App()` and stayed alive ~50s with no
   runtime exception; interactive window/click inspection was not captured in this session.
+
+### visual_foundation — passing (awaiting independent validation)
+
+What changed:
+
+- New shared theme package `shared/src/commonMain/kotlin/com/jamarglex/manijero/theme/`:
+  - `ManijeroColors.kt`: the ten `DESIGN.md` tokens plus the derived values, a fully specified
+    `lightColorScheme(...)` (every documented role set explicitly, so no Material default can leak),
+    `ManijeroSemanticColors` + `LocalManijeroSemanticColors` for the roles Material 3 lacks
+    (caution, caution surface, strong olive; `danger` = `colorScheme.error`, `border` =
+    `colorScheme.outline`), and the dependency-free WCAG `relativeLuminance`/`contrastRatio` helpers.
+  - `ManijeroTypography.kt`: Material 3 `Typography` with the single documented `bodySmall`
+    line-height override (16sp → 18sp); size, weight, letter spacing, and font family untouched.
+  - `ManijeroTheme.kt`: `ManijeroTheme { }` (Material 3 theme + semantic local) plus review-only
+    token-board previews at 1x and `fontScale = 2f`.
+- `App.kt`: wraps the destination content in `ManijeroTheme` once (the shared composition root), and
+  all seven previews use `ManijeroTheme`. `lands/AddLandScreen.kt`: all eight previews use
+  `ManijeroTheme`. No layout, copy, spacing, or behavior changed; the Android/Desktop/iOS hosts stay
+  theme-free so they inherit the one shared theme.
+- `DESIGN.md`: added the derived-token table and the light-only decision to the "Visual foundation"
+  section.
+- Not changed: `MainActivity.kt`, desktop `main.kt`, `MainViewController.kt`, `strings.xml`, any
+  Gradle file or the version catalog, backend/contracts, land storage, `init.sh`; no new module,
+  framework, or dependency.
+
+Verification (commands run from the repository root):
+
+- `./init.sh --verify` → BUILD SUCCESSFUL.
+- `./gradlew :shared:jvmTest :shared:testAndroidHostTest --rerun-tasks` → BUILD SUCCESSFUL:
+  54 JVM tests / 0 failures (`ManijeroColorsTest` 10, `ManijeroTypographyTest` 4 new) and
+  51 Android host tests / 0 failures (same 14 new theme tests).
+- `./gradlew :androidApp:assembleDebug` and `./gradlew :desktopApp:build` → BUILD SUCCESSFUL
+  (debug APK produced) as part of `--verify`.
+- Centralization greps: no `Color(0x` outside `theme/`; no argument-less `MaterialTheme {`; the only
+  `MaterialTheme(` call site is the `ManijeroTheme` wrapper; no
+  `LocalMinimumInteractiveComponentSize`/`minimumInteractiveComponentSize` override; the theme is
+  applied once in `App()`.
+
+Honest gaps:
+
+- Interactive Android/Desktop UI smokes (screenshots, greyscale non-color cue check, emulator
+  `font_scale 2.0`, Desktop window resize/keyboard focus) were not run in this non-interactive
+  session. They are covered by the review-only token-board preview and the pure contrast tests, and
+  remain the manual checks for independent validation.
+- Light-only by decision: no dark palette exists (`DESIGN.md` records this). Desktop OS-level text
+  scaling is not wired in this repository, so enlarged-text evidence is preview-based
+  (carried validator finding F3, owner `chat_accessibility`).
