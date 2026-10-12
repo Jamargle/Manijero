@@ -1,0 +1,77 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://manijero.invalid/schemas/passage-set-v1.json",
+  "title": "Manijero reviewed passage set",
+  "description": "Versioned contract for human-reviewed passages drawn from approved catalog documents. This file is the readable contract; backend/app/retrieval.py is the executable validator and must stay in sync with it. A passage set is a Git-tracked, human-reviewed artifact. Retrieval never downloads, parses, or chunks a document automatically: passages are written by a reviewer and only become searchable when their source_id resolves to a catalog entry that is approved, current, and unexpired. There is intentionally no canonical passages.json yet; a later reviewed ingestion feature produces it.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema_version", "passages"],
+  "properties": {
+    "schema_version": {
+      "const": "passage-set-v1",
+      "description": "Passage-set format version. Bump it, the schema, and the validator together in a reviewed change."
+    },
+    "passages": {
+      "type": "array",
+      "description": "Reviewed passages eligible for retrieval. An empty array is valid and intentional: it means no passage has been reviewed yet, not that the corpus is ready.",
+      "items": {
+        "$ref": "#/$defs/passage"
+      }
+    }
+  },
+  "$defs": {
+    "passage": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "source_id", "location", "text"],
+      "description": "One reviewed fragment of an approved catalog document. The excerpt is quoted, not summarized, and must not introduce a legal claim the document does not make.",
+      "properties": {
+        "id": {
+          "type": "string",
+          "pattern": "^[a-z0-9]+(?:[-_][a-z0-9]+)*$",
+          "description": "Unique, stable, lowercase slug such as 'fixture-rd1048-art1-p1'. Never derive it from the excerpt text and never reuse it."
+        },
+        "source_id": {
+          "type": "string",
+          "pattern": "^[a-z0-9]+(?:[-_][a-z0-9]+)*$",
+          "description": "Catalog 'id' this passage was taken from. It must resolve to an existing catalog source; an unknown id is a load error, never a silent skip."
+        },
+        "location": {
+          "type": "string",
+          "minLength": 1,
+          "description": "Article, annex, page, section, or equivalent location inside the document. Non-blank."
+        },
+        "text": {
+          "type": "string",
+          "minLength": 1,
+          "description": "The reviewed excerpt. Non-blank. Retrieval indexes this text only."
+        },
+        "critical": {
+          "type": "boolean",
+          "description": "Optional flag marking this passage as carrying a deadline, amount, or threshold. When absent the source-level 'critical' flag applies."
+        },
+        "applicability": {
+          "type": "object",
+          "additionalProperties": false,
+          "minProperties": 1,
+          "description": "Optional land applicability for this passage, recorded only when known. Leave the whole object absent when unknown; never infer it, and never use 'unknown' as a value. When absent the source-level applicability applies.",
+          "properties": {
+            "crop": {
+              "type": "string",
+              "minLength": 1,
+              "description": "Crop the passage applies to, for example 'olivar'."
+            },
+            "water_regime": {
+              "enum": ["dryland", "irrigated", "mixed"],
+              "description": "Water regime the passage applies to. Omit the key when unknown."
+            },
+            "production_method": {
+              "enum": ["conventional", "organic", "mixed"],
+              "description": "Production method the passage applies to. Omit the key when unknown."
+            }
+          }
+        }
+      }
+    }
+  }
+}

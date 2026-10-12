@@ -1,0 +1,58 @@
+{
+  "schema_version": "source-catalog-v1",
+  "sources": [
+    {
+      "id": "fixture_boe_ayudas",
+      "title": "Documento sintético de prueba sobre ayudas (fixture; no es una norma real)",
+      "issuing_body": "BOE",
+      "original_url": "https://www.boe.es/buscar/doc.php?id=DOC-FIXTURE-0001",
+      "published_on": "2026-01-15",
+      "downloaded_on": "2026-09-30",
+      "verified_on": "2026-10-05",
+      "content_sha256": "3f2a1b0c9d8e7f60514233241506f7e8d9c0b1a2938475665748392011fedcba",
+      "review_status": "approved",
+      "reviewed_by": "fixture reviewer (synthetic, not a real approval)",
+      "reviewed_on": "2026-10-06",
+      "lifecycle_status": "current",
+      "critical": true,
+      "applicability": {
+        "crop": "olivar",
+        "water_regime": "dryland",
+        "production_method": "conventional"
+      }
+    },
+    {
+      "id": "fixture_junta_solicitud",
+      "title": "Documento sintético de prueba sobre la solicitud única (fixture; no es una norma real)",
+      "issuing_body": "Junta de Andalucía",
+      "original_url": "https://www.juntadeandalucia.es/boja/2026/00/FIXTURE-0002.pdf",
+      "published_on": "2026-03-30",
+      "downloaded_on": "2026-09-28",
+      "verified_on": "2026-10-02",
+      "content_sha256": "a1b2c3d4e5f60718293a4b5c6d7e8f90112233445566778899aabbccddeeff00",
+      "review_status": "approved",
+      "reviewed_by": "fixture reviewer (synthetic, not a real approval)",
+      "reviewed_on": "2026-10-03",
+      "lifecycle_status": "current",
+      "campaign": "2026"
+    },
+    {
+      "id": "fixture_fega_riego",
+      "title": "Documento sintético de prueba sobre riego (fixture; no es una norma real)",
+      "issuing_body": "FEGA",
+      "original_url": "https://fega.gob.es/es/noticias/fixture-0003",
+      "published_on": "2026-05-20",
+      "downloaded_on": "2026-05-25",
+      "verified_on": "2026-05-30",
+      "content_sha256": "00112233445566778899aabbccddeeff00112233445566778899aabbccddeeff",
+      "review_status": "approved",
+      "reviewed_by": "fixture reviewer (synthetic, not a real approval)",
+      "reviewed_on": "2026-05-31",
+      "lifecycle_status": "current",
+      "valid_until": "2026-12-31",
+      "applicability": {
+        "water_regime": "mixed"
+      }
+    }
+  ]
+}

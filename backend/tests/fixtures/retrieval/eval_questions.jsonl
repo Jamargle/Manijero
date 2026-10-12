@@ -1,0 +1,7 @@
+{"question": "¿Cómo se presenta la solicitud única?", "expected_passage_ids": ["fixture-p-solicitud-1"]}
+{"question": "¿Como se presenta la solicitud unica?", "expected_passage_ids": ["fixture-p-solicitud-1"]}
+{"question": "¿Qué anoto en el cuaderno de campo?", "expected_passage_ids": ["fixture-p-cuaderno-1"]}
+{"question": "¿Cómo se describe el riego del olivar?", "expected_passage_ids": ["fixture-p-riego-olivar-1"]}
+{"question": "¿Qué es la condicionalidad?", "expected_passage_ids": ["fixture-p-condicionalidad-1"]}
+{"question": "¿Qué menciona sobre las buenas prácticas agrarias?", "expected_passage_ids": ["fixture-p-condicionalidad-1"]}
+{"question": "¿Quién puede pedir las ayudas?", "expected_passage_ids": ["fixture-p-titular-1"]}

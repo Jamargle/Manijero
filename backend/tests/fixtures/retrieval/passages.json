@@ -1,0 +1,83 @@
+{
+  "schema_version": "passage-set-v1",
+  "passages": [
+    {
+      "id": "fixture-p-solicitud-1",
+      "source_id": "fixture_junta_solicitud",
+      "location": "Art. 1 (fixture, sintético)",
+      "text": "Fragmento sintético de prueba sobre la solicitud única: describe cómo se presenta una solicitud anual de forma genérica y no fija ningún plazo ni cuantía real."
+    },
+    {
+      "id": "fixture-p-solicitud-2",
+      "source_id": "fixture_junta_solicitud",
+      "location": "Art. 2 (fixture, sintético)",
+      "text": "Fragmento sintético de prueba sobre la modificación de una solicitud ya presentada: la menciona solo como ejemplo y no establece ningún plazo real."
+    },
+    {
+      "id": "fixture-p-cuaderno-1",
+      "source_id": "fixture_boe_ayudas",
+      "location": "Anexo I (fixture, sintético)",
+      "text": "Fragmento sintético de prueba sobre el cuaderno de campo: enumera anotaciones genéricas de labores y tratamientos y no prescribe ninguna práctica real.",
+      "critical": false
+    },
+    {
+      "id": "fixture-p-cuaderno-2",
+      "source_id": "fixture_boe_ayudas",
+      "location": "Anexo II (fixture, sintético)",
+      "text": "Fragmento sintético de prueba: menciona el campo como ejemplo sin detallar ninguna anotación y no describe ninguna práctica real."
+    },
+    {
+      "id": "fixture-p-condicionalidad-1",
+      "source_id": "fixture_boe_ayudas",
+      "location": "Art. 3 (fixture, sintético)",
+      "text": "Fragmento sintético de prueba sobre la condicionalidad: menciona buenas prácticas agrarias de forma genérica y no afirma ninguna obligación real.",
+      "critical": true
+    },
+    {
+      "id": "fixture-p-riego-olivar-1",
+      "source_id": "fixture_fega_riego",
+      "location": "Punto 4 (fixture, sintético)",
+      "text": "Fragmento sintético de prueba: describe el riego del olivar solo como ejemplo y no fija fechas, dotaciones ni condiciones reales.",
+      "applicability": {
+        "crop": "olivar",
+        "water_regime": "mixed"
+      }
+    },
+    {
+      "id": "fixture-p-riego-general-1",
+      "source_id": "fixture_fega_riego",
+      "location": "Punto 5 (fixture, sintético)",
+      "text": "Fragmento sintético de prueba: menciona el riego en general sin detallar cultivo ni periodo y no afirma ninguna condición real."
+    },
+    {
+      "id": "fixture-p-olivar-1",
+      "source_id": "fixture_boe_ayudas",
+      "location": "Art. 4 (fixture, sintético)",
+      "text": "Fragmento sintético de prueba sobre el olivar: lo cita como cultivo de ejemplo y no describe ninguna labor real."
+    },
+    {
+      "id": "fixture-p-titular-1",
+      "source_id": "fixture_boe_ayudas",
+      "location": "Art. 5 (fixture, sintético)",
+      "text": "Fragmento sintético de prueba sobre el titular de la explotación: lo menciona de forma genérica y no define ningún requisito real."
+    },
+    {
+      "id": "fixture-p-ayudas-1",
+      "source_id": "fixture_boe_ayudas",
+      "location": "Art. 6 (fixture, sintético)",
+      "text": "Fragmento sintético de prueba sobre las ayudas: las nombra de forma general sin indicar importes ni beneficiarios reales."
+    },
+    {
+      "id": "fixture-p-registro-1",
+      "source_id": "fixture_junta_solicitud",
+      "location": "Art. 7 (fixture, sintético)",
+      "text": "Fragmento sintético de prueba sobre el registro de explotaciones: describe el trámite solo como ejemplo y no fija ningún requisito real."
+    },
+    {
+      "id": "fixture-p-documentacion-1",
+      "source_id": "fixture_junta_solicitud",
+      "location": "Art. 8 (fixture, sintético)",
+      "text": "Fragmento sintético de prueba sobre la documentación que acompaña a una solicitud: no enumera ningún documento exigible real."
+    }
+  ]
+}
