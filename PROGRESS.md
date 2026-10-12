@@ -12,6 +12,7 @@
 - `add_land` is accepted: shared `AddLandState`/`AddLandScreen`, resource-backed Spanish copy, and Android/Desktop composition roots wired to the accepted storage adapters. Android and Desktop checks ran in this worktree because `init.sh` created `local.properties` with the installed SDK; independent validation recorded in `docs/validations/add_land.md`.
 - The Desktop app stores lands in `~/.manijero/lands-v1.txt`; Android uses the `manijero_lands` SharedPreferences file. Both go through the shared versioned `land-store-v1` format.
 - Product features are tracked in `feature_list.json`. `backend_health`, `answer_api_contract`, `local_land_store`, `chat_home`, `suggested_questions`, `add_land`, `source_catalog_validation`, and `chat_question_submission` are accepted.
+- `visual_foundation` (apply the shared olive-toned theme in `commonMain`) was added to `feature_list.json` on 2026-10-13 as a `not_started` client feature with no dependencies; `response_states`, `answer_source_cards`, `network_error_recovery`, `land_list`, `edit_land`, `remove_land`, and `chat_accessibility` now also depend on it, so those features are blocked until it is accepted.
 
 ## Start and verify
 
@@ -22,17 +23,9 @@
 - Source catalog check: `python3 backend/scripts/validate_source_catalog.py knowledge/source_catalog.json --as-of YYYY-MM-DD`
 - Backend tests: `cd backend && python -m pytest` (note: bare `pytest` cannot collect `tests/test_health.py`, because nothing puts `backend/` on `sys.path`; use `python -m pytest` or install the test runner into a local virtualenv)
 
-Verification evidence for `chat_home`:
-
-- `./init.sh` passes with the restored Gradle 9.8.0 wrapper and reports the current feature state.
-- `./gradlew :shared:jvmTest` passes.
-- `./gradlew :desktopApp:build` passes.
-- `./init.sh --verify`, `./gradlew :shared:testAndroidHostTest`, and `./init.sh --android` stop before compilation because neither `ANDROID_HOME` nor `local.properties` with `sdk.dir` is configured in this worktree. No Android result is claimed.
-- Desktop launch/manual smoke was not run because it is an interactive long-running target; compilation is covered by `:desktopApp:build`.
-
 ## Next feature
 
-Preferred next feature: `source_retrieval` (the first dependency-ready unfinished feature; its dependency `source_catalog_validation` is accepted). Also dependency-ready now: `network_error_recovery` and `land_list`. `POST /ask` itself still has no backend implementation, so the `/ask` wiring and Android/Desktop manual smoke remain follow-ups (validator finding F1).
+Dependency-ready unfinished features: `visual_foundation` (no dependencies) and `source_retrieval` (its dependency `source_catalog_validation` is accepted). The current branch (`adding-visual-foundation`) targets `visual_foundation`. `network_error_recovery` and `land_list` are **not** dependency-ready: both now also depend on `visual_foundation`, which is `not_started`. `POST /ask` itself still has no backend implementation, so the `/ask` wiring and Android/Desktop manual smoke remain follow-ups (validator finding F1).
 
 ## Session log
 
@@ -57,8 +50,22 @@ Preferred next feature: `source_retrieval` (the first dependency-ready unfinishe
 | 2026-10-12 | Accepted `source_catalog_validation` | Independent validator reproduced exit 0 on canonical/valid fixtures, 20 policy and 1 malformed non-zero rejections with located diagnostics, the `--as-of` expiry boundary, a socket-guard no-network check, and no content leakage across all fixtures. See `docs/validations/source_catalog_validation.md`. |
 | 2026-10-12 | Implemented `chat_question_submission` | Shared reducer/effect chat flow, composition-scoped `ChatConversation`, Ktor `/ask` service with MockEngine test decoding `contracts/examples/response-answered.json`, injected `AnswerService` wiring, Spanish working/limit/clarification strings, and updated reducer tests. `python3 contracts/validate_examples.py`, `:shared:jvmTest` (24 tests), `:shared:testAndroidHostTest` (22 tests), `:desktopApp:build`, `:androidApp:assembleDebug`, and `./init.sh --verify` all pass; Desktop app started without exceptions. |
 | 2026-10-12 | Accepted `chat_question_submission` | Independent validator (docs/validations/chat_question_submission.md) confirmed all four acceptance scenarios, re-ran the contract validator, JVM (24) and Android host (22) tests, a full `--rerun-tasks` Android+Desktop build, the iOS compile, and `./init.sh --verify`; decoded all three contract fixtures with the shipped DTO and confirmed no logging, no hard-coded production URL, and no contract/backend changes. Findings F1-F3 carried forward to the `/ask` wiring, `network_error_recovery`, and `chat_accessibility`. |
+| 2026-10-13 | Added `visual_foundation` as a feature definition and wired the visual-foundation dependency into `response_states`, `answer_source_cards`, `network_error_recovery`, `land_list`, `edit_land`, `remove_land`, and `chat_accessibility` | `feature_list.json` (commit 139d460); definition only, no implementation or checks run. |
+| 2026-10-13 | Documentation consistency pass over accepted features | Added `docs/validations/chat_home.md` (reconstructed acceptance record), linked each accepted feature's validation record from `feature_list.json`, and corrected the `PROGRESS.md` next-feature and `visual_foundation` status. No product code changed. |
 
 ## Feature evidence
+
+### chat_home — accepted
+
+Independent validator accepted commit 47e80c8 (acceptance commit a79946f; record:
+`docs/validations/chat_home.md`). Verification recorded at acceptance:
+
+- `./init.sh` passes with the restored Gradle 9.8.0 wrapper and reports the current feature state.
+- `./gradlew :shared:jvmTest` passes.
+- `./gradlew :desktopApp:build` passes and compiles the shared Compose screen.
+- `./init.sh --verify`, `./gradlew :shared:testAndroidHostTest`, and `./init.sh --android` stopped before compilation because the worktree had no `ANDROID_HOME` or `local.properties` with `sdk.dir`. No Android result was claimed.
+- Desktop launch/manual smoke was not run because it is an interactive long-running target; compilation is covered by `:desktopApp:build`.
+- Outstanding: the spec's Android/Desktop manual smoke ("locate the Spanish field without adding a land, type a question, and confirm the action becomes available") was not executed at acceptance. It is not evidence of failure and can now be run where the Android SDK is configured.
 
 ### chat_question_submission — accepted
 

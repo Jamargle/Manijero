@@ -23,7 +23,7 @@
         "./gradlew :shared:jvmTest passes; ./gradlew :desktopApp:build passes and compiles the shared Compose screen.",
         "./init.sh --verify, ./gradlew :shared:testAndroidHostTest, and ./init.sh --android are blocked before compilation because this worktree has no ANDROID_HOME or local.properties sdk.dir.",
         "Self-verification passes for the implemented shared/Desktop scope; Android verification remains environment-blocked and is not claimed.",
-        "Independent validator accepted commit 47e80c8 after confirming scope, accessibility labels, wrapper reproducibility, and all feasible checks."
+        "Independent validator accepted commit 47e80c8 after confirming scope, accessibility labels, wrapper reproducibility, and all feasible checks. Record: docs/validations/chat_home.md."
       ],
       "notes": "Implement the shared Compose UI in commonMain. Keep the first screen calm, readable, and focused on asking a question."
     },
@@ -70,7 +70,7 @@
       "depends_on": [],
       "status": "accepted",
       "verification": ["Validate representative request and response examples against the agreed contract."],
-      "evidence": ["Accepted after independent contract review: python3 contracts/validate_examples.py, Python syntax compilation, Ruby YAML parse, and git diff --check all passed; answered, abstained, and needs_land_clarification fixtures plus privacy rules were reviewed."],
+      "evidence": ["Accepted after independent contract review: python3 contracts/validate_examples.py, Python syntax compilation, Ruby YAML parse, and git diff --check all passed; answered, abstained, and needs_land_clarification fixtures plus privacy rules were reviewed. Record: docs/validations/answer_api_contract.md."],
       "notes": "Define the contract before implementing client/service integration. Keep local land labels out of the payload unless a reviewed use case requires them."
     },
     {
@@ -84,7 +84,7 @@
       "evidence": [
         "Implemented FastAPI GET /health with documented HTTP 200 response.",
         "backend/tests: 2 passed; Uvicorn HTTP smoke check returned the documented JSON body.",
-        "Independent validation: accept (2026-10-11)."
+        "Independent validation: accept (2026-10-11). Record: docs/validations/backend_health.md."
       ],
       "notes": "The backend is proposed in MasterPlanV3.md but was not present in the repository scaffold; this feature establishes its initial service boundary."
     },
@@ -104,7 +104,7 @@
         "python -m pytest (backend regression): 45 passed (43 new plus the 2 existing health tests). Bare `pytest` cannot collect the pre-existing tests/test_health.py, so the regression suite must be run as `python -m pytest` from backend/.",
         "git diff --check is clean. Validation is local-only: no network access (enforced by a socket-guard test) and diagnostics never echo catalog field values.",
         "Android/Gradle checks do not apply to this knowledge/backend feature and were not run.",
-        "Independent validator accepted 2026-10-12 after personally reproducing exit 0 on the canonical/valid fixtures, 20 policy and 1 malformed non-zero rejections, the --as-of expiry boundary, a socket-guard no-network check, and a no-content-leak check across all fixtures."
+        "Independent validator accepted 2026-10-12 after personally reproducing exit 0 on the canonical/valid fixtures, 20 policy and 1 malformed non-zero rejections, the --as-of expiry boundary, a socket-guard no-network check, and a no-content-leak check across all fixtures. Record: docs/validations/source_catalog_validation.md."
       ],
       "notes": "Keep the MVP corpus curated and manually reviewed; automated discovery is deferred. The validator proves catalog-policy conformance only, never that a document is authentic, current, or legally applicable."
     },
@@ -206,7 +206,7 @@
       "verification": ["Create two distinct records through the repository boundary and confirm both remain after reopening the app."],
       "evidence": [
         "Implemented shared LandRepository with versioned local serialization and Android SharedPreferences/Desktop file adapters.",
-        "Independent review accepted: :shared:jvmTest passes, including two-record reopen persistence, update/delete isolation, unknown values, and validation; Android compilation is environment-blocked because no SDK/local.properties is available."
+        "Independent review accepted: :shared:jvmTest passes, including two-record reopen persistence, update/delete isolation, unknown values, and validation; Android compilation is environment-blocked because no SDK/local.properties is available. Record: docs/validations/local_land_store.md."
       ],
       "notes": "Choose persistence technology during implementation. Define migration and recovery behavior before a real-user pilot."
     },

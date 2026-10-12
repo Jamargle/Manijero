@@ -53,7 +53,7 @@ case "$mode" in
     ./gradlew --version
     cat <<'EOF'
 
-This checkout contains the shared chat starting screen; later product features remain deferred.
+This checkout contains the accepted chat, backend-health, API-contract, source-catalog, and local-land-store features; retrieval, answer generation, response states, and the visual foundation remain deferred.
 Standard verification:
   ./init.sh --verify
 
