@@ -7,7 +7,8 @@
 - `shared/src/commonMain/.../App.kt` now contains the shared Spanish chat starting screen; answer service, land management, and official-source retrieval are not implemented.
 - Shared tests include reducer coverage for the chat composer; backend and full UI behavior are deferred to later features.
 - The backend now has a minimal FastAPI service with a documented liveness endpoint.
-- Product features are tracked in `feature_list.json`. `backend_health`, `answer_api_contract`, and `local_land_store` are accepted; `chat_home` and `add_land` are accepted.
+- Product features are tracked in `feature_list.json`. `backend_health`, `answer_api_contract`, `local_land_store`, `chat_home`, `suggested_questions` and `add_land` are accepted.
+- The shared chat home now shows three approved Spanish example questions that fill the composer (without sending) when tapped; the answer service, land management, and official-source retrieval are not implemented.
 - `add_land` is accepted: shared `AddLandState`/`AddLandScreen`, resource-backed Spanish copy, and Android/Desktop composition roots wired to the accepted storage adapters. Android and Desktop checks ran in this worktree because `init.sh` created `local.properties` with the installed SDK; independent validation recorded in `docs/validations/add_land.md`.
 - The Desktop app stores lands in `~/.manijero/lands-v1.txt`; Android uses the `manijero_lands` SharedPreferences file. Both go through the shared versioned `land-store-v1` format.
 
@@ -26,9 +27,6 @@ Verification evidence for `chat_home`:
 - `./init.sh --verify`, `./gradlew :shared:testAndroidHostTest`, and `./init.sh --android` stop before compilation because neither `ANDROID_HOME` nor `local.properties` with `sdk.dir` is configured in this worktree. No Android result is claimed.
 - Desktop launch/manual smoke was not run because it is an interactive long-running target; compilation is covered by `:desktopApp:build`.
 
-## Next feature
-
-Preferred next feature: `suggested_questions` — add example prompts after the accepted chat starting screen. `land_list` is the natural lands follow-up now that `add_land` is accepted.
 
 ## Session log
 
@@ -47,8 +45,40 @@ Preferred next feature: `suggested_questions` — add example prompts after the 
 | 2026-10-11 | Implemented and independently reviewed `local_land_store` | Shared `LandRepository`, versioned local format, Android/Desktop adapters; `:shared:jvmTest` passed (5 tests); Android compile blocked by missing SDK configuration. |
 | 2026-10-12 | Implemented `add_land` (self-verified, ready for independent validation) | Shared `AddLandState`/`AddLandAction` reducer, stateless `AddLandScreen` with previews, resource-backed Spanish copy, `App()` destination and lands wiring, Android/Desktop composition roots. `./init.sh --verify` passed: `:shared:jvmTest` 21 tests, `:shared:testAndroidHostTest` 20 tests, `:androidApp:assembleDebug`, `:desktopApp:build`. Desktop startup smoke via `:desktopApp:run` ran without startup errors. |
 | 2026-10-12 | Accepted `add_land` | Independent validator re-ran `./init.sh --verify`, `:shared:jvmTest` and `:shared:testAndroidHostTest` with `--rerun-tasks` (21 and 20 tests, 0 failures), `:androidApp:assembleDebug`, `:desktopApp:build`, and a Desktop startup smoke; confirmed scope, commonMain-only UI, no land-data/exception logging, and the copy contract. Verdict accept; record `docs/validations/add_land.md`. |
+| 2026-10-12 | Implemented `suggested_questions` | Shared `ChatHomeAction.SuggestedQuestionSelected` reducer case, three approved example strings in Compose resources with a wrapping-safe vertical layout in `ChatHomeScreen`, new reducer tests, and previews. `:shared:jvmTest` (7/7), `:shared:testAndroidHostTest` (7/7), `:androidApp:assembleDebug`, and `:desktopApp:build` pass via `./init.sh --verify`; Android emulator UI smoke and Desktop launch smoke recorded. Awaiting independent validation. |
+| 2026-10-12 | Accepted `suggested_questions` | Independent validator accepted after re-running `:shared:jvmTest --rerun-tasks` (7/7), `:shared:testAndroidHostTest`, `:androidApp:assembleDebug`, `:desktopApp:build`, and a byte-for-byte string check against the spec. Record: `docs/validations/suggested_questions.md`. |
 
 ## Feature evidence
+
+### suggested_questions — accepted
+
+- Independent validator accepted (record: `docs/validations/suggested_questions.md`) after re-running
+  `:shared:jvmTest --rerun-tasks` (ChatHomeStateTest 7/7), `:shared:testAndroidHostTest`,
+  `:androidApp:assembleDebug`, and `:desktopApp:build`, and independently confirming the three shipped
+  strings match the spec byte-for-byte with no unapproved deadline wording.
+- `ChatHomeAction.SuggestedQuestionSelected(question: String)` sets `question` to the supplied
+  text and clears `submittedQuestion`; the reducer performs no I/O and adds no dependency,
+  ViewModel, route, or platform adapter.
+- The three approved strings ship verbatim in
+  `shared/src/commonMain/composeResources/values/strings.xml`
+  (`chat_home_suggestion_solicitud_unica`, `chat_home_suggestion_sigpac`,
+  `chat_home_suggestion_condicionalidad`); a Python byte-for-byte comparison against the spec's
+  Content decision matched all three, and the unapproved deadline wording
+  ("¿Hasta cuándo puedo cambiar mi solicitud?") is not shipped.
+- `ChatHomeScreen` renders a plain-Spanish heading plus the three examples as full-width
+  `OutlinedButton` controls in a vertical `Column` inside the existing 720dp content width.
+- Verification commands:
+  - `./gradlew :shared:jvmTest` → BUILD SUCCESSFUL; `ChatHomeStateTest` 7/7 (4 new).
+  - `./init.sh --verify` → BUILD SUCCESSFUL; `:shared:jvmTest`, `:shared:testAndroidHostTest`
+    (ChatHomeStateTest 7/7), `:androidApp:assembleDebug` (`androidApp-debug.apk`),
+    `:desktopApp:build`.
+- Android emulator smoke (`Medium_Phone_API_35`, 1080x2400, debug APK): all three examples visible
+  without sideways scrolling; tapping each filled the composer with the exact question and enabled
+  `Preguntar`; submit showed only "Tu pregunta está lista para continuar."; re-selecting an example
+  cleared the stale submitted message; at `font_scale 2.0` labels wrapped to two lines with no
+  horizontal overflow.
+- Desktop smoke: `:desktopApp:run` launched the shared `App()` and stayed alive ~50s with no
+  runtime exception; interactive window/click inspection was not captured in this session.
 
 ### local_land_store — accepted
 
