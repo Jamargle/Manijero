@@ -6,4 +6,22 @@
     <string name="chat_home_ask">Preguntar</string>
     <string name="chat_home_lands">Mis terrenos</string>
     <string name="chat_home_submitted">Tu pregunta está lista para continuar.</string>
+    <string name="add_land_title">Añadir terreno</string>
+    <string name="add_land_description">Solo el nombre es obligatorio. Si no sabes algún detalle, elige «No lo sé».</string>
+    <string name="add_land_name_label">Nombre del terreno</string>
+    <string name="add_land_name_error">Escribe un nombre para el terreno.</string>
+    <string name="add_land_municipality_label">Municipio (opcional)</string>
+    <string name="add_land_water_label">Riego</string>
+    <string name="add_land_production_label">Producción</string>
+    <string name="add_land_unknown">No lo sé</string>
+    <string name="add_land_water_dryland">Secano</string>
+    <string name="add_land_water_irrigated">Regadío</string>
+    <string name="add_land_water_mixed">Una parte de regadío y otra de secano</string>
+    <string name="add_land_production_conventional">Convencional</string>
+    <string name="add_land_production_organic">Ecológico</string>
+    <string name="add_land_production_mixed">Una parte de cada uno</string>
+    <string name="add_land_save">Guardar terreno</string>
+    <string name="add_land_cancel">Cancelar</string>
+    <string name="add_land_save_failed">No se ha podido guardar el terreno. Puedes intentarlo otra vez.</string>
+    <string name="add_land_saved">El terreno se ha guardado en este dispositivo.</string>
 </resources>
