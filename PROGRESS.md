@@ -13,6 +13,7 @@
 - `add_land` is accepted: shared `AddLandState`/`AddLandScreen`, resource-backed Spanish copy, and Android/Desktop composition roots wired to the accepted storage adapters. Android and Desktop checks ran in this worktree because `init.sh` created `local.properties` with the installed SDK; independent validation recorded in `docs/validations/add_land.md`.
 - The Desktop app stores lands in `~/.manijero/lands-v1.txt`; Android uses the `manijero_lands` SharedPreferences file. Both go through the shared versioned `land-store-v1` format.
 - `visual_foundation` (the shared olive-toned theme in `commonMain`) is accepted: `shared/src/commonMain/kotlin/com/jamarglex/manijero/theme/ManijeroColors.kt`, `ManijeroTheme.kt`, and `ManijeroTypography.kt` define the `DESIGN.md` tokens, a fully specified `lightColorScheme`, a `LocalManijeroSemanticColors` local for caution/strong olive, and the `bodySmall` line-height override; `ManijeroTheme` is applied once inside `App()` and all fifteen existing previews use it (record: `docs/validations/visual_foundation.md`). `response_states`, `answer_source_cards`, `network_error_recovery`, `land_list`, `edit_land`, `remove_land`, and `chat_accessibility` now have their `visual_foundation` dependency satisfied.
+- `land_list` is accepted: `Mis terrenos` now opens the shared lands **list** (the parent surface of the add form) via pure `LandListState`/`LandListAction`/`reduce` and the stateless `LandListScreen`, with a single synchronous `LandRepository.list()` read on entry/retry/after-save, an empty state that names `Añadir terreno`, a distinct plain-Spanish failure state (`Reintentar`, no add action), non-clickable merged-semantics rows, and a device-scoped saved confirmation. The intended routing change moves the `add_land` return destination to the list and removes the now-unreachable chat-home confirmation (record: `docs/validations/land_list.md`). `edit_land`, `remove_land`, and `minimal_land_context` now have their `land_list` dependency satisfied.
 
 ## Start and verify
 
@@ -54,6 +55,8 @@
 | 2026-10-13 | Accepted `visual_foundation` | Independent validator re-ran `./init.sh --verify` and `:shared:jvmTest :shared:testAndroidHostTest --rerun-tasks` (54 JVM / 51 Android host tests, 0 failures), reproduced the WCAG AA contrast pairs with an independent computation, and confirmed scope discipline (commonMain-only theme, no new module/dependency, hosts/strings/Gradle untouched, no logging). Record: `docs/validations/visual_foundation.md`. |
 | 2026-10-13 | Implemented `source_retrieval` (passing, awaiting independent validation) | Added `knowledge/passages.schema.json` (`passage-set-v1`), `backend/app/retrieval.py`, `backend/scripts/evaluate_retrieval.py`, `backend/tests/test_retrieval.py`, and synthetic retrieval fixtures under `backend/tests/fixtures/retrieval/`; updated `knowledge/README.md` and `backend/README.md`. Fixture catalog validated exit 0; measured baseline `hit@5 = 0.857 (6/7)`, `recall@5 = 0.857`, `MRR = 0.857`; `python -m pytest tests/test_retrieval.py` 76 passed; `python -m pytest` 121 passed; `git diff --check` clean. |
 | 2026-10-13 | Accepted `source_retrieval` | Independent validator reproduced the fixture gate, the measured baseline and per-question ranks, determinism, k-window semantics, the empty-corpus case, and fail-closed exits 2 with located paths; confirmed no-network behavior with an independent socket/DNS/TLS guard, schema/validator sync, synthetic-only fixtures, scope discipline, and 76/121 passing tests in an out-of-repo venv. Findings F1-F4 non-blocking. See `docs/validations/source_retrieval.md`. |
+| 2026-10-13 | Implemented `land_list` (self-verified; awaiting independent validation) | Added pure `LandListState`/`LandListAction`/`reduce` and the stateless resource-backed `LandListScreen` with 11 previews, 9 new `land_list_*` strings, and `App()` wiring: a `LandList` destination with one synchronous read site, the intended `Mis terrenos` routing change, and removal of the unreachable chat-home confirmation. `:shared:jvmTest` 60 tests, `:shared:testAndroidHostTest` 57 tests, `./init.sh --verify` pass; Android emulator and Desktop smoke recorded. |
+| 2026-10-13 | Accepted `land_list` | Independent validator re-ran `./init.sh`, the focused and full `:shared:jvmTest` (60/0), `:shared:testAndroidHostTest` (57/0), `./init.sh --verify`, and a full `--rerun-tasks` build, and byte-for-byte checked the nine new strings against the spec; confirmed the failure/empty-state distinction and file-by-file scope discipline (only the intended `add_land` routing change). Findings F1-F6 non-blocking. See `docs/validations/land_list.md`. |
 
 ## Feature evidence
 
@@ -403,3 +406,82 @@ Honest gaps:
 - Light-only by decision: no dark palette exists (`DESIGN.md` records this). Desktop OS-level text
   scaling is not wired in this repository, so enlarged-text evidence is preview-based
   (carried validator finding F3, owner `chat_accessibility`).
+
+### land_list — accepted
+
+What changed:
+
+- `shared/src/commonMain/kotlin/com/jamarglex/manijero/lands/LandListState.kt`: pure
+  `LandListState` (`lands`, `loadFailed`, `isEmpty`), `LandListAction`
+  (`LandsLoaded`/`LoadFailed`/`ReloadClicked`), and `reduce`. `LandsLoaded` stores the supplied
+  list exactly (order, identities, duplicate names — no sort/dedupe/rename) and clears
+  `loadFailed`; `LoadFailed` clears `lands` and sets `loadFailed = true`, so a failed read never
+  looks empty and stale rows never survive; `ReloadClicked` clears both before the caller re-reads.
+- `shared/src/commonMain/kotlin/com/jamarglex/manijero/lands/LandListScreen.kt`: stateless
+  `LandListScreen(state, onAddLand, onBack, onRetry, modifier, savedConfirmation)`. Plain,
+  non-clickable rows show the exact name, municipality only when known, and always water and
+  production with `UNKNOWN → No lo sé` and `MIXED → mixed copy`; rows use
+  `mergeDescendants = true`; failure copy and the confirmation are `LiveRegionMode.Polite`;
+  in the failure state `Añadir terreno` is withheld and a single `Reintentar` is offered.
+  Eleven previews cover empty, two distinguishable, duplicate names, many, long text, failure,
+  just-saved, compact (320dp), wide (900dp), and 2x font scale.
+- `shared/src/commonMain/kotlin/com/jamarglex/manijero/App.kt`: new `LandList` destination and a
+  single synchronous read site (`runCatching { repository.list() }` folded into
+  `LandsLoaded`/`LoadFailed`, then reduced) invoked only on entry, retry, and after a save.
+  `Añadir terreno` opens the unchanged `AddLandScreen`; `Cancelar` and a successful save return to
+  the list with a reload and confirmation after a save. The intended `land_list` routing change
+  removes the now-unreachable `ChatHomeScreen` `landSavedConfirmation` parameter, its block, and its
+  preview. `App()` (iOS scaffold/previews) is unchanged; without a repository the lands action
+  stays unavailable.
+- `shared/src/commonMain/composeResources/values/strings.xml`: 9 new `land_list_*` keys (explanation,
+  empty state, `Añadir terreno`, `Volver`, `Municipio`/`Riego`/`Producción` row lines, failure text,
+  `Reintentar`) matching the spec copy verbatim, reusing `add_land_unknown`, `add_land_water_*`,
+  `add_land_production_*`, `add_land_saved`, and `chat_home_lands`.
+- Not changed: `Land`/`LandDraft`/`LandRepository`, the `land-store-v1` format, both storage
+  adapters, `AddLandState`/`AddLandScreen` behavior, `MainActivity.kt`, `desktopApp/main.kt`,
+  `MainViewController.kt`, Gradle files, `init.sh`, `theme/`, backend/contracts/knowledge, and
+  unrelated features; no new module, dependency, ViewModel, coroutine, or navigation library.
+
+Verification (commands run from the repository root):
+
+- `./gradlew :shared:jvmTest --rerun-tasks` → BUILD SUCCESSFUL, **60 tests / 0 failures**
+  (`LandListStateTest` 6 new).
+- `./gradlew :shared:testAndroidHostTest` → BUILD SUCCESSFUL, **57 tests / 0 failures**.
+- `./init.sh --verify` → BUILD SUCCESSFUL (`:shared:jvmTest`, `:shared:testAndroidHostTest`,
+  `:androidApp:assembleDebug` producing `androidApp-debug.apk`, `:desktopApp:build`).
+- Android emulator smoke (`Medium_Phone_API_35`, 1080x2400): the empty state names `Añadir terreno`
+  with no fake row; saving `Los Olivos` (name only) returns to the list with
+  `Riego: No lo sé` / `Producción: No lo sé` and the saved confirmation; a second land
+  (Municipio: Martos, Regadío, Ecológico) adds a distinguishable row in creation order; force-stop
+  + relaunch keeps both rows with no duplicates or stale confirmation; `Volver` returns to the chat
+  home and `Cancelar` returns to the list creating no record; `font_scale 2.0` wraps all rows and
+  actions with no horizontal overflow.
+- Desktop run: no read happens at startup; with an unreadable store the plain-Spanish failure state
+  shows only `Reintentar` and `Volver` with `Añadir terreno` withheld; `Reintentar` keeps the honest
+  failure while unreadable and recovers once the store is fixed.
+- Privacy: `grep -rn "println\|Log\.\|Logger\|printStackTrace\|System.out" shared/src` returns no
+  matches; no network call, permission, dependency, or module was added; no land id/area/notes are
+  shown and no land data or exception text is surfaced.
+
+Independent validation (2026-10-13): accept. The validator re-ran `./init.sh`, the focused and full
+`:shared:jvmTest` (60/0), `:shared:testAndroidHostTest` (57/0), `./init.sh --verify`, and a full
+`--rerun-tasks` Android+Desktop build, and byte-for-byte checked the nine new strings plus the reused
+land vocabulary against the spec; it confirmed the empty-vs-failure distinction (an independent
+throwing-storage probe showed `LoadFailed` is not `isEmpty`), the no-logging/no-network constraints,
+and file-by-file scope discipline (only the intended `add_land` routing change). Record:
+`docs/validations/land_list.md`. Findings F1-F6 are non-blocking and carried forward (F1 optional
+confirmation guard, F2 post-save failure pairing, F2b corrupt-store-content robustness owned by
+`local_land_store` hardening, F3 Android system back owned by `chat_accessibility`, F5 evidence
+hygiene, F6 default-clock `createdAt`).
+
+Honest gaps:
+
+- No persistent E2E or Compose UI-test framework exists, so no automated UI/E2E coverage is claimed.
+- TalkBack row-merge reading and Desktop keyboard focus/resize were not verified end-to-end
+  (assistive access denied / no harness); the `mergeDescendants` and polite live-region attributes are
+  present in code, and these checks are deferred to `chat_accessibility` / `land_form_accessibility`.
+- The failure state requires the read itself to throw (a non-string `land_store` value or an
+  unreadable file); a corrupt-content store decodes to an empty list under the accepted
+  `LandStoreFormat.decode` contract, which `land_list` is forbidden to change (F2b).
+- Spec-recorded limits stand: two identical name-only lands render identically; `areaHectares` and
+  `notes` are not shown; the read is synchronous on the composition frame.
