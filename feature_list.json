@@ -54,12 +54,20 @@
       "title": "Apply the shared visual foundation",
       "user_visible_behavior": "A person sees the same calm, warm, olive-toned look on every screen: a warm page background, olive primary actions and navigation, and clear caution and danger cues that never rely on color alone.",
       "depends_on": [],
-      "status": "not_started",
+      "status": "accepted",
       "verification": [
         "On Android and Desktop, confirm the chat and land screens use the centralized tokens (olive-800 primary, canvas background, surface cards/inputs, caution and danger states) instead of the default Material palette.",
         "Check text/background and control contrast against WCAG AA, and confirm text scaling and large touch targets remain usable after theming."
       ],
-      "evidence": [],
+      "evidence": [
+        "Spec: docs/specs/visual_foundation.md.",
+        "New shared theme package in commonMain (shared/src/commonMain/kotlin/com/jamarglex/manijero/theme/): ManijeroColors.kt (DESIGN.md tokens + derived values, a fully specified lightColorScheme, ManijeroSemanticColors/LocalManijeroSemanticColors, dependency-free WCAG helpers), ManijeroTypography.kt (single documented bodySmall 16sp->18sp line-height override), and ManijeroTheme.kt (theme + semantic local + review-only token-board previews).",
+        "ManijeroTheme is applied once inside App() (the shared composition root) and all fifteen existing previews (seven in App.kt, eight in AddLandScreen.kt) use it; the Android, Desktop and iOS hosts stay theme-free and inherit one shared theme. No layout, copy, spacing, or behavior changed; no new module, framework, or dependency.",
+        "./init.sh --verify -> BUILD SUCCESSFUL. ./gradlew :shared:jvmTest :shared:testAndroidHostTest --rerun-tasks -> BUILD SUCCESSFUL: 54 JVM tests / 0 failures (ManijeroColorsTest 10, ManijeroTypographyTest 4 new) and 51 Android host tests / 0 failures; :androidApp:assembleDebug and :desktopApp:build pass.",
+        "Centralization greps: no Color(0x outside theme/; no argument-less MaterialTheme {; MaterialTheme( only in theme/ManijeroTheme.kt; no LocalMinimumInteractiveComponentSize/minimumInteractiveComponentSize override.",
+        "DESIGN.md updated with the derived-token table and the light-only decision. Self-verified; awaiting independent validation.",
+        "Independent validator ACCEPTED (record: docs/validations/visual_foundation.md) after re-running ./init.sh --verify and :shared:jvmTest :shared:testAndroidHostTest --rerun-tasks (54 JVM / 51 Android host tests, 0 failures), reproducing the WCAG pairs with an independent computation, and confirming scope discipline (commonMain-only theme, no new module/dependency, hosts/strings/Gradle untouched, no logging)."
+      ],
       "notes": "Implements the DESIGN.md 'Visual foundation'. Tokens are initial product direction, not a verified brand palette: compare them with the launcher artwork and adjust on a meaningful mismatch, and confirm WCAG AA contrast during implementation. Keep tokens centralized and shared in commonMain and do not add modules, frameworks, or dependencies. This feature covers the token/theme layer only; per-screen surface redesigns stay with chat_home, add_land, and later features."
     },
     {
