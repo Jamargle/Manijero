@@ -40,6 +40,7 @@ import com.jamarglex.manijero.lands.AddLandState
 import com.jamarglex.manijero.lands.LandRepository
 import com.jamarglex.manijero.lands.reduce
 import com.jamarglex.manijero.lands.toDraftOrNull
+import com.jamarglex.manijero.theme.ManijeroTheme
 import org.jetbrains.compose.resources.stringResource
 import manijero.shared.generated.resources.Res
 import manijero.shared.generated.resources.add_land_saved
@@ -86,51 +87,54 @@ fun App(
     var addLandState by remember { mutableStateOf(AddLandState()) }
     var landSaved by remember { mutableStateOf(false) }
 
-    when (destination) {
-        AppDestination.Chat -> ChatHomeScreen(
-            state = conversation.state,
-            onAction = { action ->
-                conversation.onAction(action)
-                landSaved = false
-            },
-            onLandsClick = if (landRepository == null) {
-                null
-            } else {
-                {
-                    addLandState = AddLandState()
-                    landSaved = false
-                    destination = AppDestination.AddLand
-                }
-            },
-            landSavedConfirmation = landSaved,
-        )
-
-        AppDestination.AddLand -> {
-            val repository = landRepository
-            AddLandScreen(
-                state = addLandState,
+    // One shared theme for every destination; the platform entry points stay theme-free.
+    ManijeroTheme {
+        when (destination) {
+            AppDestination.Chat -> ChatHomeScreen(
+                state = conversation.state,
                 onAction = { action ->
-                    val reduced = addLandState.reduce(action)
-                    addLandState = reduced
-                    if (action is AddLandAction.SaveClicked && repository != null) {
-                        val draft = reduced.toDraftOrNull()
-                        if (draft != null) {
-                            val saved = runCatching { repository.create(draft) }.isSuccess
-                            if (saved) {
-                                addLandState = AddLandState()
-                                landSaved = true
-                                destination = AppDestination.Chat
-                            } else {
-                                addLandState = reduced.reduce(AddLandAction.SaveFailed)
-                            }
-                        }
+                    conversation.onAction(action)
+                    landSaved = false
+                },
+                onLandsClick = if (landRepository == null) {
+                    null
+                } else {
+                    {
+                        addLandState = AddLandState()
+                        landSaved = false
+                        destination = AppDestination.AddLand
                     }
                 },
-                onCancel = {
-                    addLandState = AddLandState()
-                    destination = AppDestination.Chat
-                },
+                landSavedConfirmation = landSaved,
             )
+
+            AppDestination.AddLand -> {
+                val repository = landRepository
+                AddLandScreen(
+                    state = addLandState,
+                    onAction = { action ->
+                        val reduced = addLandState.reduce(action)
+                        addLandState = reduced
+                        if (action is AddLandAction.SaveClicked && repository != null) {
+                            val draft = reduced.toDraftOrNull()
+                            if (draft != null) {
+                                val saved = runCatching { repository.create(draft) }.isSuccess
+                                if (saved) {
+                                    addLandState = AddLandState()
+                                    landSaved = true
+                                    destination = AppDestination.Chat
+                                } else {
+                                    addLandState = reduced.reduce(AddLandAction.SaveFailed)
+                                }
+                            }
+                        }
+                    },
+                    onCancel = {
+                        addLandState = AddLandState()
+                        destination = AppDestination.Chat
+                    },
+                )
+            }
         }
     }
 }
@@ -365,13 +369,13 @@ private fun ChatBubble(
 @Preview(name = "Chat home with examples")
 @Composable
 private fun ChatHomePreview() {
-    MaterialTheme { ChatHomeScreen(ChatHomeState(), {}, {}) }
+    ManijeroTheme { ChatHomeScreen(ChatHomeState(), {}, {}) }
 }
 
 @Preview(name = "Chat home narrow, large text", widthDp = 320, fontScale = 2f)
 @Composable
 private fun ChatHomeSuggestionsNarrowLargeTextPreview() {
-    MaterialTheme {
+    ManijeroTheme {
         ChatHomeScreen(
             state = ChatHomeState(question = "¿Qué obligaciones tengo por la condicionalidad?"),
             onAction = {},
@@ -383,7 +387,7 @@ private fun ChatHomeSuggestionsNarrowLargeTextPreview() {
 @Preview(name = "Chat home with question")
 @Composable
 private fun ChatHomeWithQuestionPreview() {
-    MaterialTheme {
+    ManijeroTheme {
         ChatHomeScreen(
             state = ChatHomeState(question = "¿Cuándo debo revisar mi olivar?"),
             onAction = {},
@@ -395,7 +399,7 @@ private fun ChatHomeWithQuestionPreview() {
 @Preview(name = "Chat home with conversation")
 @Composable
 private fun ChatHomeConversationPreview() {
-    MaterialTheme {
+    ManijeroTheme {
         ChatHomeScreen(
             state = ChatHomeState(
                 messages = listOf(
@@ -412,7 +416,7 @@ private fun ChatHomeConversationPreview() {
 @Preview(name = "Chat home while working")
 @Composable
 private fun ChatHomeWorkingPreview() {
-    MaterialTheme {
+    ManijeroTheme {
         ChatHomeScreen(
             state = ChatHomeState(
                 messages = listOf(ChatMessage(Speaker.USER, "¿Puedo regar hoy?")),
@@ -428,7 +432,7 @@ private fun ChatHomeWorkingPreview() {
 @Preview(name = "Chat home over character limit")
 @Composable
 private fun ChatHomeOverLimitPreview() {
-    MaterialTheme {
+    ManijeroTheme {
         ChatHomeScreen(
             state = ChatHomeState(question = "a".repeat(2_100)),
             onAction = {},
@@ -440,7 +444,7 @@ private fun ChatHomeOverLimitPreview() {
 @Preview(name = "Chat home after saving a land")
 @Composable
 private fun ChatHomeLandSavedPreview() {
-    MaterialTheme {
+    ManijeroTheme {
         ChatHomeScreen(
             state = ChatHomeState(),
             onAction = {},

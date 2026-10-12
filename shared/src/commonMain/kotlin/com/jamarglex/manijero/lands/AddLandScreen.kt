@@ -26,6 +26,7 @@ import androidx.compose.ui.semantics.liveRegion
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import com.jamarglex.manijero.theme.ManijeroTheme
 import manijero.shared.generated.resources.Res
 import manijero.shared.generated.resources.add_land_cancel
 import manijero.shared.generated.resources.add_land_description
@@ -268,13 +269,13 @@ private fun ChoiceGroup(
 @Preview(name = "Add land — blank")
 @Composable
 private fun AddLandBlankPreview() {
-    MaterialTheme { AddLandScreen(state = AddLandState(), onAction = {}, onCancel = {}) }
+    ManijeroTheme { AddLandScreen(state = AddLandState(), onAction = {}, onCancel = {}) }
 }
 
 @Preview(name = "Add land — missing name error")
 @Composable
 private fun AddLandNameErrorPreview() {
-    MaterialTheme {
+    ManijeroTheme {
         AddLandScreen(
             state = AddLandState(municipality = "Úbeda", showNameError = true),
             onAction = {},
@@ -286,7 +287,7 @@ private fun AddLandNameErrorPreview() {
 @Preview(name = "Add land — known values")
 @Composable
 private fun AddLandKnownValuesPreview() {
-    MaterialTheme {
+    ManijeroTheme {
         AddLandScreen(
             state = AddLandState(
                 name = "Los Olivos",
@@ -303,7 +304,7 @@ private fun AddLandKnownValuesPreview() {
 @Preview(name = "Add land — save failure")
 @Composable
 private fun AddLandSaveErrorPreview() {
-    MaterialTheme {
+    ManijeroTheme {
         AddLandScreen(
             state = AddLandState(
                 name = "La Loma",
@@ -320,7 +321,7 @@ private fun AddLandSaveErrorPreview() {
 @Preview(name = "Add land — long text")
 @Composable
 private fun AddLandLongTextPreview() {
-    MaterialTheme {
+    ManijeroTheme {
         AddLandScreen(
             state = AddLandState(
                 name = "El olivar de mi abuelo junto al camino de la fuente",
@@ -337,7 +338,7 @@ private fun AddLandLongTextPreview() {
 @Preview(name = "Add land — compact", widthDp = 360)
 @Composable
 private fun AddLandCompactPreview() {
-    MaterialTheme {
+    ManijeroTheme {
         AddLandScreen(
             state = AddLandState(name = "Los Olivos"),
             onAction = {},
@@ -349,7 +350,7 @@ private fun AddLandCompactPreview() {
 @Preview(name = "Add land — wide", widthDp = 900)
 @Composable
 private fun AddLandWidePreview() {
-    MaterialTheme {
+    ManijeroTheme {
         AddLandScreen(
             state = AddLandState(name = "Los Olivos", municipality = "Martos"),
             onAction = {},
@@ -361,7 +362,7 @@ private fun AddLandWidePreview() {
 @Preview(name = "Add land — large font", fontScale = 2f)
 @Composable
 private fun AddLandLargeFontPreview() {
-    MaterialTheme {
+    ManijeroTheme {
         AddLandScreen(
             state = AddLandState(
                 name = "Los Olivos",
