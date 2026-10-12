@@ -6,4 +6,8 @@
     <string name="chat_home_ask">Preguntar</string>
     <string name="chat_home_lands">Mis terrenos</string>
     <string name="chat_home_submitted">Tu pregunta está lista para continuar.</string>
+    <string name="chat_home_suggestions_title">Puedes empezar con una de estas preguntas</string>
+    <string name="chat_home_suggestion_solicitud_unica">¿Qué necesito preparar para la solicitud única?</string>
+    <string name="chat_home_suggestion_sigpac">¿Qué es el SIGPAC y para qué sirve?</string>
+    <string name="chat_home_suggestion_condicionalidad">¿Qué obligaciones tengo por la condicionalidad?</string>
 </resources>

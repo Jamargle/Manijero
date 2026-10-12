@@ -11,6 +11,7 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Button
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
@@ -21,6 +22,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import org.jetbrains.compose.resources.stringResource
@@ -31,6 +33,10 @@ import manijero.shared.generated.resources.chat_home_question_hint
 import manijero.shared.generated.resources.chat_home_lands
 import manijero.shared.generated.resources.chat_home_question_label
 import manijero.shared.generated.resources.chat_home_submitted
+import manijero.shared.generated.resources.chat_home_suggestion_condicionalidad
+import manijero.shared.generated.resources.chat_home_suggestion_sigpac
+import manijero.shared.generated.resources.chat_home_suggestion_solicitud_unica
+import manijero.shared.generated.resources.chat_home_suggestions_title
 import manijero.shared.generated.resources.chat_home_title
 
 @Composable
@@ -51,6 +57,12 @@ internal fun ChatHomeScreen(
     onLandsClick: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
+    val suggestedQuestionResources = listOf(
+        Res.string.chat_home_suggestion_solicitud_unica,
+        Res.string.chat_home_suggestion_sigpac,
+        Res.string.chat_home_suggestion_condicionalidad,
+    )
+
     Surface(
         modifier = modifier.fillMaxSize(),
         color = MaterialTheme.colorScheme.background,
@@ -78,6 +90,34 @@ internal fun ChatHomeScreen(
                     style = MaterialTheme.typography.bodyLarge,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
+            }
+
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .widthIn(max = 720.dp),
+                verticalArrangement = Arrangement.spacedBy(8.dp),
+            ) {
+                Text(
+                    text = stringResource(Res.string.chat_home_suggestions_title),
+                    style = MaterialTheme.typography.titleMedium,
+                    color = MaterialTheme.colorScheme.onBackground,
+                )
+                suggestedQuestionResources.forEach { questionResource ->
+                    val questionText = stringResource(questionResource)
+                    OutlinedButton(
+                        onClick = {
+                            onAction(ChatHomeAction.SuggestedQuestionSelected(questionText))
+                        },
+                        modifier = Modifier.fillMaxWidth(),
+                    ) {
+                        Text(
+                            text = questionText,
+                            modifier = Modifier.fillMaxWidth(),
+                            textAlign = TextAlign.Start,
+                        )
+                    }
+                }
             }
 
             OutlinedTextField(
@@ -118,10 +158,22 @@ internal fun ChatHomeScreen(
     }
 }
 
-@Preview(name = "Chat home")
+@Preview(name = "Chat home with examples")
 @Composable
 private fun ChatHomePreview() {
     MaterialTheme { ChatHomeScreen(ChatHomeState(), {}, {}) }
+}
+
+@Preview(name = "Chat home narrow, large text", widthDp = 320, fontScale = 2f)
+@Composable
+private fun ChatHomeSuggestionsNarrowLargeTextPreview() {
+    MaterialTheme {
+        ChatHomeScreen(
+            state = ChatHomeState(question = "¿Qué obligaciones tengo por la condicionalidad?"),
+            onAction = {},
+            onLandsClick = {},
+        )
+    }
 }
 
 @Preview(name = "Chat home with question")
