@@ -1,0 +1,31 @@
+{
+  "schema_version": "passage-set-v1",
+  "passages": [
+    {
+      "id": "fixture-gen-solicitud-1",
+      "source_id": "fixture_gen_junta",
+      "location": "Art. 1 (fixture, sintético)",
+      "text": "Fragmento sintético de prueba sobre la solicitud única: describe el trámite anual de forma genérica y no fija ningún plazo ni cuantía real."
+    },
+    {
+      "id": "fixture-gen-documentos-1",
+      "source_id": "fixture_gen_junta",
+      "location": "Art. 2 (fixture, sintético)",
+      "text": "Fragmento sintético de prueba (fixture): el ejemplo ficticio menciona 3 documentos y no enumera ningún documento exigible real."
+    },
+    {
+      "id": "fixture-gen-plazo-1",
+      "source_id": "fixture_gen_boe",
+      "location": "Art. 3 (fixture, sintético)",
+      "text": "Fragmento sintético de prueba (fixture, cifra inventada): el plazo ficticio de ejemplo es de 42 días y no corresponde a ningún trámite real.",
+      "critical": true
+    },
+    {
+      "id": "fixture-gen-importe-1",
+      "source_id": "fixture_gen_boe",
+      "location": "Art. 4 (fixture, sintético)",
+      "text": "Fragmento sintético de prueba (fixture, cifra inventada): el importe ficticio de ejemplo es de 1.200 euros y no corresponde a ninguna ayuda real.",
+      "critical": true
+    }
+  ]
+}

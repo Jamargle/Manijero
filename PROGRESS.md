@@ -12,6 +12,7 @@
 - The offline retrieval boundary now exists: `knowledge/passages.schema.json` (`passage-set-v1`), `backend/app/retrieval.py` (strict passage-set validator, Spanish tokenizer, deterministic BM25 `Retriever`/`RetrievedPassage`), and `backend/scripts/evaluate_retrieval.py` (report-only baseline CLI). It re-validates the accepted catalog, fails closed on an ineligible catalog, and searches only synthetic reviewed fixture passages, because no canonical `passages.json` exists yet. Measured fixture baseline: `hit@5 = 0.857 (6/7)`, `recall@5 = 0.857`, `MRR = 0.857`.
 - `add_land` is accepted: shared `AddLandState`/`AddLandScreen`, resource-backed Spanish copy, and Android/Desktop composition roots wired to the accepted storage adapters. Android and Desktop checks ran in this worktree because `init.sh` created `local.properties` with the installed SDK; independent validation recorded in `docs/validations/add_land.md`.
 - The Desktop app stores lands in `~/.manijero/lands-v1.txt`; Android uses the `manijero_lands` SharedPreferences file. Both go through the shared versioned `land-store-v1` format.
+- The offline grounded-generation boundary now exists: `backend/app/generation.py` (code-owned citation markers and notice, `verify_draft` grounding rules, deterministic extractive generator, fail-closed `NotAnswered` reasons, accepted-`AskResponse` assembly) and `backend/scripts/evaluate_generation.py` (report-only CLI, grounding invariants enforced with exit `1`). It answers only from `Retriever` candidates, keeps `/health` as the only route, and configures no model provider. Fixture report: 5 answers, 8 claims, 0 ungrounded claims, 1 no-evidence outcome. `CONSTRAINTS.md` records the answer-grounding MUST rules.
 - `visual_foundation` (the shared olive-toned theme in `commonMain`) is accepted: `shared/src/commonMain/kotlin/com/jamarglex/manijero/theme/ManijeroColors.kt`, `ManijeroTheme.kt`, and `ManijeroTypography.kt` define the `DESIGN.md` tokens, a fully specified `lightColorScheme`, a `LocalManijeroSemanticColors` local for caution/strong olive, and the `bodySmall` line-height override; `ManijeroTheme` is applied once inside `App()` and all fifteen existing previews use it (record: `docs/validations/visual_foundation.md`). `response_states`, `answer_source_cards`, `network_error_recovery`, `land_list`, `edit_land`, `remove_land`, and `chat_accessibility` now have their `visual_foundation` dependency satisfied.
 - `land_list` is accepted: `Mis terrenos` now opens the shared lands **list** (the parent surface of the add form) via pure `LandListState`/`LandListAction`/`reduce` and the stateless `LandListScreen`, with a single synchronous `LandRepository.list()` read on entry/retry/after-save, an empty state that names `Añadir terreno`, a distinct plain-Spanish failure state (`Reintentar`, no add action), non-clickable merged-semantics rows, and a device-scoped saved confirmation. The intended routing change moves the `add_land` return destination to the list and removes the now-unreachable chat-home confirmation (record: `docs/validations/land_list.md`). `edit_land`, `remove_land`, and `minimal_land_context` now have their `land_list` dependency satisfied.
 
@@ -23,6 +24,7 @@
 - Launch Desktop: `./init.sh --desktop`
 - Source catalog check: `python3 backend/scripts/validate_source_catalog.py knowledge/source_catalog.json --as-of YYYY-MM-DD`
 - Retrieval baseline (fixture, report-only): `python3 backend/scripts/evaluate_retrieval.py --catalog backend/tests/fixtures/retrieval/catalog.json --passages backend/tests/fixtures/retrieval/passages.json --eval backend/tests/fixtures/retrieval/eval_questions.jsonl --as-of 2026-10-13 --k 5`
+- Grounded generation (fixture, report-only; grounding invariants enforced): `python3 backend/scripts/evaluate_generation.py --catalog backend/tests/fixtures/generation/catalog.json --passages backend/tests/fixtures/generation/passages.json --eval backend/tests/fixtures/generation/eval_questions.jsonl --as-of 2026-10-13 --k 5`
 - Backend tests: `cd backend && python -m pytest` (note: bare `pytest` cannot collect `tests/test_health.py`, because nothing puts `backend/` on `sys.path`; use `python -m pytest` or install the test runner into a local virtualenv)
 
 
@@ -55,6 +57,8 @@
 | 2026-10-13 | Accepted `visual_foundation` | Independent validator re-ran `./init.sh --verify` and `:shared:jvmTest :shared:testAndroidHostTest --rerun-tasks` (54 JVM / 51 Android host tests, 0 failures), reproduced the WCAG AA contrast pairs with an independent computation, and confirmed scope discipline (commonMain-only theme, no new module/dependency, hosts/strings/Gradle untouched, no logging). Record: `docs/validations/visual_foundation.md`. |
 | 2026-10-13 | Implemented `source_retrieval` (passing, awaiting independent validation) | Added `knowledge/passages.schema.json` (`passage-set-v1`), `backend/app/retrieval.py`, `backend/scripts/evaluate_retrieval.py`, `backend/tests/test_retrieval.py`, and synthetic retrieval fixtures under `backend/tests/fixtures/retrieval/`; updated `knowledge/README.md` and `backend/README.md`. Fixture catalog validated exit 0; measured baseline `hit@5 = 0.857 (6/7)`, `recall@5 = 0.857`, `MRR = 0.857`; `python -m pytest tests/test_retrieval.py` 76 passed; `python -m pytest` 121 passed; `git diff --check` clean. |
 | 2026-10-13 | Accepted `source_retrieval` | Independent validator reproduced the fixture gate, the measured baseline and per-question ranks, determinism, k-window semantics, the empty-corpus case, and fail-closed exits 2 with located paths; confirmed no-network behavior with an independent socket/DNS/TLS guard, schema/validator sync, synthetic-only fixtures, scope discipline, and 76/121 passing tests in an out-of-repo venv. Findings F1-F4 non-blocking. See `docs/validations/source_retrieval.md`. |
+| 2026-10-13 | Implemented `grounded_answer_generation` (passing, awaiting independent validation) | Added `backend/app/generation.py` (code-owned markers/notice, `verify_draft` rules, extractive generator, fail-closed `NotAnswered`, `to_answer_response`), `backend/scripts/evaluate_generation.py` (report CLI; invariants enforced, exit 0/1/2), `backend/tests/test_generation.py` (100 tests), and synthetic fixtures under `backend/tests/fixtures/generation/`; updated `knowledge/README.md` and `backend/README.md`, appended the spec's implementation findings, and created `CONSTRAINTS.md`. `python -m pytest tests/test_generation.py` 100 passed; `python -m pytest` 221 passed; fixture report exit 0 (5 answers, 8 claims, 0 ungrounded, 1 no-evidence); canonical empty catalog exit 0; ambiguity/harness-error path exit 2; enforced-invariant path exit 1 (`policy_failed`); byte-identical `--json` runs; `contracts/validate_examples.py` and the unchanged retrieval baseline (`hit@5 = 0.857`) re-checked; `git diff --check` clean. No dependency, no route, no client change. |
+| 2026-10-13 | Accepted `grounded_answer_generation` | Independent validator reproduced the 100 focused / 221 full pytest passes, the fixture CLI run (exit 0; 5 answers, 8 claims, 0 ungrounded, 0 invented sources, 1 no-evidence), the literal feature-list verification, the empty-corpus runs, byte-identical `--json` runs, an independent socket guard, and fail-closed paths; confirmed the assembled payload matches `AskResponse`/`AnswerSource`, the retrieval baseline is unchanged (`hit@5 = 0.857`), fixtures are synthetic-only, and scope is clean with no repo dependency. Findings F1/F2 non-blocking. See `docs/validations/grounded_answer_generation.md`. |
 | 2026-10-13 | Implemented `land_list` (self-verified; awaiting independent validation) | Added pure `LandListState`/`LandListAction`/`reduce` and the stateless resource-backed `LandListScreen` with 11 previews, 9 new `land_list_*` strings, and `App()` wiring: a `LandList` destination with one synchronous read site, the intended `Mis terrenos` routing change, and removal of the unreachable chat-home confirmation. `:shared:jvmTest` 60 tests, `:shared:testAndroidHostTest` 57 tests, `./init.sh --verify` pass; Android emulator and Desktop smoke recorded. |
 | 2026-10-13 | Accepted `land_list` | Independent validator re-ran `./init.sh`, the focused and full `:shared:jvmTest` (60/0), `:shared:testAndroidHostTest` (57/0), `./init.sh --verify`, and a full `--rerun-tasks` build, and byte-for-byte checked the nine new strings against the spec; confirmed the failure/empty-state distinction and file-by-file scope discipline (only the intended `add_land` routing change). Findings F1-F6 non-blocking. See `docs/validations/land_list.md`. |
 
@@ -406,6 +410,135 @@ Honest gaps:
 - Light-only by decision: no dark palette exists (`DESIGN.md` records this). Desktop OS-level text
   scaling is not wired in this repository, so enlarged-text evidence is preview-based
   (carried validator finding F3, owner `chat_accessibility`).
+  
+### grounded_answer_generation — accepted
+
+Independent validator accepted (2026-10-13, record:
+`docs/validations/grounded_answer_generation.md`). It reproduced the 100 focused /
+221 full pytest passes, `py_compile`, `git diff --check`, the fixture CLI run
+(exit 0; 5 answers, 8 claims, 0 ungrounded, 0 invented sources, 1 no-evidence,
+invariants hold, 0 expect-mismatches), the literal feature-list verification
+(plazo claim 1 = the `critical` rank-1 excerpt with the fictitious `42 días`
+cited `[1]`; claim 2 = the rank-2 excerpt `[2]`), the canonical empty-corpus run
+(exit 0; exit 2 with `--eval` naming unknown ids), byte-identical deterministic
+`--json` runs (sha256 `f8345c12…e453`), and a stricter independent socket guard
+that still produced the answer. It confirmed fail-closed paths (eligibility →
+`policy_failed`, exit 1; `--fail-on-miss` opt-in), the assembled payload matching
+`AskResponse`/`AnswerSource` with no retrieval-local leakage, the unchanged
+retrieval baseline (`hit@5 = 0.857`), `contracts/validate_examples.py` passing,
+synthetic-only labelled fixtures with no real legal fact, and that `contracts/`,
+`retrieval.py`, `source_catalog.py`, `main.py`, `knowledge/source_catalog.json`,
+`passages.schema.json`, `requirements.txt`, `init.sh`, and all client/shared code
+are untouched with no repo dependency. Non-blocking findings carried forward:
+F1 (prefix-only marker/`sources` invariant; fix before the hosted-model path or
+`answer_source_cards`) and F2 (non-iterable `source_markers` raises `TypeError`
+instead of returning `generation_error` at the model seam); N1 (`init.sh` banner
+stale; the spec mandates no change); N3 (spec lists retrieval imports the module
+deliberately omits).
+
+What changed:
+
+- `backend/app/generation.py` (new, standard-library only, offline): the *write*
+  side of the accepted source gate.
+  - `DraftAnswer(status, answer, source_markers)` mirrors the projected
+    `{"status", "answer", "sources"}` shape so a future model adapter produces
+    the same draft type; `verify_draft` is applied to it unchanged.
+  - `verify_draft` rules: status must be `answered`; non-blank answer; at least
+    one `[n]` marker; every marker must be a returned candidate number; declared
+    `source_markers` must equal the inline markers; every sentence must carry a
+    marker; every figure/date (± ISO and `dd/mm/yyyy` dates, thousands
+    separators, decimal comma, percent) must appear in the text of the cited
+    passage(s); a claim citing a `critical` passage must be a literal substring
+    of that passage after whitespace/case/diacritic normalization; a
+    legal-status assertion (starter phrase list) is a policy violation.
+  - `ExtractiveGroundingGenerator` is the only enabled generator: one verbatim
+    reviewed excerpt plus its marker per top candidate, no clock, no model. A
+    hosted rephrasing path must implement `GroundingGenerator` and pass the same
+    `verify_draft`.
+  - `generate_grounded_answer` returns `Answered` only when the whole draft
+    verifies, otherwise `NotAnswered(reason, issues, claims)` with reason
+    `invalid_question`, `no_candidates`, `generator_abstained`,
+    `grounding_failed`, `policy_failed`, or `generation_error`. A failing draft
+    is discarded whole; no rejected-draft text is emitted.
+  - Citation markers, the `sources` array (`[n]` = `sources[n-1]`, deduplicated
+    ascending), the pinned lead-in and notice, and the seven accepted
+    `AnswerSource` keys are all code-owned; retrieval-local fields never cross
+    into the payload.
+- `backend/scripts/evaluate_generation.py` (new): report-only CLI with `--catalog`,
+  `--passages`, `--eval`, `--as-of`, `--k`, `--json`, `--fail-on-miss`.
+  Grounding invariants are enforced (exit `1`); answer coverage is not, unless
+  `--fail-on-miss` is passed. Exit `2` for unreadable/invalid input; an `--eval`
+  line naming a passage id absent from the built index is a harness error
+  (exit `2`), closing accepted finding F4.
+- `backend/tests/test_generation.py` (new, 100 tests) plus synthetic fixtures
+  `backend/tests/fixtures/generation/{catalog.json,passages.json,eval_questions.jsonl,drafts_ungrounded.json}`
+  (2 approved sources, 4 labelled-synthetic passages, 2 of them `critical` with
+  fictitious figures 42 and 1.200, 6 evaluation lines including an out-of-corpus
+  one, and 13 rejected drafts keyed by issue code).
+- `knowledge/README.md` and `backend/README.md`: document the generation
+  boundary, the code-owned citation/notice rules, the enforced exit codes, the
+  reviewer excerpt guidance, and the report command. `CONSTRAINTS.md` (new)
+  records the two answer-grounding MUST rules. The spec gained an
+  "Implementation findings" section.
+
+Verification (commands run from the repository root unless noted):
+
+- `cd backend && python -m pytest tests/test_generation.py` → 100 passed.
+- `cd backend && python -m pytest` → 221 passed (121 existing + 100 new).
+- `python3 -m py_compile backend/app/generation.py backend/scripts/evaluate_generation.py backend/tests/test_generation.py`
+  → clean; `git diff --check` → clean (a trailing blank line accidentally added
+  to `knowledge/README.md` was trimmed).
+- `python3 backend/scripts/evaluate_generation.py --catalog backend/tests/fixtures/generation/catalog.json --passages backend/tests/fixtures/generation/passages.json --eval backend/tests/fixtures/generation/eval_questions.jsonl --as-of 2026-10-13 --k 5`
+  → exit 0: 2 eligible sources, 4 indexed passages, 0 excluded,
+  `answers produced: 5`, `claims checked: 8`, `ungrounded claims: 0`,
+  `invented sources: 0`, `no-evidence outcomes: 1`, `grounding invariants hold: yes`,
+  `outcomes differing from expect: 0`. Every answered question prints its
+  per-claim verdict and cited candidate numbers; the out-of-corpus line
+  (`zzzz qqqq`) returns `no_candidates`.
+- `python3 backend/scripts/evaluate_generation.py --catalog knowledge/source_catalog.json --as-of 2026-10-13 --k 5`
+  → exit 0 with 0 eligible sources, 0 indexed passages, "no evaluation questions
+  supplied". With `--eval` and the empty catalog the index check exits `2`,
+  naming the unknown ids (documented harness behavior).
+- Enforced invariant, fail closed: a temporary passage set whose reviewed text
+  contains a starter eligibility phrase → `outcome: policy_failed`,
+  `claim 1: failed; cites [1] (eligibility_claim)`,
+  `grounding invariants hold: no`, exit `1`. The 13 recorded rejected drafts each
+  reproduce their expected issue code.
+- Determinism: two `--json` runs are byte-identical (`diff` clean), sha256
+  `f8345c124a3ba4ab0b2fd1e4947244b54e21b5cc2a289f024e13cf5b28a4e453`.
+- Unchanged boundaries re-checked: `python3 contracts/validate_examples.py` →
+  "Validated 2 request and 3 response examples against answer_api_contract"; the
+  retrieval fixture baseline is unchanged at `hit@5 = 0.857 (6/7)`,
+  `recall@5 = 0.857`, `MRR = 0.857`.
+
+Not run and why:
+
+- Android/Desktop/Gradle and `./init.sh --verify`: not applicable to this
+  backend slice (no product UI, route, or Gradle input changed) and `init.sh`
+  has no backend command.
+- No browser/API/E2E check: there is no `/ask` route and no persistent E2E
+  harness. The CLI is the manual smoke check for this feature.
+- Environment: this worktree has no `python` on `PATH` and the system
+  interpreter has no `pytest`, so the pytest commands ran with the interpreter of
+  a temporary virtualenv created outside the repository. No dependency was added
+  to `backend/requirements.txt` or the repo.
+
+Limitations (honest):
+
+- The checks are lexical: figure presence is not entailment, the eligibility
+  check is a short phrase list, and semantic grounding plus conflict detection
+  are explicitly deferred to `safe_abstention` and a later judge.
+- The extractive default requires single-sentence excerpts; a multi-sentence
+  excerpt whose trailing marker lands after the final period fails closed
+  (`uncited_sentence`). Recorded in the spec and in `knowledge/README.md`.
+- An excerpt containing a starter eligibility phrase is unanswerable through the
+  extractive default (the verbatim claim is rejected). Fail closed and
+  intentional; the reviewer guidance says to avoid such phrasing.
+- Nothing about a canonical corpus changed: no `knowledge/passages.json` was
+  created, and the fixture corpus is tiny, synthetic, and implementer-authored,
+  so nothing here is a legal-coverage or answer-quality claim.
+- `safe_abstention` is not implemented: this feature returns machine-readable
+  reason codes only, and never user-facing abstention copy.
 
 ### land_list — accepted
 
