@@ -17,6 +17,15 @@
     <string name="add_land_cancel">Cancelar</string>
     <string name="add_land_save_failed">No se ha podido guardar el terreno. Puedes intentarlo otra vez.</string>
     <string name="add_land_saved">El terreno se ha guardado en este dispositivo.</string>
+    <string name="land_list_description">Estos son los terrenos guardados en este dispositivo.</string>
+    <string name="land_list_empty">Todavía no has guardado ningún terreno. Usa «Añadir terreno» para guardar el primero.</string>
+    <string name="land_list_add">Añadir terreno</string>
+    <string name="land_list_back">Volver</string>
+    <string name="land_list_municipality">Municipio: %1$s</string>
+    <string name="land_list_water">Riego: %1$s</string>
+    <string name="land_list_production">Producción: %1$s</string>
+    <string name="land_list_load_failed">No se han podido leer los terrenos guardados. Puedes intentarlo otra vez.</string>
+    <string name="land_list_retry">Reintentar</string>
     <string name="chat_home_title">¿En qué puedo ayudarte?</string>
     <string name="chat_home_description">Pregunta sobre tus olivares con palabras sencillas. Puedes empezar sin añadir ningún terreno.</string>
     <string name="chat_home_question_label">Escribe tu pregunta</string>

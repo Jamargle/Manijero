@@ -37,13 +37,15 @@ import com.jamarglex.manijero.chat.UnavailableAnswerService
 import com.jamarglex.manijero.lands.AddLandAction
 import com.jamarglex.manijero.lands.AddLandScreen
 import com.jamarglex.manijero.lands.AddLandState
+import com.jamarglex.manijero.lands.LandListAction
+import com.jamarglex.manijero.lands.LandListScreen
+import com.jamarglex.manijero.lands.LandListState
 import com.jamarglex.manijero.lands.LandRepository
 import com.jamarglex.manijero.lands.reduce
 import com.jamarglex.manijero.lands.toDraftOrNull
 import com.jamarglex.manijero.theme.ManijeroTheme
 import org.jetbrains.compose.resources.stringResource
 import manijero.shared.generated.resources.Res
-import manijero.shared.generated.resources.add_land_saved
 import manijero.shared.generated.resources.chat_home_ask
 import manijero.shared.generated.resources.chat_home_description
 import manijero.shared.generated.resources.chat_home_lands
@@ -62,8 +64,8 @@ import manijero.shared.generated.resources.chat_speaker_you
 
 private val ContentMaxWidth = 720.dp
 
-/** The only two shared destinations until a real navigation need appears. */
-private enum class AppDestination { Chat, AddLand }
+/** The shared destinations: the lands list is now the parent surface of the add form. */
+private enum class AppDestination { Chat, LandList, AddLand }
 
 /**
  * Composition root. The answer service is injected so transport and endpoint decisions
@@ -85,27 +87,53 @@ fun App(
     }
     var destination by remember { mutableStateOf(AppDestination.Chat) }
     var addLandState by remember { mutableStateOf(AddLandState()) }
+    var landListState by remember { mutableStateOf(LandListState()) }
     var landSaved by remember { mutableStateOf(false) }
+
+    // The single place that reads local lands: on entering the list, on retry, and after a save.
+    // The result is folded into a LandListAction so a failed read never looks empty and stale rows
+    // never survive, and the throwable is neither logged nor shown. It is never invoked while
+    // composing, so the chat home and ordinary recomposition perform no read.
+    val readLands: () -> Unit = {
+        landListState = landListState.reduce(LandListAction.ReloadClicked)
+        val repository = landRepository
+        if (repository != null) {
+            landListState = landListState.reduce(
+                runCatching { repository.list() }.fold(
+                    onSuccess = { LandListAction.LandsLoaded(it) },
+                    onFailure = { LandListAction.LoadFailed },
+                ),
+            )
+        }
+    }
 
     // One shared theme for every destination; the platform entry points stay theme-free.
     ManijeroTheme {
         when (destination) {
             AppDestination.Chat -> ChatHomeScreen(
                 state = conversation.state,
-                onAction = { action ->
-                    conversation.onAction(action)
-                    landSaved = false
-                },
+                onAction = { action -> conversation.onAction(action) },
                 onLandsClick = if (landRepository == null) {
                     null
                 } else {
                     {
-                        addLandState = AddLandState()
                         landSaved = false
-                        destination = AppDestination.AddLand
+                        readLands()
+                        destination = AppDestination.LandList
                     }
                 },
-                landSavedConfirmation = landSaved,
+            )
+
+            AppDestination.LandList -> LandListScreen(
+                state = landListState,
+                savedConfirmation = landSaved,
+                onAddLand = {
+                    addLandState = AddLandState()
+                    landSaved = false
+                    destination = AppDestination.AddLand
+                },
+                onBack = { destination = AppDestination.Chat },
+                onRetry = readLands,
             )
 
             AppDestination.AddLand -> {
@@ -122,7 +150,8 @@ fun App(
                                 if (saved) {
                                     addLandState = AddLandState()
                                     landSaved = true
-                                    destination = AppDestination.Chat
+                                    readLands()
+                                    destination = AppDestination.LandList
                                 } else {
                                     addLandState = reduced.reduce(AddLandAction.SaveFailed)
                                 }
@@ -131,7 +160,7 @@ fun App(
                     },
                     onCancel = {
                         addLandState = AddLandState()
-                        destination = AppDestination.Chat
+                        destination = AppDestination.LandList
                     },
                 )
             }
@@ -145,7 +174,6 @@ internal fun ChatHomeScreen(
     onAction: (ChatHomeAction) -> Unit,
     onLandsClick: (() -> Unit)?,
     modifier: Modifier = Modifier,
-    landSavedConfirmation: Boolean = false,
 ) {
     val suggestedQuestionResources = listOf(
         Res.string.chat_home_suggestion_solicitud_unica,
@@ -268,18 +296,6 @@ internal fun ChatHomeScreen(
                 ) {
                     Text(stringResource(Res.string.chat_home_lands))
                 }
-            }
-
-            if (landSavedConfirmation) {
-                Text(
-                    text = stringResource(Res.string.add_land_saved),
-                    style = MaterialTheme.typography.bodyLarge,
-                    color = MaterialTheme.colorScheme.primary,
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .widthIn(max = ContentMaxWidth)
-                        .semantics { liveRegion = LiveRegionMode.Polite },
-                )
             }
         }
     }
@@ -437,19 +453,6 @@ private fun ChatHomeOverLimitPreview() {
             state = ChatHomeState(question = "a".repeat(2_100)),
             onAction = {},
             onLandsClick = {},
-        )
-    }
-}
-
-@Preview(name = "Chat home after saving a land")
-@Composable
-private fun ChatHomeLandSavedPreview() {
-    ManijeroTheme {
-        ChatHomeScreen(
-            state = ChatHomeState(),
-            onAction = {},
-            onLandsClick = {},
-            landSavedConfirmation = true,
         )
     }
 }
