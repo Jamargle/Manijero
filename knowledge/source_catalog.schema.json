@@ -1,0 +1,140 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://manijero.invalid/schemas/source-catalog-v1.json",
+  "title": "Manijero approved source catalog",
+  "description": "Versioned admission contract for the Manijero MVP knowledge corpus. This file is the readable contract; backend/app/source_catalog.py is the executable validator and must stay in sync with it. Validation checks catalog policy and metadata only. It never fetches a document and never claims that a document is authentic, currently in force, or legally applicable.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema_version", "sources"],
+  "properties": {
+    "schema_version": {
+      "const": "source-catalog-v1",
+      "description": "Catalog format version. Bump it, the schema, and the validator together in a reviewed change."
+    },
+    "sources": {
+      "type": "array",
+      "description": "Approved documents eligible for corpus ingestion. An empty array is valid and intentional: it means no document has been reviewed yet, not that the corpus is ready.",
+      "items": {
+        "$ref": "#/$defs/source"
+      }
+    }
+  },
+  "$defs": {
+    "isoDate": {
+      "type": "string",
+      "pattern": "^\\d{4}-\\d{2}-\\d{2}$",
+      "description": "Calendar date formatted as YYYY-MM-DD. The validator also rejects impossible dates such as 2026-02-30."
+    },
+    "source": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "title",
+        "issuing_body",
+        "original_url",
+        "published_on",
+        "downloaded_on",
+        "verified_on",
+        "content_sha256",
+        "review_status",
+        "reviewed_by",
+        "reviewed_on",
+        "lifecycle_status"
+      ],
+      "description": "One reviewed official document. Ordering rules not expressible here: published_on <= downloaded_on <= verified_on and reviewed_on >= downloaded_on; a valid_until earlier than the validation date makes the entry ineligible.",
+      "properties": {
+        "id": {
+          "type": "string",
+          "pattern": "^[a-z0-9]+(?:[-_][a-z0-9]+)*$",
+          "description": "Unique, stable, lowercase slug such as 'rd_1048_2022'. Never derive it from a title and never reuse it."
+        },
+        "title": {
+          "type": "string",
+          "minLength": 1,
+          "description": "Document title as published. Non-blank."
+        },
+        "issuing_body": {
+          "enum": ["BOE", "Junta de Andalucía", "FEGA", "MAPA"],
+          "description": "Approved authority whose official domain hosts the document. State legislation published in the BOE is registered as 'BOE' or as 'MAPA'/'FEGA' with a boe.es URL. Adding another issuer is a reviewed schema-and-test change."
+        },
+        "original_url": {
+          "type": "string",
+          "description": "HTTPS link to the original published document on an approved host (exact host match, including www. aliases). Must point to a specific document, not a site root. Must not embed credentials and must not be a lookalike suffix or subdomain of an approved domain. The validator never follows redirects."
+        },
+        "consolidated_url": {
+          "type": "string",
+          "description": "Optional HTTPS link to the official consolidated text. Informative convenience only: it never replaces original_url, so it must differ from it and use the same issuer's approved host."
+        },
+        "published_on": {
+          "$ref": "#/$defs/isoDate",
+          "description": "Date the original text was published."
+        },
+        "downloaded_on": {
+          "$ref": "#/$defs/isoDate",
+          "description": "Date the reviewed copy was downloaded from original_url."
+        },
+        "verified_on": {
+          "$ref": "#/$defs/isoDate",
+          "description": "Date a human last checked the downloaded copy against the original."
+        },
+        "content_sha256": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{64}$",
+          "description": "Lowercase SHA-256 hex digest of the downloaded original. Detects silent changes; it does not prove authenticity."
+        },
+        "review_status": {
+          "const": "approved",
+          "description": "Only explicitly human-approved documents may enter the corpus. There is no other accepted value in v1."
+        },
+        "reviewed_by": {
+          "type": "string",
+          "minLength": 1,
+          "description": "Role or identifier of the human reviewer who approved this entry. Non-blank."
+        },
+        "reviewed_on": {
+          "$ref": "#/$defs/isoDate",
+          "description": "Date of the human approval. Must be on or after downloaded_on."
+        },
+        "lifecycle_status": {
+          "const": "current",
+          "description": "Only documents currently in force may be ingested. Repealed, superseded, or expired documents must not appear as eligible."
+        },
+        "valid_until": {
+          "$ref": "#/$defs/isoDate",
+          "description": "Optional end of validity for calls, deadlines, and extensions. Must be on or after the validation date; an earlier date makes the entry expired and ineligible."
+        },
+        "campaign": {
+          "type": "string",
+          "minLength": 1,
+          "description": "Optional campaign label when the document is campaign-specific (for example '2026'). Leave it absent when unknown."
+        },
+        "critical": {
+          "type": "boolean",
+          "description": "Optional flag marking deadlines, amounts, and thresholds that need prominent source excerpts."
+        },
+        "applicability": {
+          "type": "object",
+          "additionalProperties": false,
+          "minProperties": 1,
+          "description": "Optional land applicability, recorded only when known. Leave the whole object absent when unknown; never infer it, and never use 'unknown' as a value.",
+          "properties": {
+            "crop": {
+              "type": "string",
+              "minLength": 1,
+              "description": "Crop the document applies to, for example 'olivar'."
+            },
+            "water_regime": {
+              "enum": ["dryland", "irrigated", "mixed"],
+              "description": "Water regime the document applies to. Omit the key when unknown."
+            },
+            "production_method": {
+              "enum": ["conventional", "organic", "mixed"],
+              "description": "Production method the document applies to. Omit the key when unknown."
+            }
+          }
+        }
+      }
+    }
+  }
+}
