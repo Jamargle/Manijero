@@ -19,14 +19,24 @@ import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.setValue
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.semantics.LiveRegionMode
+import androidx.compose.ui.semantics.liveRegion
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import com.jamarglex.manijero.lands.AddLandAction
+import com.jamarglex.manijero.lands.AddLandScreen
+import com.jamarglex.manijero.lands.AddLandState
+import com.jamarglex.manijero.lands.LandRepository
+import com.jamarglex.manijero.lands.reduce
+import com.jamarglex.manijero.lands.toDraftOrNull
 import org.jetbrains.compose.resources.stringResource
 import manijero.shared.generated.resources.Res
+import manijero.shared.generated.resources.add_land_saved
 import manijero.shared.generated.resources.chat_home_ask
 import manijero.shared.generated.resources.chat_home_description
 import manijero.shared.generated.resources.chat_home_question_hint
@@ -39,23 +49,79 @@ import manijero.shared.generated.resources.chat_home_suggestion_solicitud_unica
 import manijero.shared.generated.resources.chat_home_suggestions_title
 import manijero.shared.generated.resources.chat_home_title
 
-@Composable
-fun App() {
-    var state by remember { mutableStateOf(ChatHomeState()) }
+/** The only two shared destinations until a real navigation need appears. */
+private enum class AppDestination { Chat, AddLand }
 
-    ChatHomeScreen(
-        state = state,
-        onAction = { action -> state = state.reduce(action) },
-        onLandsClick = {},
-    )
+/**
+ * Shared app entry point.
+ *
+ * [landRepository] is the single local land store, injected by each platform entry point. When it is
+ * absent (the iOS scaffold and previews) the lands affordance stays unavailable instead of creating
+ * a platform-specific store in common code.
+ */
+@Composable
+fun App(landRepository: LandRepository? = null) {
+    var destination by remember { mutableStateOf(AppDestination.Chat) }
+    var chatState by remember { mutableStateOf(ChatHomeState()) }
+    var addLandState by remember { mutableStateOf(AddLandState()) }
+    var landSaved by remember { mutableStateOf(false) }
+
+    when (destination) {
+        AppDestination.Chat -> ChatHomeScreen(
+            state = chatState,
+            onAction = { action ->
+                chatState = chatState.reduce(action)
+                landSaved = false
+            },
+            onLandsClick = if (landRepository == null) {
+                null
+            } else {
+                {
+                    addLandState = AddLandState()
+                    landSaved = false
+                    destination = AppDestination.AddLand
+                }
+            },
+            landSavedConfirmation = landSaved,
+        )
+
+        AppDestination.AddLand -> {
+            val repository = landRepository
+            AddLandScreen(
+                state = addLandState,
+                onAction = { action ->
+                    val reduced = addLandState.reduce(action)
+                    addLandState = reduced
+                    if (action is AddLandAction.SaveClicked && repository != null) {
+                        val draft = reduced.toDraftOrNull()
+                        if (draft != null) {
+                            val saved = runCatching { repository.create(draft) }.isSuccess
+                            if (saved) {
+                                addLandState = AddLandState()
+                                landSaved = true
+                                destination = AppDestination.Chat
+                            } else {
+                                addLandState = reduced.reduce(AddLandAction.SaveFailed)
+                            }
+                        }
+                    }
+                },
+                onCancel = {
+                    addLandState = AddLandState()
+                    destination = AppDestination.Chat
+                },
+            )
+        }
+    }
 }
 
 @Composable
 internal fun ChatHomeScreen(
     state: ChatHomeState,
     onAction: (ChatHomeAction) -> Unit,
-    onLandsClick: () -> Unit,
+    onLandsClick: (() -> Unit)?,
     modifier: Modifier = Modifier,
+    landSavedConfirmation: Boolean = false,
 ) {
     val suggestedQuestionResources = listOf(
         Res.string.chat_home_suggestion_solicitud_unica,
@@ -142,9 +208,24 @@ internal fun ChatHomeScreen(
                 ) {
                     Text(stringResource(Res.string.chat_home_ask))
                 }
-                TextButton(onClick = onLandsClick) {
+                TextButton(
+                    onClick = { onLandsClick?.invoke() },
+                    enabled = onLandsClick != null,
+                ) {
                     Text(stringResource(Res.string.chat_home_lands))
                 }
+            }
+
+            if (landSavedConfirmation) {
+                Text(
+                    text = stringResource(Res.string.add_land_saved),
+                    style = MaterialTheme.typography.bodyLarge,
+                    color = MaterialTheme.colorScheme.primary,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .widthIn(max = 720.dp)
+                        .semantics { liveRegion = LiveRegionMode.Polite },
+                )
             }
 
             if (state.submittedQuestion != null) {
@@ -184,6 +265,19 @@ private fun ChatHomeWithQuestionPreview() {
             state = ChatHomeState(question = "¿Cuándo debo revisar mi olivar?", submittedQuestion = "¿Cuándo debo revisar mi olivar?"),
             onAction = {},
             onLandsClick = {},
+        )
+    }
+}
+
+@Preview(name = "Chat home after saving a land")
+@Composable
+private fun ChatHomeLandSavedPreview() {
+    MaterialTheme {
+        ChatHomeScreen(
+            state = ChatHomeState(),
+            onAction = {},
+            onLandsClick = {},
+            landSavedConfirmation = true,
         )
     }
 }
