@@ -4,14 +4,14 @@
 
 - Product discovery is documented in `CONTEXT.md`, `docs/build-brief.md`, `docs/domain-model.md`, `docs/risks-and-open-questions.md`, and `DESIGN.md`.
 - The repository contains the Kotlin Multiplatform starter scaffold: `shared`, `androidApp`, `desktopApp`, and an existing iOS target. Shared Compose UI is in `commonMain`; the iOS target is not an MVP deliverable.
-- `shared/src/commonMain/.../App.kt` now contains the shared Spanish chat starting screen; answer service, land management, and official-source retrieval are not implemented.
-- Shared tests include reducer coverage for the chat composer; backend and full UI behavior are deferred to later features.
-- The backend now has a minimal FastAPI service with a documented liveness endpoint.
-- The shared chat home now shows three approved Spanish example questions that fill the composer (without sending) when tapped; the answer service, land management, and official-source retrieval are not implemented.
+- `shared/src/commonMain/.../App.kt` now renders the shared Spanish chat flow: ordered transcript, composer, a plain-Spanish working state, a Spanish explanation of the 2,000-character contract limit, a neutral acknowledgement while a land clarification is pending, the three approved example questions that fill the composer, and a `Chat`/`AddLand` destination that saves a land and confirms it in plain Spanish.
+- The chat boundary is a shared contract client: pure `ChatHomeState` reducer plus `ChatConversation` (composition-scoped effect runner) over an injected `AnswerService`; `KtorAnswerService` talks to `<baseUrl>/ask` and the default app wiring is `UnavailableAnswerService` because the backend exposes no `/ask` yet. Retrieval, answer/source presentation, and failure-recovery copy remain deferred.
+- Shared tests include reducer coverage for the chat flow and suggested-question selection, presentation coverage for one reply per submission, and a Ktor MockEngine transport test that decodes the accepted contract fixture.
+- The backend now has a minimal FastAPI service with a documented liveness endpoint; it still has no `/ask` route.
 - The knowledge boundary now exists: `knowledge/source_catalog.json` is a valid versioned (`source-catalog-v1`) catalog that is intentionally empty, and `backend/scripts/validate_source_catalog.py` rejects any entry whose provenance, metadata, review, or lifecycle state does not conform to policy. No document has been reviewed or added.
 - `add_land` is accepted: shared `AddLandState`/`AddLandScreen`, resource-backed Spanish copy, and Android/Desktop composition roots wired to the accepted storage adapters. Android and Desktop checks ran in this worktree because `init.sh` created `local.properties` with the installed SDK; independent validation recorded in `docs/validations/add_land.md`.
-- Product features are tracked in `feature_list.json`. `backend_health`, `answer_api_contract`, `local_land_store`, `chat_home`, `suggested_questions`, `add_land` and `source_catalog_validation` are accepted. Android verification awaits SDK configuration.
 - The Desktop app stores lands in `~/.manijero/lands-v1.txt`; Android uses the `manijero_lands` SharedPreferences file. Both go through the shared versioned `land-store-v1` format.
+- Product features are tracked in `feature_list.json`. `backend_health`, `answer_api_contract`, `local_land_store`, `chat_home`, `suggested_questions`, `add_land`, `source_catalog_validation`, and `chat_question_submission` are accepted.
 
 ## Start and verify
 
@@ -30,6 +30,9 @@ Verification evidence for `chat_home`:
 - `./init.sh --verify`, `./gradlew :shared:testAndroidHostTest`, and `./init.sh --android` stop before compilation because neither `ANDROID_HOME` nor `local.properties` with `sdk.dir` is configured in this worktree. No Android result is claimed.
 - Desktop launch/manual smoke was not run because it is an interactive long-running target; compilation is covered by `:desktopApp:build`.
 
+## Next feature
+
+Preferred next feature: `source_retrieval` (the first dependency-ready unfinished feature; its dependency `source_catalog_validation` is accepted). Also dependency-ready now: `network_error_recovery` and `land_list`. `POST /ask` itself still has no backend implementation, so the `/ask` wiring and Android/Desktop manual smoke remain follow-ups (validator finding F1).
 
 ## Session log
 
@@ -52,9 +55,55 @@ Verification evidence for `chat_home`:
 | 2026-10-12 | Accepted `suggested_questions` | Independent validator accepted after re-running `:shared:jvmTest --rerun-tasks` (7/7), `:shared:testAndroidHostTest`, `:androidApp:assembleDebug`, `:desktopApp:build`, and a byte-for-byte string check against the spec. Record: `docs/validations/suggested_questions.md`. |
 | 2026-10-12 | Implemented `source_catalog_validation` (passing, awaiting independent validation) | Added versioned empty `knowledge/source_catalog.json`, `knowledge/source_catalog.schema.json`, `knowledge/README.md`, dependency-free `backend/app/source_catalog.py`, CLI `backend/scripts/validate_source_catalog.py`, and 23 fixtures with 43 focused tests. `python3 backend/scripts/validate_source_catalog.py knowledge/source_catalog.json --as-of 2026-10-12` exited 0 with 0 sources; `python -m pytest tests/test_source_catalog.py` 43 passed; `python -m pytest` 45 passed; `git diff --check` clean. |
 | 2026-10-12 | Accepted `source_catalog_validation` | Independent validator reproduced exit 0 on canonical/valid fixtures, 20 policy and 1 malformed non-zero rejections with located diagnostics, the `--as-of` expiry boundary, a socket-guard no-network check, and no content leakage across all fixtures. See `docs/validations/source_catalog_validation.md`. |
-
+| 2026-10-12 | Implemented `chat_question_submission` | Shared reducer/effect chat flow, composition-scoped `ChatConversation`, Ktor `/ask` service with MockEngine test decoding `contracts/examples/response-answered.json`, injected `AnswerService` wiring, Spanish working/limit/clarification strings, and updated reducer tests. `python3 contracts/validate_examples.py`, `:shared:jvmTest` (24 tests), `:shared:testAndroidHostTest` (22 tests), `:desktopApp:build`, `:androidApp:assembleDebug`, and `./init.sh --verify` all pass; Desktop app started without exceptions. |
+| 2026-10-12 | Accepted `chat_question_submission` | Independent validator (docs/validations/chat_question_submission.md) confirmed all four acceptance scenarios, re-ran the contract validator, JVM (24) and Android host (22) tests, a full `--rerun-tasks` Android+Desktop build, the iOS compile, and `./init.sh --verify`; decoded all three contract fixtures with the shipped DTO and confirmed no logging, no hard-coded production URL, and no contract/backend changes. Findings F1-F3 carried forward to the `/ask` wiring, `network_error_recovery`, and `chat_accessibility`. |
 
 ## Feature evidence
+
+### chat_question_submission — accepted
+
+- `ChatHomeState.reduce` is a pure reducer returning `ChatReduction(state, effect)`. It
+  rejects blank and over-2,000-character questions, refuses a second submit while a
+  request is in flight, keeps the submitted wording immutable for both the user message
+  and `AskRequest.question`, appends at most one assistant message per response, retains
+  `abstained` / `needs_land_clarification` status plus opaque `land_ids_to_choose` without
+  inventing an answer or a land choice, and releases the request on failure without
+  discarding a newly typed draft.
+- `ChatConversation` applies the reducer and runs the single `AnswerService.ask` call on
+  its injected `CoroutineScope` (composition-scoped `rememberCoroutineScope()` in
+  `App`), so no Composable performs a network call and `CancellationException` is
+  rethrown. `App(answerService = UnavailableAnswerService)` injects the boundary, renders
+  the ordered transcript with text labels "Tú"/"Asistente", a plain-Spanish working
+  indication ("Estoy preparando la respuesta…") with a polite live region, a disabled
+  **Preguntar** while in flight, the Spanish limit explanation without rewriting wording,
+  and a neutral clarification acknowledgement that claims no answer.
+- `KtorAnswerService` posts the contract `AskRequest` to `<baseUrl>/ask`
+  (`ContentNegotiation` + `answerJson` with `explicitNulls = false`). No production base
+  URL is hard-coded, and platform engines can be supplied through `answerHttpClient`.
+- `python3 contracts/validate_examples.py` → "Validated 2 request and 3 response examples
+  against answer_api_contract".
+- `./gradlew :shared:jvmTest` → BUILD SUCCESSFUL, 24 tests, 0 failures
+  (`ChatHomeStateTest` 13, `ChatConversationTest` 3, `KtorAnswerServiceTest` 2,
+  `LandRepositoryTest` 4, 2 scaffold tests). `KtorAnswerServiceTest` asserts `POST /ask`,
+  the exact original question `"  ¿Puedo regar hoy?  "`, exactly
+  `{"mode":"general","lands":[]}` for `land_context`, and decodes the accepted
+  `contracts/examples/response-answered.json` from the repository working tree.
+- `./gradlew :shared:testAndroidHostTest` → BUILD SUCCESSFUL, 22 tests, 0 failures.
+- `./gradlew :desktopApp:build` → BUILD SUCCESSFUL; `./gradlew :androidApp:assembleDebug`
+  → BUILD SUCCESSFUL (`androidApp/build/outputs/apk/debug/androidApp-debug.apk`);
+  `./init.sh --verify` → BUILD SUCCESSFUL. This worktree has
+  `local.properties` (`sdk.dir=/Users/jose/Library/Android/sdk`), so the Android checks
+  ran; no environment blocker remains.
+- Runtime smoke: `./gradlew :desktopApp:run` started the Desktop window with the shared
+  chat screen and produced no exception in the run log. No scripted click-through or
+  screenshot was taken (interactive GUI target), and no live answer was requested because
+  the backend still has no `/ask`; the working-state/one-reply behavior is covered by
+  `ChatConversationTest`.
+- Privacy check: `grep -rn "println|Log\.|Logger|printStackTrace" shared/src` returns no
+  matches, so no raw question or land content is logged.
+- Deliberately not implemented (owned by later features): `response_states`, source
+  cards, land selection/context, retry UI and failure copy, suggested prompts, and any
+  backend/contract change.
 
 ### source_catalog_validation — accepted
 

@@ -23,6 +23,11 @@
     <string name="chat_home_question_hint">Por ejemplo: ¿Qué necesito preparar para la solicitud única?</string>
     <string name="chat_home_ask">Preguntar</string>
     <string name="chat_home_lands">Mis terrenos</string>
+    <string name="chat_speaker_you">Tú</string>
+    <string name="chat_speaker_assistant">Asistente</string>
+    <string name="chat_home_working">Estoy preparando la respuesta…</string>
+    <string name="chat_home_question_too_long">Tu pregunta es más larga de lo que puedo enviar. El máximo son 2.000 caracteres. No cambiaré tus palabras: acórtala tú y vuelve a intentarlo.</string>
+    <string name="chat_home_needs_land_clarification">Todavía no puedo responder: necesito saber a qué terreno te refieres. Poder elegir el terreno llegará más adelante.</string>
     <string name="chat_home_submitted">Tu pregunta está lista para continuar.</string>
     <string name="chat_home_suggestions_title">Puedes empezar con una de estas preguntas</string>
     <string name="chat_home_suggestion_solicitud_unica">¿Qué necesito preparar para la solicitud única?</string>
