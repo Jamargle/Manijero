@@ -1,0 +1,14 @@
+{
+  "schema_version": "passage-set-v1",
+  "passages": [
+    {
+      "id": "fixture-p-bad-applicability",
+      "source_id": "fixture_boe_ayudas",
+      "location": "Art. 1 (fixture, sintético)",
+      "text": "Fragmento sintético de prueba con un valor de aplicabilidad no permitido; no afirma nada real.",
+      "applicability": {
+        "water_regime": "unknown"
+      }
+    }
+  ]
+}

@@ -1,8 +1,9 @@
-# Knowledge: approved source catalog
+# Knowledge: approved sources and reviewed passages
 
 This directory holds the admission gate for the Manijero MVP knowledge corpus.
 A document may only become eligible for ingestion when a human has approved it
-and its catalog metadata is complete. The catalog is a Git-tracked text file, so
+and its catalog metadata is complete, and only reviewed passages of such a
+document are ever searchable. Both artifacts are Git-tracked text files, so
 every addition and change is reviewable, diffable, and revertible.
 
 ## What this does and does not do
@@ -15,18 +16,33 @@ legally applicable. They never fetch a URL, follow a redirect, or inspect the
 document body, and they make no legal conclusion. A validated entry means "this
 metadata is complete and traceable", not "this rule is the law today".
 
+Retrieval over passages is **lexical and offline** as well. It ranks reviewed
+excerpts by word overlap (BM25) and never downloads, parses, or chunks a
+document, never reaches a model or the network, and never invents a passage.
+`hit@k`/`recall@k`/MRR numbers measured on synthetic fixtures are a starting
+measurement, not evidence about legal coverage or real user questions.
+
 ## Files
 
 | File | Purpose |
 |---|---|
 | `source_catalog.json` | The canonical, Git-tracked catalog. Currently empty on purpose. |
 | `source_catalog.schema.json` | The readable versioned field contract (`source-catalog-v1`). |
-| `../backend/app/source_catalog.py` | The executable validator. Must stay in sync with the schema. |
-| `../backend/scripts/validate_source_catalog.py` | The offline command-line wrapper. |
+| `passages.schema.json` | The readable versioned passage contract (`passage-set-v1`). |
+| `../backend/app/source_catalog.py` | The executable catalog validator. Must stay in sync with the schema. |
+| `../backend/app/retrieval.py` | The executable passage-set validator and offline BM25 retriever. |
+| `../backend/scripts/validate_source_catalog.py` | The offline catalog command-line wrapper. |
+| `../backend/scripts/evaluate_retrieval.py` | The offline retrieval baseline command-line wrapper. |
 
 `source_catalog.json` starts with `"sources": []`. That is intentional and
 valid: the repository has no separately reviewed documents yet. It does not mean
 the corpus is broad, current, or ready to answer legal questions.
+
+There is deliberately **no canonical `passages.json` yet**. This repository has
+no reviewed ingestion/chunking pipeline, so the passage format is exercised only
+by synthetic fixtures under `backend/tests/fixtures/retrieval/`. A later reviewed
+ingestion feature produces the canonical file. Until then, retrieval over the
+canonical catalog returns no candidates.
 
 ## Approved issuers and hosts
 
@@ -114,3 +130,80 @@ deliberately never print catalog field values or document text.
 The tests live in `backend/tests/test_source_catalog.py` with synthetic fixtures
 under `backend/tests/fixtures/source_catalog/`. Those fixtures are metadata test
 data only; they are not a review of any real document.
+
+## Reviewed passage sets (`passage-set-v1`)
+
+A **passage** is one reviewed excerpt of an approved catalog document. The
+readable contract is `passages.schema.json`; the executable validator is
+`backend/app/retrieval.py` (`validate_passage_set`). Both must stay in sync.
+
+```json
+{
+  "schema_version": "passage-set-v1",
+  "passages": [
+    {
+      "id": "fixture-rd1048-art1-p1",
+      "source_id": "rd_1048_2022",
+      "location": "Art. 1",
+      "text": "Fragmento sintético de prueba; no afirma ningún plazo real.",
+      "critical": false,
+      "applicability": { "crop": "olivar", "water_regime": "dryland" }
+    }
+  ]
+}
+```
+
+| Field | Rule |
+|---|---|
+| `schema_version` | Must be `passage-set-v1`. |
+| `passages` | Array of passage objects; may be empty. |
+| `id` | Unique, stable lowercase slug. Never derive it from the excerpt and never reuse it. |
+| `source_id` | Must resolve to an existing `id` in the approved catalog. An unknown value is a load error, never a silent skip. |
+| `location` | Non-blank article, annex, page, or section inside the document. |
+| `text` | The non-blank reviewed excerpt. Retrieval indexes this text only. |
+| `critical` | Optional boolean for deadlines, amounts, and thresholds. When absent the source-level flag applies. |
+| `applicability` | Optional; record only known values, in the same shape as the catalog. When absent the source-level applicability applies. |
+
+Unknown keys, duplicate ids, blank text, and out-of-range applicability values
+are rejected. A passage set is a Git-tracked, human-reviewed artifact: nothing
+here discovers, downloads, or chunks documents for you.
+
+### Eligibility coupling
+
+Retrieval is a consumer of the catalog gate, not a bypass around it:
+
+- `Retriever.from_documents` re-runs `validate_catalog` and **refuses to build an
+  index** when the catalog is invalid, so a non-`approved`, non-`current`, or
+  expired catalog yields no candidates and no partial index instead of
+  unreviewed content.
+- A passage is indexed only when its `source_id` resolves to a source that is
+  `approved`, `current`, and not expired as of the supplied `--as-of` date.
+- Candidates carry `title`, `issuing_body`, `url`, `location`,
+  `published_or_updated_on`, `verified_on`, and `excerpt` using the accepted
+  `AnswerSource` field names, plus `passage_id`, `source_id`, `applicability`,
+  `critical`, `score`, and `rank`. Applicability is surfaced, never used to
+  filter here; land-based selection belongs to `minimal_land_context` and
+  `land_clarification`.
+
+## Running the retrieval baseline
+
+The baseline runs against synthetic fixtures, because the canonical catalog is
+still empty:
+
+```sh
+python3 backend/scripts/evaluate_retrieval.py \
+  --catalog backend/tests/fixtures/retrieval/catalog.json \
+  --passages backend/tests/fixtures/retrieval/passages.json \
+  --eval backend/tests/fixtures/retrieval/eval_questions.jsonl \
+  --as-of 2026-10-13 --k 5
+```
+
+It prints each question's expected-passage rank and the aggregate `hit@k`,
+`recall@k`, and MRR. `--json` emits the same report as JSON, and `--fail-on-miss`
+opts into a non-zero exit on a miss (off by default: thresholds are **not**
+release gates). `--passages` and `--eval` are optional; with the canonical empty
+catalog and no passages, the command reports zero candidates.
+
+Exit codes: `0` report produced, `1` only with `--fail-on-miss` and a miss,
+`2` an input file was unreadable or invalid. No command here performs network
+access.

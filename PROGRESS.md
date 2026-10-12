@@ -9,9 +9,10 @@
 - Shared tests include reducer coverage for the chat flow and suggested-question selection, presentation coverage for one reply per submission, and a Ktor MockEngine transport test that decodes the accepted contract fixture.
 - The backend now has a minimal FastAPI service with a documented liveness endpoint; it still has no `/ask` route.
 - The knowledge boundary now exists: `knowledge/source_catalog.json` is a valid versioned (`source-catalog-v1`) catalog that is intentionally empty, and `backend/scripts/validate_source_catalog.py` rejects any entry whose provenance, metadata, review, or lifecycle state does not conform to policy. No document has been reviewed or added.
+- The offline retrieval boundary now exists: `knowledge/passages.schema.json` (`passage-set-v1`), `backend/app/retrieval.py` (strict passage-set validator, Spanish tokenizer, deterministic BM25 `Retriever`/`RetrievedPassage`), and `backend/scripts/evaluate_retrieval.py` (report-only baseline CLI). It re-validates the accepted catalog, fails closed on an ineligible catalog, and searches only synthetic reviewed fixture passages, because no canonical `passages.json` exists yet. Measured fixture baseline: `hit@5 = 0.857 (6/7)`, `recall@5 = 0.857`, `MRR = 0.857`.
 - `add_land` is accepted: shared `AddLandState`/`AddLandScreen`, resource-backed Spanish copy, and Android/Desktop composition roots wired to the accepted storage adapters. Android and Desktop checks ran in this worktree because `init.sh` created `local.properties` with the installed SDK; independent validation recorded in `docs/validations/add_land.md`.
 - The Desktop app stores lands in `~/.manijero/lands-v1.txt`; Android uses the `manijero_lands` SharedPreferences file. Both go through the shared versioned `land-store-v1` format.
-- Product features are tracked in `feature_list.json`. `backend_health`, `answer_api_contract`, `local_land_store`, `chat_home`, `suggested_questions`, `add_land`, `source_catalog_validation`, and `chat_question_submission` are accepted.
+- Product features are tracked in `feature_list.json`. `backend_health`, `answer_api_contract`, `local_land_store`, `chat_home`, `suggested_questions`, `add_land`, `source_catalog_validation`, `chat_question_submission`, and `source_retrieval` are accepted.
 - `visual_foundation` (apply the shared olive-toned theme in `commonMain`) was added to `feature_list.json` on 2026-10-13 as a `not_started` client feature with no dependencies; `response_states`, `answer_source_cards`, `network_error_recovery`, `land_list`, `edit_land`, `remove_land`, and `chat_accessibility` now also depend on it, so those features are blocked until it is accepted.
 
 ## Start and verify
@@ -21,11 +22,12 @@
 - Android build: `./init.sh --android`
 - Launch Desktop: `./init.sh --desktop`
 - Source catalog check: `python3 backend/scripts/validate_source_catalog.py knowledge/source_catalog.json --as-of YYYY-MM-DD`
+- Retrieval baseline (fixture, report-only): `python3 backend/scripts/evaluate_retrieval.py --catalog backend/tests/fixtures/retrieval/catalog.json --passages backend/tests/fixtures/retrieval/passages.json --eval backend/tests/fixtures/retrieval/eval_questions.jsonl --as-of 2026-10-13 --k 5`
 - Backend tests: `cd backend && python -m pytest` (note: bare `pytest` cannot collect `tests/test_health.py`, because nothing puts `backend/` on `sys.path`; use `python -m pytest` or install the test runner into a local virtualenv)
 
 ## Next feature
 
-Dependency-ready unfinished features: `visual_foundation` (no dependencies) and `source_retrieval` (its dependency `source_catalog_validation` is accepted). The current branch (`adding-visual-foundation`) targets `visual_foundation`. `network_error_recovery` and `land_list` are **not** dependency-ready: both now also depend on `visual_foundation`, which is `not_started`. `POST /ask` itself still has no backend implementation, so the `/ask` wiring and Android/Desktop manual smoke remain follow-ups (validator finding F1).
+`source_retrieval` is accepted (record: `docs/validations/source_retrieval.md`). Dependency-ready *unfinished* features now include `visual_foundation` (no dependencies) and `grounded_answer_generation` (its dependencies `answer_api_contract` and `source_retrieval` are both accepted). `network_error_recovery` and `land_list` are **not** dependency-ready: both now also depend on `visual_foundation`, which is `not_started`. `POST /ask` itself still has no backend implementation, so the `/ask` wiring and Android/Desktop manual smoke remain follow-ups (validator finding F1 on `chat_question_submission`).
 
 ## Session log
 
@@ -52,6 +54,8 @@ Dependency-ready unfinished features: `visual_foundation` (no dependencies) and 
 | 2026-10-12 | Accepted `chat_question_submission` | Independent validator (docs/validations/chat_question_submission.md) confirmed all four acceptance scenarios, re-ran the contract validator, JVM (24) and Android host (22) tests, a full `--rerun-tasks` Android+Desktop build, the iOS compile, and `./init.sh --verify`; decoded all three contract fixtures with the shipped DTO and confirmed no logging, no hard-coded production URL, and no contract/backend changes. Findings F1-F3 carried forward to the `/ask` wiring, `network_error_recovery`, and `chat_accessibility`. |
 | 2026-10-13 | Added `visual_foundation` as a feature definition and wired the visual-foundation dependency into `response_states`, `answer_source_cards`, `network_error_recovery`, `land_list`, `edit_land`, `remove_land`, and `chat_accessibility` | `feature_list.json` (commit 139d460); definition only, no implementation or checks run. |
 | 2026-10-13 | Documentation consistency pass over accepted features | Added `docs/validations/chat_home.md` (reconstructed acceptance record), linked each accepted feature's validation record from `feature_list.json`, and corrected the `PROGRESS.md` next-feature and `visual_foundation` status. No product code changed. |
+| 2026-10-13 | Implemented `source_retrieval` (passing, awaiting independent validation) | Added `knowledge/passages.schema.json` (`passage-set-v1`), `backend/app/retrieval.py`, `backend/scripts/evaluate_retrieval.py`, `backend/tests/test_retrieval.py`, and synthetic retrieval fixtures under `backend/tests/fixtures/retrieval/`; updated `knowledge/README.md` and `backend/README.md`. Fixture catalog validated exit 0; measured baseline `hit@5 = 0.857 (6/7)`, `recall@5 = 0.857`, `MRR = 0.857`; `python -m pytest tests/test_retrieval.py` 76 passed; `python -m pytest` 121 passed; `git diff --check` clean. |
+| 2026-10-13 | Accepted `source_retrieval` | Independent validator reproduced the fixture gate, the measured baseline and per-question ranks, determinism, k-window semantics, the empty-corpus case, and fail-closed exits 2 with located paths; confirmed no-network behavior with an independent socket/DNS/TLS guard, schema/validator sync, synthetic-only fixtures, scope discipline, and 76/121 passing tests in an out-of-repo venv. Findings F1-F4 non-blocking. See `docs/validations/source_retrieval.md`. |
 
 ## Feature evidence
 
@@ -145,6 +149,119 @@ Independent validator accepted commit 47e80c8 (acceptance commit a79946f; record
   `docs/validations/source_catalog_validation.md`.
 - Limitation: the validator proves catalog-policy conformance, not that a remote
   document is authentic, current, or legally applicable. No real document was added.
+
+### source_retrieval — accepted
+
+What changed:
+
+- `knowledge/passages.schema.json`: readable, versioned `passage-set-v1` contract
+  mirroring the catalog schema style. Top level has only `schema_version` and
+  `passages`; each passage has non-blank `id` (unique, lowercase slug),
+  `source_id`, `location`, `text`, plus optional `critical` and `applicability`
+  (same value rules as the catalog). The tests assert the schema and the
+  in-code validator stay in sync.
+- `backend/app/retrieval.py`: standard-library only and offline.
+  - `validate_passage_set` / `load_passage_set`: strict, located diagnostics
+    (`$.passages[0].excerpt: unknown key is not allowed`) that never echo field
+    values or excerpt text.
+  - `tokenize`: lowercase, NFKD + combining-mark stripping, split on
+    non-alphanumerics, Spanish stopword removal, so `"solicitud única"` and
+    `"SOLICITUD unica"` tokenize identically.
+  - `Bm25Index`: Okapi BM25, `k1 = 1.5`, `b = 0.75`, deterministic ordering with
+    ties broken by passage id, and no candidate returned with a zero score.
+  - `Retriever.from_documents` and `Retriever.search`: re-runs
+    `validate_catalog`, raises `CatalogRejectedError` on an invalid catalog
+    (fail closed, no partial index), raises `PassageSetError` located at
+    `$.passages[i].source_id` for an unknown source, indexes only sources that
+    are `approved`, `current`, and unexpired as of `as_of`, and maps
+    `RetrievedPassage` to the accepted `AnswerSource` field names
+    (`title`, `issuing_body`, `url`, `location`, `published_or_updated_on`,
+    `verified_on`, `excerpt`) plus `passage_id`, `source_id`, `applicability`,
+    `critical`, `score`, `rank`. Applicability and `critical` use the
+    passage-level value when declared, otherwise the source-level value, and are
+    surfaced only (no filtering).
+- `backend/scripts/evaluate_retrieval.py`: report-only baseline CLI with an
+  explicit `--as-of` and `--k`, per-question expected-passage ranks, aggregate
+  `hit@k`/`recall@k`/MRR, `--json`, and `--fail-on-miss` off by default. Exit
+  codes: `0` report, `1` only with `--fail-on-miss` and a miss, `2`
+  unreadable/invalid input.
+- `backend/tests/fixtures/retrieval/`: synthetic, clearly labelled fixtures — an
+  approved 3-source catalog, 12 reviewed passages, 7 JSONL questions, and the
+  edge cases (unknown `source_id`, unknown key, bad applicability value,
+  malformed JSON, expired catalog, non-approved catalog, non-current catalog).
+  None of them states a real deadline, amount, or article.
+- `knowledge/README.md` and `backend/README.md`: document the passage contract,
+  the eligibility coupling to the accepted catalog gate, and the baseline
+  command. `/health` remains the only route.
+
+Measured baseline (synthetic fixtures, reported not enforced):
+
+- `python3 backend/scripts/validate_source_catalog.py backend/tests/fixtures/retrieval/catalog.json --as-of 2026-10-13`
+  → exit 0, `(schema source-catalog-v1, 3 source(s) checked as of 2026-10-13)`.
+- `python3 backend/scripts/evaluate_retrieval.py --catalog backend/tests/fixtures/retrieval/catalog.json --passages backend/tests/fixtures/retrieval/passages.json --eval backend/tests/fixtures/retrieval/eval_questions.jsonl --as-of 2026-10-13 --k 5`
+  → exit 0; `hit@5 = 0.857 (6/7)`, `recall@5 = 0.857`, `MRR = 0.857`;
+  3 eligible sources, 12 indexed passages, 0 excluded. Six source-anchored
+  questions return the expected passage at rank 1 (including the unaccented
+  `"solicitud unica"` variant); the deliberate synonym probe
+  (`"¿Quién puede pedir las ayudas?"` vs the `titular de la explotación`
+  passage) misses and is reported as a miss.
+- Determinism: two `--json` runs are byte-identical (`diff` clean); repeated
+  in-process searches return identical `(passage_id, rank, score)` tuples.
+- Canonical empty corpus:
+  `python3 backend/scripts/evaluate_retrieval.py --catalog knowledge/source_catalog.json --as-of 2026-10-13 --k 5`
+  → exit 0 with 0 eligible sources, 0 indexed passages, no questions; with
+  `--eval` and no `--passages`, every question returns zero candidates
+  (`hit@5 = 0.0`).
+- Fail closed: expired (`valid_until 2026-01-01`), non-approved
+  (`review_status pending`), and non-current (`lifecycle_status repealed`)
+  catalogs raise `CatalogRejectedError` and the CLI exits 2; an unknown
+  `source_id` exits 2 with `$.passages[0].source_id`.
+- `cd backend && python -m pytest tests/test_retrieval.py` → 76 passed.
+- `cd backend && python -m pytest` → 121 passed (76 new + 45 existing).
+- `python3 -m py_compile backend/app/retrieval.py backend/scripts/evaluate_retrieval.py backend/tests/test_retrieval.py`
+  → clean; `git diff --check` → clean.
+- No network: a socket-guard test replaces `socket.socket` with a raising stub
+  and still builds the index and searches successfully.
+- Not run: Android/Desktop/Gradle checks (not applicable to this
+  backend/knowledge feature) and no browser/API/E2E test (no user-facing or API
+  flow; no persistent E2E framework exists).
+
+Environment note: this worktree has no `python` on `PATH` and the system
+interpreter has no `pytest`, so the pytest commands ran with the interpreter of
+a temporary virtualenv (`python -m pytest` semantics) created outside the
+repository. No dependency was added to `backend/requirements.txt` or the repo.
+
+Limitations (honest):
+
+- The evaluation set is tiny, synthetic, and authored by the implementer, so the
+  baseline is a calibration starting point, not a legal-coverage or
+  question-answering quality claim.
+- Retrieval is lexical (BM25) only, so it misses synonyms and acronyms; the
+  synonym probe above demonstrates the gap.
+- Because the accepted catalog gate already rejects non-approved, non-current,
+  and expired sources, the retriever's per-source eligibility re-check is
+  defense in depth: with a valid catalog the
+  `excluded_passages_ineligible_source` count is normally 0. The predicate is
+  unit-tested directly, and fail-closed refusal is tested with the ineligible
+  catalog fixtures.
+- `knowledge/passages.json` is intentionally not created; the passage format is
+  exercised only by fixtures until a reviewed ingestion feature exists.
+
+Independent validation (2026-10-13): accept. The validator reproduced the fixture
+catalog gate (exit 0, 3 sources), the measured baseline (`hit@5 = 0.857 (6/7)`,
+`recall@5 = 0.857`, `MRR = 0.857`), the per-question ranks (including the disclosed
+synonym miss), byte-identical deterministic `--json` runs (also across hash seeds and
+shuffled corpus order), hand-recomputed metrics, `k`-window semantics, the
+empty-corpus zero-candidate case, and fail-closed exits `2` with located paths for
+expired/non-approved/non-current catalogs and unknown `source_id`/keys. It confirmed
+local-only behavior with a stricter independent socket/DNS/TLS guard and a
+blocked-socket CLI subprocess, verified schema/validator sync and synthetic-only
+fixtures with no real legal facts, and ran the suites in a venv outside the repo
+(76 focused, 121 full) with no dependency added. Scope confirmed clean: `contracts/`,
+the catalog validator, the `/health`-only service, client code, and `init.sh` are
+untouched. Findings F1-F4 are non-blocking; F4 (flag an eval line that names an
+unknown passage id) is optional harness hardening. Record:
+`docs/validations/source_retrieval.md`.
 
 ### local_land_store — accepted
 

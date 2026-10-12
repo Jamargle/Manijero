@@ -1,0 +1,12 @@
+{
+  "schema_version": "passage-set-v1",
+  "passages": [
+    {
+      "id": "fixture-p-unknown-key",
+      "source_id": "fixture_boe_ayudas",
+      "location": "Art. 1 (fixture, sintético)",
+      "text": "Fragmento sintético de prueba con una clave no permitida; no afirma nada real.",
+      "excerpt": "clave no permitida"
+    }
+  ]
+}
