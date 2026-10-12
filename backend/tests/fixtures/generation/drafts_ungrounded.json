@@ -1,0 +1,139 @@
+{
+  "answer_too_long": {
+    "draft": {
+      "answer": "palabra palabra palabra palabra palabra palabra palabra palabra palabra palabra palabra palabra palabra palabra palabra palabra palabra palabra palabra palabra palabra palabra palabra palabra palabra palabra palabra palabra palabra palabra palabra palabra palabra palabra palabra palabra palabra palabra palabra palabra palabra palabra palabra palabra palabra palabra palabra palabra palabra palabra palabra palabra palabra palabra palabra palabra palabra palabra palabra palabra palabra palabra palabra palabra palabra palabra palabra palabra palabra palabra palabra palabra palabra palabra palabra palabra palabra palabra palabra palabra palabra palabra palabra palabra palabra palabra palabra palabra palabra palabra palabra palabra palabra palabra palabra palabra palabra palabra palabra palabra palabra palabra palabra palabra palabra palabra palabra palabra palabra palabra palabra palabra palabra palabra palabra palabra palabra palabra palabra palabra palabra palabra palabra palabra palabra palabra palabra palabra palabra palabra palabra palabra palabra palabra palabra palabra palabra palabra palabra palabra [1]",
+      "source_markers": [
+        1
+      ],
+      "status": "answered"
+    },
+    "expected_issue": "answer_too_long",
+    "question": "¿Cómo se presenta la solicitud única?"
+  },
+  "critical_not_literal": {
+    "draft": {
+      "answer": "El plazo sintético de prueba es de cuarenta y dos días. [1]",
+      "source_markers": [
+        1
+      ],
+      "status": "answered"
+    },
+    "expected_issue": "critical_not_literal",
+    "question": "¿Cuánto dura el plazo ficticio de prueba?"
+  },
+  "eligibility_claim": {
+    "draft": {
+      "answer": "Tienes derecho a la ayuda sintética de prueba. [1]",
+      "source_markers": [
+        1
+      ],
+      "status": "answered"
+    },
+    "expected_issue": "eligibility_claim",
+    "question": "¿Cómo se presenta la solicitud única?"
+  },
+  "empty_answer": {
+    "draft": {
+      "answer": "   ",
+      "source_markers": [],
+      "status": "answered"
+    },
+    "expected_issue": "empty_answer",
+    "question": "¿Cómo se presenta la solicitud única?"
+  },
+  "figure_unsupported": {
+    "draft": {
+      "answer": "La solicitud sintética de prueba menciona 99 pasos. [1]",
+      "source_markers": [
+        1
+      ],
+      "status": "answered"
+    },
+    "expected_issue": "figure_unsupported",
+    "question": "¿Cómo se presenta la solicitud única?"
+  },
+  "figure_unsupported_article": {
+    "draft": {
+      "answer": "El artículo ficticio 77 de prueba se aplica. [1]",
+      "source_markers": [
+        1
+      ],
+      "status": "answered"
+    },
+    "expected_issue": "figure_unsupported",
+    "question": "¿Cómo se presenta la solicitud única?"
+  },
+  "figure_unsupported_date": {
+    "draft": {
+      "answer": "La solicitud sintética de prueba se presenta el 2031-12-31. [1]",
+      "source_markers": [
+        1
+      ],
+      "status": "answered"
+    },
+    "expected_issue": "figure_unsupported",
+    "question": "¿Cómo se presenta la solicitud única?"
+  },
+  "generator_abstained": {
+    "draft": {
+      "answer": "",
+      "source_markers": [],
+      "status": "abstained"
+    },
+    "expected_issue": "generator_abstained",
+    "question": "¿Cómo se presenta la solicitud única?"
+  },
+  "incoherent_draft": {
+    "draft": {
+      "answer": "Texto sintético de prueba [1].",
+      "source_markers": [
+        1
+      ],
+      "status": "pending"
+    },
+    "expected_issue": "incoherent_draft",
+    "question": "¿Cómo se presenta la solicitud única?"
+  },
+  "marker_mismatch": {
+    "draft": {
+      "answer": "Fragmento sintético de prueba sobre la solicitud única: describe el trámite anual de forma genérica y no fija ningún plazo ni cuantía real. [1]",
+      "source_markers": [
+        2
+      ],
+      "status": "answered"
+    },
+    "expected_issue": "marker_mismatch",
+    "question": "¿Cómo se presenta la solicitud única?"
+  },
+  "no_markers": {
+    "draft": {
+      "answer": "Fragmento sintético de prueba que no cita ninguna fuente.",
+      "source_markers": [],
+      "status": "answered"
+    },
+    "expected_issue": "no_markers",
+    "question": "¿Cómo se presenta la solicitud única?"
+  },
+  "uncited_sentence": {
+    "draft": {
+      "answer": "Fragmento sintético de prueba sobre la solicitud única: describe el trámite anual de forma genérica y no fija ningún plazo ni cuantía real. [1] Segunda frase sintética de prueba sin cita.",
+      "source_markers": [
+        1
+      ],
+      "status": "answered"
+    },
+    "expected_issue": "uncited_sentence",
+    "question": "¿Cómo se presenta la solicitud única?"
+  },
+  "unknown_marker": {
+    "draft": {
+      "answer": "Fragmento sintético de prueba sobre la solicitud única: describe el trámite anual de forma genérica y no fija ningún plazo ni cuantía real. [9]",
+      "source_markers": [
+        9
+      ],
+      "status": "answered"
+    },
+    "expected_issue": "unknown_marker",
+    "question": "¿Cómo se presenta la solicitud única?"
+  }
+}

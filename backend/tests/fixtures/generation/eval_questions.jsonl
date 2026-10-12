@@ -1,0 +1,6 @@
+{"question": "¿Cómo se presenta la solicitud única?", "expected_passage_ids": ["fixture-gen-solicitud-1"], "expect": "answered"}
+{"question": "¿Como se presenta la solicitud unica?", "expected_passage_ids": ["fixture-gen-solicitud-1"], "expect": "answered"}
+{"question": "¿Cuánto dura el plazo ficticio de prueba?", "expected_passage_ids": ["fixture-gen-plazo-1"], "expect": "answered"}
+{"question": "¿Cuál es el importe ficticio de ejemplo?", "expected_passage_ids": ["fixture-gen-importe-1"], "expect": "answered"}
+{"question": "¿Cuántos documentos ficticios menciona el ejemplo?", "expected_passage_ids": ["fixture-gen-documentos-1"], "expect": "answered"}
+{"question": "zzzz qqqq", "expected_passage_ids": ["fixture-gen-solicitud-1"], "expect": "no_candidates"}

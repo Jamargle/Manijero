@@ -1,0 +1,34 @@
+{
+  "schema_version": "source-catalog-v1",
+  "sources": [
+    {
+      "id": "fixture_gen_junta",
+      "title": "Documento sintético de prueba sobre la solicitud única (fixture; no es una norma real)",
+      "issuing_body": "Junta de Andalucía",
+      "original_url": "https://www.juntadeandalucia.es/boja/2026/00/FIXTURE-GEN-0001.pdf",
+      "published_on": "2026-03-30",
+      "downloaded_on": "2026-09-28",
+      "verified_on": "2026-10-02",
+      "content_sha256": "1111111111111111111111111111111111111111111111111111111111111111",
+      "review_status": "approved",
+      "reviewed_by": "fixture reviewer (synthetic, not a real approval)",
+      "reviewed_on": "2026-10-03",
+      "lifecycle_status": "current",
+      "campaign": "2026"
+    },
+    {
+      "id": "fixture_gen_boe",
+      "title": "Documento sintético de prueba sobre plazos e importes de ejemplo (fixture; no es una norma real)",
+      "issuing_body": "BOE",
+      "original_url": "https://www.boe.es/buscar/doc.php?id=DOC-FIXTURE-GEN-0002",
+      "published_on": "2026-02-10",
+      "downloaded_on": "2026-09-30",
+      "verified_on": "2026-10-05",
+      "content_sha256": "2222222222222222222222222222222222222222222222222222222222222222",
+      "review_status": "approved",
+      "reviewed_by": "fixture reviewer (synthetic, not a real approval)",
+      "reviewed_on": "2026-10-06",
+      "lifecycle_status": "current"
+    }
+  ]
+}

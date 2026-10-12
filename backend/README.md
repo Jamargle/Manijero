@@ -44,6 +44,39 @@ numbers come from a small synthetic fixture corpus, not from real user questions
 or legal documents. See `knowledge/README.md` for the passage-set contract and
 the eligibility rules.
 
+## Offline grounded answer generation (no route yet)
+
+`app/generation.py` turns retrieval candidates into a plain-Spanish answer whose
+material claims are each traceable to a reviewed passage. It imports `Retriever`
+and `RetrievedPassage` from `app/retrieval.py`, which stay the only evidence
+source: generation never re-reads the catalog or the passage set and never
+re-implements eligibility.
+
+It is standard-library only, offline, and configured with **no model provider**.
+The default and only enabled generator is the code-composed extractive one; a
+draft is re-checked by `verify_draft` before assembly, so a citation marker that
+resolves to nothing, an uncited sentence, a figure or date absent from the cited
+passage, a non-literal `critical` claim, or an eligibility assertion
+(`tienes derecho a`) rejects the whole draft. The pipeline then returns a
+`NotAnswered` reason code and no text; `safe_abstention` owns the user-facing
+limitation and next step.
+
+Run the report-only grounded-generation tool against the synthetic fixtures:
+
+```sh
+python3 backend/scripts/evaluate_generation.py \
+  --catalog backend/tests/fixtures/generation/catalog.json \
+  --passages backend/tests/fixtures/generation/passages.json \
+  --eval backend/tests/fixtures/generation/eval_questions.jsonl \
+  --as-of 2026-10-13 --k 5
+```
+
+It prints each question's outcome, the produced answer, every material claim
+with its cited candidate numbers, and the per-claim grounding verdict
+(`--json` for machine-readable output). Grounding invariants are **enforced**
+(exit `1`); answer coverage is not, unless `--fail-on-miss` is passed. `/health`
+remains the only route, and no model provider is configured.
+
 Tests:
 
 ```sh
