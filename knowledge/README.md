@@ -31,8 +31,10 @@ measurement, not evidence about legal coverage or real user questions.
 | `passages.schema.json` | The readable versioned passage contract (`passage-set-v1`). |
 | `../backend/app/source_catalog.py` | The executable catalog validator. Must stay in sync with the schema. |
 | `../backend/app/retrieval.py` | The executable passage-set validator and offline BM25 retriever. |
+| `../backend/app/generation.py` | The executable grounding verifier, extractive generator, and answer assembler. |
 | `../backend/scripts/validate_source_catalog.py` | The offline catalog command-line wrapper. |
 | `../backend/scripts/evaluate_retrieval.py` | The offline retrieval baseline command-line wrapper. |
+| `../backend/scripts/evaluate_generation.py` | The offline grounded-generation report command-line wrapper. |
 
 `source_catalog.json` starts with `"sources": []`. That is intentional and
 valid: the repository has no separately reviewed documents yet. It does not mean
@@ -207,3 +209,68 @@ catalog and no passages, the command reports zero candidates.
 Exit codes: `0` report produced, `1` only with `--fail-on-miss` and a miss,
 `2` an input file was unreadable or invalid. No command here performs network
 access.
+
+## Grounded answer generation
+
+`backend/app/generation.py` turns retrieval candidates into a plain-Spanish
+answer whose material claims are each traceable to a reviewed passage. It is
+standard-library only, offline, and configured with **no model provider**: the
+default and only enabled generator is the code-composed extractive one, which
+copies reviewed excerpts verbatim. A hosted-model rephrasing path is deferred
+and must pass the same verification unchanged.
+
+What the pipeline guarantees:
+
+- **Retrieval output is the only evidence.** Generation never re-reads the
+  catalog or passage set, never re-implements eligibility, and never calls a
+  model or the network when there are no candidates.
+- **Citations are code-owned.** A marker `[n]` means candidate number `n` (its
+  retrieval rank). The response `sources` array contains exactly the cited
+  candidates, deduplicated and in ascending order, so `[n]` always means
+  `sources[n-1]`.
+- **Figures and dates are checked, not promised.** Every figure or date in a
+  claim must also appear in the text of the passage(s) that claim cites;
+  otherwise the whole draft is rejected. The pipeline adds no date or amount of
+  its own, so every figure a user sees comes from a reviewed excerpt.
+- **Critical evidence is extractive.** For a passage flagged `critical`
+  (deadlines, amounts, thresholds), the claim must be a literal substring of the
+  cited excerpt after whitespace/case/diacritic normalization, so a critical
+  figure is copied, never paraphrased.
+- **No eligibility, no personalized legal advice.** A claim asserting the
+  person's legal status (starter phrase list, such as `tienes derecho a`) is
+  rejected. Land attributes never produce a legal conclusion.
+- **Fail closed.** A rejected draft is discarded whole: never partially
+  emitted, never repaired, never replaced by model knowledge or unreviewed
+  content. The pipeline returns a machine-readable reason code
+  (`invalid_question`, `no_candidates`, `generator_abstained`,
+  `grounding_failed`, `policy_failed`, `generation_error`) and
+  `safe_abstention` owns the user-visible limitation and next step.
+- **Plain Spanish and a code-added notice.** The lead-in and the orientative
+  notice are pinned strings added by code; neither contains a digit or a date.
+
+Run the grounded-generation report over the synthetic fixtures (it prints each
+material claim with its cited candidate numbers and its grounding verdict):
+
+```sh
+python3 backend/scripts/evaluate_generation.py \
+  --catalog backend/tests/fixtures/generation/catalog.json \
+  --passages backend/tests/fixtures/generation/passages.json \
+  --eval backend/tests/fixtures/generation/eval_questions.jsonl \
+  --as-of 2026-10-13 --k 5
+```
+
+Exit codes: `0` report produced with every grounding invariant holding, `1` a
+grounding invariant failed (ungrounded claim, unknown or undeclared marker, a
+non-literal critical claim, or an eligibility claim) or, only with
+`--fail-on-miss`, a question whose outcome differed from its `expect` value,
+`2` an unreadable or invalid input. With the canonical empty catalog and no
+passages the command reports zero candidates and zero answers.
+
+**Reviewer guidance.** A passage's `text` is what a user reads: the extractive
+generator quotes the reviewed excerpt verbatim as the answer claim, so keep
+excerpts short, self-contained, single-sentence, and understandable without
+surrounding context. Avoid legal-status phrasing in an excerpt (for example
+`tienes derecho a`), because such a claim is rejected rather than shown. A
+multi-sentence excerpt also fails closed under the per-sentence citation rule.
+Passage ids used in an evaluation file must exist in the built index; a line
+naming an unknown id is a harness error (exit `2`), not a silent miss.
