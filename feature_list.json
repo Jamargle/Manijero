@@ -114,9 +114,20 @@
       "title": "Submit a chat question",
       "user_visible_behavior": "A person can enter a question, submit it once, see that the assistant is working, and receive the service response in the conversation.",
       "depends_on": ["chat_home", "answer_api_contract", "backend_health"],
-      "status": "not_started",
+      "status": "accepted",
       "verification": ["Submit a question to a local or mocked service and confirm the response appears once in the conversation."],
-      "evidence": [],
+      "evidence": [
+        "Shared chat flow lives in commonMain: pure ChatHomeState.reduce returning ChatReduction(state, effect) plus composition-scoped ChatConversation that runs the single in-flight AnswerService.ask on a rememberCoroutineScope; App takes an injected AnswerService defaulting to UnavailableAnswerService because the backend has no /ask.",
+        "Blank and over-2,000-character questions produce no request or message; the composer shows a Spanish limit explanation and never rewrites the wording. Transcript entries are ordered and labelled \"Tú\"/\"Asistente\" as text; a plain-Spanish working indication with a polite live region shows while submitting and Preguntar is disabled; needs_land_clarification keeps its status and opaque ids and shows a neutral acknowledgement that claims no answer.",
+        "KtorAnswerService posts the contract AskRequest to <baseUrl>/ask with JSON ContentNegotiation (explicitNulls = false); no production base URL is hard-coded and no logging was added.",
+        "python3 contracts/validate_examples.py -> \"Validated 2 request and 3 response examples against answer_api_contract\".",
+        "./gradlew :shared:jvmTest -> BUILD SUCCESSFUL, 24 tests 0 failures (ChatHomeStateTest 13, ChatConversationTest 3, KtorAnswerServiceTest 2, LandRepositoryTest 4, 2 scaffold). KtorAnswerServiceTest asserts POST /ask, the exact question \"  ¿Puedo regar hoy?  \", land_context exactly {\"mode\":\"general\",\"lands\":[]}, and decodes contracts/examples/response-answered.json from the repo.",
+        "./gradlew :shared:testAndroidHostTest -> BUILD SUCCESSFUL, 22 tests 0 failures; ./gradlew :desktopApp:build and ./gradlew :androidApp:assembleDebug -> BUILD SUCCESSFUL (debug APK produced); ./init.sh --verify -> BUILD SUCCESSFUL. Android checks ran because this worktree has local.properties sdk.dir.",
+        "Runtime smoke: ./gradlew :desktopApp:run opened the Desktop window with no exception in the run log. No scripted click-through or screenshot (interactive GUI) and no live answer, because the backend still exposes only /health; the working-state/one-reply behavior is proven by ChatConversationTest.",
+        "Independent validator accepted (2026-10-12), docs/validations/chat_question_submission.md: re-ran the contract validator, :shared:jvmTest --rerun (24 tests), :shared:testAndroidHostTest --rerun (22 tests), a full :androidApp:assembleDebug :desktopApp:build --rerun-tasks, :shared:compileKotlinIosSimulatorArm64, and ./init.sh --verify (all BUILD SUCCESSFUL) plus a 50s :desktopApp:run launch with no exceptions.",
+        "Independent validator confirmed all four acceptance scenarios hold and decoded all three contract fixtures (answered/abstained/needs_land_clarification) with the shipped DTO, beyond the implementer's answered-only transport test; no raw question/land logging, no hard-coded production URL, no /health misuse, and contracts/ plus backend/ untouched.",
+        "Validator findings F1-F3 are non-blocking and carried forward: F1 platform engine/endpoint wiring + Android/Desktop manual smoke (owner: the /ask wiring slice), F2 bounded HttpTimeout (owner: network_error_recovery), F3 small/wide-window + text-scale/keyboard evidence and transcript auto-scroll (owner: chat_accessibility)."
+      ],
       "notes": "Preserve the user's original wording."
     },
     {
