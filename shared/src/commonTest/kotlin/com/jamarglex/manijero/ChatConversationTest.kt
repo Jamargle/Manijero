@@ -10,6 +10,11 @@ import com.jamarglex.manijero.chat.AskResponse
 import com.jamarglex.manijero.chat.LandContextMode
 import com.jamarglex.manijero.chat.RequestFailure
 import com.jamarglex.manijero.chat.UnavailableAnswerService
+import com.jamarglex.manijero.chat.WaterRegime
+import com.jamarglex.manijero.chat.generalAskRequest
+import com.jamarglex.manijero.lands.Land
+import com.jamarglex.manijero.lands.ProductionMethod as LocalProductionMethod
+import com.jamarglex.manijero.lands.WaterRegime as LocalWaterRegime
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.test.advanceUntilIdle
@@ -76,6 +81,24 @@ class ChatConversationTest {
             return answer
         }
     }
+
+    private fun land(
+        id: String,
+        name: String = "Terreno",
+        municipality: String? = null,
+        waterRegime: LocalWaterRegime = LocalWaterRegime.UNKNOWN,
+        productionMethod: LocalProductionMethod = LocalProductionMethod.UNKNOWN,
+    ) = Land(
+        id = id,
+        name = name,
+        municipality = municipality,
+        waterRegime = waterRegime,
+        productionMethod = productionMethod,
+        areaHectares = null,
+        notes = null,
+        createdAtEpochMillis = 1L,
+        updatedAtEpochMillis = 1L,
+    )
 
     @Test
     fun `repeated clicks produce one request and one reply`() = runTest {
@@ -301,5 +324,108 @@ class ChatConversationTest {
         val thirdAttempt = conversation.state.reduce(ChatHomeAction.RetryClicked)
         assertEquals(SubmissionPhase.SUBMITTING, thirdAttempt.state.phase)
         assertEquals(originalQuestion, (thirdAttempt.effect as ChatEffect.Submit).question)
+    }
+
+    @Test
+    fun `with no stored land the request stays the accepted general payload`() = runTest {
+        val service = GatedAnswerService()
+        val conversation = ChatConversation(service, this, landsProvider = { emptyList() })
+
+        conversation.onAction(ChatHomeAction.QuestionChanged(originalQuestion))
+        conversation.onAction(ChatHomeAction.AskClicked)
+        runCurrent()
+
+        val request = service.requests.single()
+        assertEquals(generalAskRequest(originalQuestion), request)
+        assertEquals(LandContextMode.general, request.land_context.mode)
+        assertTrue(request.land_context.lands.isEmpty())
+
+        service.complete(response("Respuesta única."))
+        advanceUntilIdle()
+        assertEquals(1, conversation.state.messages.count { it.speaker == Speaker.ASSISTANT })
+    }
+
+    @Test
+    fun `a land-relevant submit carries every land and the attribute the question needs`() = runTest {
+        val service = GatedAnswerService()
+        val lands = listOf(
+            land(
+                id = "land-1",
+                name = "Los Olivos",
+                municipality = "Martos",
+                waterRegime = LocalWaterRegime.IRRIGATED,
+                productionMethod = LocalProductionMethod.ORGANIC,
+            ),
+            land(id = "land-2", name = "La Loma"),
+        )
+        val conversation = ChatConversation(service, this, landsProvider = { lands })
+
+        conversation.onAction(ChatHomeAction.QuestionChanged(originalQuestion))
+        conversation.onAction(ChatHomeAction.AskClicked)
+        runCurrent()
+
+        val request = service.requests.single()
+        assertEquals(originalQuestion, request.question)
+        assertEquals(LandContextMode.all_active, request.land_context.mode)
+        assertEquals(listOf("land-1", "land-2"), request.land_context.lands.map { it.id })
+        assertEquals(WaterRegime.irrigated, request.land_context.lands[0].water_regime)
+        assertEquals(WaterRegime.unknown, request.land_context.lands[1].water_regime)
+        assertNull(request.land_context.lands[0].municipality)
+        assertNull(request.land_context.lands[0].production_method)
+
+        service.complete(response("Respuesta única."))
+        advanceUntilIdle()
+        assertEquals(1, conversation.state.messages.count { it.speaker == Speaker.ASSISTANT })
+    }
+
+    @Test
+    fun `a retry re-reads the lands stored at that moment`() = runTest {
+        var current = listOf(land("land-1", name = "Los Olivos"))
+        val service = ScriptedAnswerService(
+            failures = listOf(AnswerServiceUnavailableException()),
+            answer = response("Respuesta única."),
+        )
+        val conversation = ChatConversation(service, this, landsProvider = { current })
+
+        conversation.onAction(ChatHomeAction.QuestionChanged(originalQuestion))
+        conversation.onAction(ChatHomeAction.AskClicked)
+        advanceUntilIdle()
+        assertEquals(listOf("land-1"), service.requests.single().land_context.lands.map { it.id })
+
+        // A land added after the chat screen opened is included by the retry, wording unchanged.
+        current = current + land("land-2", name = "La Loma")
+        conversation.onAction(ChatHomeAction.RetryClicked)
+        advanceUntilIdle()
+
+        assertEquals(2, service.requests.size)
+        val retry = service.requests.last()
+        assertEquals(originalQuestion, retry.question)
+        assertEquals(listOf("land-1", "land-2"), retry.land_context.lands.map { it.id })
+        assertNull(conversation.state.failure)
+    }
+
+    @Test
+    fun `a failing land read still submits the accepted general request`() = runTest {
+        val service = GatedAnswerService()
+        val conversation = ChatConversation(
+            service,
+            this,
+            landsProvider = { error("land store unavailable") },
+        )
+
+        conversation.onAction(ChatHomeAction.QuestionChanged(originalQuestion))
+        conversation.onAction(ChatHomeAction.AskClicked)
+        runCurrent()
+
+        val request = service.requests.single()
+        assertEquals(originalQuestion, request.question)
+        assertEquals(LandContextMode.general, request.land_context.mode)
+        assertTrue(request.land_context.lands.isEmpty())
+
+        service.complete(response("Respuesta única."))
+        advanceUntilIdle()
+
+        assertEquals(1, conversation.state.messages.count { it.speaker == Speaker.ASSISTANT })
+        assertNull(conversation.state.failure)
     }
 }

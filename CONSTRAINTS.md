@@ -86,3 +86,18 @@ Operational MUST/MUST NOT rules that future features have to respect on top of
   `false` result or a thrown failure is never a removal). Reason: `remove_land` established that a
   person's other lands and their local-only store must survive a removal untouched, and that a
   permanent local action must never be claimed when it did not happen.
+
+## Client land context
+
+- **MUST**: the `land_context` sent with a question MUST carry every stored land whenever at least
+  one exists — `mode: all_active`, repository order, opaque local ids verbatim — and, per land, only
+  the optional attributes the question actually needs (`municipality`, `water_regime`,
+  `production_method`); it MUST NOT carry a land name, free-text note, area, timestamp, or any
+  contract-unknown key, MUST send a needed but unknown stored value as `unknown` (never a guess),
+  MUST omit a value it does not have (an unset `municipality`) rather than a placeholder or an empty
+  string, MUST use `mode: general` with `lands: []` only when no land is stored, and MUST NOT rewrite
+  the person's exact wording or change the attribute decision silently (a vocabulary change is a spec
+  and test change). Reason: `minimal_land_context` established that the device's private labels and
+  details never leave it with a question, that omission in the payload means "not needed" and never
+  "invented", and that the current lands must be re-read at submit and retry time so an added,
+  edited, or removed land is reflected without exposing anything new.

@@ -1,5 +1,8 @@
 package com.jamarglex.manijero.chat
 
+import com.jamarglex.manijero.lands.Land
+import com.jamarglex.manijero.lands.ProductionMethod as LocalProductionMethod
+import com.jamarglex.manijero.lands.WaterRegime as LocalWaterRegime
 import io.ktor.client.engine.mock.MockEngine
 import io.ktor.client.engine.mock.respond
 import io.ktor.client.plugins.HttpTimeout
@@ -84,6 +87,67 @@ class KtorAnswerServiceTest {
         )
 
         assertEquals("""{"question":"¿Puedo regar hoy?","land_context":{"mode":"general","lands":[]}}""", encoded)
+        assertEquals(
+            encoded,
+            answerJson.encodeToString(AskRequest.serializer(), askRequestFor("¿Puedo regar hoy?", emptyList())),
+        )
+    }
+
+    /**
+     * The literal feature-list verification: the encoded `POST /ask` body for a land-relevant
+     * question with two lands. Only the needed attribute is present, and no name, note, area,
+     * timestamp, or contract-unknown key appears anywhere.
+     */
+    @Test
+    fun `a land-relevant ask body carries both land ids and only the needed attribute`() = runTest {
+        val engine = MockEngine {
+            respond(
+                content = answeredFixture,
+                status = HttpStatusCode.OK,
+                headers = headersOf(HttpHeaders.ContentType, ContentType.Application.Json.toString()),
+            )
+        }
+        val service = KtorAnswerService(
+            client = answerHttpClient(engine),
+            baseUrl = "https://api.example.invalid/",
+        )
+        val lands = listOf(
+            Land(
+                id = "land-1",
+                name = "Los Olivos",
+                municipality = "Martos",
+                waterRegime = LocalWaterRegime.IRRIGATED,
+                productionMethod = LocalProductionMethod.ORGANIC,
+                areaHectares = 12.5,
+                notes = "Nota privada",
+                createdAtEpochMillis = 1_700_000_000_000L,
+                updatedAtEpochMillis = 1_700_000_000_000L,
+            ),
+            Land(
+                id = "land-2",
+                name = "La Loma",
+                createdAtEpochMillis = 1_700_000_000_000L,
+                updatedAtEpochMillis = 1_700_000_000_000L,
+            ),
+        )
+
+        service.ask(askRequestFor("¿Puedo regar hoy?", lands))
+
+        val sent = engine.requestHistory.single()
+        assertEquals(HttpMethod.Post, sent.method)
+        assertEquals("/ask", sent.url.encodedPath)
+        val body = sent.body.asText()
+        assertEquals(
+            """{"question":"¿Puedo regar hoy?","land_context":{"mode":"all_active","lands":""" +
+                """[{"id":"land-1","water_regime":"irrigated"},{"id":"land-2","water_regime":"unknown"}]}}""",
+            body,
+        )
+        listOf(
+            "name", "Los Olivos", "La Loma", "notes", "Nota privada", "areaHectares", "12.5",
+            "municipality", "production_method", "createdAt", "updatedAt", "1700000000000",
+        ).forEach { forbidden ->
+            assertTrue(!body.contains(forbidden), "encoded /ask body must not contain $forbidden")
+        }
     }
 
     @Test

@@ -5,7 +5,8 @@ import com.jamarglex.manijero.chat.AnswerStatus
 import com.jamarglex.manijero.chat.AskResponse
 import com.jamarglex.manijero.chat.MAX_QUESTION_LENGTH
 import com.jamarglex.manijero.chat.RequestFailure
-import com.jamarglex.manijero.chat.generalAskRequest
+import com.jamarglex.manijero.chat.askRequestFor
+import com.jamarglex.manijero.lands.Land
 
 /**
  * Presentation state for one chat home screen. It is intentionally pure data: the only
@@ -186,6 +187,11 @@ fun ChatHomeState.reduce(action: ChatHomeAction): ChatReduction = when (action) 
     }
 }
 
-fun ChatEffect.request() = when (this) {
-    is ChatEffect.Submit -> generalAskRequest(question)
+/**
+ * Maps one submission effect to the request to send. The lands are passed in explicitly rather than
+ * read here, so the reducer stays pure and a call site cannot forget the current land list: the
+ * caller supplies the list it just read (see `ChatConversation.submit`).
+ */
+fun ChatEffect.request(lands: List<Land>) = when (this) {
+    is ChatEffect.Submit -> askRequestFor(question, lands)
 }
