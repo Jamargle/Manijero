@@ -304,4 +304,79 @@ class LandContextBuilderTest {
         assertEquals(landContextNeeds(question), landContextNeeds(question))
         assertTrue(landContextNeeds(question).waterRegime)
     }
+
+    @Test
+    fun `a selected request keeps the exact wording and only the chosen lands`() {
+        val wording = "  ¿Puedo regar hoy?  "
+        val chosen = listOf(
+            land(id = "land-1", name = "Los Olivos", waterRegime = LocalWaterRegime.IRRIGATED),
+            land(id = "land-2", name = "La Loma", waterRegime = LocalWaterRegime.DRYLAND),
+        )
+
+        val request = selectedAskRequest(wording, chosen)
+
+        assertEquals(wording, request.question)
+        assertEquals(LandContextMode.selected, request.land_context.mode)
+        assertEquals(listOf("land-1", "land-2"), request.land_context.lands.map { it.id })
+        assertEquals(
+            MinimalLandContext(id = "land-1", water_regime = WaterRegime.irrigated),
+            request.land_context.lands[0],
+        )
+        assertEquals(
+            MinimalLandContext(id = "land-2", water_regime = WaterRegime.dryland),
+            request.land_context.lands[1],
+        )
+        assertEquals(
+            """{"question":"  ¿Puedo regar hoy?  ","land_context":{"mode":"selected","lands":""" +
+                """[{"id":"land-1","water_regime":"irrigated"},{"id":"land-2","water_regime":"dryland"}]}}""",
+            encoded(request),
+        )
+        listOf(
+            "name", "Los Olivos", "La Loma", "notes", "areaHectares", "municipality",
+            "production_method", "createdAt", "updatedAt",
+        ).forEach { forbidden ->
+            assertFalse(encoded(request).contains(forbidden), "encoded body must not contain $forbidden")
+        }
+    }
+
+    @Test
+    fun `a selected request carries only the attribute the question needs`() {
+        val chosen = listOf(
+            land(
+                id = "land-1",
+                name = "Los Olivos",
+                municipality = "Martos",
+                waterRegime = LocalWaterRegime.IRRIGATED,
+                productionMethod = LocalProductionMethod.ORGANIC,
+            ),
+            land(id = "land-2", name = "La Loma", productionMethod = LocalProductionMethod.CONVENTIONAL),
+        )
+
+        val production = selectedAskRequest("¿Puedo producir en ecológico?", chosen)
+        assertEquals(
+            listOf(
+                MinimalLandContext(id = "land-1", production_method = ProductionMethod.organic),
+                MinimalLandContext(id = "land-2", production_method = ProductionMethod.conventional),
+            ),
+            production.land_context.lands,
+        )
+        assertEquals(
+            """{"question":"¿Puedo producir en ecológico?","land_context":{"mode":"selected","lands":""" +
+                """[{"id":"land-1","production_method":"organic"},{"id":"land-2","production_method":"conventional"}]}}""",
+            encoded(production),
+        )
+        // A question matching no vocabulary sends the chosen ids alone, in the order passed.
+        assertEquals(
+            """{"question":"¿Qué documentos necesito?","land_context":{"mode":"selected","lands":""" +
+                """[{"id":"land-1"},{"id":"land-2"}]}}""",
+            encoded(selectedAskRequest("¿Qué documentos necesito?", chosen)),
+        )
+    }
+
+    @Test
+    fun `a selected request requires at least one chosen land`() {
+        val failure = runCatching { selectedAskRequest("¿Puedo regar hoy?", emptyList()) }
+
+        assertTrue(failure.isFailure)
+    }
 }

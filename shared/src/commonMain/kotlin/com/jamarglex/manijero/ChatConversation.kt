@@ -36,10 +36,11 @@ class ChatConversation(
         when (val effect = reduction.effect) {
             null -> Unit
             is ChatEffect.Submit -> scope.launch { submit(effect) }
+            is ChatEffect.SubmitSelected -> scope.launch { submit(effect) }
         }
     }
 
-    private suspend fun submit(effect: ChatEffect.Submit) {
+    private suspend fun submit(effect: ChatEffect) {
         // A failing local read degrades to the accepted `general` request instead of turning a
         // question into a failure; the throwable is never logged or surfaced.
         val lands = runCatching { landsProvider() }.getOrElse { emptyList() }

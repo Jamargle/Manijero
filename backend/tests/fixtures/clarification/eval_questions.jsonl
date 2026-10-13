@@ -1,0 +1,6 @@
+{"question": "¿Puedo regar mi olivar de ejemplo?", "land_context": {"mode": "all_active", "lands": [{"id": "land-A", "water_regime": "irrigated"}, {"id": "land-B", "water_regime": "dryland"}]}, "expect": "needs_land_clarification"}
+{"question": "¿Puedo regar mi olivar de ejemplo?", "land_context": {"mode": "all_active", "lands": [{"id": "land-A", "water_regime": "irrigated"}, {"id": "land-B", "water_regime": "irrigated"}]}, "expect": "answered"}
+{"question": "¿Puedo regar mi olivar de ejemplo?", "land_context": {"mode": "all_active", "lands": [{"id": "land-A", "water_regime": "irrigated"}]}, "expect": "answered"}
+{"question": "¿Puedo regar mi olivar de ejemplo?", "land_context": {"mode": "general", "lands": []}, "expect": "answered"}
+{"question": "¿Puedo regar mi olivar de ejemplo?", "land_context": {"mode": "selected", "lands": [{"id": "land-A", "water_regime": "irrigated"}]}, "expect": "answered"}
+{"question": "¿Puedo regar mi olivar de ejemplo?", "land_context": {"mode": "all_active", "lands": [{"id": "land-A", "water_regime": "unknown"}, {"id": "land-B"}]}, "expect": "answered"}
