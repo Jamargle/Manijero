@@ -1,0 +1,164 @@
+package com.jamarglex.manijero.lands
+
+import kotlin.test.Test
+import kotlin.test.assertEquals
+import kotlin.test.assertNotNull
+import kotlin.test.assertNull
+
+/**
+ * Integration between the edit form contract and the accepted [LandRepository.update] semantics:
+ * exactly one record changes, untouched attributes survive, and an unknown id writes nothing.
+ */
+class EditLandRepositoryTest {
+    @Test
+    fun editing_one_land_leaves_the_other_record_and_its_encoded_line_untouched() {
+        val storage = MemoryStorage()
+        val repository = repository(storage)
+        val first = repository.create(LandDraft("Los Olivos"), 1)
+        val second = repository.create(
+            LandDraft(
+                name = "La Loma",
+                municipality = "Martos",
+                waterRegime = WaterRegime.IRRIGATED,
+                productionMethod = ProductionMethod.ORGANIC,
+                areaHectares = 3.5,
+                notes = "Junto al arroyo",
+            ),
+            2,
+        )
+        val secondLineBefore = encodedLines(storage.value!!)[1]
+
+        val updated = repository.update(first.id, LandDraft("Los Olivos corregido"), 3)
+
+        assertNotNull(updated)
+        val lands = repository.list()
+        assertEquals(listOf(first.id, second.id), lands.map { it.id }, "creation order must hold")
+        assertEquals(second, lands[1], "every field of the other land must be unchanged")
+        assertEquals(
+            secondLineBefore,
+            encodedLines(storage.value!!)[1],
+            "the other land's stored line must be byte-identical",
+        )
+        assertEquals(2, encodedLines(storage.value!!).size, "no second record may appear")
+    }
+
+    @Test
+    fun the_edited_record_keeps_its_id_and_creation_time_and_takes_the_new_values() {
+        val storage = MemoryStorage()
+        val repository = repository(storage)
+        val first = repository.create(LandDraft("Los Olivos"), 1)
+        repository.create(LandDraft("La Loma"), 2)
+
+        val updated = repository.update(
+            first.id,
+            LandDraft(
+                name = "Los Olivos corregido",
+                municipality = "Martos",
+                waterRegime = WaterRegime.IRRIGATED,
+                productionMethod = ProductionMethod.ORGANIC,
+            ),
+            9,
+        )
+
+        assertEquals(first.id, updated?.id)
+        assertEquals(first.createdAtEpochMillis, updated?.createdAtEpochMillis)
+        assertEquals(9L, updated?.updatedAtEpochMillis)
+        assertEquals("Los Olivos corregido", repository.list()[0].name)
+        assertEquals(WaterRegime.IRRIGATED, repository.list()[0].waterRegime)
+    }
+
+    @Test
+    fun an_edit_through_the_form_keeps_the_area_and_notes_it_never_collects() {
+        val storage = MemoryStorage()
+        val repository = repository(storage)
+        val land = repository.create(
+            LandDraft("Los Olivos", areaHectares = 2.5, notes = "Nota privada"),
+            1,
+        )
+
+        val draft = land.toEditLandState()
+            .reduce(EditLandAction.NameChanged("  Los Olivos corregido  "))
+            .toDraftOrNull()!!
+
+        repository.update(land.id, draft, 2)
+
+        val stored = repository(storage).list().single()
+        assertEquals("Los Olivos corregido", stored.name)
+        assertEquals(2.5, stored.areaHectares, "an edit must not erase the stored area")
+        assertEquals("Nota privada", stored.notes, "an edit must not erase stored notes")
+        assertEquals(land.id, stored.id)
+        assertEquals(land.createdAtEpochMillis, stored.createdAtEpochMillis)
+    }
+
+    @Test
+    fun a_name_only_land_edited_elsewhere_keeps_its_unknown_attributes() {
+        val storage = MemoryStorage()
+        val repository = repository(storage)
+        val land = repository.create(LandDraft("Los Olivos"), 1)
+
+        val draft = land.toEditLandState()
+            .reduce(EditLandAction.MunicipalityChanged("Martos"))
+            .toDraftOrNull()!!
+
+        repository.update(land.id, draft, 2)
+
+        val stored = repository(storage).list().single()
+        assertEquals("Martos", stored.municipality)
+        assertEquals(WaterRegime.UNKNOWN, stored.waterRegime)
+        assertEquals(ProductionMethod.UNKNOWN, stored.productionMethod)
+    }
+
+    @Test
+    fun an_edit_can_clear_the_municipality_and_deliberately_store_unknown() {
+        val storage = MemoryStorage()
+        val repository = repository(storage)
+        val land = repository.create(
+            LandDraft("La Loma", "Martos", WaterRegime.IRRIGATED, ProductionMethod.ORGANIC),
+            1,
+        )
+
+        val draft = land.toEditLandState()
+            .reduce(EditLandAction.MunicipalityChanged(""))
+            .reduce(EditLandAction.WaterRegimeSelected(WaterRegime.UNKNOWN))
+            .reduce(EditLandAction.ProductionMethodSelected(ProductionMethod.UNKNOWN))
+            .toDraftOrNull()!!
+
+        repository.update(land.id, draft, 2)
+
+        val reopened = repository(storage).list().single()
+        assertNull(reopened.municipality, "a cleared municipality must be absent, not an empty text")
+        assertEquals(WaterRegime.UNKNOWN, reopened.waterRegime)
+        assertEquals(ProductionMethod.UNKNOWN, reopened.productionMethod)
+    }
+
+    @Test
+    fun updating_an_unknown_id_returns_null_and_writes_nothing() {
+        val storage = MemoryStorage()
+        val repository = repository(storage)
+        repository.create(LandDraft("Los Olivos"), 1)
+        val before = storage.value
+
+        val result = repository.update("land-99", LandDraft("Fantasma"), 2)
+
+        assertNull(result)
+        assertEquals(before, storage.value, "a missing id must not rewrite the snapshot")
+        assertEquals(listOf("Los Olivos"), repository.list().map { it.name })
+    }
+
+    private fun repository(storage: MemoryStorage) = LandRepository(
+        storage = storage,
+        idGenerator = object : () -> String {
+            private var next = 0
+            override fun invoke() = "land-${next++}"
+        },
+    )
+
+    private fun encodedLines(snapshot: String): List<String> =
+        snapshot.lineSequence().drop(1).toList()
+
+    private class MemoryStorage : LandStorage {
+        var value: String? = null
+        override fun read(): String? = value
+        override fun write(value: String) { this.value = value }
+    }
+}

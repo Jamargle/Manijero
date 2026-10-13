@@ -221,14 +221,14 @@ fun AddLandScreen(
     }
 }
 
-private data class ChoiceItem(
+internal data class ChoiceItem(
     val label: StringResource,
     val selected: Boolean,
     val onSelect: () -> Unit,
 )
 
 @Composable
-private fun ChoiceGroup(
+internal fun ChoiceGroup(
     label: String,
     choices: List<ChoiceItem>,
     modifier: Modifier = Modifier,

@@ -18,6 +18,7 @@ import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.semantics.LiveRegionMode
+import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.liveRegion
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.tooling.preview.Preview
@@ -33,9 +34,12 @@ import manijero.shared.generated.resources.add_land_water_dryland
 import manijero.shared.generated.resources.add_land_water_irrigated
 import manijero.shared.generated.resources.add_land_water_mixed
 import manijero.shared.generated.resources.chat_home_lands
+import manijero.shared.generated.resources.edit_land_saved
 import manijero.shared.generated.resources.land_list_add
 import manijero.shared.generated.resources.land_list_back
 import manijero.shared.generated.resources.land_list_description
+import manijero.shared.generated.resources.land_list_edit
+import manijero.shared.generated.resources.land_list_edit_description
 import manijero.shared.generated.resources.land_list_empty
 import manijero.shared.generated.resources.land_list_load_failed
 import manijero.shared.generated.resources.land_list_municipality
@@ -47,20 +51,25 @@ import org.jetbrains.compose.resources.stringResource
 
 private val ContentMaxWidth = 720.dp
 
+/** What the last successful write was, so the list confirms the right thing or nothing at all. */
+enum class LandListConfirmation { ADDED, UPDATED }
+
 /**
- * Read-only list of the lands saved on this device. It renders whatever [state] it receives and
- * reports every interaction through [onAddLand], [onBack], or [onRetry]; reading and persistence
- * happen in the caller. Rows are plain, non-clickable, and show the exact saved name plus the few
- * known details, so similar lands stay distinguishable.
+ * List of the lands saved on this device. It renders whatever [state] it receives and reports every
+ * interaction through [onAddLand], [onEditLand], [onBack], or [onRetry]; reading and persistence
+ * happen in the caller. Rows stay non-clickable and show the exact saved name plus the few known
+ * details, so similar lands stay distinguishable, and each row has its own visible `Editar` control
+ * so correcting a land is a labelled, deliberate action.
  */
 @Composable
 fun LandListScreen(
     state: LandListState,
     onAddLand: () -> Unit,
+    onEditLand: (Land) -> Unit,
     onBack: () -> Unit,
     onRetry: () -> Unit,
     modifier: Modifier = Modifier,
-    savedConfirmation: Boolean = false,
+    confirmation: LandListConfirmation? = null,
 ) {
     Surface(
         modifier = modifier.fillMaxSize(),
@@ -90,9 +99,14 @@ fun LandListScreen(
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
 
-                if (savedConfirmation) {
+                val confirmationResource = when (confirmation) {
+                    LandListConfirmation.ADDED -> Res.string.add_land_saved
+                    LandListConfirmation.UPDATED -> Res.string.edit_land_saved
+                    null -> null
+                }
+                if (confirmationResource != null) {
                     Text(
-                        text = stringResource(Res.string.add_land_saved),
+                        text = stringResource(confirmationResource),
                         style = MaterialTheme.typography.bodyLarge,
                         color = MaterialTheme.colorScheme.primary,
                         modifier = Modifier
@@ -117,7 +131,9 @@ fun LandListScreen(
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                     )
 
-                    else -> state.lands.forEach { land -> LandRow(land = land) }
+                    else -> state.lands.forEach { land ->
+                        LandRow(land = land, onEdit = { onEditLand(land) })
+                    }
                 }
 
                 Column(
@@ -153,15 +169,14 @@ fun LandListScreen(
 
 /**
  * One saved land. The name and its details are merged into a single node so assistive technology
- * reads them together, and nothing here is clickable: selecting a land for chat belongs to a later
- * feature.
+ * reads them together, while the `Editar` control is its own labelled button whose accessible
+ * description names the exact saved land. The row card itself is not clickable: reading a row never
+ * navigates.
  */
 @Composable
-private fun LandRow(land: Land, modifier: Modifier = Modifier) {
+private fun LandRow(land: Land, onEdit: () -> Unit, modifier: Modifier = Modifier) {
     Surface(
-        modifier = modifier
-            .fillMaxWidth()
-            .semantics(mergeDescendants = true) {},
+        modifier = modifier.fillMaxWidth(),
         shape = RoundedCornerShape(16.dp),
         color = MaterialTheme.colorScheme.surface,
         border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant),
@@ -170,26 +185,43 @@ private fun LandRow(land: Land, modifier: Modifier = Modifier) {
             modifier = Modifier.padding(horizontal = 16.dp, vertical = 12.dp),
             verticalArrangement = Arrangement.spacedBy(4.dp),
         ) {
-            Text(
-                text = land.name,
-                style = MaterialTheme.typography.titleMedium,
-                color = MaterialTheme.colorScheme.onSurface,
-            )
-            land.municipality?.takeIf { it.isNotBlank() }?.let { municipality ->
-                LandRowDetail(stringResource(Res.string.land_list_municipality, municipality))
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .semantics(mergeDescendants = true) {},
+                verticalArrangement = Arrangement.spacedBy(4.dp),
+            ) {
+                Text(
+                    text = land.name,
+                    style = MaterialTheme.typography.titleMedium,
+                    color = MaterialTheme.colorScheme.onSurface,
+                )
+                land.municipality?.takeIf { it.isNotBlank() }?.let { municipality ->
+                    LandRowDetail(stringResource(Res.string.land_list_municipality, municipality))
+                }
+                LandRowDetail(
+                    stringResource(
+                        Res.string.land_list_water,
+                        stringResource(waterRegimeLabel(land.waterRegime)),
+                    ),
+                )
+                LandRowDetail(
+                    stringResource(
+                        Res.string.land_list_production,
+                        stringResource(productionMethodLabel(land.productionMethod)),
+                    ),
+                )
             }
-            LandRowDetail(
-                stringResource(
-                    Res.string.land_list_water,
-                    stringResource(waterRegimeLabel(land.waterRegime)),
-                ),
-            )
-            LandRowDetail(
-                stringResource(
-                    Res.string.land_list_production,
-                    stringResource(productionMethodLabel(land.productionMethod)),
-                ),
-            )
+            val editDescription =
+                stringResource(Res.string.land_list_edit_description, land.name)
+            TextButton(
+                onClick = onEdit,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .semantics { contentDescription = editDescription },
+            ) {
+                Text(stringResource(Res.string.land_list_edit))
+            }
         }
     }
 }
@@ -239,7 +271,13 @@ private fun previewLand(
 @Composable
 private fun LandListEmptyPreview() {
     ManijeroTheme {
-        LandListScreen(state = LandListState(), onAddLand = {}, onBack = {}, onRetry = {})
+        LandListScreen(
+            state = LandListState(),
+            onAddLand = {},
+            onEditLand = {},
+            onBack = {},
+            onRetry = {},
+        )
     }
 }
 
@@ -261,6 +299,7 @@ private fun LandListTwoLandsPreview() {
                 ),
             ),
             onAddLand = {},
+            onEditLand = {},
             onBack = {},
             onRetry = {},
         )
@@ -284,6 +323,7 @@ private fun LandListDuplicateNamesPreview() {
                 ),
             ),
             onAddLand = {},
+            onEditLand = {},
             onBack = {},
             onRetry = {},
         )
@@ -309,6 +349,7 @@ private fun LandListManyLandsPreview() {
                 },
             ),
             onAddLand = {},
+            onEditLand = {},
             onBack = {},
             onRetry = {},
         )
@@ -332,6 +373,7 @@ private fun LandListLongTextPreview() {
                 ),
             ),
             onAddLand = {},
+            onEditLand = {},
             onBack = {},
             onRetry = {},
         )
@@ -345,6 +387,7 @@ private fun LandListLoadFailurePreview() {
         LandListScreen(
             state = LandListState(loadFailed = true),
             onAddLand = {},
+            onEditLand = {},
             onBack = {},
             onRetry = {},
         )
@@ -358,9 +401,25 @@ private fun LandListJustSavedPreview() {
         LandListScreen(
             state = LandListState(lands = listOf(previewLand("land-1", "Los Olivos"))),
             onAddLand = {},
+            onEditLand = {},
             onBack = {},
             onRetry = {},
-            savedConfirmation = true,
+            confirmation = LandListConfirmation.ADDED,
+        )
+    }
+}
+
+@Preview(name = "Land list — just updated")
+@Composable
+private fun LandListJustUpdatedPreview() {
+    ManijeroTheme {
+        LandListScreen(
+            state = LandListState(lands = listOf(previewLand("land-1", "Los Olivos corregido"))),
+            onAddLand = {},
+            onEditLand = {},
+            onBack = {},
+            onRetry = {},
+            confirmation = LandListConfirmation.UPDATED,
         )
     }
 }
@@ -372,6 +431,7 @@ private fun LandListCompactPreview() {
         LandListScreen(
             state = LandListState(lands = listOf(previewLand("land-1", "Los Olivos"))),
             onAddLand = {},
+            onEditLand = {},
             onBack = {},
             onRetry = {},
         )
@@ -387,6 +447,7 @@ private fun LandListWidePreview() {
                 lands = listOf(previewLand("land-1", "La Loma", municipality = "Martos")),
             ),
             onAddLand = {},
+            onEditLand = {},
             onBack = {},
             onRetry = {},
         )
@@ -409,6 +470,7 @@ private fun LandListLargeFontPreview() {
                 ),
             ),
             onAddLand = {},
+            onEditLand = {},
             onBack = {},
             onRetry = {},
         )

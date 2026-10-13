@@ -15,6 +15,7 @@
 - The offline grounded-generation boundary now exists: `backend/app/generation.py` (code-owned citation markers and notice, `verify_draft` grounding rules, deterministic extractive generator, fail-closed `NotAnswered` reasons, accepted-`AskResponse` assembly) and `backend/scripts/evaluate_generation.py` (report-only CLI, grounding invariants enforced with exit `1`). It answers only from `Retriever` candidates, keeps `/health` as the only route, and configures no model provider. Fixture report: 5 answers, 8 claims, 0 ungrounded claims, 1 no-evidence outcome. `CONSTRAINTS.md` records the answer-grounding MUST rules.
 - `visual_foundation` (the shared olive-toned theme in `commonMain`) is accepted: `shared/src/commonMain/kotlin/com/jamarglex/manijero/theme/ManijeroColors.kt`, `ManijeroTheme.kt`, and `ManijeroTypography.kt` define the `DESIGN.md` tokens, a fully specified `lightColorScheme`, a `LocalManijeroSemanticColors` local for caution/strong olive, and the `bodySmall` line-height override; `ManijeroTheme` is applied once inside `App()` and all fifteen existing previews use it (record: `docs/validations/visual_foundation.md`). `response_states`, `answer_source_cards`, `network_error_recovery`, `land_list`, `edit_land`, `remove_land`, and `chat_accessibility` now have their `visual_foundation` dependency satisfied.
 - `land_list` is accepted: `Mis terrenos` now opens the shared lands **list** (the parent surface of the add form) via pure `LandListState`/`LandListAction`/`reduce` and the stateless `LandListScreen`, with a single synchronous `LandRepository.list()` read on entry/retry/after-save, an empty state that names `Añadir terreno`, a distinct plain-Spanish failure state (`Reintentar`, no add action), non-clickable merged-semantics rows, and a device-scoped saved confirmation. The intended routing change moves the `add_land` return destination to the list and removes the now-unreachable chat-home confirmation (record: `docs/validations/land_list.md`). `edit_land`, `remove_land`, and `minimal_land_context` now have their `land_list` dependency satisfied.
+- `edit_land` is accepted (record: `docs/validations/edit_land.md`): every `Mis terrenos` row gained a visible `Editar` control, pure `EditLandState`/`EditLandScreen` render the prefilled short form, and `App()` performs exactly one `LandRepository.update(id, draft)` on an explicit `Guardar cambios`, carrying `areaHectares`/`notes` through untouched and never reporting a `null`/thrown result as saved. Independent validation reproduced the byte-level one-record update (the untouched record's serialized line is unchanged) plus the preserved-attribute, cleared-municipality, un-known, blank-name, and `LAND_MISSING` no-write semantics. `land_form_accessibility` now has its `edit_land` dependency satisfied.
 - The offline abstention boundary now exists: `backend/app/abstention.py` turns every "no safe answer" outcome into one deterministic, code-owned `Abstention` with a stable reason (`invalid_question`, `no_evidence`, `insufficient_evidence`, `stale_evidence`, `conflicting_evidence`, `false_premise`, `unsafe_request`, `generator_abstained`, `generation_error`) and one pinned plain-Spanish message per reason (`ABSTENTION_MESSAGES`; no digit, no date, always a next step). It adds the pre-checks the accepted generation feature deferred — an instrument/article presupposition no retrieved candidate contains, two `critical` candidates disagreeing about the same documented unit, and a catalog that declares sources but has none eligible as of `--as-of` — and `backend/scripts/evaluate_abstention.py` reports the assembled decision per question with the abstention invariants enforced (exit `1`). Every payload is exactly the accepted `AskResponse` keys with `status: abstained`, `sources: []`, and `land_ids_to_choose: []`; the sub-reason stays Python-level, `/health` remains the only route, and no model provider is configured. Detection is lexical and conservative, and no score threshold is a release gate.
 - `network_error_recovery` is accepted: the chat failure path is now visible and recoverable in shared `commonMain`. `ChatHomeState` keeps `failure: RequestFailure?`/`failedQuestion` **outside** `messages`, `RequestFailed(failure)` and the new `RetryClicked` re-send the exact original wording with no second user message, and `ChatFailureNotice` shows the two plain-Spanish notices with a danger-styled `Reintentar` as a polite live region. `KtorAnswerService` translates Ktor failures into the payload-free `AnswerServiceUnavailableException`/`AnswerServiceErrorException`, and `answerHttpClient` installs a bounded `HttpTimeout` plus `expectSuccess = true`, closing carried finding F2 from `chat_question_submission` (F1, the platform `/ask` wiring, stays with its own slice). `CONSTRAINTS.md` records the client MUST rule. Independent validation accepted 2026-10-13 (record: `docs/validations/network_error_recovery.md`); F1 (platform `/ask` wiring) remains with its own slice.
 - `response_states` is accepted: each assistant transcript entry now carries its own decoded `answerStatus` (copied from `response.status` in `ResponseReceived`), so a supported answer and an abstention are visibly different and distinguishable in place. `ChatMessageBubble` branches exhaustively on speaker × status: an answered reply keeps the neutral `surface` `Asistente` card with the server `answer` verbatim, while an abstained reply renders in the accepted `cautionSurface`/`caution` tokens with the new `Sin respuesta segura` label, the pinned limitation message verbatim, merged semantics and a polite live region — never colour alone, never a confident legal-certainty treatment, and never folded into the danger failure notice. `CONSTRAINTS.md` records the client MUST rule. Independent validation accepted 2026-10-13 (record: `docs/validations/response_states.md`); the rendered-evidence gap stays with `chat_accessibility` and the marker-card rendering with `answer_source_cards`.
@@ -69,6 +70,8 @@
 | 2026-10-13 | Accepted `safe_abstention` | Independent validator reproduced the 178 focused / 399 full pytest passes, both CLI runs (current: 3 answered / 7 abstained, 0 abstentions with sources or figures, invariants hold; expired/non-approved/non-current: every question `stale_evidence`), the fail-closed exit 2 cases, the exit 0/1 contract, byte-identical `--json` runs, an independent `jsonschema` check of every payload against the dereferenced `AskResponse`, a byte-for-byte comparison of the nine pinned messages, its own out-of-corpus/false-premise/conflict probes, generator provenance, a stricter socket/DNS guard, and the unchanged generation (`5/8/0/1`) and retrieval (`hit@5 = 0.857`) baselines; confirmed `contracts/` and all do-not-touch files unmodified, `/health` the only route, synthetic labelled fixtures, and no repo dependency. Findings N1-N4 non-blocking. See `docs/validations/safe_abstention.md`. |
 | 2026-10-13 | Implemented `network_error_recovery` (self-verified; awaiting independent validation) | Added the visible, recoverable failure path in `commonMain`: `ChatHomeState` gains `failure`/`failedQuestion` (outside `messages`), `RequestFailed(failure)` and `RetryClicked`; new `chat/AnswerFailure.kt` (`RequestFailure` + two payload-free exceptions); `KtorAnswerService` failure translation and `answerHttpClient` bounded `HttpTimeout` + `expectSuccess`; `ChatFailureNotice` with the `Reintentar` action and two previews; three spec-verbatim strings; 22 new tests (78 JVM / 69 Android host, 0 failures). `python3 contracts/validate_examples.py`, `./init.sh --verify`, `:androidApp:assembleDebug`, `:desktopApp:build`, and `:shared:compileKotlinIosSimulatorArm64` pass; Android emulator smoke captured the notice, the preserved wording, and a retry that returns to the same state. CONSTRAINTS.md gained the client MUST rule and `chat_question_submission.md` records F2 as closed from this side. |
 | 2026-10-13 | Accepted `network_error_recovery` | Independent validator re-ran the contract validator, the focused three-class run (40/0), `:shared:jvmTest` (78/0), `:shared:testAndroidHostTest` (69/0), `:desktopApp:build`, `:androidApp:assembleDebug`, `:shared:compileKotlinIosSimulatorArm64`, and `./init.sh --verify` (exit 0); reproduced the bounded-timeout, `500`/`422`, and undecodable-`200` failure paths; byte-for-byte checked the three strings; and confirmed the failure-never-renders-as-an-answer invariant, retry without a duplicate user message, exact-wording retention, and clean scope. Findings N1-N5 non-blocking. Record: `docs/validations/network_error_recovery.md`. |
+| 2026-10-13 | Implemented `edit_land` (self-verified; awaiting independent validation) | Added the pure `EditLandState`/`EditLandFailure`/`EditLandAction`/`reduce`/`Land.toEditLandState()`/`toDraftOrNull()` and the stateless prefilled `EditLandScreen` with 9 previews; each `Mis terrenos` row now has its own visible `Editar` control (row card stays non-clickable), `LandListScreen` takes `confirmation: LandListConfirmation?` (`ADDED`/`UPDATED`), `ChoiceGroup`/`ChoiceItem` widened `private`→`internal`, and `App()` gained the `EditLand` destination with the single `update(id, draft)` call site. 20 new tests (98 JVM / 87 Android host, 0 failures); `./init.sh --verify` passes; Android emulator smoke ran the two-land correction, cleared municipality, un-known, blank-name, cancel, relaunch-persistence, non-clickable row, and `font_scale 2.0` scenarios; Desktop startup smoke ran with no exception. `CONSTRAINTS.md` gained the “Land editing” MUST rule. |
+| 2026-10-13 | Accepted `edit_land` | Independent validator re-ran `./init.sh`, the focused three-class run (20/0), `:shared:jvmTest --rerun-tasks` (98/0), `:shared:testAndroidHostTest --rerun-tasks` (87/0), `./init.sh --verify`, and a full `--rerun-tasks` build (91 tasks, 0 from cache), and byte-for-byte checked the eight new strings and the `CONSTRAINTS.md` rule; an independent scratch JVM probe against the real `FileLandStorage` reproduced the literal verification (editing one of two lands left the other record's serialized line byte-identical), the preserved `area`/`notes`, the emptied-municipality/`UNKNOWN` round-trips, and the blank-name / `LAND_MISSING` no-write paths. Verdict accept; findings F1-F6 non-blocking. Record: `docs/validations/edit_land.md`. |
 | 2026-10-13 | Implemented `response_states` (self-verified; awaiting independent validation) | Added the per-entry assistant `ChatMessage.answerStatus` (copied from `response.status` only in `ResponseReceived`) and an exhaustive speaker × status rendering branch in `App.kt`: a neutral `surface` answered card vs a `cautionSurface`/`caution` abstained card with the new `Sin respuesta segura` label, verbatim `answer` body, merged semantics and a polite live region. New tests (an abstained entry state, an earlier abstention surviving a later answer, a `ChatConversation` abstention, one `onSurface`-on-`cautionSurface` contrast row) and the `CONSTRAINTS.md` client MUST rule. `python3 contracts/validate_examples.py`, focused `:shared:jvmTest` (46/0), `:shared:jvmTest` (82/0), `:shared:testAndroidHostTest` (73/0), `:desktopApp:build`/`:androidApp:assembleDebug`, `./init.sh --verify`, and `:shared:compileKotlinIosSimulatorArm64` all pass; greps clean. |
 | 2026-10-13 | Accepted `response_states` | Independent validator re-ran the contract validator, `:shared:jvmTest --rerun-tasks` (82/0), `:shared:testAndroidHostTest --rerun-tasks` (73/0), `:desktopApp:build :androidApp:assembleDebug --rerun-tasks` (72 tasks, exit 0), `./init.sh --verify` (exit 0), and `:shared:compileKotlinIosSimulatorArm64`; reproduced the per-entry answer/abstention behavior with its own probe test, the `14.58` contrast pair, and the byte-for-byte string; confirmed the exhaustive branch, verbatim rendering, three distinct states, and clean scope. Findings N1-N5 non-blocking. Record: `docs/validations/response_states.md`. |
 
@@ -882,6 +885,142 @@ so real unreachable-service failures map to the correct notice, and found no lea
 findings N1-N5 recorded; F1 (platform `/ask` engine/endpoint wiring) stays with its own slice and
 F2 (bounded timeout) is closed from this side. Record:
 `docs/validations/network_error_recovery.md`.
+
+### edit_land — accepted
+
+Feature: `edit_land` (`area: lands`). Spec: `docs/specs/edit_land.md`. Accepted by independent
+validation (record: `docs/validations/edit_land.md`); the implementation and self-verification below
+were produced by the implementer and are reproduced/confirmed by the validator.
+
+Independent validation (accept): re-ran `./init.sh`, the focused three-class run (`20/0`), the full
+`:shared:jvmTest --rerun-tasks` (**98/0**, 14 classes), `:shared:testAndroidHostTest --rerun-tasks`
+(**87/0**, 11 classes), `./init.sh --verify`, and a full `--rerun-tasks` build (91 tasks, 0 from
+cache); confirmed the accepted `add_land`/`land_list` suites and copy still pass and the `Editar`
+affordance did not regress the non-clickable row. For the literal feature-list verification it wrote
+and then deleted an independent scratch JVM probe against the real `FileLandStorage`: with two lands
+saved and only the first edited, the snapshot's other record line was **byte-identical**, order
+preserved, and the edited record kept its `id`/`createdAt`; it also reproduced the byte-identical
+no-write on a `LAND_MISSING` (`null`) update, the blank-name no-draft/no-write path, the
+emptied-municipality→absent and known→`UNKNOWN` round-trips, and the preserved `area`/`notes`. The
+eight new Spanish strings and the `CONSTRAINTS.md` rule were checked byte-for-byte, `git diff --check`
+was made clean, and six emulator screenshots were corroborated against the behavior. Non-blocking
+findings: F1 (the implementer's `PROGRESS.md` trailing blank line, fixed here before the acceptance
+commit), F2 (a spec sentence overstated the `Cancelar` re-read; the spec now matches the code and the
+accepted `add_land` cancel path), F3 (no Compose UI-test harness, so the `App()` save-decision wiring
+is inspection + smoke only), F4 (`LAND_MISSING` is a defensive/unit-tested branch), F5
+(`updatedAtEpochMillis` still not meaningful — carried `land_list` F6), F6 (the interactive Android
+smoke is implementer-produced; the validator corroborated the artifacts and code semantics).
+
+What changed (implementer record):
+
+- New `shared/src/commonMain/kotlin/com/jamarglex/manijero/lands/EditLandState.kt` (pure, no Compose
+  or platform imports): `EditLandFailure { WRITE_FAILED, LAND_MISSING }`, `EditLandState` (the
+  targeted `landId`, raw `name`/`municipality` text, the two enums, plus `preservedAreaHectares`
+  and `preservedNotes` carried through because this short form neither collects nor shows them),
+  `Land.toEditLandState()` (prefills verbatim, `null` municipality → empty field, `UNKNOWN` → the
+  `No lo sé` choice), field/save/failure actions, `reduce` (field actions and `SaveClicked` clear a
+  stale failure; `SaveFailed` only sets it), and `toDraftOrNull()` (blank trimmed name → `null`;
+  emptied municipality → absent; trimmed name; area/notes preserved).
+- New `shared/src/commonMain/kotlin/com/jamarglex/manijero/lands/EditLandScreen.kt`: stateless
+  prefilled form that renders whatever state it gets, with the required name field (error state plus
+  `Escribir un nombre…`), the optional municipality, the two accessible radio groups, a polite
+  live-region failure message that distinguishes `WRITE_FAILED` from `LAND_MISSING`, one primary
+  `Guardar cambios`, `Cancelar` as the visible back control, and 9 previews (prefilled name-only,
+  known values, name error, write failure, missing land, long text, compact 320dp, wide 900dp, 2x
+  font). It reuses the accepted `add_land_*` vocabulary and the shared `ChoiceGroup`/`ChoiceItem`.
+- `LandListScreen.kt`: `onEditLand: (Land) -> Unit` added, `savedConfirmation: Boolean` replaced by
+  `confirmation: LandListConfirmation?` with `enum class LandListConfirmation { ADDED, UPDATED }`
+  (`ADDED` still renders `add_land_saved` byte-for-byte), per-row visible `Editar` button whose
+  accessible description is `land_list_edit_description` with the land's exact saved name, the row
+  card still non-clickable, the details still a merged descendant node, plus a "just updated"
+  preview.
+- `AddLandScreen.kt`: `ChoiceGroup`/`ChoiceItem` visibility only, `private` → `internal`.
+- `App.kt`: `EditLand` destination, `editLandState: EditLandState?` and
+  `landConfirmation: LandListConfirmation?`, the row edit action, and the single
+  `repository.update(reduced.landId, draft)` call site inside the `SaveClicked` branch (never while
+  composing, never at startup). A non-null result clears the edit state, sets `UPDATED`, re-reads the
+  list, and returns; `null` shows the `LAND_MISSING` notice and a thrown failure shows
+  `WRITE_FAILED`, both keeping the values on screen and navigating nowhere. `Cancelar` clears the
+  state, returns to the list, and shows no confirmation. `App()` (no argument) is unchanged.
+- `shared/src/commonMain/composeResources/values/strings.xml`: the eight new keys from the spec.
+- New tests: `commonTest/.../EditLandStateTest.kt` (12), `commonTest/.../EditLandRepositoryTest.kt`
+  (6, in-memory `LandStorage` fake), `jvmTest/.../EditLandDesktopStoreTest.kt` (2, real
+  `FileLandStorage` in a temp dir).
+- `CONSTRAINTS.md`: new "Land editing" MUST rule (one targeted record, untouched attributes carried
+  through, preserved `id`/`createdAt`, no `create`/`delete` from an edit path, never report
+  `null`/thrown as saved).
+
+Commands actually run (repository root):
+
+- `./init.sh` → exit 0 (Gradle 9.8.0 wrapper; `local.properties` present, so Android checks run).
+- `./gradlew :shared:jvmTest --tests EditLandStateTest --tests EditLandRepositoryTest --tests
+  EditLandDesktopStoreTest` → BUILD SUCCESSFUL; 20 tests / 0 failures
+  (`EditLandStateTest` 12, `EditLandRepositoryTest` 6, `EditLandDesktopStoreTest` 2).
+- `./gradlew :shared:jvmTest` → BUILD SUCCESSFUL; **98 tests / 0 failures** across 14 classes (was
+  78). The accepted `add_land`/`land_list` suites are still green (`AddLandStateTest` 11,
+  `LandListStateTest` 6, `LandRepositoryTest` 4, `AddLandDesktopStoreTest` 1).
+- `./init.sh --verify` (`:shared:jvmTest :shared:testAndroidHostTest :androidApp:assembleDebug
+  :desktopApp:build`) → BUILD SUCCESSFUL (exit 0); `androidApp-debug.apk` produced;
+  `:shared:testAndroidHostTest` **87 tests / 0 failures** across 11 classes (was 69).
+- `./gradlew :shared:jvmTest :shared:testAndroidHostTest :androidApp:assembleDebug
+  :desktopApp:build --rerun-tasks` → BUILD SUCCESSFUL, 91 tasks executed; same 98/0 and 87/0.
+- Copy fidelity: a Python byte-for-byte comparison of the spec's XML block against
+  `strings.xml` matched all eight new keys exactly, each appearing once; `land_list_edit_description`
+  is used only as the `Editar` control's accessible description and never as body text.
+- Privacy: `grep -rn "println\|Log\.\|Logger\|printStackTrace\|System.out" shared/src` → no matches;
+  no network call, permission, dependency, module, ViewModel, coroutine, or navigation framework was
+  added (`strings.xml` + `shared/src` are the only product edits).
+- `git diff --check` → clean.
+
+Android emulator smoke (`Medium_Phone_API_35`, API 35, 1080x2400, fresh install + `pm clear`,
+16 screenshots captured outside the repository):
+
+1. `Mis terrenos` empty → `Añadir terreno` → saved `Los Olivos` (name only): the list shows the
+   unchanged add confirmation, `Riego: No lo sé`, `Producción: No lo sé`, no `Municipio:` line, and a
+   visible `Editar` whose node reads `Editar el terreno «Los Olivos»`. Saved `La Loma` with
+   `Municipio: Martos`, `Regadío`, `Ecológico` → a second distinguishable row in creation order.
+2. The row body is not clickable: tapping `La Loma alta` text left the screen on the list.
+3. Editing `Los Olivos` only (prefilled form shows `Los Olivos`, empty municipality, and `No lo sé`
+   selected in both groups) and typing `Los Olivos del camino` → back to the list with
+   `Los cambios se han guardado en este dispositivo.` visible (polite live region), the corrected name
+   in the **same first position**, and `La Loma` still showing `Municipio: Martos` / `Regadío` /
+   `Ecológico`.
+4. Editing `La Loma` (prefill confirmed: `Martos`, and the `checked` rows are exactly `Regadío` and
+   `Ecológico`) → cleared the municipality and selected `No lo sé` in both groups → the row lost its
+   `Municipio:` line and reads `No lo sé` for both, with the other land untouched.
+5. `am force-stop` + relaunch → both records persist exactly as shown, no duplicates, no stale
+   confirmation.
+6. Blank name: cleared the name and saved → no navigation, no confirmation, the required message
+   `Escribe un nombre para el terreno.` appeared, and the other edited values stayed on screen;
+   correcting it to `La Loma alta` saved successfully.
+7. `Cancelar` from a further edit with an edited name → returned to the list with no confirmation and
+   the stored name unchanged.
+8. `font_scale 2.0`: the list and the edit form wrap with no horizontal overflow (max text right edge
+   1017 of 1080) and `Guardar cambios` / `Cancelar` are reachable by vertical scroll.
+
+Desktop `:desktopApp:run` startup smoke: the app launched `com.jamarglex.manijero.MainKt` against the
+injected `~/.manijero/lands-v1.txt` store and stayed running ~6.5 minutes with **0 exceptions** in the
+run log until the session stopped it (`:desktopApp:run` then reported the expected non-zero exit 143 =
+SIGTERM). Interactive Desktop clicking, keyboard-focus traversal, and window-resize checks were not
+driven in this session.
+
+Honest gaps:
+
+- No Compose UI-test harness exists, so the `App()` save-decision wiring (the `LAND_MISSING` /
+  `WRITE_FAILED` branches, the confirmation, and the re-read on return) is verified by code
+  inspection plus the emulator smoke, not by an automated test. The reducer and the repository
+  semantics are covered by the focused tests.
+- The two failure branches are reachable only defensively (`LAND_MISSING` needs the record to vanish
+  between the list read and the save), so they were unit-tested rather than reproduced on the
+  emulator.
+- Screen-reader behaviour (merged row details, the `Editar` description announcement) and
+  low-digital-confidence usability were not verified; the spec defers that validation to
+  `land_form_accessibility`.
+- No persistent E2E command exists, so no E2E or automated UI coverage is claimed.
+- `updatedAtEpochMillis` is still not meaningful: `update` receives no timestamp from the app
+  because the project has no clock/date dependency (carried finding F6 from `land_list`).
+- As the spec records, `area`/`notes` are preserved but neither shown nor editable from this form,
+  and two identical-looking lands still rely on the prefilled name to tell them apart.
 
 ### response_states — accepted
 
