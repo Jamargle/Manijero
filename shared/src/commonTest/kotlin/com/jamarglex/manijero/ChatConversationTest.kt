@@ -3,6 +3,7 @@ package com.jamarglex.manijero
 import com.jamarglex.manijero.chat.AnswerService
 import com.jamarglex.manijero.chat.AnswerServiceErrorException
 import com.jamarglex.manijero.chat.AnswerServiceUnavailableException
+import com.jamarglex.manijero.chat.AnswerSource
 import com.jamarglex.manijero.chat.AnswerStatus
 import com.jamarglex.manijero.chat.AskRequest
 import com.jamarglex.manijero.chat.AskResponse
@@ -28,10 +29,13 @@ private const val PINNED_NO_EVIDENCE =
 class ChatConversationTest {
     private val originalQuestion = "  ¿Puedo regar hoy?  "
 
-    private fun response(answer: String = "Una respuesta.") = AskResponse(
+    private fun response(
+        answer: String = "Una respuesta.",
+        sources: List<AnswerSource> = emptyList(),
+    ) = AskResponse(
         status = AnswerStatus.answered,
         answer = answer,
-        sources = emptyList(),
+        sources = sources,
         land_scope = LandContextMode.general,
         land_ids_to_choose = emptyList(),
     )
@@ -93,6 +97,36 @@ class ChatConversationTest {
 
         assertEquals(1, conversation.state.messages.count { it.speaker == Speaker.ASSISTANT })
         assertEquals("Respuesta única.", conversation.state.messages.last().text)
+        assertEquals(SubmissionPhase.IDLE, conversation.state.phase)
+    }
+
+    @Test
+    fun `an answered response keeps its decoded sources on the assistant entry`() = runTest {
+        val sources = listOf(
+            AnswerSource(
+                title = "Solicitud única de la PAC",
+                issuing_body = "Ministerio de Agricultura, Pesca y Alimentación",
+                url = "https://www.mapa.gob.es/",
+                location = "Información de la solicitud única",
+                published_or_updated_on = "2026-01-15",
+                verified_on = "2026-10-01",
+                excerpt = "La solicitud única es el procedimiento anual.",
+            ),
+        )
+        val service = object : AnswerService {
+            override suspend fun ask(request: AskRequest): AskResponse =
+                response(answer = "La solicitud única es anual. [1]", sources = sources)
+        }
+        val conversation = ChatConversation(service, this)
+
+        conversation.onAction(ChatHomeAction.QuestionChanged(originalQuestion))
+        conversation.onAction(ChatHomeAction.AskClicked)
+        advanceUntilIdle()
+
+        assertEquals(1, conversation.state.messages.count { it.speaker == Speaker.USER })
+        val assistant = conversation.state.messages.single { it.speaker == Speaker.ASSISTANT }
+        assertEquals(sources, assistant.sources)
+        assertEquals(AnswerStatus.answered, assistant.answerStatus)
         assertEquals(SubmissionPhase.IDLE, conversation.state.phase)
     }
 

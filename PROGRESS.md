@@ -20,6 +20,7 @@
 - `network_error_recovery` is accepted: the chat failure path is now visible and recoverable in shared `commonMain`. `ChatHomeState` keeps `failure: RequestFailure?`/`failedQuestion` **outside** `messages`, `RequestFailed(failure)` and the new `RetryClicked` re-send the exact original wording with no second user message, and `ChatFailureNotice` shows the two plain-Spanish notices with a danger-styled `Reintentar` as a polite live region. `KtorAnswerService` translates Ktor failures into the payload-free `AnswerServiceUnavailableException`/`AnswerServiceErrorException`, and `answerHttpClient` installs a bounded `HttpTimeout` plus `expectSuccess = true`, closing carried finding F2 from `chat_question_submission` (F1, the platform `/ask` wiring, stays with its own slice). `CONSTRAINTS.md` records the client MUST rule. Independent validation accepted 2026-10-13 (record: `docs/validations/network_error_recovery.md`); F1 (platform `/ask` wiring) remains with its own slice.
 - `response_states` is accepted: each assistant transcript entry now carries its own decoded `answerStatus` (copied from `response.status` in `ResponseReceived`), so a supported answer and an abstention are visibly different and distinguishable in place. `ChatMessageBubble` branches exhaustively on speaker × status: an answered reply keeps the neutral `surface` `Asistente` card with the server `answer` verbatim, while an abstained reply renders in the accepted `cautionSurface`/`caution` tokens with the new `Sin respuesta segura` label, the pinned limitation message verbatim, merged semantics and a polite live region — never colour alone, never a confident legal-certainty treatment, and never folded into the danger failure notice. `CONSTRAINTS.md` records the client MUST rule. Independent validation accepted 2026-10-13 (record: `docs/validations/response_states.md`); the rendered-evidence gap stays with `chat_accessibility` and the marker-card rendering with `answer_source_cards`.
 - `remove_land` is accepted (record: `docs/validations/remove_land.md`): each `Mis terrenos` row now exposes a visible `Eliminar` control (accessible description names the land; the row card stays non-clickable) that opens the pure `RemoveLandState` + stateless `RemoveLandScreen` confirmation, which repeats the land's exact saved name and known details. Only an explicit `Eliminar el terreno` calls `LandRepository.delete(id)` exactly once — in the existing `App()` composition root, never while composing or at startup — mapped to `REMOVED` + re-read + return to the list, `LAND_MISSING` on a `false` result, and `WRITE_FAILED` on a thrown failure (both keeping the confirmation on screen with no navigation and no false confirmation); `Cancelar` writes nothing. `LandListConfirmation.REMOVED` renders the new `remove_land_removed` copy (`ADDED`/`UPDATED` unchanged), and the row detail lines were factored into an `internal LandDetails`. One simple removal path with no undo; `CONSTRAINTS.md` records the “Land removal” MUST rule.
+- `answer_source_cards` is accepted: each answered reply now shows its cited documents as numbered source cards inside the transcript (title, issuing body, location, formatted verification date, and an always-visible excerpt in one merged semantics node) with one `Abrir documento oficial` control that opens only an https target through `LocalUriHandler`, while each `[n]` marker in the body becomes a superscript reference numeral. The pure `chat/CitationPresentation.kt` layer is fail-closed: `ChatMessage` gains assistant-only `sources` copied only in `ResponseReceived`, references/card numbers appear only when the distinct markers are exactly `1..sources.size` (carried `grounded_answer_generation` F1 handled from the client side), and an abstention renders no source, reference, figure, date, or link. This closes `response_states` R5 for conforming payloads; the backend F1 hardening and the `knowledge/README.md` sentence stay backend-owned follow-ups (record: `docs/validations/answer_source_cards.md`).
 
 ## Start and verify
 
@@ -77,6 +78,8 @@
 | 2026-10-13 | Accepted `response_states` | Independent validator re-ran the contract validator, `:shared:jvmTest --rerun-tasks` (82/0), `:shared:testAndroidHostTest --rerun-tasks` (73/0), `:desktopApp:build :androidApp:assembleDebug --rerun-tasks` (72 tasks, exit 0), `./init.sh --verify` (exit 0), and `:shared:compileKotlinIosSimulatorArm64`; reproduced the per-entry answer/abstention behavior with its own probe test, the `14.58` contrast pair, and the byte-for-byte string; confirmed the exhaustive branch, verbatim rendering, three distinct states, and clean scope. Findings N1-N5 non-blocking. Record: `docs/validations/response_states.md`. |
 | 2026-10-13 | Implemented `remove_land` (self-verified; awaiting independent validation) | Added the pure `RemoveLandState`/`RemoveLandFailure`/`RemoveLandAction`/`reduce`/`Land.toRemoveLandState()` and the stateless `RemoveLandScreen` with 8 previews; each `Mis terrenos` row gained its own visible `Eliminar` control (accessible description names the land; row card still non-clickable), `LandListConfirmation` gained `REMOVED`, the row detail lines were factored into one `internal LandDetails`, and `App()` gained the `RemoveLand` destination with the single `delete(id)` call site. 15 new tests (117 JVM / 104 Android host, 0 failures); `./init.sh --verify` passes; Android emulator smoke ran the two-land removal, cancel-writes-nothing (byte-identical store), last-land empty state, re-add, relaunch persistence, and `font_scale 2.0` scenarios. `CONSTRAINTS.md` gained the “Land removal” MUST rule. |
 | 2026-10-13 | Accepted `remove_land` | Independent validator re-ran `./init.sh`, the focused three-class run (15/0), `:shared:jvmTest --rerun-tasks` (117/0, 17 suites), `:shared:testAndroidHostTest --rerun-tasks` (104/0, 13 suites), `:shared:compileKotlinIosSimulatorArm64 --rerun-tasks`, and `./init.sh --verify`; byte-for-byte checked the eight new strings and the `CONSTRAINTS.md` rule; wrote and deleted its own scratch JVM probe against the real `FileLandStorage` (byte-identical surviving record, absent-id `false` no-write, throwing-write no-op, header-only last-land store) and independently re-drove the Android emulator for the literal verification (remove one of two lands, `Cancelar` byte-identical, force-stop + relaunch showing only the survivor, last-land empty state + re-add, `font_scale 2.0`). Findings F1-F6 non-blocking. Record: `docs/validations/remove_land.md`. |
+| 2026-10-13 | Implemented `answer_source_cards` (self-verified; awaiting independent validation) | Added the pure Compose-free `chat/CitationPresentation.kt`, assistant-only `ChatMessage.sources` copied in `ResponseReceived`, the `App.kt` answered-branch source-card section with `annotatedText` reference numerals and one `Abrir documento oficial` control via `LocalUriHandler`, nine pinned Spanish strings, four refreshed/new previews, new `CitationPresentationTest` (23) plus 4 added reducer/conversation tests, a `CONSTRAINTS.md` client MUST rule, and a one-line R5-closed note in `docs/specs/response_states.md`. `python3 contracts/validate_examples.py`, `:shared:jvmTest --rerun-tasks` (129/0), `:shared:testAndroidHostTest --rerun-tasks` (118/0), `:desktopApp:build :androidApp:assembleDebug --rerun-tasks` (72 tasks), `./init.sh --verify`, and `:shared:compileKotlinIosSimulatorArm64` pass; greps and byte-for-byte string check clean. |
+| 2026-10-13 | Accepted `answer_source_cards` | Independent validator re-ran the contract validator, the focused three-class run, `:shared:jvmTest --rerun-tasks` (129/0), `:shared:testAndroidHostTest --rerun-tasks` (118/0), `:desktopApp:build :androidApp:assembleDebug --rerun-tasks` (72 tasks, exit 0), `./init.sh --verify` (exit 0), `:shared:compileKotlinIosSimulatorArm64`, and the `iosSimulatorArm64` test run (129/0, `CitationPresentationTest` 23/0 on Kotlin/Native); independently reproduced text fidelity, the non-conforming/abstention fail-closed paths, the F1 non-prefix case, the URL/date matrices, per-entry sources, and byte-for-byte the nine strings; confirmed no rendering from `lastResponseStatus`, clean scope, no logging, and no `Color(0x)` outside `theme/`. Findings N1-N7 non-blocking (N1 closed at acceptance; N7 backend F1 handoff escalated). Record: `docs/validations/answer_source_cards.md`. |
 
 
 ## Feature evidence
@@ -1277,3 +1280,106 @@ Honest gaps and non-blocking findings:
   depends on `remove_land`).
 - Carried finding from `land_list` (F6): `createdAtEpochMillis` is still the default `0` because no
   clock is injected; unchanged by this feature.
+  
+### answer_source_cards — accepted
+
+Spec: `docs/specs/answer_source_cards.md`. Accepted by independent validation (2026-10-13, record:
+`docs/validations/answer_source_cards.md`).
+
+What changed (all in shared `commonMain`, plus docs):
+
+- `shared/src/commonMain/kotlin/com/jamarglex/manijero/chat/CitationPresentation.kt` (new; pure,
+  Compose-free, stdlib-only): `AnswerSegment` (`Text`/`Reference`), `SourceCard`
+  (`number`/`title`/`issuingBody`/`location`/`verifiedOn`/`excerpt`/`link`),
+  `AnswerSourcePresentation`, `answerSourcePresentation(status, answer, sources)`,
+  `openableOfficialUrl(url)`, and `formatVerificationDate(isoDate)`. A reply is *conforming* only
+  when its distinct canonical `[n]` markers are exactly `1..sources.size`; then each marker becomes a
+  `Reference(n)` and the cards are numbered by payload position. Anything else (non-`answered`,
+  absent, sparse, out-of-range, non-numeric, or leading-zero markers, or unexpected `sources`) fails
+  closed: no marker is rewritten, no card is numbered, and the single text segment is the body
+  exactly as received, so replacing each `Reference(n)` with `[n]` reproduces `answer` byte-for-byte.
+  `openableOfficialUrl` returns the URL unchanged only for `https://` with a non-blank dotted host
+  and no whitespace/control char (`http`, `javascript:`, `mailto:`, blank, hostless refused; no
+  client-side domain allowlist). `formatVerificationDate` converts a strict `yyyy-MM-dd` with a
+  plausible month/day to `dd/MM/yyyy` and returns any other shape unchanged.
+- `ChatHomeState.kt`: `ChatMessage` gains assistant-only `sources: List<AnswerSource> = emptyList()`;
+  `ResponseReceived` (the only assistant-entry creation site) passes `response.sources` unchanged, so
+  nothing is rendered from the mutable `lastResponseStatus`.
+- `App.kt`: `ChatBubble` gains a defaulted `annotatedText: AnnotatedString? = null`; the answered
+  branch renders the neutral `Asistente` card with superscript reference numerals
+  (`BaselineShift.Superscript`, `onSurfaceVariant`) plus a `SourceCardsSection`/`SourceCardView` that
+  shows `Fuente n`, title, `Publica:`, `Parte del documento:`, `Comprobado el …`, and the excerpt in
+  an always-visible `surfaceVariant` block — all inside one `mergeDescendants` node — then one
+  `Button` (`Abrir documento oficial`) with a source-naming `contentDescription` whose `onClick` is a
+  best-effort `runCatching { LocalUriHandler.current.openUri(link) }`; a `link == null` card shows the
+  pinned unavailability line instead. No badge, success colour, or "verificado" affordance was added.
+  Four previews refreshed/added (answered, two cards, both states, and a 320dp/2f card), all inside
+  `ManijeroTheme`, with the accepted fixture source and markers added to the preview-only samples.
+- `shared/src/commonMain/composeResources/values/strings.xml`: the nine pinned strings
+  (`chat_source_section_title`, `chat_source_label`, `chat_source_issuing_body`,
+  `chat_source_location`, `chat_source_verified_on`, `chat_source_excerpt_label`, `chat_source_open`,
+  `chat_source_open_description`, `chat_source_link_unavailable`); no existing string changed or
+  deleted (`strings.xml` numstat 9/0; `chat_home_submitted` intact).
+- New `commonTest/.../chat/CitationPresentationTest.kt` (23) plus `ChatHomeStateTest` 28→31 and
+  `ChatConversationTest` 8→9.
+- `CONSTRAINTS.md`: one "Client source cards" MUST rule (render only an entry's own decoded
+  `sources`, never invent a source/excerpt/date/link, open only https, never render evidence on an
+  abstention, never alter claim text). `docs/specs/response_states.md`: a one-line R5-closed note.
+- Not changed: `contracts/`, `backend/`, `knowledge/`, `theme/`, `lands/`, `androidApp/`,
+  `desktopApp/`, `shared/src/iosMain/`, any Gradle file or the version catalog, and `init.sh`; no new
+  module, dependency, endpoint, permission, ViewModel, DI, or logging.
+
+Verification (commands run from the repository root unless noted):
+
+- `python3 contracts/validate_examples.py` → "Validated 2 request and 3 response examples against
+  answer_api_contract" (exit 0).
+- `./gradlew :shared:jvmTest --rerun-tasks` → BUILD SUCCESSFUL, **129 tests / 0 failures**
+  (`CitationPresentationTest` 23, `ChatHomeStateTest` 31, `ChatConversationTest` 9; HEAD baseline 104,
+  no test removed).
+- `./gradlew :shared:testAndroidHostTest --rerun-tasks` → BUILD SUCCESSFUL, **118 tests / 0 failures**.
+- `./gradlew :desktopApp:build :androidApp:assembleDebug --rerun-tasks` → BUILD SUCCESSFUL, 72 tasks
+  executed, debug APK produced; `./init.sh --verify` → exit 0; `./gradlew
+  :shared:compileKotlinIosSimulatorArm64` → BUILD SUCCESSFUL.
+- Centralization/privacy: `grep -rn "Color(0x"` matches only under `theme/`; the logging grep finds
+  no matches; the raw-marker grep finds `[n]` only in preview-only sample constants (each paired with
+  matching sources) and a comment, never in shipped copy; nine strings match the spec byte-for-byte;
+  `git diff --check` clean.
+
+Honest gaps:
+
+- The feature-list link-reachability smoke (open each card's control and confirm the cited document
+  opens) was **not** run: it needs a temporary non-committed fake `AnswerService` because the shipped
+  default is `UnavailableAnswerService`, there is no `/ask` route, and `knowledge/source_catalog.json`
+  is still empty, so the running apps cannot produce a real cited answer. The deterministic part is
+  covered by unit tests and inspection (payload `url` → `card.link` unchanged → the single
+  `LocalUriHandler.openUri(link)`); only the OS-level browser hand-off is unverified.
+- No rendered visual evidence: greyscale non-colour-cue and `widthDp = 320`/`fontScale = 2f`
+  no-clipping are structural + compiled-preview based, not an inspected render (owner:
+  `chat_accessibility`). No E2E or automated UI coverage is claimed (none exists).
+- Documented deviation: leading-zero markers (`[01]`) are treated as non-conforming so the
+  byte-for-byte fidelity invariant holds. Recorded in the KDoc and a dedicated test; unreachable from
+  the enabled `ExtractiveGroundingGenerator`, which emits canonical `[n]` only.
+- Backend-owned follow-ups, deliberately not changed here: the `grounded_answer_generation` F1
+  hardening (renumber or reject a non-prefix cited set) and the unconditional
+  `[n] == sources[n-1]` sentence in `knowledge/README.md`. The client is safe either way; escalate
+  before a hosted-model path.
+
+Independent validation (2026-10-13): accept. The validator did not trust the implementer report and
+re-ran the contract validator, the focused three-class run, `:shared:jvmTest --rerun-tasks` (129/0),
+`:shared:testAndroidHostTest --rerun-tasks` (118/0), `:desktopApp:build :androidApp:assembleDebug
+--rerun-tasks` (72 tasks, exit 0), `./init.sh --verify` (exit 0),
+`:shared:compileKotlinIosSimulatorArm64`, and `:shared:iosSimulatorArm64Test --rerun-tasks` (129
+tests / 0 failures, including `CitationPresentationTest` 23/0 on Kotlin/Native — obtained after
+temporarily stripping a pre-existing comma-in-test-name error in two unrelated files, which it then
+reverted to HEAD). With its own 11-test probe it reproduced byte-for-byte text fidelity (reordered,
+repeated, trailing, newline-edged markers), the non-conforming/abstention fail-closed paths, the F1
+non-prefix case, card field/order mapping, a URL matrix (4 accepted / 16 refused) and a date matrix,
+and a three-turn per-entry state ending in a malformed abstention; it confirmed zero
+`lastResponseStatus` occurrences in `App.kt`, byte-for-byte the nine strings, the unchanged existing
+strings, the `mergeDescendants` + separate labelled-button semantics, scope discipline (`contracts/`,
+`backend/`, `knowledge/`, `theme/`, `lands/`, platform roots, Gradle, `init.sh` untouched), no
+logging, and no `Color(0x)` outside `theme/`. Non-blocking findings N1-N7 recorded (N1 evidence
+recorded at this acceptance; N2 un-run manual/render evidence disclosed and owned by
+`chat_accessibility`; N3 no calendar-day check in the date formatter; N4 4-digit tokens never match;
+N5 non-conforming payloads still show unnumbered cards; N6 per-composition call without `remember`;
+N7 backend F1 handoff escalated). Record: `docs/validations/answer_source_cards.md`.

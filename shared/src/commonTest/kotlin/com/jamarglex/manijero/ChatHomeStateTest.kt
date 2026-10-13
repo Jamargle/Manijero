@@ -1,5 +1,6 @@
 package com.jamarglex.manijero
 
+import com.jamarglex.manijero.chat.AnswerSource
 import com.jamarglex.manijero.chat.AnswerStatus
 import com.jamarglex.manijero.chat.AskResponse
 import com.jamarglex.manijero.chat.LandContextMode
@@ -18,12 +19,23 @@ class ChatHomeStateTest {
         status: AnswerStatus = AnswerStatus.answered,
         answer: String = "Una respuesta.",
         landIds: List<String> = emptyList(),
+        sources: List<AnswerSource> = emptyList(),
     ) = AskResponse(
         status = status,
         answer = answer,
-        sources = emptyList(),
+        sources = sources,
         land_scope = LandContextMode.general,
         land_ids_to_choose = landIds,
+    )
+
+    private fun source(title: String = "Solicitud única de la PAC") = AnswerSource(
+        title = title,
+        issuing_body = "Ministerio de Agricultura, Pesca y Alimentación",
+        url = "https://www.mapa.gob.es/",
+        location = "Información de la solicitud única",
+        published_or_updated_on = "2026-01-15",
+        verified_on = "2026-10-01",
+        excerpt = "La solicitud única es el procedimiento anual para solicitar determinadas ayudas de la PAC.",
     )
 
     private fun typed(question: String) =
@@ -191,6 +203,56 @@ class ChatHomeStateTest {
         assertEquals(AnswerStatus.abstained, nextTurn.messages[1].answerStatus)
         assertEquals(AnswerStatus.answered, nextTurn.messages[3].answerStatus)
         assertEquals(AnswerStatus.answered, nextTurn.lastResponseStatus)
+    }
+
+    @Test
+    fun `an answered response carries its decoded sources in payload order`() {
+        val sources = listOf(source(title = "Primera fuente"), source(title = "Segunda fuente"))
+        val state = submitting().reduce(
+            ChatHomeAction.ResponseReceived(
+                response(answer = "La primera. [1] La segunda. [2]", sources = sources),
+            ),
+        ).state
+
+        val assistant = state.messages.single { it.speaker == Speaker.ASSISTANT }
+        assertEquals(sources, assistant.sources)
+        assertEquals(listOf("Primera fuente", "Segunda fuente"), assistant.sources.map { it.title })
+        assertTrue(state.messages.single { it.speaker == Speaker.USER }.sources.isEmpty())
+    }
+
+    @Test
+    fun `a later turn does not change an earlier entry's sources`() {
+        val firstSources = listOf(source(title = "Primera fuente"))
+        val answered = submitting().reduce(
+            ChatHomeAction.ResponseReceived(
+                response(answer = "La primera. [1]", sources = firstSources),
+            ),
+        ).state
+
+        val nextTurn = answered
+            .reduce(ChatHomeAction.QuestionChanged("¿Y esto?"))
+            .state
+            .reduce(ChatHomeAction.AskClicked)
+            .state
+            .reduce(ChatHomeAction.ResponseReceived(response(answer = "Otra respuesta.")))
+            .state
+
+        assertEquals(4, nextTurn.messages.size)
+        // The earlier entry keeps exactly its own sources; the latest turn carries none.
+        assertEquals(firstSources, nextTurn.messages[1].sources)
+        assertTrue(nextTurn.messages[3].sources.isEmpty())
+    }
+
+    @Test
+    fun `an abstained entry carries no sources`() {
+        val state = submitting().reduce(
+            ChatHomeAction.ResponseReceived(
+                response(status = AnswerStatus.abstained, answer = "No puedo confirmarlo."),
+            ),
+        ).state
+
+        val assistant = state.messages.single { it.speaker == Speaker.ASSISTANT }
+        assertTrue(assistant.sources.isEmpty())
     }
 
     @Test

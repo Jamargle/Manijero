@@ -1,5 +1,6 @@
 package com.jamarglex.manijero
 
+import com.jamarglex.manijero.chat.AnswerSource
 import com.jamarglex.manijero.chat.AnswerStatus
 import com.jamarglex.manijero.chat.AskResponse
 import com.jamarglex.manijero.chat.MAX_QUESTION_LENGTH
@@ -44,17 +45,19 @@ data class ChatHomeState(
 enum class SubmissionPhase { IDLE, SUBMITTING }
 
 /**
- * One transcript entry. [answerStatus] is meaningful only for [Speaker.ASSISTANT] entries and is
- * copied from the decoded [AskResponse.status] at the single creation site
- * ([ChatHomeAction.ResponseReceived]); it is never read for a [Speaker.USER] entry and never inferred
- * from [ChatHomeState.lastResponseStatus], so every entry keeps the state it arrived with. The
- * default keeps existing user entries compiling; a future assistant-entry creation site must set it
- * from the decoded response.
+ * One transcript entry. [answerStatus] and [sources] are meaningful only for [Speaker.ASSISTANT]
+ * entries and are copied from the decoded [AskResponse] at the single creation site
+ * ([ChatHomeAction.ResponseReceived]); neither is ever read for a [Speaker.USER] entry and neither is
+ * ever inferred from [ChatHomeState.lastResponseStatus], so every entry keeps the payload it arrived
+ * with. The defaults keep existing user entries compiling; a future assistant-entry creation site
+ * must set both from the decoded response.
  */
 data class ChatMessage(
     val speaker: Speaker,
     val text: String,
     val answerStatus: AnswerStatus = AnswerStatus.answered,
+    /** The `sources` the response arrived with, in payload order. Never read for [Speaker.USER]. */
+    val sources: List<AnswerSource> = emptyList(),
 )
 
 enum class Speaker { USER, ASSISTANT }
@@ -128,7 +131,7 @@ fun ChatHomeState.reduce(action: ChatHomeAction): ChatReduction = when (action) 
         if (phase != SubmissionPhase.SUBMITTING) ChatReduction(this) else {
             val response = action.response
             val assistantMessage = response.answer.takeIf { it.isNotEmpty() }
-                ?.let { ChatMessage(Speaker.ASSISTANT, it, response.status) }
+                ?.let { ChatMessage(Speaker.ASSISTANT, it, response.status, response.sources) }
             ChatReduction(
                 copy(
                     messages = if (assistantMessage == null) messages else messages + assistantMessage,

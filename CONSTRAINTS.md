@@ -65,6 +65,18 @@ Operational MUST/MUST NOT rules that future features have to respect on top of
   saved when `update` returned `null` or threw. Reason: `edit_land` established that correcting one
   detail must never rewrite another land or silently erase stored data.
 
+## Client source cards
+
+- **MUST**: every assistant entry MUST render only the `sources` its own decoded response carried
+  (copied at the single creation site `ChatHomeState.ResponseReceived`, never from
+  `lastResponseStatus`); the client MUST NOT invent a source, excerpt, date, or link, MUST open only
+  an https URL, MUST NOT render a source, reference, figure, or date on an abstention, and MUST NOT
+  alter the answer's claim text — only a `[n]` token may become a reference numeral, and only when
+  the reply's distinct markers line up exactly with `sources` (a non-conforming payload rewrites
+  nothing). Reason: `answer_source_cards` established that marker `[n]` means `sources[n-1]` only
+  for a conforming cited set, so a mismatched or non-https payload must fail closed rather than point
+  at the wrong document; `chat_accessibility` and `answer_land_scope` render this transcript next.
+
 ## Land removal
 
 - **MUST**: removing a land MUST delete exactly one stored record, by its local id, through
