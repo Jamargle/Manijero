@@ -78,6 +78,7 @@ import com.jamarglex.manijero.lands.reduce
 import com.jamarglex.manijero.lands.toDraftOrNull
 import com.jamarglex.manijero.lands.toEditLandState
 import com.jamarglex.manijero.lands.toRemoveLandState
+import com.jamarglex.manijero.privacy.PrivacyScreen
 import com.jamarglex.manijero.theme.LocalManijeroSemanticColors
 import com.jamarglex.manijero.theme.ManijeroTheme
 import org.jetbrains.compose.resources.StringResource
@@ -93,6 +94,8 @@ import manijero.shared.generated.resources.chat_home_description
 import manijero.shared.generated.resources.chat_home_failure_service
 import manijero.shared.generated.resources.chat_home_failure_unreachable
 import manijero.shared.generated.resources.chat_home_lands
+import manijero.shared.generated.resources.chat_home_privacy
+import manijero.shared.generated.resources.chat_home_privacy_summary
 import manijero.shared.generated.resources.chat_home_question_hint
 import manijero.shared.generated.resources.chat_home_question_label
 import manijero.shared.generated.resources.chat_home_question_too_long
@@ -161,7 +164,7 @@ private const val ABSTAINED_SAMPLE_FALSE_PREMISE =
  * The shared destinations: the lands list is now the parent surface of the add, edit, and remove
  * forms.
  */
-private enum class AppDestination { Chat, LandList, AddLand, EditLand, RemoveLand }
+private enum class AppDestination { Chat, LandList, AddLand, EditLand, RemoveLand, Privacy }
 
 /**
  * Composition root. The answer service is injected so transport and endpoint decisions
@@ -242,6 +245,13 @@ fun App(
                         destination = AppDestination.LandList
                     }
                 },
+                onPrivacyClick = { destination = AppDestination.Privacy },
+            )
+
+            // The notice needs no repository, so this destination is always reachable on Android and
+            // Desktop; it reads no land and writes nothing.
+            AppDestination.Privacy -> PrivacyScreen(
+                onBack = { destination = AppDestination.Chat },
             )
 
             AppDestination.LandList -> LandListScreen(
@@ -386,6 +396,7 @@ internal fun ChatHomeScreen(
     state: ChatHomeState,
     onAction: (ChatHomeAction) -> Unit,
     onLandsClick: (() -> Unit)?,
+    onPrivacyClick: (() -> Unit)? = null,
     clarificationLands: List<Land> = emptyList(),
     modifier: Modifier = Modifier,
 ) {
@@ -521,6 +532,30 @@ internal fun ChatHomeScreen(
                     enabled = onLandsClick != null,
                 ) {
                     Text(stringResource(Res.string.chat_home_lands))
+                }
+            }
+
+            // The essential facts are always visible on the chat home — before a question is asked —
+            // as plain text, never colour-only. The labelled control opens the fuller notice; with no
+            // wiring (the iOS scaffold and previews) only the summary line shows.
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .widthIn(max = ContentMaxWidth),
+                verticalArrangement = Arrangement.spacedBy(8.dp),
+            ) {
+                Text(
+                    text = stringResource(Res.string.chat_home_privacy_summary),
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
+                if (onPrivacyClick != null) {
+                    TextButton(
+                        onClick = onPrivacyClick,
+                        modifier = Modifier.fillMaxWidth(),
+                    ) {
+                        Text(stringResource(Res.string.chat_home_privacy))
+                    }
                 }
             }
         }
@@ -1018,6 +1053,19 @@ private fun ChatBubble(
 @Composable
 private fun ChatHomePreview() {
     ManijeroTheme { ChatHomeScreen(ChatHomeState(), {}, {}) }
+}
+
+@Preview(name = "Chat home with privacy summary and control")
+@Composable
+private fun ChatHomePrivacyPreview() {
+    ManijeroTheme {
+        ChatHomeScreen(
+            state = ChatHomeState(),
+            onAction = {},
+            onLandsClick = {},
+            onPrivacyClick = {},
+        )
+    }
 }
 
 @Preview(name = "Chat home narrow, large text", widthDp = 320, fontScale = 2f)

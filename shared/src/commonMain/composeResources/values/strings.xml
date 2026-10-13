@@ -77,4 +77,26 @@
     <string name="chat_source_open">Abrir documento oficial</string>
     <string name="chat_source_open_description">Abrir el documento oficial: «%1$s»</string>
     <string name="chat_source_link_unavailable">No se puede abrir este enlace desde aquí.</string>
+    <string name="chat_home_privacy_summary">Tus terrenos se guardan en este dispositivo. Al preguntar, se puede enviar tu pregunta y algún dato del terreno.</string>
+    <string name="chat_home_privacy">Privacidad y ayuda</string>
+    <string name="privacy_title">Privacidad y ayuda</string>
+    <string name="privacy_intro">Aquí te explico con palabras sencillas qué se guarda en tu dispositivo y qué se envía cuando preguntas.</string>
+    <string name="privacy_local_title">Qué se guarda en este dispositivo</string>
+    <string name="privacy_local_body_1">Los terrenos que añades se guardan en este mismo dispositivo. No hace falta crear ninguna cuenta.</string>
+    <string name="privacy_local_body_2">Guardo lo que escribes en la ficha de cada terreno: su nombre y los datos que rellenes, como el municipio, el riego y la producción. Puedes verlos, editarlos o eliminarlos cuando quieras.</string>
+    <string name="privacy_local_body_3">No se copian solos a internet. Si pierdes el dispositivo, podrías perderlos, porque no hay copia de seguridad automática.</string>
+    <string name="privacy_sent_title">Qué se envía cuando preguntas</string>
+    <string name="privacy_sent_body_1">Para preparar la respuesta, se envía tu pregunta tal como la escribes.</string>
+    <string name="privacy_sent_lead">Si la respuesta usa tus terrenos, también se envía el identificador de cada terreno y solo los datos que la pregunta necesite:</string>
+    <string name="privacy_attribute_municipality">El municipio, si lo has escrito.</string>
+    <string name="privacy_attribute_water_regime">El riego: secano, regadío o una parte de cada uno.</string>
+    <string name="privacy_attribute_production_method">La producción: convencional, ecológica o una parte de cada una.</string>
+    <string name="privacy_sent_unknown">Si un dato no lo sabes, se envía como «no lo sé».</string>
+    <string name="privacy_sent_not_sent">El nombre que le pusiste al terreno y tus notas no se envían.</string>
+    <string name="privacy_promise_title">Lo que no puedo prometer</string>
+    <string name="privacy_promise_body_1">No hay copia de seguridad ni recuperación automática de tus terrenos: viven solo en este dispositivo.</string>
+    <string name="privacy_promise_body_2">La respuesta se prepara con ayuda de un servicio externo. No puedo prometer que ese servicio proteja tus datos más de lo que digan sus propias condiciones.</string>
+    <string name="privacy_help_title">Dónde pedir ayuda</string>
+    <string name="privacy_help_body">Para dudas sobre ayudas o trámites que la app no pueda responder, habla con tu oficina comarcal agraria o con tu cooperativa.</string>
+    <string name="privacy_back">Volver</string>
 </resources>

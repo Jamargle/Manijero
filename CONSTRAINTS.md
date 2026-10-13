@@ -133,3 +133,17 @@ Operational MUST/MUST NOT rules that future features have to respect on top of
   failed request or a clarification. Reason: `answer_land_scope` established that a person must be
   able to tell at a glance whether an answer used none, all, or the chosen lands without ever being
   told their land's details prove they qualify; `chat_accessibility` renders this transcript next.
+
+## Land data disclosure
+
+- **MUST**: the on-screen data-handling notice MUST describe only the current behaviour — the lands
+  are saved device-locally, and a question sends the question as written plus, for a land-aware
+  answer, each land's opaque id and only the needed `municipality`/`water_regime`/`production_method`
+  (an unknown value sent as `unknown`, name/notes/area/timestamp never sent). It MUST NOT promise
+  backup, a cloud copy, or confidentiality beyond what the answer service's own terms offer, and
+  MUST NOT name a land, an id, or make any eligibility or legal claim. Its sendable-attribute list
+  MUST stay pinned (`privacy/LandDataDisclosure.kt`) and tied to the real encoded payload by a test,
+  so adding a sendable dimension fails until the notice is updated. Reason: `land_data_disclosure`
+  established that a person must be able to trust the plain-Spanish notice to match what the app
+  actually does, so over-promising a backup or under-describing the payload is the failure to avoid;
+  `chat_accessibility` audits the surface next.
