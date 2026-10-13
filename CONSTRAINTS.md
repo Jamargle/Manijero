@@ -179,3 +179,17 @@ Operational MUST/MUST NOT rules that future features have to respect on top of
   failures a person with low digital confidence or a screen reader cannot recover from on their own.
   The focus is requested from the save path (not a state-keyed effect) because the error flag stays
   true across a repeated blank attempt, so a repeated press must re-focus the field too.
+
+## Safety evaluation
+
+- **MUST**: a land-safety evaluation case MUST be source-anchored and human-reviewed: it names the
+  sources it expects, and a case whose expectation turns on a critical fact (a deadline, an amount,
+  a threshold) MUST NOT enter the set without a completed `review` block (reviewer, review date,
+  level, `<source_id>#<location>` anchor) — a critical case without it fails closed at load time.
+  The harness MUST run the accepted end-to-end decision (`answer_with_clarification`) unchanged and
+  MUST NOT re-implement eligibility, grounding, or clarification, MUST report coverage metrics
+  report-only (a safety invariant leak may fail, a coverage mismatch only with `--fail-on-miss`),
+  and MUST NOT treat any metric as a release gate until a measured baseline is reviewed and
+  enforcement is agreed separately. Reason: `land_safety_evaluation` established the reproducible
+  synthetic baseline; a gate whose numbers came from synthetic fixtures, or a case whose critical
+  fact nobody checked, would turn an unverified expectation into a false safety guarantee.

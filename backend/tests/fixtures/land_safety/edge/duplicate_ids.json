@@ -1,0 +1,21 @@
+{
+  "schema_version": "land-safety-eval-v1",
+  "cases": [
+    {
+      "id": "duplicate-id-01",
+      "category": "covered",
+      "question": "¿Pregunta sintética cubierta?",
+      "land_context": { "mode": "general", "lands": [] },
+      "expect": "answered",
+      "expected_source_ids": ["fixture_lse_junta"]
+    },
+    {
+      "id": "duplicate-id-01",
+      "category": "covered",
+      "question": "¿Otra pregunta sintética cubierta?",
+      "land_context": { "mode": "general", "lands": [] },
+      "expect": "answered",
+      "expected_source_ids": ["fixture_lse_junta"]
+    }
+  ]
+}

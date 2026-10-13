@@ -29,12 +29,15 @@ measurement, not evidence about legal coverage or real user questions.
 | `source_catalog.json` | The canonical, Git-tracked catalog. Currently empty on purpose. |
 | `source_catalog.schema.json` | The readable versioned field contract (`source-catalog-v1`). |
 | `passages.schema.json` | The readable versioned passage contract (`passage-set-v1`). |
+| `land_safety_eval.schema.json` | The readable versioned safety-evaluation case contract (`land-safety-eval-v1`). |
 | `../backend/app/source_catalog.py` | The executable catalog validator. Must stay in sync with the schema. |
 | `../backend/app/retrieval.py` | The executable passage-set validator and offline BM25 retriever. |
 | `../backend/app/generation.py` | The executable grounding verifier, extractive generator, and answer assembler. |
+| `../backend/app/land_safety_eval.py` | The executable safety-evaluation case-set validator and offline harness. |
 | `../backend/scripts/validate_source_catalog.py` | The offline catalog command-line wrapper. |
 | `../backend/scripts/evaluate_retrieval.py` | The offline retrieval baseline command-line wrapper. |
 | `../backend/scripts/evaluate_generation.py` | The offline grounded-generation report command-line wrapper. |
+| `../backend/scripts/evaluate_land_safety.py` | The offline land-safety report command-line wrapper. |
 
 `source_catalog.json` starts with `"sources": []`. That is intentional and
 valid: the repository has no separately reviewed documents yet. It does not mean
@@ -274,3 +277,94 @@ surrounding context. Avoid legal-status phrasing in an excerpt (for example
 multi-sentence excerpt also fails closed under the per-sentence citation rule.
 Passage ids used in an evaluation file must exist in the built index; a line
 naming an unknown id is a harness error (exit `2`), not a silent miss.
+
+## Reviewed safety evaluation cases (`land-safety-eval-v1`)
+
+`land_safety_eval.schema.json` is the readable contract for the reviewed,
+source-anchored safety evaluation set; `backend/app/land_safety_eval.py` is the
+executable validator and offline harness, and the two must stay in sync. A case
+set is a Git-tracked, human-reviewed artifact: it exercises the trap taxonomy
+(out of corpus, land ambiguity, false premise, unknown attribute) and checks
+that the accepted end-to-end decision still cites the right sources, still
+abstains safely, still asks for the right land, and still does not invent a
+value. It never asserts a real legal fact.
+
+```json
+{
+  "schema_version": "land-safety-eval-v1",
+  "cases": [
+    {
+      "id": "covered-solicitud-unica-01",
+      "category": "covered",
+      "question": "¿Pregunta sintética de ejemplo?",
+      "land_context": { "mode": "general", "lands": [] },
+      "expect": "answered",
+      "expected_source_ids": ["fixture-src-a"],
+      "expected_passage_ids": ["fixture-passage-a1"],
+      "critical": false,
+      "review": null
+    }
+  ]
+}
+```
+
+| Field | Rule |
+|---|---|
+| `schema_version` | Must be `land-safety-eval-v1`. |
+| `cases` | Array of case objects; may be empty (the harness then only reports a corpus summary). |
+| `id` | Unique, stable lowercase slug. Never reuse it. |
+| `category` | One of `covered`, `uncovered`, `mixed_land`, `unknown_attribute`, `false_premise`. |
+| `question` | The synthetic, reviewed question, sent to the accepted decision verbatim. Non-blank. |
+| `land_context` | The accepted `AskRequest.land_context`: only `mode` (`general`/`all_active`/`selected`) and `lands`; each land carries only its opaque `id` plus the needed `municipality`/`water_regime`/`production_method`. A name, note, area, timestamp, or any other key is a load error. |
+| `expect` | One of `answered`, `abstained`, `needs_land_clarification`. |
+| `expect_reason` | Required when `expect` is `abstained`: one of the nine accepted abstention reasons. |
+| `expected_source_ids` | Required (non-empty) when `expect` is `answered`: every catalog source id the answer must cite. |
+| `expected_passage_ids` | Optional narrowing: every listed reviewed passage id must appear among the returned sources. |
+| `expected_land_ids_to_choose` | Required (non-empty) when `expect` is `needs_land_clarification`: exactly the ids the clarification must offer, drawn from the request. |
+| `critical` | Optional boolean (default `false`). |
+| `review` | `null`, or `{ "reviewed_by", "reviewed_on" (YYYY-MM-DD), "level" (int ≥ 1), "anchor" ("<source_id>#<location>") }`. Required and non-null when `critical` is `true`. |
+
+Unknown keys, duplicate ids, an unknown category or expectation, a missing
+conditional field, and a critical case without a completed `review` are located
+load errors (exit `2`, path such as `$.cases[0].expected_source_ids`).
+Diagnostics never print case text.
+
+### Procedure for adding a safety case
+
+1. Write the question in plain Spanish against the *current* corpus and decide
+   which trap-taxonomy category it exercises.
+2. Name the reviewed `expected_source_ids` (and, when useful, `expected_passage_ids`)
+   for an answered case, the `expect_reason` for an abstained case, or the
+   `expected_land_ids_to_choose` for a clarification. Run the harness and confirm
+   the outcome matches for the right reason, not by accident.
+3. For a `critical` case (a deadline, an amount, a threshold), open the cited
+   source, verify the fact by hand, and record a completed `review` block whose
+   `anchor` is `<source_id>#<location>`. The harness records this provenance but
+   never verifies the fact: **a human must**.
+4. Open a pull request; a reviewer other than the author approves the case before
+   it is merged. A case that only makes a fixture pass, or that asserts a real
+   legal fact the corpus does not support, is rejected.
+
+The harness runs the accepted decision unchanged and reports the metrics
+report-only. Thresholds (`MasterPlanV3` §9.2 proposes `hit@5 85%`, correct
+abstention `100%`, invented numbers/dates `0`) are **inherited proposals, not
+enforced gates**, and the synthetic corpus is not legal-coverage evidence.
+
+### Running the safety evaluation
+
+From the repository root:
+
+```sh
+python3 backend/scripts/evaluate_land_safety.py \
+  --catalog backend/tests/fixtures/land_safety/catalog.json \
+  --passages backend/tests/fixtures/land_safety/passages.json \
+  --cases backend/tests/fixtures/land_safety/cases.json \
+  --as-of 2026-10-13 --k 5
+```
+
+`--passages` and `--cases` are optional. `--json` emits the same report as JSON
+(byte-identical between runs); `--fail-on-miss` opts into a non-zero exit when a
+case does not meet its expectation (off by default). Exit codes: `0` report
+produced and every safety invariant held, `1` a payload leaked or invented
+something, or (only with `--fail-on-miss`) a case missed its expectation, `2` an
+unreadable or invalid input. No command here performs network access.

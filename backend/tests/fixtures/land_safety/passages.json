@@ -1,0 +1,36 @@
+{
+  "schema_version": "passage-set-v1",
+  "passages": [
+    {
+      "id": "fixture-lse-solicitud-1",
+      "source_id": "fixture_lse_junta",
+      "location": "Art. 1 (fixture, sintético)",
+      "text": "Sintético de prueba: la solicitud anual de la campaña ficticia se presenta una vez al año y no fija ninguna cifra real."
+    },
+    {
+      "id": "fixture-lse-plazo-1",
+      "source_id": "fixture_lse_junta",
+      "location": "Art. 2 (fixture, sintético)",
+      "text": "Sintético de prueba (cifra inventada): el plazo del trámite de prueba es de 42 días y no corresponde a ningún procedimiento real.",
+      "critical": true
+    },
+    {
+      "id": "fixture-lse-riego-regadio-1",
+      "source_id": "fixture_lse_boe",
+      "location": "Art. 3 (fixture, sintético)",
+      "text": "Sintético de muestra: el riego de apoyo en una parcela de regadío de muestra no fija dotaciones ni fechas reales.",
+      "applicability": {
+        "water_regime": "irrigated"
+      }
+    },
+    {
+      "id": "fixture-lse-riego-secano-1",
+      "source_id": "fixture_lse_boe",
+      "location": "Art. 4 (fixture, sintético)",
+      "text": "Sintético de muestra: el riego de apoyo en una parcela de secano de muestra no fija dotaciones ni fechas reales.",
+      "applicability": {
+        "water_regime": "dryland"
+      }
+    }
+  ]
+}

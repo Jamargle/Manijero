@@ -1,0 +1,13 @@
+{
+  "schema_version": "land-safety-eval-v1",
+  "cases": [
+    {
+      "id": "unknown-expect-01",
+      "category": "covered",
+      "question": "¿Pregunta sintética?",
+      "land_context": { "mode": "general", "lands": [] },
+      "expect": "maybe",
+      "expected_source_ids": ["fixture_lse_junta"]
+    }
+  ]
+}

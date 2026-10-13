@@ -1,0 +1,12 @@
+{
+  "schema_version": "land-safety-eval-v1",
+  "cases": [
+    {
+      "id": "answered-without-sources-01",
+      "category": "covered",
+      "question": "¿Pregunta sintética cubierta?",
+      "land_context": { "mode": "general", "lands": [] },
+      "expect": "answered"
+    }
+  ]
+}

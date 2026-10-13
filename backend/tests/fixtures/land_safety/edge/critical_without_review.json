@@ -1,0 +1,15 @@
+{
+  "schema_version": "land-safety-eval-v1",
+  "cases": [
+    {
+      "id": "critical-without-review-01",
+      "category": "covered",
+      "question": "¿Cuál es el plazo del trámite de prueba?",
+      "land_context": { "mode": "general", "lands": [] },
+      "expect": "answered",
+      "expected_source_ids": ["fixture_lse_junta"],
+      "critical": true,
+      "review": null
+    }
+  ]
+}
