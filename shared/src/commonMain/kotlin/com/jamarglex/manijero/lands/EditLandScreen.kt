@@ -15,8 +15,13 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.focus.FocusRequester
+import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.semantics.LiveRegionMode
+import androidx.compose.ui.semantics.error
+import androidx.compose.ui.semantics.heading
 import androidx.compose.ui.semantics.liveRegion
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.tooling.preview.Preview
@@ -77,6 +82,8 @@ fun EditLandScreen(
                     text = stringResource(Res.string.edit_land_title),
                     style = MaterialTheme.typography.headlineMedium,
                     color = MaterialTheme.colorScheme.onBackground,
+                    // The form title is the one heading semantic on this surface.
+                    modifier = Modifier.semantics { heading() },
                 )
                 Text(
                     text = stringResource(Res.string.edit_land_description),
@@ -84,15 +91,36 @@ fun EditLandScreen(
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
 
+                // Same recoverable blank-name path as the add form: the focus is requested from the
+                // save path, so a repeated blank attempt re-focuses the field (the error flag itself
+                // does not change between two attempts).
+                val nameFocus = remember { FocusRequester() }
+                val nameErrorMessage = stringResource(Res.string.add_land_name_error)
+                val handleAction: (EditLandAction) -> Unit = { action ->
+                    if (action is EditLandAction.SaveClicked && !state.hasName) {
+                        nameFocus.requestFocus()
+                    }
+                    onAction(action)
+                }
                 val nameErrorText: (@Composable () -> Unit)? = if (state.showNameError) {
-                    { Text(stringResource(Res.string.add_land_name_error)) }
+                    {
+                        Text(
+                            text = nameErrorMessage,
+                            modifier = Modifier.semantics {
+                                liveRegion = LiveRegionMode.Polite
+                            },
+                        )
+                    }
                 } else {
                     null
                 }
                 OutlinedTextField(
                     value = state.name,
-                    onValueChange = { onAction(EditLandAction.NameChanged(it)) },
-                    modifier = Modifier.fillMaxWidth(),
+                    onValueChange = { handleAction(EditLandAction.NameChanged(it)) },
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .focusRequester(nameFocus)
+                        .semantics { if (state.showNameError) error(nameErrorMessage) },
                     label = { Text(stringResource(Res.string.add_land_name_label)) },
                     isError = state.showNameError,
                     supportingText = nameErrorText,
@@ -218,7 +246,7 @@ fun EditLandScreen(
                     verticalArrangement = Arrangement.spacedBy(8.dp),
                 ) {
                     Button(
-                        onClick = { onAction(EditLandAction.SaveClicked) },
+                        onClick = { handleAction(EditLandAction.SaveClicked) },
                         modifier = Modifier.fillMaxWidth(),
                     ) {
                         Text(stringResource(Res.string.edit_land_save))
@@ -371,6 +399,18 @@ private fun EditLandLargeFontPreview() {
                 waterRegime = WaterRegime.IRRIGATED,
                 productionMethod = ProductionMethod.ORGANIC,
             ),
+            onAction = {},
+            onCancel = {},
+        )
+    }
+}
+
+@Preview(name = "Edit land — narrow, large font, name error", widthDp = 320, fontScale = 2f)
+@Composable
+private fun EditLandNarrowLargeFontNameErrorPreview() {
+    ManijeroTheme {
+        EditLandScreen(
+            state = previewEditLandState(name = "  ", municipality = "Úbeda", showNameError = true),
             onAction = {},
             onCancel = {},
         )

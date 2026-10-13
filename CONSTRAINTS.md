@@ -167,3 +167,15 @@ Operational MUST/MUST NOT rules that future features have to respect on top of
   accessibility baseline for this surface, and a later feature can silently regress a control's name,
   an entry's merged node, an announcement, a target size, or the scroll timing without any test
   failing.
+
+## Land form accessibility
+
+- **MUST**: the land add and edit forms MUST keep a plain-Spanish text name on every control, MUST
+  name each choice option with its group (`Riego: No lo sé`, `Producción: No lo sé`) inside a
+  `selectableGroup`, MUST expose each form title as a heading, and MUST NOT leave a blank-name save
+  silent: the unchanged required-name message is shown *and* announced and input focus returns to
+  the name field with every entered value preserved. Reason: `land_form_accessibility` established
+  that two identically named `No lo sé` options and an unannounced validation error are exactly the
+  failures a person with low digital confidence or a screen reader cannot recover from on their own.
+  The focus is requested from the save path (not a state-keyed effect) because the error flag stays
+  true across a repeated blank attempt, so a repeated press must re-focus the field too.

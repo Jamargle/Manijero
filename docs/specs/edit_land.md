@@ -548,3 +548,15 @@ and the no-logging grep result.
       are untouched; the only changes to accepted files are the four declared cross-feature items.
 - [ ] `CONSTRAINTS.md` gained the “Land editing” MUST rule, and `feature_list.json`/`PROGRESS.md` were
       updated only after independent validation.
+
+## Follow-up status after `land_form_accessibility`
+
+- **Deferred accessibility validation done** (2026-10-13): the full accessibility validation this spec
+  left to `land_form_accessibility` (spec `docs/specs/land_form_accessibility.md`) is performed there
+  for both land forms — enlarged Android text (`font_scale` 1.0/2.0), the narrow/large-font previews, a
+  real Android accessibility dump, and a Desktop keyboard/AX pass. The edit form's title is a
+  `heading`, its two `No lo sé` options carry group-qualified accessible names inside a
+  `selectableGroup`, and a blank-name save announces the unchanged message and re-focuses the name
+  field. The carried no-Compose-UI-test-harness limit (F3) and the implementer-only smoke (F6) stand
+  unchanged: the new semantics/focus are verified by the dumps, the AX tree, and code inspection, not
+  an automated UI test. No visible copy, layout, state, persistence, or accepted edit behavior changed.

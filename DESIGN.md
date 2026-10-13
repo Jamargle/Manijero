@@ -132,6 +132,48 @@ Recorded remaining gaps (not claimed as passing):
 - Desktop OS text scaling has no runtime integration, so Desktop large-text evidence stays
   preview-based.
 
+### Land add/edit form baseline (`land_form_accessibility`, 2026-10-13)
+
+The two land forms (`AddLandScreen`, `EditLandScreen`) were inspected on the same real Android
+emulator and Desktop session, at `font_scale` 1.0 and 2.0 and with a narrow (≈420pt) and wide
+(1200pt) Desktop window. What is verified:
+
+- **Unambiguous options.** Both water and production choice groups are a `selectableGroup`, and every
+  option row carries an accessible name built from the visible group label (`Riego: No lo sé`,
+  `Producción: No lo sé`, `Riego: Regadío`, `Producción: Ecológico`, …). The Android dump exposes all
+  eight `content-desc`s at 1.0 and 2.0 with the row reporting its role and selected state, and the
+  Desktop AX tree exposes each row as an `AXRadioButton` with that group-qualified name and a `0`/`1`
+  selected value — so the two `No lo sé` options can no longer be confused.
+- **Recoverable validation.** A blank-name save writes nothing, keeps every entered value and
+  selection, shows the unchanged plain-Spanish message, and moves input focus back to the name field.
+  On Android the name field reports `focused="true"` after the save and a second blank attempt
+  re-focuses it; on Desktop, typing immediately after the save lands in the name field and the field's
+  accessible description includes the message. The visible error `Text` is a polite live region and
+  the field carries Compose `error()` semantics. Correcting the name clears the error and writes
+  exactly one record.
+- **Heading and names.** Each form title carries a `heading()` semantic; every field, option and action
+  keeps a plain-Spanish name. No visible copy or layout changed.
+- **Enlarged text and targets.** At `font_scale 2.0`, at the `widthDp = 320 / fontScale = 2f` preview
+  and in a 420pt Desktop window the forms wrap with no clipping, overlap or horizontal overflow and
+  stay vertically scrollable; every Android clickable node is ≥48dp with no minimum-size override.
+  The name-error state is never colour-only — the message text is always present (confirmed in a
+  greyscale render of the Android error screen).
+
+Recorded remaining gaps (not claimed as passing):
+
+- The Desktop **visual** focus indication still could not be inspected (host screen capture and the
+  AX per-element focus attribute are unavailable in this environment); the default Material indication
+  was relied on and no outline was added.
+- Android `uiautomator` exposes neither merged nodes nor headings, so the group association and the
+  form-title heading rest on the Compose semantics plus the exposed `content-desc`/AX nodes; the AX
+  tree likewise shows the title as a plain static text, with no separate heading role.
+- Focus moving to the name field opens the Android IME (expected and helpful for correcting, recorded
+  so it is not later mistaken for a defect); no autofocus happens on form entry.
+- No Compose UI-test harness exists, so the semantics, focus and announcement are verified by the
+  dumps, the AX tree and code inspection rather than an automated UI test.
+- The low-digital-confidence human validation (feature-list note) is a manual session and was **not**
+  run here; it stays an outstanding check.
+
 ## Platform consistency
 
 Implement the Compose UI and product behavior in shared `commonMain`. Adapt navigation, window sizing, keyboard behavior, and input affordances to phone and desktop instead of forcing a narrow phone layout onto large screens. Keep only platform integrations and entry points in platform-specific source sets so the later iOS target can reuse the same UI and business logic.
