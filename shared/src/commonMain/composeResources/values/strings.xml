@@ -34,6 +34,7 @@
     <string name="chat_home_lands">Mis terrenos</string>
     <string name="chat_speaker_you">Tú</string>
     <string name="chat_speaker_assistant">Asistente</string>
+    <string name="chat_answer_state_abstained">Sin respuesta segura</string>
     <string name="chat_home_working">Estoy preparando la respuesta…</string>
     <string name="chat_home_question_too_long">Tu pregunta es más larga de lo que puedo enviar. El máximo son 2.000 caracteres. No cambiaré tus palabras: acórtala tú y vuelve a intentarlo.</string>
     <string name="chat_home_needs_land_clarification">Todavía no puedo responder: necesito saber a qué terreno te refieres. Poder elegir el terreno llegará más adelante.</string>

@@ -183,6 +183,7 @@ class ManijeroColorsTest {
         ContrastPair("onSurface on surfaceVariant", scheme.onSurface, scheme.surfaceVariant, 12.84),
         ContrastPair("primary label on surfaceVariant", scheme.primary, scheme.surfaceVariant, 7.55),
         ContrastPair("caution on cautionSurface", semantic.caution, semantic.cautionSurface, 7.37),
+        ContrastPair("onSurface on cautionSurface", scheme.onSurface, semantic.cautionSurface, 14.58),
         ContrastPair("caution on canvas", semantic.caution, scheme.background, 7.56),
         ContrastPair("caution on surface", semantic.caution, scheme.surface, 8.19),
         ContrastPair("onCaution on caution", semantic.onCaution, semantic.caution, 8.19),

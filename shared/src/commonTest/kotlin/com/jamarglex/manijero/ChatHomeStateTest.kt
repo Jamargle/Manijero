@@ -145,6 +145,55 @@ class ChatHomeStateTest {
     }
 
     @Test
+    fun `an answered response marks its assistant entry as answered`() {
+        val state = submitting().reduce(
+            ChatHomeAction.ResponseReceived(response(answer = "Respuesta del servicio.")),
+        ).state
+
+        val assistant = state.messages.single { it.speaker == Speaker.ASSISTANT }
+        assertEquals(AnswerStatus.answered, assistant.answerStatus)
+        assertEquals("Respuesta del servicio.", assistant.text)
+    }
+
+    @Test
+    fun `an abstained response marks its entry as abstained and keeps the message verbatim`() {
+        val pinned = "No he encontrado esta información en los documentos oficiales que tengo. " +
+            "Te recomiendo consultar con tu oficina comarcal agraria o con tu cooperativa."
+        val state = submitting().reduce(
+            ChatHomeAction.ResponseReceived(
+                response(status = AnswerStatus.abstained, answer = pinned),
+            ),
+        ).state
+
+        val assistant = state.messages.single { it.speaker == Speaker.ASSISTANT }
+        assertEquals(AnswerStatus.abstained, assistant.answerStatus)
+        assertEquals(pinned, assistant.text)
+    }
+
+    @Test
+    fun `an earlier abstention keeps its state after a later answered reply`() {
+        val abstained = submitting().reduce(
+            ChatHomeAction.ResponseReceived(
+                response(status = AnswerStatus.abstained, answer = "No puedo confirmarlo."),
+            ),
+        ).state
+
+        val nextTurn = abstained
+            .reduce(ChatHomeAction.QuestionChanged("¿Y esto?"))
+            .state
+            .reduce(ChatHomeAction.AskClicked)
+            .state
+            .reduce(ChatHomeAction.ResponseReceived(response(answer = "Ahora sí.")))
+            .state
+
+        assertEquals(4, nextTurn.messages.size)
+        // The earlier abstention stays caution-marked; only the latest turn reaches lastResponseStatus.
+        assertEquals(AnswerStatus.abstained, nextTurn.messages[1].answerStatus)
+        assertEquals(AnswerStatus.answered, nextTurn.messages[3].answerStatus)
+        assertEquals(AnswerStatus.answered, nextTurn.lastResponseStatus)
+    }
+
+    @Test
     fun `clarification keeps its ids and does not invent an answer`() {
         val state = submitting().reduce(
             ChatHomeAction.ResponseReceived(
@@ -159,6 +208,7 @@ class ChatHomeStateTest {
         assertEquals(AnswerStatus.needs_land_clarification, state.lastResponseStatus)
         assertEquals(listOf("land-001", "land-002"), state.landIdsToChoose)
         assertEquals(1, state.messages.size)
+        assertTrue(state.messages.none { it.speaker == Speaker.ASSISTANT })
         assertTrue(state.awaitingLandClarification)
     }
 

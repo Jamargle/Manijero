@@ -17,6 +17,7 @@
 - `land_list` is accepted: `Mis terrenos` now opens the shared lands **list** (the parent surface of the add form) via pure `LandListState`/`LandListAction`/`reduce` and the stateless `LandListScreen`, with a single synchronous `LandRepository.list()` read on entry/retry/after-save, an empty state that names `Añadir terreno`, a distinct plain-Spanish failure state (`Reintentar`, no add action), non-clickable merged-semantics rows, and a device-scoped saved confirmation. The intended routing change moves the `add_land` return destination to the list and removes the now-unreachable chat-home confirmation (record: `docs/validations/land_list.md`). `edit_land`, `remove_land`, and `minimal_land_context` now have their `land_list` dependency satisfied.
 - The offline abstention boundary now exists: `backend/app/abstention.py` turns every "no safe answer" outcome into one deterministic, code-owned `Abstention` with a stable reason (`invalid_question`, `no_evidence`, `insufficient_evidence`, `stale_evidence`, `conflicting_evidence`, `false_premise`, `unsafe_request`, `generator_abstained`, `generation_error`) and one pinned plain-Spanish message per reason (`ABSTENTION_MESSAGES`; no digit, no date, always a next step). It adds the pre-checks the accepted generation feature deferred — an instrument/article presupposition no retrieved candidate contains, two `critical` candidates disagreeing about the same documented unit, and a catalog that declares sources but has none eligible as of `--as-of` — and `backend/scripts/evaluate_abstention.py` reports the assembled decision per question with the abstention invariants enforced (exit `1`). Every payload is exactly the accepted `AskResponse` keys with `status: abstained`, `sources: []`, and `land_ids_to_choose: []`; the sub-reason stays Python-level, `/health` remains the only route, and no model provider is configured. Detection is lexical and conservative, and no score threshold is a release gate.
 - `network_error_recovery` is accepted: the chat failure path is now visible and recoverable in shared `commonMain`. `ChatHomeState` keeps `failure: RequestFailure?`/`failedQuestion` **outside** `messages`, `RequestFailed(failure)` and the new `RetryClicked` re-send the exact original wording with no second user message, and `ChatFailureNotice` shows the two plain-Spanish notices with a danger-styled `Reintentar` as a polite live region. `KtorAnswerService` translates Ktor failures into the payload-free `AnswerServiceUnavailableException`/`AnswerServiceErrorException`, and `answerHttpClient` installs a bounded `HttpTimeout` plus `expectSuccess = true`, closing carried finding F2 from `chat_question_submission` (F1, the platform `/ask` wiring, stays with its own slice). `CONSTRAINTS.md` records the client MUST rule. Independent validation accepted 2026-10-13 (record: `docs/validations/network_error_recovery.md`); F1 (platform `/ask` wiring) remains with its own slice.
+- `response_states` is accepted: each assistant transcript entry now carries its own decoded `answerStatus` (copied from `response.status` in `ResponseReceived`), so a supported answer and an abstention are visibly different and distinguishable in place. `ChatMessageBubble` branches exhaustively on speaker × status: an answered reply keeps the neutral `surface` `Asistente` card with the server `answer` verbatim, while an abstained reply renders in the accepted `cautionSurface`/`caution` tokens with the new `Sin respuesta segura` label, the pinned limitation message verbatim, merged semantics and a polite live region — never colour alone, never a confident legal-certainty treatment, and never folded into the danger failure notice. `CONSTRAINTS.md` records the client MUST rule. Independent validation accepted 2026-10-13 (record: `docs/validations/response_states.md`); the rendered-evidence gap stays with `chat_accessibility` and the marker-card rendering with `answer_source_cards`.
 
 ## Start and verify
 
@@ -68,6 +69,8 @@
 | 2026-10-13 | Accepted `safe_abstention` | Independent validator reproduced the 178 focused / 399 full pytest passes, both CLI runs (current: 3 answered / 7 abstained, 0 abstentions with sources or figures, invariants hold; expired/non-approved/non-current: every question `stale_evidence`), the fail-closed exit 2 cases, the exit 0/1 contract, byte-identical `--json` runs, an independent `jsonschema` check of every payload against the dereferenced `AskResponse`, a byte-for-byte comparison of the nine pinned messages, its own out-of-corpus/false-premise/conflict probes, generator provenance, a stricter socket/DNS guard, and the unchanged generation (`5/8/0/1`) and retrieval (`hit@5 = 0.857`) baselines; confirmed `contracts/` and all do-not-touch files unmodified, `/health` the only route, synthetic labelled fixtures, and no repo dependency. Findings N1-N4 non-blocking. See `docs/validations/safe_abstention.md`. |
 | 2026-10-13 | Implemented `network_error_recovery` (self-verified; awaiting independent validation) | Added the visible, recoverable failure path in `commonMain`: `ChatHomeState` gains `failure`/`failedQuestion` (outside `messages`), `RequestFailed(failure)` and `RetryClicked`; new `chat/AnswerFailure.kt` (`RequestFailure` + two payload-free exceptions); `KtorAnswerService` failure translation and `answerHttpClient` bounded `HttpTimeout` + `expectSuccess`; `ChatFailureNotice` with the `Reintentar` action and two previews; three spec-verbatim strings; 22 new tests (78 JVM / 69 Android host, 0 failures). `python3 contracts/validate_examples.py`, `./init.sh --verify`, `:androidApp:assembleDebug`, `:desktopApp:build`, and `:shared:compileKotlinIosSimulatorArm64` pass; Android emulator smoke captured the notice, the preserved wording, and a retry that returns to the same state. CONSTRAINTS.md gained the client MUST rule and `chat_question_submission.md` records F2 as closed from this side. |
 | 2026-10-13 | Accepted `network_error_recovery` | Independent validator re-ran the contract validator, the focused three-class run (40/0), `:shared:jvmTest` (78/0), `:shared:testAndroidHostTest` (69/0), `:desktopApp:build`, `:androidApp:assembleDebug`, `:shared:compileKotlinIosSimulatorArm64`, and `./init.sh --verify` (exit 0); reproduced the bounded-timeout, `500`/`422`, and undecodable-`200` failure paths; byte-for-byte checked the three strings; and confirmed the failure-never-renders-as-an-answer invariant, retry without a duplicate user message, exact-wording retention, and clean scope. Findings N1-N5 non-blocking. Record: `docs/validations/network_error_recovery.md`. |
+| 2026-10-13 | Implemented `response_states` (self-verified; awaiting independent validation) | Added the per-entry assistant `ChatMessage.answerStatus` (copied from `response.status` only in `ResponseReceived`) and an exhaustive speaker × status rendering branch in `App.kt`: a neutral `surface` answered card vs a `cautionSurface`/`caution` abstained card with the new `Sin respuesta segura` label, verbatim `answer` body, merged semantics and a polite live region. New tests (an abstained entry state, an earlier abstention surviving a later answer, a `ChatConversation` abstention, one `onSurface`-on-`cautionSurface` contrast row) and the `CONSTRAINTS.md` client MUST rule. `python3 contracts/validate_examples.py`, focused `:shared:jvmTest` (46/0), `:shared:jvmTest` (82/0), `:shared:testAndroidHostTest` (73/0), `:desktopApp:build`/`:androidApp:assembleDebug`, `./init.sh --verify`, and `:shared:compileKotlinIosSimulatorArm64` all pass; greps clean. |
+| 2026-10-13 | Accepted `response_states` | Independent validator re-ran the contract validator, `:shared:jvmTest --rerun-tasks` (82/0), `:shared:testAndroidHostTest --rerun-tasks` (73/0), `:desktopApp:build :androidApp:assembleDebug --rerun-tasks` (72 tasks, exit 0), `./init.sh --verify` (exit 0), and `:shared:compileKotlinIosSimulatorArm64`; reproduced the per-entry answer/abstention behavior with its own probe test, the `14.58` contrast pair, and the byte-for-byte string; confirmed the exhaustive branch, verbatim rendering, three distinct states, and clean scope. Findings N1-N5 non-blocking. Record: `docs/validations/response_states.md`. |
 
 
 ## Feature evidence
@@ -879,3 +882,88 @@ so real unreachable-service failures map to the correct notice, and found no lea
 findings N1-N5 recorded; F1 (platform `/ask` engine/endpoint wiring) stays with its own slice and
 F2 (bounded timeout) is closed from this side. Record:
 `docs/validations/network_error_recovery.md`.
+
+### response_states — accepted
+
+What changed (all in shared `commonMain`):
+
+- `shared/src/commonMain/kotlin/com/jamarglex/manijero/ChatHomeState.kt`: `ChatMessage` gains
+  assistant-only `answerStatus: AnswerStatus = AnswerStatus.answered`, documented as copied from the
+  decoded `AskResponse.status`. `ResponseReceived` — the only assistant-entry creation site — passes
+  `response.status` into the entry, so every assistant entry keeps the state it arrived with and
+  rendering never depends on the mutable `lastResponseStatus` (which still drives only
+  `awaitingLandClarification`). The non-empty-answer guard and the clarification path are unchanged.
+- `shared/src/commonMain/kotlin/com/jamarglex/manijero/App.kt`: `ChatMessageBubble` renders from
+  `speaker` + `answerStatus` through an exhaustive `when`; `ChatBubble` gains defaulted
+  `borderColor`/`stateLabel`/`stateLabelColor` (existing call sites unchanged) plus a private neutral
+  `ChatAssistantCard` helper. The answered entry keeps the neutral `surface`/`outlineVariant`
+  `Asistente` card (no confident affordance); the abstained entry uses
+  `LocalManijeroSemanticColors.cautionSurface` for the fill, a `caution` border, the `Asistente` label
+  in `onSurfaceVariant`, a visible `Sin respuesta segura` label in `caution`, and the verbatim body in
+  `onSurface` — one merged semantics node and a `LiveRegionMode.Polite` region. `needs_land_clarification`
+  stays a neutral card (defensive, exhaustive). Four new previews (answered, abstained, both states
+  together, abstention at `widthDp = 320`/`fontScale = 2f`), all inside `ManijeroTheme`.
+- `shared/src/commonMain/composeResources/values/strings.xml`: one added string,
+  `chat_answer_state_abstained` = `Sin respuesta segura` (byte-for-byte equal to the spec); no existing
+  string changed or deleted (`chat_home_submitted` left untouched).
+- The server `answer` is rendered verbatim, so the code-owned lead-in/orientative notice is not
+  duplicated and no source, marker, figure, date, land name, or client-authored next step is added. The
+  client does not branch on an abstention reason: `AskResponse` is `additionalProperties: false` with
+  five keys, so no reason reaches the client and all nine reasons share the one state label.
+- `CONSTRAINTS.md`: new "Client response states" MUST rule (answer/abstention stay distinguishable, the
+  per-entry `answerStatus` is copied from the decoded response, an abstention renders its code-owned
+  message verbatim with a non-confident caution treatment and no added content, no answer gains a
+  confident legal-certainty treatment).
+- Not changed: `contracts/`, `backend/`, `knowledge/`, `lands/`, `androidApp/`, `desktopApp/`,
+  `shared/src/iosMain/`, the theme source values (`theme/ManijeroColors.kt`/`ManijeroTheme.kt`), any
+  Gradle file or the version catalog, and `init.sh`; no new module, dependency, endpoint, engine,
+  navigation, ViewModel, DI, or coroutine scope.
+
+Verification (commands run from the repository root):
+
+- `python3 contracts/validate_examples.py` → "Validated 2 request and 3 response examples against
+  answer_api_contract" (exit 0).
+- `./gradlew :shared:jvmTest --tests "…ChatHomeStateTest" --tests "…ChatConversationTest" --tests
+  "…theme.ManijeroColorsTest"` → BUILD SUCCESSFUL, 46 tests / 0 failures.
+- `./gradlew :shared:jvmTest` → BUILD SUCCESSFUL, **82 tests / 0 failures** (was 78; `ChatHomeStateTest`
+  25→28, `ChatConversationTest` 7→8, plus one `ManijeroColorsTest` contrast row).
+- `./gradlew :shared:testAndroidHostTest` → BUILD SUCCESSFUL, **73 tests / 0 failures** (was 69; +4).
+- `./gradlew :desktopApp:build :androidApp:assembleDebug` → BUILD SUCCESSFUL (`androidApp-debug.apk`
+  rebuilt); `./init.sh --verify` → BUILD SUCCESSFUL; `./gradlew :shared:compileKotlinIosSimulatorArm64`
+  → BUILD SUCCESSFUL.
+- New tests: an answered response appends exactly one assistant entry carrying `answered`; an abstained
+  response carries `abstained` with the pinned message verbatim; an earlier abstention keeps its state
+  after a later answered reply (per-entry, not `lastResponseStatus`); the clarification test asserts no
+  assistant entry; a fake `AnswerService` returning the accepted abstained shape through
+  `ChatConversation` yields one user message, one assistant entry carrying `abstained`, the pinned
+  message verbatim and no `failure`; one `ManijeroColorsTest` row asserts `onSurface` on
+  `cautionSurface` = 14.58:1.
+- Centralization/privacy: `grep -rn "Color(0x" shared/src/commonMain/kotlin/com/jamarglex/manijero`
+  matches only under `theme/`; `grep -rn "println\|Log\.\|Logger\|printStackTrace\|NSLog" shared/src
+  androidApp/src desktopApp/src` → no matches (exit 1).
+
+Honest gaps:
+
+- No rendered visual evidence: this is a non-interactive session with no Compose preview/UI-test
+  runner, so the greyscale non-colour-cue check and the `widthDp = 320`/`fontScale = 2f` no-clipping
+  claim are structural + compiled-preview based, not an inspected render. Owner: `chat_accessibility`.
+- No on-device answered/abstained turn: the shipped default is `UnavailableAnswerService` and there is
+  still no platform `/ask` route (carried finding F1), so a real turn would need a temporary
+  non-committed fake; `:desktopApp:run` interactive smoke was not run. No E2E or automated UI coverage
+  is claimed (none exists).
+- Carried risk R5: `[1]`-style markers render verbatim until `answer_source_cards` ships cards; with
+  the corpus still empty no real marker-bearing answer exists yet.
+
+Independent validation (2026-10-13): accept. The validator re-ran the contract validator,
+`:shared:jvmTest --rerun-tasks` (82/0), `:shared:testAndroidHostTest --rerun-tasks` (73/0),
+`:desktopApp:build :androidApp:assembleDebug --rerun-tasks` (72 tasks, exit 0), `./init.sh --verify`
+(exit 0), `:shared:compileKotlinIosSimulatorArm64`, the two greps, and `git diff --check`; it
+recomputed the `onSurface`-on-`cautionSurface` pair independently (14.58) and byte-for-byte compared
+the new string. It reproduced the per-entry behavior with its own temporary probe test (10 tests,
+including an earlier abstention surviving a later answer while `lastResponseStatus` differs, a
+mismatch-proof hand-built state, clarification appending no entry, and a failure never becoming an
+answer) and confirmed the exhaustive speaker × status branch in `App.kt`, verbatim body rendering with
+no added source/marker/figure/date/client next step, and the three distinct neutral/caution/danger
+states. Scope confirmed clean with no logging. Non-blocking findings N1-N5 recorded (N1 closed here at
+acceptance time; N2 rendered-evidence gap owned by `chat_accessibility`). Record:
+`docs/validations/response_states.md`.
