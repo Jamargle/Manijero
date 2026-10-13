@@ -3,11 +3,16 @@ package com.jamarglex.manijero
 import com.jamarglex.manijero.chat.AnswerStatus
 import com.jamarglex.manijero.chat.AskResponse
 import com.jamarglex.manijero.chat.MAX_QUESTION_LENGTH
+import com.jamarglex.manijero.chat.RequestFailure
 import com.jamarglex.manijero.chat.generalAskRequest
 
 /**
  * Presentation state for one chat home screen. It is intentionally pure data: the only
  * way to advance it is [reduce], which also declares the work the caller has to run.
+ *
+ * [failure] and [failedQuestion] keep a failed request **outside** [messages], so a failure can
+ * never be read as an assistant answer: the notice is rendered from state, and [failedQuestion]
+ * is the exact wording [ChatHomeAction.RetryClicked] resends.
  */
 data class ChatHomeState(
     val question: String = "",
@@ -16,6 +21,8 @@ data class ChatHomeState(
     val submittedQuestion: String? = null,
     val lastResponseStatus: AnswerStatus? = null,
     val landIdsToChoose: List<String> = emptyList(),
+    val failure: RequestFailure? = null,
+    val failedQuestion: String? = null,
 ) {
     val canAsk: Boolean
         get() = phase == SubmissionPhase.IDLE &&
@@ -45,7 +52,8 @@ sealed interface ChatHomeAction {
     data class SuggestedQuestionSelected(val question: String) : ChatHomeAction
     data object AskClicked : ChatHomeAction
     data class ResponseReceived(val response: AskResponse) : ChatHomeAction
-    data object RequestFailed : ChatHomeAction
+    data class RequestFailed(val failure: RequestFailure) : ChatHomeAction
+    data object RetryClicked : ChatHomeAction
 }
 
 sealed interface ChatEffect {
@@ -58,13 +66,32 @@ data class ChatReduction(val state: ChatHomeState, val effect: ChatEffect? = nul
  * Pure state machine. It refuses to submit blank or over-limit questions and while a
  * request is already in flight, and it keeps the submitted wording immutable so the user
  * message and the request always carry the original text.
+ *
+ * A failure is stored as state ([ChatHomeState.failure]) and never as a transcript entry. A
+ * draft typed during the request is preserved; otherwise the composer regains the failed wording,
+ * and [ChatHomeAction.RetryClicked] resends that exact wording without adding a second user
+ * message.
  */
 fun ChatHomeState.reduce(action: ChatHomeAction): ChatReduction = when (action) {
     is ChatHomeAction.QuestionChanged ->
-        ChatReduction(copy(question = action.value, submittedQuestion = null))
+        ChatReduction(
+            copy(
+                question = action.value,
+                submittedQuestion = null,
+                failure = null,
+                failedQuestion = null,
+            ),
+        )
 
     is ChatHomeAction.SuggestedQuestionSelected ->
-        ChatReduction(copy(question = action.question, submittedQuestion = null))
+        ChatReduction(
+            copy(
+                question = action.question,
+                submittedQuestion = null,
+                failure = null,
+                failedQuestion = null,
+            ),
+        )
 
     ChatHomeAction.AskClicked -> {
         if (!canAsk) ChatReduction(this) else {
@@ -77,6 +104,8 @@ fun ChatHomeState.reduce(action: ChatHomeAction): ChatReduction = when (action) 
                     submittedQuestion = originalQuestion,
                     lastResponseStatus = null,
                     landIdsToChoose = emptyList(),
+                    failure = null,
+                    failedQuestion = null,
                 ),
                 effect = ChatEffect.Submit(originalQuestion),
             )
@@ -95,20 +124,48 @@ fun ChatHomeState.reduce(action: ChatHomeAction): ChatReduction = when (action) 
                     submittedQuestion = null,
                     lastResponseStatus = response.status,
                     landIdsToChoose = response.land_ids_to_choose,
+                    failure = null,
+                    failedQuestion = null,
                 ),
             )
         }
     }
 
-    ChatHomeAction.RequestFailed -> {
+    is ChatHomeAction.RequestFailed -> {
         if (phase != SubmissionPhase.SUBMITTING) ChatReduction(this) else {
+            // The wording that was actually sent for this request. It is normally
+            // `submittedQuestion`, but a draft typed during the request clears that field, and the
+            // appended user message is then the record of what the person asked: a failure is
+            // always retryable with the exact original wording.
+            val wording = submittedQuestion ?: messages.lastOrNull { it.speaker == Speaker.USER }?.text
             ChatReduction(
                 copy(
                     // Keep the original wording available without discarding a new draft.
-                    question = question.ifBlank { submittedQuestion.orEmpty() },
+                    question = question.ifBlank { wording.orEmpty() },
                     phase = SubmissionPhase.IDLE,
                     submittedQuestion = null,
+                    failure = action.failure,
+                    failedQuestion = wording,
                 ),
+            )
+        }
+    }
+
+    ChatHomeAction.RetryClicked -> {
+        val wording = failedQuestion
+        if (phase != SubmissionPhase.IDLE || failure == null || wording == null) {
+            // Not actionable without a retained failure, and never actionable while submitting.
+            ChatReduction(this)
+        } else {
+            ChatReduction(
+                state = copy(
+                    question = "",
+                    phase = SubmissionPhase.SUBMITTING,
+                    submittedQuestion = wording,
+                    // messages stay untouched: a retry never appends a second user message.
+                    failure = null,
+                ),
+                effect = ChatEffect.Submit(wording),
             )
         }
     }

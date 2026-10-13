@@ -3,18 +3,36 @@ package com.jamarglex.manijero.chat
 import io.ktor.client.HttpClient
 import io.ktor.client.call.body
 import io.ktor.client.engine.HttpClientEngine
+import io.ktor.client.plugins.HttpTimeout
+import io.ktor.client.plugins.ResponseException
 import io.ktor.client.plugins.contentnegotiation.ContentNegotiation
 import io.ktor.client.request.post
 import io.ktor.client.request.setBody
 import io.ktor.http.ContentType
 import io.ktor.http.contentType
+import io.ktor.serialization.ContentConvertException
 import io.ktor.serialization.kotlinx.json.json
+import kotlinx.coroutines.CancellationException
+import kotlinx.io.IOException
 import kotlinx.serialization.ExperimentalSerializationApi
+import kotlinx.serialization.SerializationException
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
 
 /** Upper bound declared by the accepted `/ask` contract for `question`. */
 const val MAX_QUESTION_LENGTH = 2_000
+
+/**
+ * Bounded request timeout. A retrieval-backed answer can be slow, but no request may hang forever:
+ * today a stall would leave the composer saying "Estoy preparando la respuesta…" indefinitely.
+ */
+const val REQUEST_TIMEOUT_MILLIS = 15_000L
+
+/** Bounded connect timeout: an unreachable host must fail instead of waiting for the OS. */
+const val CONNECT_TIMEOUT_MILLIS = 10_000L
+
+/** Bounded socket timeout: a connection that stops delivering data is a failure, not a wait. */
+const val SOCKET_TIMEOUT_MILLIS = 15_000L
 
 /**
  * JSON settings shared by the answer transport. `explicitNulls = false` keeps unknown
@@ -30,10 +48,23 @@ val answerJson: Json = Json {
  * Builds the answer transport from a platform-provided engine, so engines and endpoint
  * configuration stay in platform source sets while the request/response contract stays
  * shared.
+ *
+ * `expectSuccess = true` makes any non-2xx `/ask` a failure, so an error response can never be
+ * decoded into an answer. [requestTimeoutMillis] is a parameter only so tests can install a tiny
+ * bound; production uses the named constant.
  */
-fun answerHttpClient(engine: HttpClientEngine): HttpClient = HttpClient(engine) {
+fun answerHttpClient(
+    engine: HttpClientEngine,
+    requestTimeoutMillis: Long = REQUEST_TIMEOUT_MILLIS,
+): HttpClient = HttpClient(engine) {
+    expectSuccess = true
     install(ContentNegotiation) {
         json(answerJson)
+    }
+    install(HttpTimeout) {
+        this.requestTimeoutMillis = requestTimeoutMillis
+        connectTimeoutMillis = CONNECT_TIMEOUT_MILLIS
+        socketTimeoutMillis = SOCKET_TIMEOUT_MILLIS
     }
 }
 
@@ -94,16 +125,37 @@ interface AnswerService {
     suspend fun ask(request: AskRequest): AskResponse
 }
 
+/**
+ * Contract client for a single general question. Every thrown transport failure is translated into
+ * one of the two payload-free signals, so the presentation layer never has to know Ktor types and
+ * no URL, response body, or question text can escape through an exception message.
+ */
 class KtorAnswerService(
     private val client: HttpClient,
     baseUrl: String,
 ) : AnswerService {
     private val askUrl = "${baseUrl.trimEnd('/')}/ask"
 
-    override suspend fun ask(request: AskRequest): AskResponse = client.post(askUrl) {
-        contentType(ContentType.Application.Json)
-        setBody(request)
-    }.body()
+    override suspend fun ask(request: AskRequest): AskResponse = try {
+        client.post(askUrl) {
+            contentType(ContentType.Application.Json)
+            setBody(request)
+        }.body()
+    } catch (cancellation: CancellationException) {
+        throw cancellation
+    } catch (_: ResponseException) {
+        // `expectSuccess`: a 4xx/5xx response is a service failure, never an answer.
+        throw AnswerServiceErrorException()
+    } catch (_: ContentConvertException) {
+        // A 2xx body that cannot be decoded into AskResponse is not an answer either.
+        throw AnswerServiceErrorException()
+    } catch (_: SerializationException) {
+        // Any other serialization failure is the same kind of unusable response.
+        throw AnswerServiceErrorException()
+    } catch (_: IOException) {
+        // Timeout, refused connection, or any other I/O failure: the service was not reached.
+        throw AnswerServiceUnavailableException()
+    }
 }
 
 /** Default app wiring deliberately has no answer endpoint until the backend provides `/ask`. */

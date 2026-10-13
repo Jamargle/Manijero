@@ -4,6 +4,7 @@ import com.jamarglex.manijero.chat.AnswerStatus
 import com.jamarglex.manijero.chat.AskResponse
 import com.jamarglex.manijero.chat.LandContextMode
 import com.jamarglex.manijero.chat.MAX_QUESTION_LENGTH
+import com.jamarglex.manijero.chat.RequestFailure
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFalse
@@ -30,6 +31,11 @@ class ChatHomeStateTest {
 
     private fun submitting(question: String = originalQuestion) =
         typed(question).reduce(ChatHomeAction.AskClicked).state
+
+    private fun failed(
+        failure: RequestFailure = RequestFailure.SERVICE_ERROR,
+        question: String = originalQuestion,
+    ) = submitting(question).reduce(ChatHomeAction.RequestFailed(failure)).state
 
     @Test
     fun `blank question cannot be submitted`() {
@@ -180,14 +186,31 @@ class ChatHomeStateTest {
     }
 
     @Test
-    fun `a failure releases the request keeping the wording available`() {
-        val state = submitting().reduce(ChatHomeAction.RequestFailed).state
+    fun `an unreachable service is explained without adding an answer`() {
+        val state = failed(RequestFailure.COULD_NOT_REACH_SERVICE)
 
         assertEquals(SubmissionPhase.IDLE, state.phase)
         assertNull(state.submittedQuestion)
         assertEquals(originalQuestion, state.question)
+        assertTrue(state.canAsk)
         assertEquals(1, state.messages.size)
+        assertEquals(ChatMessage(Speaker.USER, originalQuestion), state.messages.single())
+        assertTrue(state.messages.none { it.speaker == Speaker.ASSISTANT })
+        assertEquals(RequestFailure.COULD_NOT_REACH_SERVICE, state.failure)
+        assertEquals(originalQuestion, state.failedQuestion)
         assertNull(state.lastResponseStatus)
+    }
+
+    @Test
+    fun `a service error is explained without adding an answer`() {
+        val state = failed(RequestFailure.SERVICE_ERROR)
+
+        assertEquals(RequestFailure.SERVICE_ERROR, state.failure)
+        assertEquals(originalQuestion, state.failedQuestion)
+        assertEquals(originalQuestion, state.question)
+        assertEquals(1, state.messages.size)
+        assertTrue(state.messages.none { it.speaker == Speaker.ASSISTANT })
+        assertEquals(SubmissionPhase.IDLE, state.phase)
     }
 
     @Test
@@ -195,11 +218,132 @@ class ChatHomeStateTest {
         val state = submitting()
             .reduce(ChatHomeAction.QuestionChanged("Otra pregunta"))
             .state
-            .reduce(ChatHomeAction.RequestFailed)
+            .reduce(ChatHomeAction.RequestFailed(RequestFailure.COULD_NOT_REACH_SERVICE))
             .state
 
         assertEquals("Otra pregunta", state.question)
         assertEquals(SubmissionPhase.IDLE, state.phase)
+        // The sent wording is still the retryable one, taken from the appended user message,
+        // so a draft typed during the request never makes the failure un-retryable.
+        assertEquals(originalQuestion, state.failedQuestion)
+        assertEquals(RequestFailure.COULD_NOT_REACH_SERVICE, state.failure)
+        assertEquals(
+            originalQuestion,
+            (state.reduce(ChatHomeAction.RetryClicked).effect as ChatEffect.Submit).question,
+        )
+    }
+
+    @Test
+    fun `retry resends the exact wording without appending a second user message`() {
+        val retry = failed(failure = RequestFailure.COULD_NOT_REACH_SERVICE)
+            .reduce(ChatHomeAction.RetryClicked)
+
+        assertEquals(SubmissionPhase.SUBMITTING, retry.state.phase)
+        assertNull(retry.state.failure)
+        assertEquals("", retry.state.question)
+        assertEquals(1, retry.state.messages.size)
+        assertEquals(ChatMessage(Speaker.USER, originalQuestion), retry.state.messages.single())
+        assertEquals(originalQuestion, retry.state.submittedQuestion)
+        assertEquals(originalQuestion, retry.state.failedQuestion)
+
+        val effect = retry.effect as ChatEffect.Submit
+        assertEquals(originalQuestion, effect.question)
+        assertEquals(originalQuestion, effect.request().question)
+    }
+
+    @Test
+    fun `a retry that fails again keeps one user message and can be retried`() {
+        val secondFailure = failed()
+            .reduce(ChatHomeAction.RetryClicked)
+            .state
+            .reduce(ChatHomeAction.RequestFailed(RequestFailure.COULD_NOT_REACH_SERVICE))
+            .state
+
+        assertEquals(1, secondFailure.messages.size)
+        assertEquals(ChatMessage(Speaker.USER, originalQuestion), secondFailure.messages.single())
+        assertTrue(secondFailure.messages.none { it.speaker == Speaker.ASSISTANT })
+        assertEquals(RequestFailure.COULD_NOT_REACH_SERVICE, secondFailure.failure)
+        assertEquals(originalQuestion, secondFailure.failedQuestion)
+        assertEquals(originalQuestion, secondFailure.question)
+
+        val thirdAttempt = secondFailure.reduce(ChatHomeAction.RetryClicked)
+        assertEquals(SubmissionPhase.SUBMITTING, thirdAttempt.state.phase)
+        assertEquals(1, thirdAttempt.state.messages.size)
+        assertEquals(originalQuestion, (thirdAttempt.effect as ChatEffect.Submit).question)
+    }
+
+    @Test
+    fun `retry is not actionable without a failure or while submitting`() {
+        val noFailure = ChatHomeState(question = originalQuestion).reduce(ChatHomeAction.RetryClicked)
+        assertNull(noFailure.effect)
+        assertEquals(originalQuestion, noFailure.state.question)
+        assertEquals(SubmissionPhase.IDLE, noFailure.state.phase)
+
+        val failureWithoutWording = ChatHomeState(failure = RequestFailure.SERVICE_ERROR)
+        assertNull(failureWithoutWording.reduce(ChatHomeAction.RetryClicked).effect)
+
+        val inFlight = submitting()
+        val duringSubmit = inFlight.reduce(ChatHomeAction.RetryClicked)
+        assertNull(duringSubmit.effect)
+        assertEquals(inFlight, duringSubmit.state)
+
+        val duringRetry = failed().reduce(ChatHomeAction.RetryClicked).state
+        val secondRetryClick = duringRetry.reduce(ChatHomeAction.RetryClicked)
+        assertNull(secondRetryClick.effect)
+        assertEquals(duringRetry, secondRetryClick.state)
+    }
+
+    @Test
+    fun `a successful retry adds exactly one answer and clears the notice`() {
+        val answered = failed()
+            .reduce(ChatHomeAction.RetryClicked)
+            .state
+            .reduce(ChatHomeAction.ResponseReceived(response(answer = "Respuesta del servicio.")))
+            .state
+
+        assertEquals(SubmissionPhase.IDLE, answered.phase)
+        assertNull(answered.failure)
+        assertNull(answered.failedQuestion)
+        assertNull(answered.submittedQuestion)
+        assertEquals(2, answered.messages.size)
+        assertEquals(ChatMessage(Speaker.USER, originalQuestion), answered.messages[0])
+        assertEquals(ChatMessage(Speaker.ASSISTANT, "Respuesta del servicio."), answered.messages[1])
+        assertEquals(1, answered.messages.count { it.speaker == Speaker.ASSISTANT })
+    }
+
+    @Test
+    fun `typing again dismisses the failure and its retained wording`() {
+        val state = failed().reduce(ChatHomeAction.QuestionChanged("Otra pregunta")).state
+
+        assertNull(state.failure)
+        assertNull(state.failedQuestion)
+        assertEquals("Otra pregunta", state.question)
+        assertTrue(state.canAsk)
+    }
+
+    @Test
+    fun `selecting an example dismisses the failure`() {
+        val example = "¿Qué es el SIGPAC y para qué sirve?"
+        val state = failed().reduce(ChatHomeAction.SuggestedQuestionSelected(example)).state
+
+        assertNull(state.failure)
+        assertNull(state.failedQuestion)
+        assertEquals(example, state.question)
+    }
+
+    @Test
+    fun `a decoded abstention is never treated as a failure`() {
+        val state = submitting()
+            .reduce(
+                ChatHomeAction.ResponseReceived(
+                    response(status = AnswerStatus.abstained, answer = "No puedo confirmarlo."),
+                ),
+            )
+            .state
+
+        assertNull(state.failure)
+        assertNull(state.failedQuestion)
+        assertEquals(AnswerStatus.abstained, state.lastResponseStatus)
     }
 
     @Test
