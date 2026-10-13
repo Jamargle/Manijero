@@ -19,6 +19,7 @@
 - The offline abstention boundary now exists: `backend/app/abstention.py` turns every "no safe answer" outcome into one deterministic, code-owned `Abstention` with a stable reason (`invalid_question`, `no_evidence`, `insufficient_evidence`, `stale_evidence`, `conflicting_evidence`, `false_premise`, `unsafe_request`, `generator_abstained`, `generation_error`) and one pinned plain-Spanish message per reason (`ABSTENTION_MESSAGES`; no digit, no date, always a next step). It adds the pre-checks the accepted generation feature deferred — an instrument/article presupposition no retrieved candidate contains, two `critical` candidates disagreeing about the same documented unit, and a catalog that declares sources but has none eligible as of `--as-of` — and `backend/scripts/evaluate_abstention.py` reports the assembled decision per question with the abstention invariants enforced (exit `1`). Every payload is exactly the accepted `AskResponse` keys with `status: abstained`, `sources: []`, and `land_ids_to_choose: []`; the sub-reason stays Python-level, `/health` remains the only route, and no model provider is configured. Detection is lexical and conservative, and no score threshold is a release gate.
 - `network_error_recovery` is accepted: the chat failure path is now visible and recoverable in shared `commonMain`. `ChatHomeState` keeps `failure: RequestFailure?`/`failedQuestion` **outside** `messages`, `RequestFailed(failure)` and the new `RetryClicked` re-send the exact original wording with no second user message, and `ChatFailureNotice` shows the two plain-Spanish notices with a danger-styled `Reintentar` as a polite live region. `KtorAnswerService` translates Ktor failures into the payload-free `AnswerServiceUnavailableException`/`AnswerServiceErrorException`, and `answerHttpClient` installs a bounded `HttpTimeout` plus `expectSuccess = true`, closing carried finding F2 from `chat_question_submission` (F1, the platform `/ask` wiring, stays with its own slice). `CONSTRAINTS.md` records the client MUST rule. Independent validation accepted 2026-10-13 (record: `docs/validations/network_error_recovery.md`); F1 (platform `/ask` wiring) remains with its own slice.
 - `response_states` is accepted: each assistant transcript entry now carries its own decoded `answerStatus` (copied from `response.status` in `ResponseReceived`), so a supported answer and an abstention are visibly different and distinguishable in place. `ChatMessageBubble` branches exhaustively on speaker × status: an answered reply keeps the neutral `surface` `Asistente` card with the server `answer` verbatim, while an abstained reply renders in the accepted `cautionSurface`/`caution` tokens with the new `Sin respuesta segura` label, the pinned limitation message verbatim, merged semantics and a polite live region — never colour alone, never a confident legal-certainty treatment, and never folded into the danger failure notice. `CONSTRAINTS.md` records the client MUST rule. Independent validation accepted 2026-10-13 (record: `docs/validations/response_states.md`); the rendered-evidence gap stays with `chat_accessibility` and the marker-card rendering with `answer_source_cards`.
+- `remove_land` is accepted (record: `docs/validations/remove_land.md`): each `Mis terrenos` row now exposes a visible `Eliminar` control (accessible description names the land; the row card stays non-clickable) that opens the pure `RemoveLandState` + stateless `RemoveLandScreen` confirmation, which repeats the land's exact saved name and known details. Only an explicit `Eliminar el terreno` calls `LandRepository.delete(id)` exactly once — in the existing `App()` composition root, never while composing or at startup — mapped to `REMOVED` + re-read + return to the list, `LAND_MISSING` on a `false` result, and `WRITE_FAILED` on a thrown failure (both keeping the confirmation on screen with no navigation and no false confirmation); `Cancelar` writes nothing. `LandListConfirmation.REMOVED` renders the new `remove_land_removed` copy (`ADDED`/`UPDATED` unchanged), and the row detail lines were factored into an `internal LandDetails`. One simple removal path with no undo; `CONSTRAINTS.md` records the “Land removal” MUST rule.
 
 ## Start and verify
 
@@ -74,6 +75,8 @@
 | 2026-10-13 | Accepted `edit_land` | Independent validator re-ran `./init.sh`, the focused three-class run (20/0), `:shared:jvmTest --rerun-tasks` (98/0), `:shared:testAndroidHostTest --rerun-tasks` (87/0), `./init.sh --verify`, and a full `--rerun-tasks` build (91 tasks, 0 from cache), and byte-for-byte checked the eight new strings and the `CONSTRAINTS.md` rule; an independent scratch JVM probe against the real `FileLandStorage` reproduced the literal verification (editing one of two lands left the other record's serialized line byte-identical), the preserved `area`/`notes`, the emptied-municipality/`UNKNOWN` round-trips, and the blank-name / `LAND_MISSING` no-write paths. Verdict accept; findings F1-F6 non-blocking. Record: `docs/validations/edit_land.md`. |
 | 2026-10-13 | Implemented `response_states` (self-verified; awaiting independent validation) | Added the per-entry assistant `ChatMessage.answerStatus` (copied from `response.status` only in `ResponseReceived`) and an exhaustive speaker × status rendering branch in `App.kt`: a neutral `surface` answered card vs a `cautionSurface`/`caution` abstained card with the new `Sin respuesta segura` label, verbatim `answer` body, merged semantics and a polite live region. New tests (an abstained entry state, an earlier abstention surviving a later answer, a `ChatConversation` abstention, one `onSurface`-on-`cautionSurface` contrast row) and the `CONSTRAINTS.md` client MUST rule. `python3 contracts/validate_examples.py`, focused `:shared:jvmTest` (46/0), `:shared:jvmTest` (82/0), `:shared:testAndroidHostTest` (73/0), `:desktopApp:build`/`:androidApp:assembleDebug`, `./init.sh --verify`, and `:shared:compileKotlinIosSimulatorArm64` all pass; greps clean. |
 | 2026-10-13 | Accepted `response_states` | Independent validator re-ran the contract validator, `:shared:jvmTest --rerun-tasks` (82/0), `:shared:testAndroidHostTest --rerun-tasks` (73/0), `:desktopApp:build :androidApp:assembleDebug --rerun-tasks` (72 tasks, exit 0), `./init.sh --verify` (exit 0), and `:shared:compileKotlinIosSimulatorArm64`; reproduced the per-entry answer/abstention behavior with its own probe test, the `14.58` contrast pair, and the byte-for-byte string; confirmed the exhaustive branch, verbatim rendering, three distinct states, and clean scope. Findings N1-N5 non-blocking. Record: `docs/validations/response_states.md`. |
+| 2026-10-13 | Implemented `remove_land` (self-verified; awaiting independent validation) | Added the pure `RemoveLandState`/`RemoveLandFailure`/`RemoveLandAction`/`reduce`/`Land.toRemoveLandState()` and the stateless `RemoveLandScreen` with 8 previews; each `Mis terrenos` row gained its own visible `Eliminar` control (accessible description names the land; row card still non-clickable), `LandListConfirmation` gained `REMOVED`, the row detail lines were factored into one `internal LandDetails`, and `App()` gained the `RemoveLand` destination with the single `delete(id)` call site. 15 new tests (117 JVM / 104 Android host, 0 failures); `./init.sh --verify` passes; Android emulator smoke ran the two-land removal, cancel-writes-nothing (byte-identical store), last-land empty state, re-add, relaunch persistence, and `font_scale 2.0` scenarios. `CONSTRAINTS.md` gained the “Land removal” MUST rule. |
+| 2026-10-13 | Accepted `remove_land` | Independent validator re-ran `./init.sh`, the focused three-class run (15/0), `:shared:jvmTest --rerun-tasks` (117/0, 17 suites), `:shared:testAndroidHostTest --rerun-tasks` (104/0, 13 suites), `:shared:compileKotlinIosSimulatorArm64 --rerun-tasks`, and `./init.sh --verify`; byte-for-byte checked the eight new strings and the `CONSTRAINTS.md` rule; wrote and deleted its own scratch JVM probe against the real `FileLandStorage` (byte-identical surviving record, absent-id `false` no-write, throwing-write no-op, header-only last-land store) and independently re-drove the Android emulator for the literal verification (remove one of two lands, `Cancelar` byte-identical, force-stop + relaunch showing only the survivor, last-land empty state + re-add, `font_scale 2.0`). Findings F1-F6 non-blocking. Record: `docs/validations/remove_land.md`. |
 
 
 ## Feature evidence
@@ -1106,3 +1109,171 @@ no added source/marker/figure/date/client next step, and the three distinct neut
 states. Scope confirmed clean with no logging. Non-blocking findings N1-N5 recorded (N1 closed here at
 acceptance time; N2 rendered-evidence gap owned by `chat_accessibility`). Record:
 `docs/validations/response_states.md`.
+
+### remove_land — accepted
+
+Feature: `remove_land` (`area: lands`). Spec: `docs/specs/remove_land.md`. Accepted by independent
+validation (record: `docs/validations/remove_land.md`, 2026-10-13); the implementation and
+self-verification below were produced by the implementer and are reproduced/confirmed by the
+validator.
+
+Independent validation (accept): re-ran `./init.sh`, the focused three-class run (`15/0`, forced
+`--rerun-tasks` after a `FROM-CACHE` first run), `:shared:jvmTest --rerun-tasks` (**117/0**, 17
+suites), `:shared:testAndroidHostTest --rerun-tasks` (**104/0**, 13 suites),
+`:shared:compileKotlinIosSimulatorArm64 --rerun-tasks`, and `./init.sh --verify` (91 tasks, exit 0;
+APK 35.8 MB + `desktopApp.jar`); byte-for-byte checked the eight new strings and the
+`CONSTRAINTS.md` rule against the spec, and confirmed file-by-file scope discipline. For the literal
+feature-list verification it wrote and then deleted an independent scratch JVM probe against the real
+`FileLandStorage` (4/4): with two lands saved and only the first removed the snapshot's surviving
+record line was **byte-identical** and the removed line gone; a second delete of an absent id returned
+`false` with a byte-identical snapshot; a throwing write left the store untouched; and the last-land
+removal reopened as an empty store. It also independently re-drove an Android emulator
+(`Medium_Phone_API_35`, fresh install + `pm clear`): per-row `Eliminar` with the exact-name
+accessibility description, a confirmation naming the land, `Cancelar` leaving the store
+**byte-identical** (opening and cancelling wrote nothing), confirming removing exactly `Los Olivos`
+with `La Loma`'s line byte-identical, force-stop + relaunch listing only `La Loma`, the last-land
+header-only store + accepted empty state + successful re-add, and `font_scale 2.0` wrapping (max right
+edge 1017/1080). It confirmed the identity-only confirmation payload, no logging/egress/permission,
+the single `delete` call site inside the explicit-confirmation callback, and that a `false`/thrown
+result is never reported as a removal. Non-blocking findings F1-F6 recorded (F1 the spec's
+`LandDetails(land)` superseded by the documented `(municipality, waterRegime, productionMethod)`
+extraction; F2 stacked full-width row buttons vs the one-line sketch; F3 no Compose UI-test harness —
+happy/cancel/last-land covered by the validator's emulator run, failure paths by its probe, durable UI
+coverage owed to a future accessibility-style feature; F4 unreachable null-repository dead branch;
+F5 no `BackHandler`, matching the accepted add/edit screens; F6 carried `createdAtEpochMillis`
+default `0`).
+
+What changed:
+
+- New `shared/src/commonMain/kotlin/com/jamarglex/manijero/lands/RemoveLandState.kt`: pure
+  `RemoveLandState(landId, name, municipality, waterRegime, productionMethod, failure)`,
+  `RemoveLandFailure { WRITE_FAILED, LAND_MISSING }`, `RemoveLandAction` (`RemoveClicked`,
+  `RemoveFailed`), `reduce`, and `Land.toRemoveLandState()`. The targeted id is the only record the
+  state may delete; the name and identity fields are copied verbatim (an `UNKNOWN` value stays
+  `UNKNOWN`, an absent municipality stays absent) and no area, notes, or timestamp is carried.
+  `RemoveClicked` clears a previous failure and performs no I/O by itself.
+- New `shared/src/commonMain/kotlin/com/jamarglex/manijero/lands/RemoveLandScreen.kt`: stateless
+  `RemoveLandScreen(state, onRemove, onCancel, modifier)`. It shows the `Eliminar terreno` heading,
+  one confirmation sentence naming the exact saved land (`remove_land_confirm`), the land's known
+  details through the shared `LandDetails` block in one merged semantics node, a polite live-region
+  failure line (`colorScheme.error`), the single primary action `Eliminar el terreno` carrying the
+  `danger` pair (`error`/`onError`) together with its text label, and `Cancelar` as the secondary back
+  control. Eight previews: name-only, known-details, long text, write failure, missing land, compact
+  (`widthDp = 320`), wide (`widthDp = 900`), and `fontScale = 2f`.
+- `shared/src/commonMain/kotlin/com/jamarglex/manijero/lands/LandListScreen.kt` (declared
+  cross-feature changes): `LandListScreen` gained the required `onRemoveLand: (Land) -> Unit`, each
+  row gained its own visible full-width `Eliminar` `TextButton` whose accessible description is
+  `land_list_remove_description` with the land's exact saved name (the row card stays non-clickable
+  and the details stay a merged node), `LandListConfirmation` gained `REMOVED` rendered with
+  `remove_land_removed` (`ADDED`→`add_land_saved` and `UPDATED`→`edit_land_saved` unchanged), the
+  row's detail lines and their label mapping were factored into one `internal @Composable
+  LandDetails(municipality, waterRegime, productionMethod)`, and a “just removed” preview was added.
+  The `LandDetails` signature takes the three detail fields rather than a whole `Land`, because the
+  confirmation state deliberately carries no full `Land` and building a fake one (ids/timestamps)
+  would invent data the screen must not show; behavior and copy of the list are otherwise unchanged.
+- `shared/src/commonMain/kotlin/com/jamarglex/manijero/App.kt`: `AppDestination` gained `RemoveLand`
+  (KDoc updated), `App()` owns `removeLandState: RemoveLandState?`, the row's `Eliminar` action sets
+  `removeLandState = land.toRemoveLandState()`, clears the confirmation, and navigates (writing
+  nothing), and the destination renders the confirmation and calls `LandRepository.delete(id)` exactly
+  once on an explicit `Eliminar el terreno`. Success clears the state, sets
+  `LandListConfirmation.REMOVED`, re-reads the list, and returns to `Mis terrenos`; a `false` result
+  sets `LAND_MISSING`, a thrown failure sets `WRITE_FAILED`, and both keep the confirmation on screen
+  with no confirmation and no navigation. `Cancelar` clears the state, returns to the list, shows no
+  confirmation, and writes nothing. `App()` (no argument) and the platform entry points are unchanged,
+  so the `RemoveLand` destination stays unreachable when no repository is injected.
+- `shared/src/commonMain/composeResources/values/strings.xml`: the eight spec keys
+  (`land_list_remove`, `land_list_remove_description`, `remove_land_title`, `remove_land_confirm`,
+  `remove_land_remove`, `remove_land_removed`, `remove_land_failed`, `remove_land_missing`). No
+  existing string changed or was removed.
+- `CONSTRAINTS.md`: one new “Land removal” MUST rule (delete exactly one record by its local id
+  through `LandRepository.delete`, never rewrite/reorder another record, never call `create`/`update`
+  from a removal path, remove nothing before an explicit confirmation that names the land, and never
+  report a removal that `delete` did not confirm).
+- Not changed: `Land.kt`, `LandRepository.kt`, the storage adapters and `land-store-v1`,
+  `LandListState.kt`, `AddLandState.kt`/`AddLandScreen.kt`, `EditLandState.kt`/`EditLandScreen.kt`,
+  `MainActivity.kt`, `desktopApp/main.kt`, `MainViewController.kt`, Gradle/version catalog, `init.sh`,
+  `theme/`, backend/contracts/knowledge. No new module, dependency, ViewModel, coroutine,
+  dialog/snackbar, navigation framework, network call, or permission.
+
+Removal-path decision (recorded): one path — confirm first, then a single permanent `delete(id)`. No
+undo, archive, trash, bulk removal, or restore. Nothing is lost by accident because the row control
+opens a confirmation that names the land and the destructive action is a second deliberate choice;
+there is no snackbar/undo infrastructure, and re-inserting a removed record would need a new
+persistence capability (the accepted `create` generates a new id and the add/edit forms do not collect
+`areaHectares`/`notes`). The copy therefore states plainly that removal cannot be undone instead of
+promising a recovery that does not exist.
+
+Verification (commands run from the repository root):
+
+- `./init.sh` → created the worktree `local.properties` (`sdk.dir=/Users/jose/Library/Android/sdk`)
+  and reported the current feature state; exit 0.
+- Focused `./gradlew :shared:jvmTest --tests …RemoveLandStateTest --tests …RemoveLandRepositoryTest
+  --tests …RemoveLandDesktopStoreTest` → BUILD SUCCESSFUL; 15 tests / 0 failures
+  (`RemoveLandStateTest` 8, `RemoveLandRepositoryTest` 5, `RemoveLandDesktopStoreTest` 2).
+- `./gradlew :shared:jvmTest` → BUILD SUCCESSFUL; 117 tests / 0 failures across 17 suites, including
+  every accepted land suite (`LandRepositoryTest` 4, `AddLandStateTest` 11, `LandListStateTest` 6,
+  `EditLandStateTest` 12, `EditLandRepositoryTest` 6, `AddLandDesktopStoreTest` 1,
+  `EditLandDesktopStoreTest` 2) and the unchanged chat/theme suites.
+- `./init.sh --verify` (`:shared:jvmTest :shared:testAndroidHostTest :androidApp:assembleDebug
+  :desktopApp:build`) → BUILD SUCCESSFUL (91 tasks); `:shared:testAndroidHostTest` 104 tests /
+  0 failures across 13 suites, `androidApp/build/outputs/apk/debug/androidApp-debug.apk` produced,
+  `desktopApp/build/libs/desktopApp.jar` built.
+- `./gradlew :shared:compileKotlinIosSimulatorArm64` → BUILD SUCCESSFUL (the `App()`/`commonMain`
+  change compiles for iOS).
+- Byte-for-byte string check: a Python comparison of the spec's XML block against
+  `composeResources/values/strings.xml` matched all eight new keys exactly (`ALL MATCH`), and
+  `add_land_saved`/`edit_land_saved`/`land_list_edit` are unchanged.
+- `git diff --check` → clean; no `Color(0x` outside `theme/`.
+- Privacy: `grep -rn "println|Log\.|Logger|printStackTrace|System.out" shared/src androidApp/src
+  desktopApp/src` → no matches; no `uses-permission` in any source manifest and the merged debug
+  manifest declares no network permission.
+
+Android emulator smoke (`Medium_Phone_API_35`, 1080x2400, fresh install + `pm clear`, screenshots
+outside the repo):
+
+- Saved two lands (`Los Olivos` name-only; `La Loma` with `Municipio: Martos`, `Regadío`,
+  `Ecológico`); each row shows visible `Editar` and `Eliminar` controls and the row card itself is not
+  clickable; the `Eliminar` control's accessibility description is `Eliminar el terreno «Los Olivos»`.
+- Selecting `Eliminar` on `Los Olivos` shows a confirmation naming `Los Olivos` with `Riego`/
+  `Producción` lines, `Eliminar el terreno`, and `Cancelar`. `Cancelar` returned to the list with both
+  lands and no confirmation, and the SharedPreferences store was byte-identical before and after
+  (`diff` clean), so opening and cancelling wrote nothing.
+- Confirming removal returned to `Mis terrenos` showing only `La Loma` with every value intact
+  (`Municipio: Martos`, `Riego: Regadío`, `Producción: Ecológico`) and the plain-Spanish
+  `El terreno se ha eliminado de este dispositivo.`; the store became
+  `land-store-v1\nland--2a7c7aa4c1961ac1|La Loma|Martos|IRRIGATED|ORGANIC|||0|0` — the surviving
+  record's encoded line byte-identical to before and the removed record absent.
+- Force-stop + relaunch listed only `La Loma` (the literal feature-list verification: only the removed
+  land is absent from future lists).
+- Removing the last land left the store as the valid header-only `land-store-v1` snapshot, showed the
+  accepted empty state naming `Añadir terreno` plus the removed confirmation, and a new land
+  (`Olivar Nuevo`) could still be saved afterwards. `Volver` returned to the chat home.
+- `font_scale 2.0`: the list rows, both controls, and the confirmation screen wrapped with no
+  clipping or horizontal overflow (max text right edge 1017 of 1080) and the screen scrolled
+  vertically.
+
+Honest gaps and non-blocking findings:
+
+- No undo and no backup: a confirmed removal is permanent and local-only, and the app offers no
+  recovery; if `areaHectares`/`notes` were stored they are lost with the record (neither the add nor
+  the edit form collects them). The copy says removal cannot be undone instead of promising a
+  recovery that does not exist.
+- `RemoveLandFailure.LAND_MISSING` is a defensive branch, reachable only if a stored record
+  disappears between the list read and the confirmation (an external edit of the Desktop file or a
+  malformed line dropped by `LandStoreFormat.decode`); it is covered by unit tests, not normal use.
+  The `WRITE_FAILED` branch is likewise unit-tested; neither failure path was reproduced on the
+  emulator because the accepted storage adapters write successfully.
+- Two lands that share a name, have no municipality, and are unknown still render as near-identical
+  rows (the accepted `land_list` limitation); the confirmation repeats the same known details.
+- The list read and the delete are synchronous on the composition frame, acceptable for a bounded
+  local land count; lazy loading, background I/O, and bulk removal are out of scope.
+- No Compose UI-test harness and no persistent E2E command exist, so the `App()` removal-decision
+  wiring (`LAND_MISSING`/`WRITE_FAILED`, the confirmation, the re-read on return) is covered by code
+  inspection plus the emulator smoke, not an automated test; no E2E or automated UI coverage is
+  claimed.
+- No screen-reader session was captured; the `Eliminar` control's `contentDescription` and the merged
+  details node were confirmed from the accessibility tree dump, and a full accessibility audit of the
+  removal flow stays with a follow-up (neither `land_form_accessibility` nor `chat_accessibility`
+  depends on `remove_land`).
+- Carried finding from `land_list` (F6): `createdAtEpochMillis` is still the default `0` because no
+  clock is injected; unchanged by this feature.

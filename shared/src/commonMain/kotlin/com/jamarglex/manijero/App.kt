@@ -49,9 +49,14 @@ import com.jamarglex.manijero.lands.LandListConfirmation
 import com.jamarglex.manijero.lands.LandListScreen
 import com.jamarglex.manijero.lands.LandListState
 import com.jamarglex.manijero.lands.LandRepository
+import com.jamarglex.manijero.lands.RemoveLandAction
+import com.jamarglex.manijero.lands.RemoveLandFailure
+import com.jamarglex.manijero.lands.RemoveLandScreen
+import com.jamarglex.manijero.lands.RemoveLandState
 import com.jamarglex.manijero.lands.reduce
 import com.jamarglex.manijero.lands.toDraftOrNull
 import com.jamarglex.manijero.lands.toEditLandState
+import com.jamarglex.manijero.lands.toRemoveLandState
 import com.jamarglex.manijero.theme.LocalManijeroSemanticColors
 import com.jamarglex.manijero.theme.ManijeroTheme
 import org.jetbrains.compose.resources.stringResource
@@ -93,8 +98,11 @@ private const val ABSTAINED_SAMPLE_FALSE_PREMISE =
     "No puedo confirmar ese dato con los documentos oficiales revisados. " +
         "Comprueba el nombre o el número exacto con tu oficina comarcal agraria o con tu cooperativa."
 
-/** The shared destinations: the lands list is now the parent surface of the add and edit forms. */
-private enum class AppDestination { Chat, LandList, AddLand, EditLand }
+/**
+ * The shared destinations: the lands list is now the parent surface of the add, edit, and remove
+ * forms.
+ */
+private enum class AppDestination { Chat, LandList, AddLand, EditLand, RemoveLand }
 
 /**
  * Composition root. The answer service is injected so transport and endpoint decisions
@@ -118,6 +126,7 @@ fun App(
     var addLandState by remember { mutableStateOf(AddLandState()) }
     var landListState by remember { mutableStateOf(LandListState()) }
     var editLandState by remember { mutableStateOf<EditLandState?>(null) }
+    var removeLandState by remember { mutableStateOf<RemoveLandState?>(null) }
     var landConfirmation by remember { mutableStateOf<LandListConfirmation?>(null) }
 
     // The single place that reads local lands: on entering the list, on retry, and after a save or
@@ -166,6 +175,11 @@ fun App(
                     editLandState = land.toEditLandState()
                     landConfirmation = null
                     destination = AppDestination.EditLand
+                },
+                onRemoveLand = { land ->
+                    removeLandState = land.toRemoveLandState()
+                    landConfirmation = null
+                    destination = AppDestination.RemoveLand
                 },
                 onBack = { destination = AppDestination.Chat },
                 onRetry = readLands,
@@ -238,6 +252,46 @@ fun App(
                     },
                     onCancel = {
                         editLandState = null
+                        destination = AppDestination.LandList
+                    },
+                )
+            }
+
+            // One record, and only that record: the removal targets the confirmation state's own id
+            // and runs `delete` only on the person's explicit `Eliminar el terreno`. Opening or
+            // cancelling the confirmation writes nothing. A `false` result means the id is no longer
+            // stored and a thrown failure means storage refused, so neither is ever presented as a
+            // removal: both keep the confirmation on screen with a distinct plain-Spanish message.
+            AppDestination.RemoveLand -> removeLandState?.let { renderedState ->
+                val repository = landRepository
+                RemoveLandScreen(
+                    state = renderedState,
+                    onRemove = {
+                        val cleared = (removeLandState ?: renderedState)
+                            .reduce(RemoveLandAction.RemoveClicked)
+                        removeLandState = cleared
+                        if (repository != null) {
+                            val result = runCatching { repository.delete(cleared.landId) }
+                            when {
+                                result.getOrNull() == true -> {
+                                    removeLandState = null
+                                    landConfirmation = LandListConfirmation.REMOVED
+                                    readLands()
+                                    destination = AppDestination.LandList
+                                }
+
+                                result.getOrNull() == false -> removeLandState = cleared.reduce(
+                                    RemoveLandAction.RemoveFailed(RemoveLandFailure.LAND_MISSING),
+                                )
+
+                                else -> removeLandState = cleared.reduce(
+                                    RemoveLandAction.RemoveFailed(RemoveLandFailure.WRITE_FAILED),
+                                )
+                            }
+                        }
+                    },
+                    onCancel = {
+                        removeLandState = null
                         destination = AppDestination.LandList
                     },
                 )

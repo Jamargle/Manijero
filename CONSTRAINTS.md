@@ -64,3 +64,13 @@ Operational MUST/MUST NOT rules that future features have to respect on top of
   `id` and `createdAtEpochMillis`, never calls `create`/`delete`, and MUST NOT report an update as
   saved when `update` returned `null` or threw. Reason: `edit_land` established that correcting one
   detail must never rewrite another land or silently erase stored data.
+
+## Land removal
+
+- **MUST**: removing a land MUST delete exactly one stored record, by its local id, through
+  `LandRepository.delete`; it MUST NOT rewrite, reorder, or otherwise change any other record, MUST
+  NOT call `create`/`update` from a removal path, MUST remove nothing before an explicit confirmation
+  that names the land being removed, and MUST NOT report a removal that `delete` did not confirm (a
+  `false` result or a thrown failure is never a removal). Reason: `remove_land` established that a
+  person's other lands and their local-only store must survive a removal untouched, and that a
+  permanent local action must never be claimed when it did not happen.
