@@ -43,3 +43,11 @@ Operational MUST/MUST NOT rules that future features have to respect on top of
   figures into the "I cannot answer" path would reintroduce exactly that failure,
   and generated abstention prose could contradict the pinned counsel to consult
   the Oficina Comarcal Agraria or the cooperative.
+
+## Land editing
+
+- **MUST**: editing a land MUST update exactly one stored record: it carries every attribute the
+  edit form does not collect (`areaHectares`, `notes`) through unchanged, preserves the targeted
+  `id` and `createdAtEpochMillis`, never calls `create`/`delete`, and MUST NOT report an update as
+  saved when `update` returned `null` or threw. Reason: `edit_land` established that correcting one
+  detail must never rewrite another land or silently erase stored data.

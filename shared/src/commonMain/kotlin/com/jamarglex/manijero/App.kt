@@ -39,12 +39,18 @@ import com.jamarglex.manijero.chat.UnavailableAnswerService
 import com.jamarglex.manijero.lands.AddLandAction
 import com.jamarglex.manijero.lands.AddLandScreen
 import com.jamarglex.manijero.lands.AddLandState
+import com.jamarglex.manijero.lands.EditLandAction
+import com.jamarglex.manijero.lands.EditLandFailure
+import com.jamarglex.manijero.lands.EditLandScreen
+import com.jamarglex.manijero.lands.EditLandState
 import com.jamarglex.manijero.lands.LandListAction
+import com.jamarglex.manijero.lands.LandListConfirmation
 import com.jamarglex.manijero.lands.LandListScreen
 import com.jamarglex.manijero.lands.LandListState
 import com.jamarglex.manijero.lands.LandRepository
 import com.jamarglex.manijero.lands.reduce
 import com.jamarglex.manijero.lands.toDraftOrNull
+import com.jamarglex.manijero.lands.toEditLandState
 import com.jamarglex.manijero.theme.ManijeroTheme
 import org.jetbrains.compose.resources.stringResource
 import manijero.shared.generated.resources.Res
@@ -69,8 +75,8 @@ import manijero.shared.generated.resources.chat_speaker_you
 
 private val ContentMaxWidth = 720.dp
 
-/** The shared destinations: the lands list is now the parent surface of the add form. */
-private enum class AppDestination { Chat, LandList, AddLand }
+/** The shared destinations: the lands list is now the parent surface of the add and edit forms. */
+private enum class AppDestination { Chat, LandList, AddLand, EditLand }
 
 /**
  * Composition root. The answer service is injected so transport and endpoint decisions
@@ -93,12 +99,13 @@ fun App(
     var destination by remember { mutableStateOf(AppDestination.Chat) }
     var addLandState by remember { mutableStateOf(AddLandState()) }
     var landListState by remember { mutableStateOf(LandListState()) }
-    var landSaved by remember { mutableStateOf(false) }
+    var editLandState by remember { mutableStateOf<EditLandState?>(null) }
+    var landConfirmation by remember { mutableStateOf<LandListConfirmation?>(null) }
 
-    // The single place that reads local lands: on entering the list, on retry, and after a save.
-    // The result is folded into a LandListAction so a failed read never looks empty and stale rows
-    // never survive, and the throwable is neither logged nor shown. It is never invoked while
-    // composing, so the chat home and ordinary recomposition perform no read.
+    // The single place that reads local lands: on entering the list, on retry, and after a save or
+    // an edit. The result is folded into a LandListAction so a failed read never looks empty and
+    // stale rows never survive, and the throwable is neither logged nor shown. It is never invoked
+    // while composing, so the chat home and ordinary recomposition perform no read.
     val readLands: () -> Unit = {
         landListState = landListState.reduce(LandListAction.ReloadClicked)
         val repository = landRepository
@@ -122,7 +129,7 @@ fun App(
                     null
                 } else {
                     {
-                        landSaved = false
+                        landConfirmation = null
                         readLands()
                         destination = AppDestination.LandList
                     }
@@ -131,11 +138,16 @@ fun App(
 
             AppDestination.LandList -> LandListScreen(
                 state = landListState,
-                savedConfirmation = landSaved,
+                confirmation = landConfirmation,
                 onAddLand = {
                     addLandState = AddLandState()
-                    landSaved = false
+                    landConfirmation = null
                     destination = AppDestination.AddLand
+                },
+                onEditLand = { land ->
+                    editLandState = land.toEditLandState()
+                    landConfirmation = null
+                    destination = AppDestination.EditLand
                 },
                 onBack = { destination = AppDestination.Chat },
                 onRetry = readLands,
@@ -154,7 +166,7 @@ fun App(
                                 val saved = runCatching { repository.create(draft) }.isSuccess
                                 if (saved) {
                                     addLandState = AddLandState()
-                                    landSaved = true
+                                    landConfirmation = LandListConfirmation.ADDED
                                     readLands()
                                     destination = AppDestination.LandList
                                 } else {
@@ -165,6 +177,49 @@ fun App(
                     },
                     onCancel = {
                         addLandState = AddLandState()
+                        destination = AppDestination.LandList
+                    },
+                )
+            }
+
+            // One record, and only that record: the update targets the edit state's own id. The
+            // update is performed only on an explicit `SaveClicked`, never while composing. A null
+            // result means the id is no longer stored, and a thrown failure means storage refused,
+            // so neither is ever presented as saved; the values stay on screen for retry or cancel.
+            AppDestination.EditLand -> editLandState?.let { renderedState ->
+                val repository = landRepository
+                EditLandScreen(
+                    state = renderedState,
+                    onAction = { action ->
+                        val reduced = (editLandState ?: renderedState).reduce(action)
+                        editLandState = reduced
+                        if (action is EditLandAction.SaveClicked && repository != null) {
+                            val draft = reduced.toDraftOrNull()
+                            if (draft != null) {
+                                val result = runCatching {
+                                    repository.update(reduced.landId, draft)
+                                }
+                                when {
+                                    result.getOrNull() != null -> {
+                                        editLandState = null
+                                        landConfirmation = LandListConfirmation.UPDATED
+                                        readLands()
+                                        destination = AppDestination.LandList
+                                    }
+
+                                    result.isSuccess -> editLandState = reduced.reduce(
+                                        EditLandAction.SaveFailed(EditLandFailure.LAND_MISSING),
+                                    )
+
+                                    else -> editLandState = reduced.reduce(
+                                        EditLandAction.SaveFailed(EditLandFailure.WRITE_FAILED),
+                                    )
+                                }
+                            }
+                        }
+                    },
+                    onCancel = {
+                        editLandState = null
                         destination = AppDestination.LandList
                     },
                 )
