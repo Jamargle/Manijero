@@ -34,6 +34,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.jamarglex.manijero.chat.AnswerService
+import com.jamarglex.manijero.chat.AnswerStatus
 import com.jamarglex.manijero.chat.RequestFailure
 import com.jamarglex.manijero.chat.UnavailableAnswerService
 import com.jamarglex.manijero.lands.AddLandAction
@@ -45,9 +46,11 @@ import com.jamarglex.manijero.lands.LandListState
 import com.jamarglex.manijero.lands.LandRepository
 import com.jamarglex.manijero.lands.reduce
 import com.jamarglex.manijero.lands.toDraftOrNull
+import com.jamarglex.manijero.theme.LocalManijeroSemanticColors
 import com.jamarglex.manijero.theme.ManijeroTheme
 import org.jetbrains.compose.resources.stringResource
 import manijero.shared.generated.resources.Res
+import manijero.shared.generated.resources.chat_answer_state_abstained
 import manijero.shared.generated.resources.chat_home_ask
 import manijero.shared.generated.resources.chat_home_description
 import manijero.shared.generated.resources.chat_home_failure_service
@@ -68,6 +71,21 @@ import manijero.shared.generated.resources.chat_speaker_assistant
 import manijero.shared.generated.resources.chat_speaker_you
 
 private val ContentMaxWidth = 720.dp
+
+// Preview samples only, never shipped copy. The two abstention samples are pinned code-owned
+// messages taken verbatim from the accepted abstention contract; the answered sample shows the
+// lead-in and orientative notice that are already part of the server `answer`.
+private const val ANSWERED_SAMPLE =
+    "Según los documentos oficiales revisados: presenta la solicitud dentro del plazo indicado en la convocatoria. " +
+        "Información orientativa basada en documentos oficiales. No sustituye el asesoramiento profesional."
+
+private const val ABSTAINED_SAMPLE_NO_EVIDENCE =
+    "No he encontrado esta información en los documentos oficiales que tengo. " +
+        "Te recomiendo consultar con tu oficina comarcal agraria o con tu cooperativa."
+
+private const val ABSTAINED_SAMPLE_FALSE_PREMISE =
+    "No puedo confirmar ese dato con los documentos oficiales revisados. " +
+        "Comprueba el nombre o el número exacto con tu oficina comarcal agraria o con tu cooperativa."
 
 /** The shared destinations: the lands list is now the parent surface of the add form. */
 private enum class AppDestination { Chat, LandList, AddLand }
@@ -318,21 +336,56 @@ internal fun ChatHomeScreen(
 
 @Composable
 private fun ChatMessageBubble(message: ChatMessage, modifier: Modifier = Modifier) {
-    val isUser = message.speaker == Speaker.USER
+    when (message.speaker) {
+        Speaker.USER -> ChatBubble(
+            modifier = modifier,
+            label = stringResource(Res.string.chat_speaker_you),
+            labelColor = MaterialTheme.colorScheme.primary,
+            text = message.text,
+            containerColor = MaterialTheme.colorScheme.surfaceVariant,
+        )
+
+        Speaker.ASSISTANT -> when (message.answerStatus) {
+            // A supported answer keeps the calm neutral card. The code-owned lead-in and orientative
+            // notice are already inside the server `answer`, so no client label, disclaimer, badge,
+            // or "verified" affordance is added: that would be the confident treatment to avoid.
+            AnswerStatus.answered -> ChatAssistantCard(text = message.text, modifier = modifier)
+
+            // An abstention is a decoded answer, not a failure: it stays in the transcript with the
+            // caution tokens, an explicit text state label, and the server message verbatim. The
+            // limitation and next step are the sentences already inside that message.
+            AnswerStatus.abstained -> {
+                val semanticColors = LocalManijeroSemanticColors.current
+                ChatBubble(
+                    modifier = modifier,
+                    label = stringResource(Res.string.chat_speaker_assistant),
+                    labelColor = MaterialTheme.colorScheme.onSurfaceVariant,
+                    stateLabel = stringResource(Res.string.chat_answer_state_abstained),
+                    stateLabelColor = semanticColors.caution,
+                    text = message.text,
+                    containerColor = semanticColors.cautionSurface,
+                    borderColor = semanticColors.caution,
+                    liveRegionMode = LiveRegionMode.Polite,
+                )
+            }
+
+            // A clarification appends no entry today (its answer is empty), so this stays a neutral
+            // rendering and makes the mapping exhaustive, so a new status cannot fall through.
+            AnswerStatus.needs_land_clarification ->
+                ChatAssistantCard(text = message.text, modifier = modifier)
+        }
+    }
+}
+
+/** The neutral assistant card shared by a supported answer and a defensive clarification. */
+@Composable
+private fun ChatAssistantCard(text: String, modifier: Modifier = Modifier) {
     ChatBubble(
         modifier = modifier,
-        label = if (isUser) {
-            stringResource(Res.string.chat_speaker_you)
-        } else {
-            stringResource(Res.string.chat_speaker_assistant)
-        },
+        label = stringResource(Res.string.chat_speaker_assistant),
         labelColor = MaterialTheme.colorScheme.primary,
-        text = message.text,
-        containerColor = if (isUser) {
-            MaterialTheme.colorScheme.surfaceVariant
-        } else {
-            MaterialTheme.colorScheme.surface
-        },
+        text = text,
+        containerColor = MaterialTheme.colorScheme.surface,
     )
 }
 
@@ -411,8 +464,9 @@ private fun ChatFailureNotice(
 
 /**
  * One transcript entry. The speaker is always written out as a label so the entries stay
- * distinguishable without relying on color, and the label and text are merged into a
- * single node for assistive technologies.
+ * distinguishable without relying on color, and the label, optional state label, and text are merged
+ * into a single node for assistive technologies. [borderColor], [stateLabel], and [stateLabelColor]
+ * are defaulted so existing call sites stay unchanged.
  */
 @Composable
 private fun ChatBubble(
@@ -421,6 +475,9 @@ private fun ChatBubble(
     text: String,
     containerColor: Color,
     modifier: Modifier = Modifier,
+    borderColor: Color = MaterialTheme.colorScheme.outlineVariant,
+    stateLabel: String? = null,
+    stateLabelColor: Color = labelColor,
     liveRegionMode: LiveRegionMode? = null,
 ) {
     Surface(
@@ -434,7 +491,7 @@ private fun ChatBubble(
             },
         shape = RoundedCornerShape(16.dp),
         color = containerColor,
-        border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant),
+        border = BorderStroke(1.dp, borderColor),
     ) {
         Column(
             modifier = Modifier.padding(horizontal = 16.dp, vertical = 12.dp),
@@ -445,6 +502,13 @@ private fun ChatBubble(
                 style = MaterialTheme.typography.labelLarge,
                 color = labelColor,
             )
+            if (stateLabel != null) {
+                Text(
+                    text = stateLabel,
+                    style = MaterialTheme.typography.labelLarge,
+                    color = stateLabelColor,
+                )
+            }
             Text(
                 text = text,
                 style = MaterialTheme.typography.bodyLarge,
@@ -484,15 +548,68 @@ private fun ChatHomeWithQuestionPreview() {
     }
 }
 
-@Preview(name = "Chat home with conversation")
+@Preview(name = "Chat home with answered response")
 @Composable
-private fun ChatHomeConversationPreview() {
+private fun ChatHomeAnsweredConversationPreview() {
     ManijeroTheme {
         ChatHomeScreen(
             state = ChatHomeState(
                 messages = listOf(
-                    ChatMessage(Speaker.USER, "¿Cuándo debo revisar mi olivar?"),
-                    ChatMessage(Speaker.ASSISTANT, "Depende del estado del árbol y de la época del año."),
+                    ChatMessage(Speaker.USER, "¿Qué necesito preparar para la solicitud única?"),
+                    ChatMessage(Speaker.ASSISTANT, ANSWERED_SAMPLE, AnswerStatus.answered),
+                ),
+            ),
+            onAction = {},
+            onLandsClick = {},
+        )
+    }
+}
+
+@Preview(name = "Chat home with abstained response")
+@Composable
+private fun ChatHomeAbstainedConversationPreview() {
+    ManijeroTheme {
+        ChatHomeScreen(
+            state = ChatHomeState(
+                messages = listOf(
+                    ChatMessage(Speaker.USER, "¿Cuánto cuesta matricular un tractor viejo?"),
+                    ChatMessage(Speaker.ASSISTANT, ABSTAINED_SAMPLE_NO_EVIDENCE, AnswerStatus.abstained),
+                ),
+            ),
+            onAction = {},
+            onLandsClick = {},
+        )
+    }
+}
+
+@Preview(name = "Chat home with both response states")
+@Composable
+private fun ChatHomeBothResponseStatesPreview() {
+    ManijeroTheme {
+        ChatHomeScreen(
+            state = ChatHomeState(
+                messages = listOf(
+                    ChatMessage(Speaker.USER, "¿Cuánto cuesta matricular un tractor viejo?"),
+                    ChatMessage(Speaker.ASSISTANT, ABSTAINED_SAMPLE_NO_EVIDENCE, AnswerStatus.abstained),
+                    ChatMessage(Speaker.USER, "¿Qué necesito preparar para la solicitud única?"),
+                    ChatMessage(Speaker.ASSISTANT, ANSWERED_SAMPLE, AnswerStatus.answered),
+                ),
+            ),
+            onAction = {},
+            onLandsClick = {},
+        )
+    }
+}
+
+@Preview(name = "Chat home abstention narrow, large text", widthDp = 320, fontScale = 2f)
+@Composable
+private fun ChatHomeAbstentionNarrowLargeTextPreview() {
+    ManijeroTheme {
+        ChatHomeScreen(
+            state = ChatHomeState(
+                messages = listOf(
+                    ChatMessage(Speaker.USER, "¿Qué dice el Real Decreto 123/2099 sobre el plazo?"),
+                    ChatMessage(Speaker.ASSISTANT, ABSTAINED_SAMPLE_FALSE_PREMISE, AnswerStatus.abstained),
                 ),
             ),
             onAction = {},

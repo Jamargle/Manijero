@@ -43,7 +43,19 @@ data class ChatHomeState(
 
 enum class SubmissionPhase { IDLE, SUBMITTING }
 
-data class ChatMessage(val speaker: Speaker, val text: String)
+/**
+ * One transcript entry. [answerStatus] is meaningful only for [Speaker.ASSISTANT] entries and is
+ * copied from the decoded [AskResponse.status] at the single creation site
+ * ([ChatHomeAction.ResponseReceived]); it is never read for a [Speaker.USER] entry and never inferred
+ * from [ChatHomeState.lastResponseStatus], so every entry keeps the state it arrived with. The
+ * default keeps existing user entries compiling; a future assistant-entry creation site must set it
+ * from the decoded response.
+ */
+data class ChatMessage(
+    val speaker: Speaker,
+    val text: String,
+    val answerStatus: AnswerStatus = AnswerStatus.answered,
+)
 
 enum class Speaker { USER, ASSISTANT }
 
@@ -116,7 +128,7 @@ fun ChatHomeState.reduce(action: ChatHomeAction): ChatReduction = when (action) 
         if (phase != SubmissionPhase.SUBMITTING) ChatReduction(this) else {
             val response = action.response
             val assistantMessage = response.answer.takeIf { it.isNotEmpty() }
-                ?.let { ChatMessage(Speaker.ASSISTANT, it) }
+                ?.let { ChatMessage(Speaker.ASSISTANT, it, response.status) }
             ChatReduction(
                 copy(
                     messages = if (assistantMessage == null) messages else messages + assistantMessage,

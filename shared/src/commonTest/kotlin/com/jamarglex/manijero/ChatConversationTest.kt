@@ -19,12 +19,25 @@ import kotlin.test.assertEquals
 import kotlin.test.assertNull
 import kotlin.test.assertTrue
 
+/** The pinned code-owned `no_evidence` abstention message, taken verbatim from the accepted contract. */
+private const val PINNED_NO_EVIDENCE =
+    "No he encontrado esta información en los documentos oficiales que tengo. " +
+        "Te recomiendo consultar con tu oficina comarcal agraria o con tu cooperativa."
+
 @OptIn(ExperimentalCoroutinesApi::class)
 class ChatConversationTest {
     private val originalQuestion = "  ¿Puedo regar hoy?  "
 
     private fun response(answer: String = "Una respuesta.") = AskResponse(
         status = AnswerStatus.answered,
+        answer = answer,
+        sources = emptyList(),
+        land_scope = LandContextMode.general,
+        land_ids_to_choose = emptyList(),
+    )
+
+    private fun abstainedResponse(answer: String = PINNED_NO_EVIDENCE) = AskResponse(
+        status = AnswerStatus.abstained,
         answer = answer,
         sources = emptyList(),
         land_scope = LandContextMode.general,
@@ -80,6 +93,28 @@ class ChatConversationTest {
 
         assertEquals(1, conversation.state.messages.count { it.speaker == Speaker.ASSISTANT })
         assertEquals("Respuesta única.", conversation.state.messages.last().text)
+        assertEquals(SubmissionPhase.IDLE, conversation.state.phase)
+    }
+
+    @Test
+    fun `an abstained response arrives once with its state and is never a failure`() = runTest {
+        val service = object : AnswerService {
+            override suspend fun ask(request: AskRequest): AskResponse = abstainedResponse()
+        }
+        val conversation = ChatConversation(service, this)
+
+        conversation.onAction(ChatHomeAction.QuestionChanged(originalQuestion))
+        conversation.onAction(ChatHomeAction.AskClicked)
+        advanceUntilIdle()
+
+        assertEquals(1, conversation.state.messages.count { it.speaker == Speaker.USER })
+        assertEquals(1, conversation.state.messages.count { it.speaker == Speaker.ASSISTANT })
+        val assistant = conversation.state.messages.single { it.speaker == Speaker.ASSISTANT }
+        assertEquals(AnswerStatus.abstained, assistant.answerStatus)
+        assertEquals(PINNED_NO_EVIDENCE, assistant.text)
+        assertNull(conversation.state.failure)
+        assertNull(conversation.state.failedQuestion)
+        assertEquals(AnswerStatus.abstained, conversation.state.lastResponseStatus)
         assertEquals(SubmissionPhase.IDLE, conversation.state.phase)
     }
 
