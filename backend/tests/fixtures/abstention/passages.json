@@ -1,0 +1,50 @@
+{
+  "schema_version": "passage-set-v1",
+  "passages": [
+    {
+      "id": "fixture-abs-solicitud-1",
+      "source_id": "fixture_abs_junta",
+      "location": "Art. 1 (fixture, sintético)",
+      "text": "Sintético de prueba: la solicitud anual de ejemplo describe el trámite de forma genérica y no fija ninguna cifra ni fecha real."
+    },
+    {
+      "id": "fixture-abs-norma-1",
+      "source_id": "fixture_abs_junta",
+      "location": "Art. 2 (fixture, sintético)",
+      "text": "Sintético de prueba: esta norma ficticia de ejemplo solo se usa en las pruebas y no es una norma real."
+    },
+    {
+      "id": "fixture-abs-plazo-a-1",
+      "source_id": "fixture_abs_boe",
+      "location": "Art. 3 (fixture, sintético)",
+      "text": "Sintético de prueba (cifra inventada): el plazo ficticio de ejemplo es de 30 días y no corresponde a ningún trámite real.",
+      "critical": true
+    },
+    {
+      "id": "fixture-abs-plazo-b-1",
+      "source_id": "fixture_abs_boe",
+      "location": "Art. 4 (fixture, sintético)",
+      "text": "Sintético de prueba (cifra inventada): el plazo ficticio de ejemplo es de 45 días y no corresponde a ningún trámite real.",
+      "critical": true
+    },
+    {
+      "id": "fixture-abs-riego-1",
+      "source_id": "fixture_abs_junta",
+      "location": "Art. 5 (fixture, sintético)",
+      "text": "Sintético de prueba sobre el riego de ejemplo. La segunda frase de esta muestra tampoco describe un trámite real."
+    },
+    {
+      "id": "fixture-abs-ayuda-1",
+      "source_id": "fixture_abs_boe",
+      "location": "Art. 6 (fixture, sintético)",
+      "text": "Sintético de prueba (fixture): tienes derecho a una ayuda de ejemplo y no afirma nada real."
+    },
+    {
+      "id": "fixture-abs-importe-1",
+      "source_id": "fixture_abs_boe",
+      "location": "Art. 7 (fixture, sintético)",
+      "text": "Sintético de prueba (cifra inventada): el importe ficticio de ejemplo es de 1.200 euros y no corresponde a ninguna ayuda real.",
+      "critical": true
+    }
+  ]
+}

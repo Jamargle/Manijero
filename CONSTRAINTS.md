@@ -30,3 +30,16 @@ Operational MUST/MUST NOT rules that future features have to respect on top of
   Reason: `network_error_recovery` established that a person must never believe an unanswered
   question was answered, and `response_states`/`answer_source_cards` will render this transcript
   next, so a retryable failure must keep the question recoverable and out of the answer stream.
+
+## Abstention
+
+- **MUST**: no component may emit an abstention that carries a source, a figure,
+  or a date, and abstention copy is code-owned (`ABSTENTION_MESSAGES` /
+  `to_abstention_response`), never generated, paraphrased, or supplied by a
+  caller. An abstention payload is exactly the accepted `AskResponse` keys with
+  `status: "abstained"`, `sources: []`, `land_ids_to_choose: []`, and one pinned
+  plain-Spanish message with no digit and no date. Reason: the point of
+  abstaining is to avoid an invented deadline or amount; leaking evidence or
+  figures into the "I cannot answer" path would reintroduce exactly that failure,
+  and generated abstention prose could contradict the pinned counsel to consult
+  the Oficina Comarcal Agraria or the cooperative.
