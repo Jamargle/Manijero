@@ -31,6 +31,19 @@ Operational MUST/MUST NOT rules that future features have to respect on top of
   question was answered, and `response_states`/`answer_source_cards` will render this transcript
   next, so a retryable failure must keep the question recoverable and out of the answer stream.
 
+## Client response states
+
+- **MUST**: a supported answer and an abstention MUST stay distinguishable in the transcript, and
+  no answer MUST receive a confident legal-certainty treatment (no badge, checkmark, success green,
+  or "verificado" wording). Every assistant entry MUST carry the `answerStatus` it arrived with
+  (copied from the decoded `AskResponse.status`, never inferred from `lastResponseStatus`); an
+  abstention MUST render its code-owned message verbatim in the transcript with the non-confident
+  caution treatment plus an explicit text state label, and MUST NOT add a source, citation marker,
+  figure, date, land name, or client-authored next step, nor branch on an abstention reason (the
+  wire payload carries none). Reason: `response_states` established that a person must never read a
+  "no lo sé" as a rule or mistake a real answer for legal certainty; `answer_source_cards` and
+  `chat_accessibility` render this transcript next.
+
 ## Abstention
 
 - **MUST**: no component may emit an abstention that carries a source, a figure,
