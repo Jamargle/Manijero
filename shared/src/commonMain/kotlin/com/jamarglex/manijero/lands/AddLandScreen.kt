@@ -9,6 +9,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.selection.selectable
+import androidx.compose.foundation.selection.selectableGroup
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Button
 import androidx.compose.material3.MaterialTheme
@@ -18,10 +19,16 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.focus.FocusRequester
+import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.semantics.LiveRegionMode
 import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.error
+import androidx.compose.ui.semantics.heading
 import androidx.compose.ui.semantics.liveRegion
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.tooling.preview.Preview
@@ -29,6 +36,7 @@ import androidx.compose.ui.unit.dp
 import com.jamarglex.manijero.theme.ManijeroTheme
 import manijero.shared.generated.resources.Res
 import manijero.shared.generated.resources.add_land_cancel
+import manijero.shared.generated.resources.add_land_choice_description
 import manijero.shared.generated.resources.add_land_description
 import manijero.shared.generated.resources.add_land_municipality_label
 import manijero.shared.generated.resources.add_land_name_error
@@ -80,6 +88,8 @@ fun AddLandScreen(
                     text = stringResource(Res.string.add_land_title),
                     style = MaterialTheme.typography.headlineMedium,
                     color = MaterialTheme.colorScheme.onBackground,
+                    // The form title is the one heading semantic on this surface.
+                    modifier = Modifier.semantics { heading() },
                 )
                 Text(
                     text = stringResource(Res.string.add_land_description),
@@ -87,15 +97,37 @@ fun AddLandScreen(
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
 
+                // The name field is the only required input, so a blank-name save must both say what
+                // is wrong and put input focus back on the field. The focus is requested from the save
+                // path (not from a state-keyed effect), because the error flag stays true across a
+                // repeated blank attempt and the second press must re-focus the field too.
+                val nameFocus = remember { FocusRequester() }
+                val nameErrorMessage = stringResource(Res.string.add_land_name_error)
+                val handleAction: (AddLandAction) -> Unit = { action ->
+                    if (action is AddLandAction.SaveClicked && !state.hasName) {
+                        nameFocus.requestFocus()
+                    }
+                    onAction(action)
+                }
                 val nameErrorText: (@Composable () -> Unit)? = if (state.showNameError) {
-                    { Text(stringResource(Res.string.add_land_name_error)) }
+                    {
+                        Text(
+                            text = nameErrorMessage,
+                            modifier = Modifier.semantics {
+                                liveRegion = LiveRegionMode.Polite
+                            },
+                        )
+                    }
                 } else {
                     null
                 }
                 OutlinedTextField(
                     value = state.name,
-                    onValueChange = { onAction(AddLandAction.NameChanged(it)) },
-                    modifier = Modifier.fillMaxWidth(),
+                    onValueChange = { handleAction(AddLandAction.NameChanged(it)) },
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .focusRequester(nameFocus)
+                        .semantics { if (state.showNameError) error(nameErrorMessage) },
                     label = { Text(stringResource(Res.string.add_land_name_label)) },
                     isError = state.showNameError,
                     supportingText = nameErrorText,
@@ -204,7 +236,7 @@ fun AddLandScreen(
                     verticalArrangement = Arrangement.spacedBy(8.dp),
                 ) {
                     Button(
-                        onClick = { onAction(AddLandAction.SaveClicked) },
+                        onClick = { handleAction(AddLandAction.SaveClicked) },
                         modifier = Modifier.fillMaxWidth(),
                     ) {
                         Text(stringResource(Res.string.add_land_save))
@@ -242,25 +274,42 @@ internal fun ChoiceGroup(
             style = MaterialTheme.typography.titleMedium,
             color = MaterialTheme.colorScheme.onBackground,
         )
-        choices.forEach { choice ->
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .selectable(
-                        selected = choice.selected,
-                        role = Role.RadioButton,
-                        onClick = choice.onSelect,
-                    )
-                    .padding(vertical = 12.dp),
-                verticalAlignment = Alignment.CenterVertically,
-            ) {
-                RadioButton(selected = choice.selected, onClick = null)
-                Text(
-                    text = stringResource(choice.label),
-                    style = MaterialTheme.typography.bodyLarge,
-                    color = MaterialTheme.colorScheme.onBackground,
-                    modifier = Modifier.padding(start = 12.dp),
+        // The rows are one single-choice set, and each row names its own group ("Riego: No lo sé",
+        // "Producción: No lo sé"), so two identically worded options can never be confused when read
+        // aloud. The label stays outside the group and no row gains a second focus stop: the selected
+        // state, role, and click still come from the single `selectable` on the row.
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .selectableGroup(),
+            verticalArrangement = Arrangement.spacedBy(4.dp),
+        ) {
+            choices.forEach { choice ->
+                val optionName = stringResource(
+                    Res.string.add_land_choice_description,
+                    label,
+                    stringResource(choice.label),
                 )
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .selectable(
+                            selected = choice.selected,
+                            role = Role.RadioButton,
+                            onClick = choice.onSelect,
+                        )
+                        .semantics { contentDescription = optionName }
+                        .padding(vertical = 12.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                ) {
+                    RadioButton(selected = choice.selected, onClick = null)
+                    Text(
+                        text = stringResource(choice.label),
+                        style = MaterialTheme.typography.bodyLarge,
+                        color = MaterialTheme.colorScheme.onBackground,
+                        modifier = Modifier.padding(start = 12.dp),
+                    )
+                }
             }
         }
     }
@@ -369,6 +418,18 @@ private fun AddLandLargeFontPreview() {
                 waterRegime = WaterRegime.IRRIGATED,
                 productionMethod = ProductionMethod.ORGANIC,
             ),
+            onAction = {},
+            onCancel = {},
+        )
+    }
+}
+
+@Preview(name = "Add land — narrow, large font, name error", widthDp = 320, fontScale = 2f)
+@Composable
+private fun AddLandNarrowLargeFontNameErrorPreview() {
+    ManijeroTheme {
+        AddLandScreen(
+            state = AddLandState(municipality = "Úbeda", showNameError = true),
             onAction = {},
             onCancel = {},
         )

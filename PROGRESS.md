@@ -95,6 +95,8 @@
 | 2026-10-13 | Implemented `chat_accessibility` (passing, awaiting independent validation) | Added the pure `TranscriptScroll.kt` (`TranscriptScrollKey`/`transcriptScrollKey`) plus `TranscriptScrollTest` (8 tests), the `answered` polite live region (`ChatAssistantCard` `liveRegionMode`), a `bringIntoViewRequester` **1dp** end-of-transcript marker driven by a `LaunchedEffect` on the scroll key, the chooser's `List<Land>?` loading state (no false fallback flash), `horizontalAlignment = CenterHorizontally` with an effective 720dp cap, a `heading()` on the title, and three previews (wide window, long conversation at `fontScale = 1.3f`, chooser while resolving). Evidence: contract validator exit 0; `:shared:jvmTest --rerun-tasks` 192/0 (was 184, +8); `:shared:testAndroidHostTest --rerun-tasks` 178/0; `:desktopApp:build :androidApp:assembleDebug --rerun-tasks` (72 tasks); `./init.sh --verify` exit 0; iOS compile; the greps; `strings.xml` numstat empty; `git diff --check` clean. Android emulator: 1.0/2.0 no-clipping dumps, ≥48dp targets, merged/named entries, `checkable` chooser rows, no 'no puedo mostrar tus terrenos' in any dump, TalkBack bound and enabled; auto-scroll proven by submitting from the page bottom at 2.0 (newest content in view, composer/buttons/privacy below the fold). Desktop: the 720dp column centred at 800/1400pt and 372 wide at 420pt (AX geometry), named controls, keyboard reachable/activatable. Docs: `CONSTRAINTS.md` chat-accessibility MUST rule, `DESIGN.md` baseline + remaining gaps, spec §2 implementation finding, `response_states` U2 note, `land_clarification` N2 note. Gaps: Desktop visual focus indication unverifiable (host capture blocked; no outline added), TalkBack utterance not captured, no UI-test harness, Desktop text scaling preview-only, and the answered/abstained/chooser device captures used a temporary reverted probe. |
 
 | 2026-10-13 | Accepted `chat_accessibility` | Independent validator re-ran the contract validator (exit 0), the focused `TranscriptScrollTest` (8/0), `:shared:jvmTest --rerun-tasks` (192/0, 21 suites, +8, none removed), `:shared:testAndroidHostTest --rerun-tasks` (178/0), `:desktopApp:build :androidApp:assembleDebug --rerun-tasks` (72 tasks, fresh APK), `./init.sh --verify` (exit 0, 91 tasks), and the greps; confirmed `strings.xml` numstat empty and `git diff --check` clean. It re-drove the Android emulator on an APK it rebuilt/installed itself (1.0/2.0 no clipping, every clickable node ≥48dp, no 'no puedo mostrar tus terrenos' in any dump, the auto-scroll reproduced scrolling up to the newest element without reaching the page bottom) and the Desktop app through the macOS AX tree (720dp cap centred, one merged entry node, `Reintentar` a separate focusable button), and reproduced the pure scroll key with its own 7-case probe. Scope clean (`ChatHomeState.kt`, `ChatConversation.kt`, `chat/`, `lands/`, `privacy/`, `theme/`, `strings.xml`, `contracts/`, `backend/`, `knowledge/`, platform roots, Gradle, `init.sh` untouched); no `Color(0x)` outside `theme/`, no min-size override, no logging, no new module/dependency/endpoint; a feature-scoped security review found no blocking issue. Findings N1-N6 non-blocking. Record: `docs/validations/chat_accessibility.md`. |
+| 2026-10-13 | Implemented `land_form_accessibility` (self-verified; awaiting independent validation) | Made the two stateless land forms verifiably usable with enlarged text, a screen reader and a keyboard alone. `AddLandScreen.kt`/`EditLandScreen.kt`: `heading()` on the title; a `FocusRequester` on the name field with focus requested from the save path (`handleAction` wraps `onAction`) so a blank-name save (and a repeated attempt) announces the unchanged message and re-focuses the field, with the visible message a polite live region plus `error()` semantics on the field; `selectableGroup()` over the four option rows with a group-qualified `contentDescription` per row from the existing visible strings; one narrow/large-font error preview each. `strings.xml` +1/-0 (`add_land_choice_description`) used only as an accessible name. Evidence: contract validator exit 0; `:shared:jvmTest --rerun-tasks` 192/0 (unchanged, none removed); `:shared:testAndroidHostTest --rerun-tasks` 178/0; iOS compile; `:desktopApp:build :androidApp:assembleDebug --rerun-tasks` (72 tasks); `./init.sh --verify` exit 0; `strings.xml` numstat `1 0`; greps and `git diff --check` clean. Android emulator: all eight option `content-desc` at 1.0/2.0, ≥48dp targets, no overflow, name field `focused=true` after a blank save and a second attempt, correct+saved one record. Desktop AX tree: group-qualified `AXRadioButton`s with selected state, keyboard-only add + edit completion, blank-name no-write + re-focus, 420/1200pt wrapping. Docs: `CONSTRAINTS.md` "Land form accessibility" MUST rule, `DESIGN.md` baseline + gaps, one closure note each in `add_land.md`/`edit_land.md`. Gaps: Desktop visual focus/heading not exposed by AX, TalkBack speech not captured, no UI-test harness, low-digital-confidence human check outstanding. |
+| 2026-10-13 | Accepted `land_form_accessibility` | Independent validator re-ran the contract validator (exit 0), `:shared:jvmTest --rerun-tasks` (21 suites / 192 tests / 0 failures, unchanged, none removed), `:shared:testAndroidHostTest --rerun-tasks` (17 suites / 178/0), `:shared:compileKotlinIosSimulatorArm64`, `:desktopApp:build :androidApp:assembleDebug --rerun-tasks` (72 tasks, fresh APK 36,014,513 bytes), `./init.sh --verify` (exit 0, 91 tasks), and `git diff --check`; byte-for-byte checked the one new key `add_land_choice_description` = `%1$s: %2$s` (`strings.xml` numstat `1 0`, referenced only as an accessible name) and the `Color(0x)`/`minimumInteractiveComponentSize`/logging greps. It rebuilt/installed the APK itself on a real emulator (font_scale 1.0/2.0) and reproduced all eight group-qualified option `content-desc`, ≥48dp targets, no overflow, and the blank-name save re-focusing the name field on both forms (exactly one record written on correction), then re-drove the Desktop app through the macOS AX tree (eight `AXRadioButton`s with group-qualified names and selected state, keyboard-only completion, blank-name no-write with the field description carrying the error). It read Compose's `SemanticsNode.emitFakeNodes` source to confirm the `content-desc` fake child node is documented behavior, not a defect. Scope confirmed: only the two form screens, `strings.xml`, `CONSTRAINTS.md`, `DESIGN.md`, the two spec notes, the new spec, and `feature_list.json`/`PROGRESS.md` changed; reducers, repository, `App()`, list/removal/privacy/chat/theme, entry points, `contracts/`, `backend/`, `knowledge/`, Gradle files and `init.sh` untouched, no test file changed, no new module/dependency/logging; feature-scoped security review found no blocking issue. Findings N1-N5 non-blocking (N1 Desktop window resize not re-driven, AX size setter failed -10000; N5 carried honest limits including the outstanding low-digital-confidence manual check). Record: `docs/validations/land_form_accessibility.md`. |
 
 ## Feature evidence
 
@@ -1770,3 +1772,138 @@ Honest gaps (nothing below is claimed as passing):
   focusability, and 1.0/2.0 geometry evidence was captured on the shipped build.
 - The transcript stays in the single scrolling page (no pinned composer plus its own scroll region, spec
   U2) and reference numerals are not tappable (spec U5) — both deliberately out of scope.
+
+### land_form_accessibility — accepted
+
+Spec: `docs/specs/land_form_accessibility.md` (new). Self-verified 2026-10-13 and independently
+**accepted** 2026-10-13 (record: `docs/validations/land_form_accessibility.md`); the low-digital-
+confidence manual session stays an outstanding check. All evidence below was produced in this worktree
+on the final tree.
+
+What changed (implementation):
+
+- `shared/src/commonMain/kotlin/com/jamarglex/manijero/lands/AddLandScreen.kt` and
+  `EditLandScreen.kt` (both stateless screens, options shared via the `internal ChoiceGroup`):
+  - The form title gained `Modifier.semantics { heading() }`.
+  - A `remember { FocusRequester() }` on the name field: `handleAction` wraps `onAction` and calls
+    `nameFocus.requestFocus()` when a `SaveClicked` arrives with `!state.hasName`. The focus is
+    requested from the save path deliberately — the error flag stays `true` across a repeated blank
+    attempt, so a state-keyed effect would not re-fire. The visible error `Text` became
+    `liveRegion = LiveRegionMode.Polite` and the field carries
+    `semantics { if (state.showNameError) error(nameErrorMessage) }`; the field modifier kept
+    `fillMaxWidth()` first and added `focusRequester`/`semantics`.
+  - In `ChoiceGroup`, the four option rows moved into a nested
+    `Column(Modifier.fillMaxWidth().selectableGroup())` (the group label stays outside it). Each row
+    keeps its single `selectable(role = RadioButton, onClick = …)` and adds
+    `semantics { contentDescription = stringResource(Res.string.add_land_choice_description, label,
+    stringResource(choice.label)) }`; no second clickable/`RadioButton(onClick = …)` was added and the
+    selected state still comes from `selectable`. The nested column re-creates the previous 4dp
+    inter-row spacing, so the rendered geometry is unchanged.
+  - One combined preview per form (`AddLandNarrowLargeFontNameErrorPreview` /
+    `EditLandNarrowLargeFontNameErrorPreview`, `widthDp = 320`, `fontScale = 2f`,
+    `showNameError = true`). All existing previews were kept.
+- `shared/src/commonMain/composeResources/values/strings.xml`: exactly one new key,
+  `add_land_choice_description` = `%1$s: %2$s`, placed after `add_land_unknown`; used only as an
+  accessible name, never as visible body text (`git diff --numstat` → `1 0`).
+- `CONSTRAINTS.md`: new "Land form accessibility" MUST rule. `DESIGN.md`: a "Land add/edit form
+  baseline" subsection under "Accessibility and validation" plus the remaining gaps.
+  `docs/specs/add_land.md` and `docs/specs/edit_land.md`: one closure note each.
+- Not changed: `AddLandState.kt`, `EditLandState.kt`, `Land.kt`, `LandDraft.kt`, `LandRepository.kt`,
+  the storage adapters/format, `LandListScreen.kt`, `RemoveLandScreen.kt`, `PrivacyScreen.kt`,
+  `App.kt`, `ChatHomeState.kt`, `ChatConversation.kt`, `chat/`, `privacy/`, `theme/`, `androidApp/`,
+  `desktopApp/`, `shared/src/iosMain/`, `contracts/`, `backend/`, `knowledge/`, every Gradle file and
+  `init.sh`; no new module, dependency (including test-only), ViewModel, coroutine, navigation,
+  dialog, Compose UI-test harness, or logging. No visible copy or layout change.
+
+Verification (commands run from the repository root):
+
+- `python3 contracts/validate_examples.py` → "Validated 2 request and 3 response examples against
+  answer_api_contract" (exit 0).
+- `./gradlew :shared:jvmTest --rerun-tasks` → BUILD SUCCESSFUL, **21 suites / 192 tests / 0 failures**
+  (unchanged from the accepted `chat_accessibility` baseline; no test removed or renamed).
+- `./gradlew :shared:testAndroidHostTest --rerun-tasks` → BUILD SUCCESSFUL, **17 suites / 178 tests /
+  0 failures**.
+- `./gradlew :shared:compileKotlinIosSimulatorArm64` → BUILD SUCCESSFUL.
+- `./gradlew :desktopApp:build :androidApp:assembleDebug --rerun-tasks` → BUILD SUCCESSFUL (72
+  actionable tasks; `androidApp-debug.apk` 36,014,513 bytes).
+- `./init.sh --verify` → BUILD SUCCESSFUL (exit 0, 91 actionable tasks).
+- `git diff --numstat -- shared/src/commonMain/composeResources/values/strings.xml` → `1	0`.
+- `grep -rn "Color(0x" shared/src/commonMain/kotlin/com/jamarglex/manijero --include="*.kt"` → only
+  `theme/ManijeroColors.kt`; no `LocalMinimumInteractiveComponentSize`/`minimumInteractiveComponentSize`
+  in `shared/src`; the `println|Log\.|Logger|printStackTrace|NSLog` grep over `shared/src`, `androidApp/src`
+  and `desktopApp/src` → no matches; `git diff --check` → clean.
+
+Android evidence (real emulator-5554, `Medium_Phone_API_35`, 1080×2400, density 2.625; shipped debug
+APK; `adb shell settings put system font_scale 1.0`/`2.0` and `uiautomator dump`; raw dumps/screenshots
+kept in a gitignored temp path outside the repo and removed):
+
+- Group-qualified option names at 1.0 **and** 2.0, on both forms: all eight option `content-desc`
+  values are `Riego: No lo sé`, `Riego: Secano`, `Riego: Regadío`,
+  `Riego: Una parte de regadío y otra de secano`, `Producción: No lo sé`, `Producción: Convencional`,
+  `Producción: Ecológico`, `Producción: Una parte de cada uno`; each row reports
+  `checkable=true`/`checked=true` plus a `RadioButton` fake node (role). Compose intentionally reports
+  an already-selected radio as `clickable=false` (verified against the `ui-android` 1.12.1 sources) —
+  the split between the option node and the `cd='Riego: No lo sé'` node is Compose's documented
+  `emitFakeNodes` behaviour, not a defect.
+- Enlarged text at 2.0: no horizontal overflow (max text right edge 1017/1080), every node inside
+  0..1080 × 0..2400, and both forms vertically scrollable; the smallest fully-visible clickable node
+  measures 48.0dp at 1.0 and 53.3–66.7dp at 2.0 (no minimum-size override).
+- Recoverable blank-name save on **both** forms: the name field reports `focused="true"` with
+  `Escribe un nombre para el terreno.` visible and no record written; after moving focus to the
+  municipality field a **second** blank save re-focuses the name field; correcting the name wrote
+  exactly one record with the accepted confirmation and left the other lands unchanged (the add form
+  saved a new land, the edit form updated exactly one existing row).
+- TalkBack 15.0.0 is installed and enabled
+  (`enabled_accessibility_services = com.google.android.marvin.talkback/…TalkBackService`); screenshots
+  show its green accessibility-focus rect on the name error field and its hover highlight on the
+  `Producción: No lo sé` row, but no spoken utterance was captured (`adb logcat` held only TalkBack
+  `node is null` lines) — matching spec limitation R4; "announced" rests on the semantics wiring plus
+  the focused-field dump, never a heard utterance.
+
+Desktop evidence (real `./init.sh --desktop` / `:desktopApp:run`, window "Manijero"; the macOS
+accessibility tree via JXA/System Events, because host pixels are unavailable):
+
+- The add form exposes the title "Añadir terreno" (`AXStaticText`), the named fields "Nombre del
+  terreno"/"Municipio (opcional)", all eight option rows as `AXRadioButton` with the group-qualified
+  names and a `0`/`1` selected value, and the named "Guardar terreno"/"Cancelar"; the edit form shows
+  the same with prefilled values and "Guardar cambios".
+- Keyboard-only completion: Tab moved between the two text fields, each option row is its own tab
+  stop, and Space selected an option (2 Tabs + Space selected "Riego: Secano"; 3 Tabs + Space selected
+  "Producción: Ecológico"); 2 Tabs + Space on "Guardar terreno" saved the land and returned to the list
+  with "El terreno se ha guardado en este dispositivo." and the new row; Shift+Tab moved back from
+  municipality to the name field (typed "Y" landed there). Correcting the edit form by keyboard saved
+  exactly one updated record ("Los cambios se han guardado en este dispositivo.") with the other row
+  unchanged.
+- Recoverable blank-name, keyboard-only: activating "Guardar" with a blank name wrote nothing and stayed
+  on the form; the field description became "Nombre del terreno, Escribe un nombre para el terreno.";
+  typing immediately (no explicit focus) landed in the name field; after moving focus to another field
+  and re-activating Guardar the typed text again landed in the name field (a repeated attempt re-focuses),
+  and the error cleared as typing resumed.
+- Window resize: at 420pt every content block is 372 wide at x=72 with the explanation wrapped to two
+  lines and no horizontal overflow (content taller than the window, i.e. vertically scrollable); at
+  1200pt the explanation is a single line.
+
+Preview / non-colour-cue review: the name error is never colour-only — the unchanged visible message is
+always rendered (confirmed in an Android screenshot) and also appears in the Desktop AX field
+description and in the Android field's error semantics; a greyscale render of the Android 2.0 error
+screen (a temporary ImageIO converter, deleted after use) still shows the message text and the filled
+inner dot of the selected radio.
+
+Honest gaps (nothing below is claimed as passing):
+
+- The Desktop per-element focus and the heading role are not exposed by the macOS AX tree
+  (`AXFocused` stays false; the title is a plain `AXStaticText`), so the Desktop "focus moved to the
+  name field" evidence is behavioural (typed text landed in the name field) and the heading rests on the
+  Compose semantics; `uiautomator` likewise exposes neither merged nodes nor headings, so the group
+  association and heading are verified by the Compose semantics plus the exposed `content-desc`/AX nodes.
+- The TalkBack announcement is never captured as speech.
+- No Compose UI-test harness exists and the repo refuses test-only dependencies, so the accessible
+  names, `selectableGroup`, heading, focus and announcement are verified by the Android dump, the AX
+  tree, the previews and code inspection, never an automated UI test.
+- The Desktop visual focus indication could not be inspected (host screen capture and per-element
+  `AXFocused` unavailable), so the default Material indication was relied on and, per the spec's
+  verify-first instruction, no outline was added.
+- Focus moving to the name field opens the Android IME (expected and helpful for correcting, recorded
+  so it is not later mistaken for a defect); no autofocus happens on form entry.
+- The low-digital-confidence human validation (feature-list note) was **not** run — no reviewer was
+  available — and stays an outstanding manual check.

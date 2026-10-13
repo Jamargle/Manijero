@@ -161,3 +161,13 @@ Capture command output, environment limitations (especially missing Android SDK)
 - [ ] UI text and accessibility labels are resource-backed; controls work with large text, keyboard, and visible focus on Desktop.
 - [ ] Focused tests and feasible builds pass, with blocked Android checks reported honestly.
 - [ ] No unrelated feature, backend, persistence-format, cloud, or iOS-release work is included.
+
+## Follow-up status after `land_form_accessibility`
+
+- **Deferred accessibility checks done** (2026-10-13): the screen-reader and enlarged-text checks this
+  spec deferred to `land_form_accessibility` are performed there (spec
+  `docs/specs/land_form_accessibility.md`). The form title is now a `heading`, the two `No lo sé`
+  options carry group-qualified accessible names (`Riego: No lo sé` / `Producción: No lo sé`) inside a
+  `selectableGroup`, and a blank-name save announces the unchanged required-name message and returns
+  input focus to the name field. No visible copy, layout, state, persistence, or accepted behavior
+  changed.

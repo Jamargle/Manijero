@@ -7,6 +7,7 @@
     <string name="add_land_water_label">Riego</string>
     <string name="add_land_production_label">Producción</string>
     <string name="add_land_unknown">No lo sé</string>
+    <string name="add_land_choice_description">%1$s: %2$s</string>
     <string name="add_land_water_dryland">Secano</string>
     <string name="add_land_water_irrigated">Regadío</string>
     <string name="add_land_water_mixed">Una parte de regadío y otra de secano</string>
