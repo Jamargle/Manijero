@@ -44,28 +44,34 @@ import manijero.shared.generated.resources.land_list_empty
 import manijero.shared.generated.resources.land_list_load_failed
 import manijero.shared.generated.resources.land_list_municipality
 import manijero.shared.generated.resources.land_list_production
+import manijero.shared.generated.resources.land_list_remove
+import manijero.shared.generated.resources.land_list_remove_description
 import manijero.shared.generated.resources.land_list_retry
 import manijero.shared.generated.resources.land_list_water
+import manijero.shared.generated.resources.remove_land_removed
 import org.jetbrains.compose.resources.StringResource
 import org.jetbrains.compose.resources.stringResource
 
 private val ContentMaxWidth = 720.dp
 
 /** What the last successful write was, so the list confirms the right thing or nothing at all. */
-enum class LandListConfirmation { ADDED, UPDATED }
+enum class LandListConfirmation { ADDED, UPDATED, REMOVED }
 
 /**
  * List of the lands saved on this device. It renders whatever [state] it receives and reports every
- * interaction through [onAddLand], [onEditLand], [onBack], or [onRetry]; reading and persistence
- * happen in the caller. Rows stay non-clickable and show the exact saved name plus the few known
- * details, so similar lands stay distinguishable, and each row has its own visible `Editar` control
- * so correcting a land is a labelled, deliberate action.
+ * interaction through [onAddLand], [onEditLand], [onRemoveLand], [onBack], or [onRetry]; reading and
+ * persistence happen in the caller. Rows stay non-clickable and show the exact saved name plus the
+ * few known details, so similar lands stay distinguishable, and each row has its own visible
+ * `Editar` control so correcting a land is a labelled, deliberate action. Each row also has its own
+ * visible `Eliminar` control, whose accessible description names the exact saved land; selecting it
+ * opens the confirmation and writes nothing by itself.
  */
 @Composable
 fun LandListScreen(
     state: LandListState,
     onAddLand: () -> Unit,
     onEditLand: (Land) -> Unit,
+    onRemoveLand: (Land) -> Unit,
     onBack: () -> Unit,
     onRetry: () -> Unit,
     modifier: Modifier = Modifier,
@@ -102,6 +108,7 @@ fun LandListScreen(
                 val confirmationResource = when (confirmation) {
                     LandListConfirmation.ADDED -> Res.string.add_land_saved
                     LandListConfirmation.UPDATED -> Res.string.edit_land_saved
+                    LandListConfirmation.REMOVED -> Res.string.remove_land_removed
                     null -> null
                 }
                 if (confirmationResource != null) {
@@ -132,7 +139,11 @@ fun LandListScreen(
                     )
 
                     else -> state.lands.forEach { land ->
-                        LandRow(land = land, onEdit = { onEditLand(land) })
+                        LandRow(
+                            land = land,
+                            onEdit = { onEditLand(land) },
+                            onRemove = { onRemoveLand(land) },
+                        )
                     }
                 }
 
@@ -169,12 +180,17 @@ fun LandListScreen(
 
 /**
  * One saved land. The name and its details are merged into a single node so assistive technology
- * reads them together, while the `Editar` control is its own labelled button whose accessible
- * description names the exact saved land. The row card itself is not clickable: reading a row never
- * navigates.
+ * reads them together, while the `Editar` and `Eliminar` controls are their own labelled buttons
+ * whose accessible description names the exact saved land. The row card itself is not clickable:
+ * reading a row never navigates, and neither control writes anything by itself.
  */
 @Composable
-private fun LandRow(land: Land, onEdit: () -> Unit, modifier: Modifier = Modifier) {
+private fun LandRow(
+    land: Land,
+    onEdit: () -> Unit,
+    onRemove: () -> Unit,
+    modifier: Modifier = Modifier,
+) {
     Surface(
         modifier = modifier.fillMaxWidth(),
         shape = RoundedCornerShape(16.dp),
@@ -196,20 +212,10 @@ private fun LandRow(land: Land, onEdit: () -> Unit, modifier: Modifier = Modifie
                     style = MaterialTheme.typography.titleMedium,
                     color = MaterialTheme.colorScheme.onSurface,
                 )
-                land.municipality?.takeIf { it.isNotBlank() }?.let { municipality ->
-                    LandRowDetail(stringResource(Res.string.land_list_municipality, municipality))
-                }
-                LandRowDetail(
-                    stringResource(
-                        Res.string.land_list_water,
-                        stringResource(waterRegimeLabel(land.waterRegime)),
-                    ),
-                )
-                LandRowDetail(
-                    stringResource(
-                        Res.string.land_list_production,
-                        stringResource(productionMethodLabel(land.productionMethod)),
-                    ),
+                LandDetails(
+                    municipality = land.municipality,
+                    waterRegime = land.waterRegime,
+                    productionMethod = land.productionMethod,
                 )
             }
             val editDescription =
@@ -222,7 +228,51 @@ private fun LandRow(land: Land, onEdit: () -> Unit, modifier: Modifier = Modifie
             ) {
                 Text(stringResource(Res.string.land_list_edit))
             }
+            val removeDescription =
+                stringResource(Res.string.land_list_remove_description, land.name)
+            TextButton(
+                onClick = onRemove,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .semantics { contentDescription = removeDescription },
+            ) {
+                Text(stringResource(Res.string.land_list_remove))
+            }
         }
+    }
+}
+
+/**
+ * The known detail lines of one land, shared by the list row and the removal confirmation so a
+ * value reads the same in both. It renders no name, id, area, or notes: the caller shows the name
+ * itself. An absent municipality is skipped, and an `UNKNOWN` attribute still reads `No lo sé`.
+ */
+@Composable
+internal fun LandDetails(
+    municipality: String?,
+    waterRegime: WaterRegime,
+    productionMethod: ProductionMethod,
+    modifier: Modifier = Modifier,
+) {
+    Column(
+        modifier = modifier,
+        verticalArrangement = Arrangement.spacedBy(4.dp),
+    ) {
+        municipality?.takeIf { it.isNotBlank() }?.let { value ->
+            LandRowDetail(stringResource(Res.string.land_list_municipality, value))
+        }
+        LandRowDetail(
+            stringResource(
+                Res.string.land_list_water,
+                stringResource(waterRegimeLabel(waterRegime)),
+            ),
+        )
+        LandRowDetail(
+            stringResource(
+                Res.string.land_list_production,
+                stringResource(productionMethodLabel(productionMethod)),
+            ),
+        )
     }
 }
 
@@ -275,6 +325,7 @@ private fun LandListEmptyPreview() {
             state = LandListState(),
             onAddLand = {},
             onEditLand = {},
+            onRemoveLand = {},
             onBack = {},
             onRetry = {},
         )
@@ -300,6 +351,7 @@ private fun LandListTwoLandsPreview() {
             ),
             onAddLand = {},
             onEditLand = {},
+            onRemoveLand = {},
             onBack = {},
             onRetry = {},
         )
@@ -324,6 +376,7 @@ private fun LandListDuplicateNamesPreview() {
             ),
             onAddLand = {},
             onEditLand = {},
+            onRemoveLand = {},
             onBack = {},
             onRetry = {},
         )
@@ -350,6 +403,7 @@ private fun LandListManyLandsPreview() {
             ),
             onAddLand = {},
             onEditLand = {},
+            onRemoveLand = {},
             onBack = {},
             onRetry = {},
         )
@@ -374,6 +428,7 @@ private fun LandListLongTextPreview() {
             ),
             onAddLand = {},
             onEditLand = {},
+            onRemoveLand = {},
             onBack = {},
             onRetry = {},
         )
@@ -388,6 +443,7 @@ private fun LandListLoadFailurePreview() {
             state = LandListState(loadFailed = true),
             onAddLand = {},
             onEditLand = {},
+            onRemoveLand = {},
             onBack = {},
             onRetry = {},
         )
@@ -402,6 +458,7 @@ private fun LandListJustSavedPreview() {
             state = LandListState(lands = listOf(previewLand("land-1", "Los Olivos"))),
             onAddLand = {},
             onEditLand = {},
+            onRemoveLand = {},
             onBack = {},
             onRetry = {},
             confirmation = LandListConfirmation.ADDED,
@@ -417,9 +474,26 @@ private fun LandListJustUpdatedPreview() {
             state = LandListState(lands = listOf(previewLand("land-1", "Los Olivos corregido"))),
             onAddLand = {},
             onEditLand = {},
+            onRemoveLand = {},
             onBack = {},
             onRetry = {},
             confirmation = LandListConfirmation.UPDATED,
+        )
+    }
+}
+
+@Preview(name = "Land list — just removed")
+@Composable
+private fun LandListJustRemovedPreview() {
+    ManijeroTheme {
+        LandListScreen(
+            state = LandListState(lands = listOf(previewLand("land-2", "La Loma"))),
+            onAddLand = {},
+            onEditLand = {},
+            onRemoveLand = {},
+            onBack = {},
+            onRetry = {},
+            confirmation = LandListConfirmation.REMOVED,
         )
     }
 }
@@ -432,6 +506,7 @@ private fun LandListCompactPreview() {
             state = LandListState(lands = listOf(previewLand("land-1", "Los Olivos"))),
             onAddLand = {},
             onEditLand = {},
+            onRemoveLand = {},
             onBack = {},
             onRetry = {},
         )
@@ -448,6 +523,7 @@ private fun LandListWidePreview() {
             ),
             onAddLand = {},
             onEditLand = {},
+            onRemoveLand = {},
             onBack = {},
             onRetry = {},
         )
@@ -471,6 +547,7 @@ private fun LandListLargeFontPreview() {
             ),
             onAddLand = {},
             onEditLand = {},
+            onRemoveLand = {},
             onBack = {},
             onRetry = {},
         )

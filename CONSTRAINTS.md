@@ -76,3 +76,13 @@ Operational MUST/MUST NOT rules that future features have to respect on top of
   nothing). Reason: `answer_source_cards` established that marker `[n]` means `sources[n-1]` only
   for a conforming cited set, so a mismatched or non-https payload must fail closed rather than point
   at the wrong document; `chat_accessibility` and `answer_land_scope` render this transcript next.
+
+## Land removal
+
+- **MUST**: removing a land MUST delete exactly one stored record, by its local id, through
+  `LandRepository.delete`; it MUST NOT rewrite, reorder, or otherwise change any other record, MUST
+  NOT call `create`/`update` from a removal path, MUST remove nothing before an explicit confirmation
+  that names the land being removed, and MUST NOT report a removal that `delete` did not confirm (a
+  `false` result or a thrown failure is never a removal). Reason: `remove_land` established that a
+  person's other lands and their local-only store must survive a removal untouched, and that a
+  permanent local action must never be claimed when it did not happen.
