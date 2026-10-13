@@ -102,6 +102,26 @@ fun askRequestFor(question: String, lands: List<Land>): AskRequest {
 }
 
 /**
+ * The request for a land choice: the **exact original wording** with `mode: selected` and only the
+ * chosen lands, in the order they were passed, carrying only the attributes the question needs. It is
+ * never called with an empty list (the caller degrades to the accepted [generalAskRequest] when a
+ * chosen land is no longer stored), it never merges, renames, or reorders a land, and it never invents
+ * an id or a value. A `selected` request tells the service the person has already chosen, so it is
+ * never asked to clarify again.
+ */
+fun selectedAskRequest(question: String, selected: List<Land>): AskRequest {
+    require(selected.isNotEmpty()) { "selectedAskRequest requires at least one chosen land" }
+    val needs = landContextNeeds(question)
+    return AskRequest(
+        question = question,
+        land_context = LandContext(
+            mode = LandContextMode.selected,
+            lands = selected.map { land -> minimalLandContext(land, needs) },
+        ),
+    )
+}
+
+/**
  * Lowercase plus a fixed, explicit accent table, so `REGADÍO`, `regadio`, and `Regadío` fold to the
  * same token and no locale-dependent case mapping is needed.
  */

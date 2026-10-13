@@ -6,6 +6,8 @@ import com.jamarglex.manijero.chat.AskResponse
 import com.jamarglex.manijero.chat.MAX_QUESTION_LENGTH
 import com.jamarglex.manijero.chat.RequestFailure
 import com.jamarglex.manijero.chat.askRequestFor
+import com.jamarglex.manijero.chat.generalAskRequest
+import com.jamarglex.manijero.chat.selectedAskRequest
 import com.jamarglex.manijero.lands.Land
 
 /**
@@ -25,6 +27,7 @@ data class ChatHomeState(
     val landIdsToChoose: List<String> = emptyList(),
     val failure: RequestFailure? = null,
     val failedQuestion: String? = null,
+    val clarificationQuestion: String? = null,
 ) {
     val canAsk: Boolean
         get() = phase == SubmissionPhase.IDLE &&
@@ -70,10 +73,20 @@ sealed interface ChatHomeAction {
     data class ResponseReceived(val response: AskResponse) : ChatHomeAction
     data class RequestFailed(val failure: RequestFailure) : ChatHomeAction
     data object RetryClicked : ChatHomeAction
+
+    /**
+     * The person chose one or more of the lands offered by a clarification. The original question is
+     * resubmitted with `mode: selected` and no second user message (exactly the [RetryClicked]
+     * pattern).
+     */
+    data class LandChoiceSubmitted(val selectedLandIds: List<String>) : ChatHomeAction
 }
 
 sealed interface ChatEffect {
     data class Submit(val question: String) : ChatEffect
+
+    /** The chosen lands to resubmit the retained question over, without a second user message. */
+    data class SubmitSelected(val question: String, val landIds: List<String>) : ChatEffect
 }
 
 data class ChatReduction(val state: ChatHomeState, val effect: ChatEffect? = null)
@@ -122,6 +135,8 @@ fun ChatHomeState.reduce(action: ChatHomeAction): ChatReduction = when (action) 
                     landIdsToChoose = emptyList(),
                     failure = null,
                     failedQuestion = null,
+                    // A fresh question is not a clarification: drop any retained wording.
+                    clarificationQuestion = null,
                 ),
                 effect = ChatEffect.Submit(originalQuestion),
             )
@@ -142,6 +157,10 @@ fun ChatHomeState.reduce(action: ChatHomeAction): ChatReduction = when (action) 
                     landIdsToChoose = response.land_ids_to_choose,
                     failure = null,
                     failedQuestion = null,
+                    // The clarification response has an empty answer, so `submittedQuestion` is about
+                    // to be cleared: retain the exact original wording for the land choice here.
+                    clarificationQuestion = submittedQuestion
+                        .takeIf { response.status == AnswerStatus.needs_land_clarification },
                 ),
             )
         }
@@ -185,13 +204,47 @@ fun ChatHomeState.reduce(action: ChatHomeAction): ChatReduction = when (action) 
             )
         }
     }
+
+    is ChatHomeAction.LandChoiceSubmitted -> {
+        val wording = clarificationQuestion
+        // Actionable only while a clarification is pending, idle, with a retained question and at
+        // least one chosen land. messages stay untouched: a choice never appends a second user
+        // message, reusing the exact original wording.
+        if (phase != SubmissionPhase.IDLE ||
+            !awaitingLandClarification ||
+            wording == null ||
+            action.selectedLandIds.isEmpty()
+        ) {
+            ChatReduction(this)
+        } else {
+            ChatReduction(
+                state = copy(
+                    question = "",
+                    phase = SubmissionPhase.SUBMITTING,
+                    submittedQuestion = wording,
+                    failure = null,
+                    failedQuestion = null,
+                    // messages untouched, exactly like RetryClicked.
+                ),
+                effect = ChatEffect.SubmitSelected(wording, action.selectedLandIds),
+            )
+        }
+    }
 }
 
 /**
  * Maps one submission effect to the request to send. The lands are passed in explicitly rather than
  * read here, so the reducer stays pure and a call site cannot forget the current land list: the
  * caller supplies the list it just read (see `ChatConversation.submit`).
+ *
+ * [ChatEffect.SubmitSelected] keeps only the chosen ids that still exist in the freshly read list
+ * (repository order), ignoring a returned id that is not stored locally; if none remain, it degrades
+ * to the accepted `general` request instead of inventing or resending a removed land.
  */
 fun ChatEffect.request(lands: List<Land>) = when (this) {
     is ChatEffect.Submit -> askRequestFor(question, lands)
+    is ChatEffect.SubmitSelected -> {
+        val chosen = lands.filter { land -> land.id in landIds }
+        if (chosen.isEmpty()) generalAskRequest(question) else selectedAskRequest(question, chosen)
+    }
 }

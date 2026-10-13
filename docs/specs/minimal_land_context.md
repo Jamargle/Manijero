@@ -44,6 +44,11 @@ attributes the question actually needs, and **never** a name, free-text note, ar
 - An "active/archived" flag, land detail screens, search/sort/dedupe, telemetry, cloud, accounts,
   or a new module, dependency, ViewModel, or navigation framework.
 
+> **Follow-up (`land_clarification`, implemented):** land selection and
+> `needs_land_clarification` handling are now owned by `docs/specs/land_clarification.md`. The
+> `all_active` builder here is unchanged; a `selected` resubmission reuses `minimalLandContext` and
+> `landContextNeeds`, so only the needed attributes are still sent.
+
 ## Job story
 
 When I ask a question that depends on my lands, I want the app to add the lands I saved and the

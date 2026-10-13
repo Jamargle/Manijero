@@ -9,10 +9,12 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.selection.toggleable
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.Checkbox
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
@@ -20,15 +22,18 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.semantics.LiveRegionMode
+import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.liveRegion
 import androidx.compose.ui.semantics.semantics
@@ -55,15 +60,19 @@ import com.jamarglex.manijero.lands.EditLandAction
 import com.jamarglex.manijero.lands.EditLandFailure
 import com.jamarglex.manijero.lands.EditLandScreen
 import com.jamarglex.manijero.lands.EditLandState
+import com.jamarglex.manijero.lands.Land
+import com.jamarglex.manijero.lands.LandDetails
 import com.jamarglex.manijero.lands.LandListAction
 import com.jamarglex.manijero.lands.LandListConfirmation
 import com.jamarglex.manijero.lands.LandListScreen
 import com.jamarglex.manijero.lands.LandListState
 import com.jamarglex.manijero.lands.LandRepository
+import com.jamarglex.manijero.lands.ProductionMethod
 import com.jamarglex.manijero.lands.RemoveLandAction
 import com.jamarglex.manijero.lands.RemoveLandFailure
 import com.jamarglex.manijero.lands.RemoveLandScreen
 import com.jamarglex.manijero.lands.RemoveLandState
+import com.jamarglex.manijero.lands.WaterRegime
 import com.jamarglex.manijero.lands.reduce
 import com.jamarglex.manijero.lands.toDraftOrNull
 import com.jamarglex.manijero.lands.toEditLandState
@@ -74,11 +83,14 @@ import org.jetbrains.compose.resources.stringResource
 import manijero.shared.generated.resources.Res
 import manijero.shared.generated.resources.chat_answer_state_abstained
 import manijero.shared.generated.resources.chat_home_ask
+import manijero.shared.generated.resources.chat_home_clarification_continue
+import manijero.shared.generated.resources.chat_home_clarification_description
+import manijero.shared.generated.resources.chat_home_clarification_no_lands
+import manijero.shared.generated.resources.chat_home_clarification_title
 import manijero.shared.generated.resources.chat_home_description
 import manijero.shared.generated.resources.chat_home_failure_service
 import manijero.shared.generated.resources.chat_home_failure_unreachable
 import manijero.shared.generated.resources.chat_home_lands
-import manijero.shared.generated.resources.chat_home_needs_land_clarification
 import manijero.shared.generated.resources.chat_home_question_hint
 import manijero.shared.generated.resources.chat_home_question_label
 import manijero.shared.generated.resources.chat_home_question_too_long
@@ -178,6 +190,20 @@ fun App(
     var removeLandState by remember { mutableStateOf<RemoveLandState?>(null) }
     var landConfirmation by remember { mutableStateOf<LandListConfirmation?>(null) }
 
+    // The clarification chooser reads the local lands exactly once when a clarification appears, and
+    // clears them otherwise. The read is guarded and never logged: a failure shows the fallback
+    // notice instead of a fabricated land. The chooser filters this list to the ids the service
+    // returned, so a land that is not stored locally can never be offered.
+    var clarificationLands by remember { mutableStateOf<List<Land>>(emptyList()) }
+    val awaitingLandClarification = conversation.state.awaitingLandClarification
+    LaunchedEffect(awaitingLandClarification) {
+        clarificationLands = if (awaitingLandClarification) {
+            runCatching { landRepository?.list().orEmpty() }.getOrElse { emptyList() }
+        } else {
+            emptyList()
+        }
+    }
+
     // The single place that reads local lands: on entering the list, on retry, and after a save or
     // an edit. The result is folded into a LandListAction so a failed read never looks empty and
     // stale rows never survive, and the throwable is neither logged nor shown. It is never invoked
@@ -201,6 +227,7 @@ fun App(
             AppDestination.Chat -> ChatHomeScreen(
                 state = conversation.state,
                 onAction = { action -> conversation.onAction(action) },
+                clarificationLands = clarificationLands,
                 onLandsClick = if (landRepository == null) {
                     null
                 } else {
@@ -354,6 +381,7 @@ internal fun ChatHomeScreen(
     state: ChatHomeState,
     onAction: (ChatHomeAction) -> Unit,
     onLandsClick: (() -> Unit)?,
+    clarificationLands: List<Land> = emptyList(),
     modifier: Modifier = Modifier,
 ) {
     val suggestedQuestionResources = listOf(
@@ -419,8 +447,10 @@ internal fun ChatHomeScreen(
                 }
 
                 if (state.awaitingLandClarification) {
-                    ChatNoticeBubble(
-                        text = stringResource(Res.string.chat_home_needs_land_clarification),
+                    LandClarificationChooser(
+                        lands = clarificationLands.filter { land -> land.id in state.landIdsToChoose },
+                        landIdsToChoose = state.landIdsToChoose,
+                        onAction = onAction,
                     )
                 }
             }
@@ -728,6 +758,104 @@ private fun ChatNoticeBubble(
         containerColor = MaterialTheme.colorScheme.surface,
         liveRegionMode = liveRegionMode,
     )
+}
+
+/**
+ * The land chooser shown while a clarification is pending. It lists each offered land by its saved
+ * name and known attributes (reused from the accepted land strings) with a multi-select checkbox, and
+ * one primary `Continuar` enabled only once at least one land is selected. Nothing is renamed,
+ * reordered, or invented: the list is already filtered to the service's opaque ids and the local
+ * store's order. When no saved land matches (or the local read failed), a short plain notice is shown
+ * and no control is offered, so a land can never be fabricated.
+ *
+ * Each row is one merged-semantics checkbox control (label + details + checked state, never colour
+ * alone) and the whole control meets the large-target guidance.
+ */
+@Composable
+private fun LandClarificationChooser(
+    lands: List<Land>,
+    landIdsToChoose: List<String>,
+    onAction: (ChatHomeAction) -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    var selectedIds by remember(landIdsToChoose) { mutableStateOf(emptySet<String>()) }
+    Surface(
+        modifier = modifier
+            .fillMaxWidth()
+            .widthIn(max = ContentMaxWidth),
+        shape = RoundedCornerShape(16.dp),
+        color = MaterialTheme.colorScheme.surface,
+        border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant),
+    ) {
+        Column(
+            modifier = Modifier.padding(horizontal = 16.dp, vertical = 12.dp),
+            verticalArrangement = Arrangement.spacedBy(12.dp),
+        ) {
+            Text(
+                text = stringResource(Res.string.chat_home_clarification_title),
+                style = MaterialTheme.typography.titleMedium,
+                color = MaterialTheme.colorScheme.onSurface,
+            )
+            Text(
+                text = stringResource(Res.string.chat_home_clarification_description),
+                style = MaterialTheme.typography.bodyLarge,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
+            if (lands.isEmpty()) {
+                Text(
+                    text = stringResource(Res.string.chat_home_clarification_no_lands),
+                    style = MaterialTheme.typography.bodyLarge,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
+            } else {
+                lands.forEach { land ->
+                    val checked = land.id in selectedIds
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .toggleable(
+                                value = checked,
+                                role = Role.Checkbox,
+                                onValueChange = { isChecked ->
+                                    selectedIds = if (isChecked) {
+                                        selectedIds + land.id
+                                    } else {
+                                        selectedIds - land.id
+                                    }
+                                },
+                            )
+                            .padding(vertical = 12.dp),
+                        verticalAlignment = Alignment.CenterVertically,
+                    ) {
+                        Checkbox(checked = checked, onCheckedChange = null)
+                        Column(
+                            modifier = Modifier.padding(start = 12.dp),
+                            verticalArrangement = Arrangement.spacedBy(4.dp),
+                        ) {
+                            Text(
+                                text = land.name,
+                                style = MaterialTheme.typography.bodyLarge,
+                                color = MaterialTheme.colorScheme.onSurface,
+                            )
+                            LandDetails(
+                                municipality = land.municipality,
+                                waterRegime = land.waterRegime,
+                                productionMethod = land.productionMethod,
+                            )
+                        }
+                    }
+                }
+                Button(
+                    onClick = {
+                        onAction(ChatHomeAction.LandChoiceSubmitted(selectedIds.toList()))
+                    },
+                    enabled = selectedIds.isNotEmpty(),
+                ) {
+                    Text(stringResource(Res.string.chat_home_clarification_continue))
+                }
+            }
+        }
+    }
 }
 
 /**
@@ -1058,6 +1186,85 @@ private fun ChatHomeFailureNarrowLargeTextPreview() {
             ),
             onAction = {},
             onLandsClick = {},
+        )
+    }
+}
+
+// Preview-only sample lands for the chooser: the saved-name title plus known attributes, nothing a
+// real store would not hold. The ids are opaque local ids and are never shown.
+private fun clarificationLand(
+    id: String,
+    name: String,
+    municipality: String? = null,
+    waterRegime: WaterRegime = WaterRegime.UNKNOWN,
+    productionMethod: ProductionMethod = ProductionMethod.UNKNOWN,
+) = Land(
+    id = id,
+    name = name,
+    municipality = municipality,
+    waterRegime = waterRegime,
+    productionMethod = productionMethod,
+    createdAtEpochMillis = 0,
+    updatedAtEpochMillis = 0,
+)
+
+@Preview(name = "Chat home clarification chooser, two lands")
+@Composable
+private fun ChatHomeClarificationTwoLandsPreview() {
+    ManijeroTheme {
+        ChatHomeScreen(
+            state = ChatHomeState(
+                lastResponseStatus = AnswerStatus.needs_land_clarification,
+                landIdsToChoose = listOf("land-1", "land-2"),
+            ),
+            onAction = {},
+            onLandsClick = {},
+            clarificationLands = listOf(
+                clarificationLand("land-1", "Los Olivos", waterRegime = WaterRegime.IRRIGATED),
+                clarificationLand("land-2", "La Loma", waterRegime = WaterRegime.DRYLAND),
+            ),
+        )
+    }
+}
+
+@Preview(name = "Chat home clarification chooser, one land")
+@Composable
+private fun ChatHomeClarificationOneLandPreview() {
+    ManijeroTheme {
+        ChatHomeScreen(
+            state = ChatHomeState(
+                lastResponseStatus = AnswerStatus.needs_land_clarification,
+                landIdsToChoose = listOf("land-1"),
+            ),
+            onAction = {},
+            onLandsClick = {},
+            clarificationLands = listOf(
+                clarificationLand(
+                    id = "land-1",
+                    name = "Los Olivos",
+                    municipality = "Martos",
+                    productionMethod = ProductionMethod.ORGANIC,
+                ),
+            ),
+        )
+    }
+}
+
+@Preview(name = "Chat home clarification chooser narrow, large text", widthDp = 320, fontScale = 2f)
+@Composable
+private fun ChatHomeClarificationNarrowLargeTextPreview() {
+    ManijeroTheme {
+        ChatHomeScreen(
+            state = ChatHomeState(
+                lastResponseStatus = AnswerStatus.needs_land_clarification,
+                landIdsToChoose = listOf("land-1", "land-2"),
+            ),
+            onAction = {},
+            onLandsClick = {},
+            clarificationLands = listOf(
+                clarificationLand("land-1", "Los Olivos", waterRegime = WaterRegime.IRRIGATED),
+                clarificationLand("land-2", "La Loma", waterRegime = WaterRegime.DRYLAND),
+            ),
         )
     }
 }

@@ -6,9 +6,12 @@ import com.jamarglex.manijero.chat.AskResponse
 import com.jamarglex.manijero.chat.LandContextMode
 import com.jamarglex.manijero.chat.MAX_QUESTION_LENGTH
 import com.jamarglex.manijero.chat.RequestFailure
+import com.jamarglex.manijero.lands.Land
+import com.jamarglex.manijero.lands.WaterRegime as LocalWaterRegime
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFalse
+import kotlin.test.assertNotNull
 import kotlin.test.assertNull
 import kotlin.test.assertTrue
 
@@ -508,5 +511,123 @@ class ChatHomeStateTest {
 
         assertEquals("¿Qué necesito preparar para la solicitud única?", state.question)
         assertNull(state.submittedQuestion)
+    }
+
+    private fun land(id: String, name: String = "Terreno", water: LocalWaterRegime = LocalWaterRegime.UNKNOWN) =
+        Land(
+            id = id,
+            name = name,
+            waterRegime = water,
+            createdAtEpochMillis = 1L,
+            updatedAtEpochMillis = 1L,
+        )
+
+    private fun clarified(
+        landIds: List<String> = listOf("land-1", "land-2"),
+    ) = submitting().reduce(
+        ChatHomeAction.ResponseReceived(
+            response(status = AnswerStatus.needs_land_clarification, answer = "", landIds = landIds),
+        ),
+    ).state
+
+    @Test
+    fun `a clarification retains the exact original wording for the choice`() {
+        val state = clarified()
+
+        assertEquals(originalQuestion, state.clarificationQuestion)
+        assertTrue(state.awaitingLandClarification)
+        assertEquals(listOf("land-1", "land-2"), state.landIdsToChoose)
+    }
+
+    @Test
+    fun `a land choice resubmits the retained wording with no second user message`() {
+        val reduction = clarified().reduce(ChatHomeAction.LandChoiceSubmitted(listOf("land-1")))
+
+        assertEquals(SubmissionPhase.SUBMITTING, reduction.state.phase)
+        assertEquals("", reduction.state.question)
+        assertEquals(originalQuestion, reduction.state.submittedQuestion)
+        // The transcript still holds exactly the one original user message.
+        assertEquals(1, reduction.state.messages.size)
+        assertEquals(ChatMessage(Speaker.USER, originalQuestion), reduction.state.messages.single())
+
+        val effect = reduction.effect as ChatEffect.SubmitSelected
+        assertEquals(originalQuestion, effect.question)
+        assertEquals(listOf("land-1"), effect.landIds)
+    }
+
+    @Test
+    fun `a land choice is not actionable without a pending clarification or a chosen land`() {
+        // No clarification has been received: the action changes nothing and sends nothing.
+        val duringSubmit = submitting().reduce(ChatHomeAction.LandChoiceSubmitted(listOf("land-1")))
+        assertNull(duringSubmit.effect)
+        assertEquals(1, duringSubmit.state.messages.size)
+
+        // A clarification without the retained wording cannot resubmit anything.
+        val noWording = ChatHomeState(
+            lastResponseStatus = AnswerStatus.needs_land_clarification,
+            landIdsToChoose = listOf("land-1"),
+        ).reduce(ChatHomeAction.LandChoiceSubmitted(listOf("land-1")))
+        assertNull(noWording.effect)
+
+        // An empty selection never submits.
+        val emptySelection = clarified().reduce(ChatHomeAction.LandChoiceSubmitted(emptyList()))
+        assertNull(emptySelection.effect)
+        assertEquals(SubmissionPhase.IDLE, emptySelection.state.phase)
+
+        // A second choice while the resubmission is in flight is ignored.
+        val inFlight = clarified().reduce(ChatHomeAction.LandChoiceSubmitted(listOf("land-1"))).state
+        assertNull(inFlight.reduce(ChatHomeAction.LandChoiceSubmitted(listOf("land-2"))).effect)
+    }
+
+    @Test
+    fun `a fresh question clears the retained clarification wording`() {
+        val typedAgain = clarified()
+            .reduce(ChatHomeAction.QuestionChanged("¿Y en el otro?"))
+            .state
+        val resubmitted = typedAgain.reduce(ChatHomeAction.AskClicked).state
+
+        assertNull(resubmitted.clarificationQuestion)
+        assertNull(resubmitted.lastResponseStatus)
+        assertTrue(resubmitted.landIdsToChoose.isEmpty())
+    }
+
+    @Test
+    fun `a selected effect keeps only the chosen stored lands in repository order`() {
+        val lands = listOf(
+            land("land-1", name = "Los Olivos", water = LocalWaterRegime.IRRIGATED),
+            land("land-2", name = "La Loma", water = LocalWaterRegime.DRYLAND),
+            land("land-3", name = "El Cerro", water = LocalWaterRegime.IRRIGATED),
+        )
+
+        val request = ChatEffect.SubmitSelected("¿Puedo regar hoy?", listOf("land-3", "land-1")).request(lands)
+
+        assertEquals("¿Puedo regar hoy?", request.question)
+        assertEquals(LandContextMode.selected, request.land_context.mode)
+        // Repository order, not selection order; the un-chosen land is never sent.
+        assertEquals(listOf("land-1", "land-3"), request.land_context.lands.map { it.id })
+        // Only the needed attribute is carried; no name, municipality, or production method appears.
+        request.land_context.lands.forEach { chosen ->
+            assertNotNull(chosen.water_regime)
+            assertNull(chosen.municipality)
+            assertNull(chosen.production_method)
+        }
+    }
+
+    @Test
+    fun `a selected effect ignores an id that is not stored locally`() {
+        val request = ChatEffect.SubmitSelected("¿Puedo regar hoy?", listOf("land-1", "ghost"))
+            .request(listOf(land("land-1")))
+
+        assertEquals(listOf("land-1"), request.land_context.lands.map { it.id })
+        assertEquals(LandContextMode.selected, request.land_context.mode)
+    }
+
+    @Test
+    fun `a selected effect with no stored chosen land degrades to the accepted general request`() {
+        val request = ChatEffect.SubmitSelected("¿Puedo regar hoy?", listOf("ghost"))
+            .request(listOf(land("land-1")))
+
+        assertEquals(LandContextMode.general, request.land_context.mode)
+        assertTrue(request.land_context.lands.isEmpty())
     }
 }

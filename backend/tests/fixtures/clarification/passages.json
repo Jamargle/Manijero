@@ -1,0 +1,29 @@
+{
+  "schema_version": "passage-set-v1",
+  "passages": [
+    {
+      "id": "fixture-clar-riego-regadio-1",
+      "source_id": "fixture_clar_boe",
+      "location": "Art. 1 (fixture, sintético)",
+      "text": "Fragmento sintético de prueba: describe el riego de apoyo en una parcela de regadío de ejemplo y no fija dotaciones ni fechas reales.",
+      "applicability": {
+        "water_regime": "irrigated"
+      }
+    },
+    {
+      "id": "fixture-clar-riego-secano-1",
+      "source_id": "fixture_clar_boe",
+      "location": "Art. 2 (fixture, sintético)",
+      "text": "Fragmento sintético de prueba: describe el riego en una parcela de secano de ejemplo y no fija dotaciones ni fechas reales.",
+      "applicability": {
+        "water_regime": "dryland"
+      }
+    },
+    {
+      "id": "fixture-clar-solicitud-1",
+      "source_id": "fixture_clar_junta",
+      "location": "Art. 3 (fixture, sintético)",
+      "text": "Fragmento sintético de prueba sobre la solicitud anual de ejemplo: se presenta una vez al año y no fija ningún plazo ni cuantía real."
+    }
+  ]
+}

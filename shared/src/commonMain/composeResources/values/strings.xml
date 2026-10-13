@@ -53,7 +53,10 @@
     <string name="chat_answer_state_abstained">Sin respuesta segura</string>
     <string name="chat_home_working">Estoy preparando la respuesta…</string>
     <string name="chat_home_question_too_long">Tu pregunta es más larga de lo que puedo enviar. El máximo son 2.000 caracteres. No cambiaré tus palabras: acórtala tú y vuelve a intentarlo.</string>
-    <string name="chat_home_needs_land_clarification">Todavía no puedo responder: necesito saber a qué terreno te refieres. Poder elegir el terreno llegará más adelante.</string>
+    <string name="chat_home_clarification_title">Elige el terreno de tu pregunta</string>
+    <string name="chat_home_clarification_description">Tus terrenos se diferencian en esta pregunta, así que necesito saber a cuál te refieres. Puedes elegir uno o varios.</string>
+    <string name="chat_home_clarification_continue">Continuar</string>
+    <string name="chat_home_clarification_no_lands">No puedo mostrar tus terrenos ahora mismo. Inténtalo de nuevo dentro de un momento o revisa tus terrenos guardados.</string>
     <string name="chat_home_failure_unreachable">No se ha podido conectar con el servicio, así que todavía no tengo tu respuesta. Comprueba tu conexión e inténtalo otra vez.</string>
     <string name="chat_home_failure_service">El servicio no está disponible en este momento, así que todavía no tengo tu respuesta. Inténtalo otra vez dentro de un momento.</string>
     <string name="chat_home_retry">Reintentar</string>

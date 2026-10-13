@@ -1,0 +1,33 @@
+{
+  "schema_version": "source-catalog-v1",
+  "sources": [
+    {
+      "id": "fixture_clar_boe",
+      "title": "Documento sintético de prueba sobre riego y solicitudes (fixture; no es una norma real)",
+      "issuing_body": "BOE",
+      "original_url": "https://www.boe.es/buscar/doc.php?id=DOC-FIXTURE-CLAR-0001",
+      "published_on": "2026-02-20",
+      "downloaded_on": "2026-09-29",
+      "verified_on": "2026-10-04",
+      "content_sha256": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+      "review_status": "approved",
+      "reviewed_by": "fixture reviewer (synthetic, not a real approval)",
+      "reviewed_on": "2026-10-05",
+      "lifecycle_status": "current"
+    },
+    {
+      "id": "fixture_clar_junta",
+      "title": "Documento sintético de prueba sobre la solicitud anual (fixture; no es una norma real)",
+      "issuing_body": "Junta de Andalucía",
+      "original_url": "https://www.juntadeandalucia.es/boja/2026/00/FIXTURE-CLAR-0002.pdf",
+      "published_on": "2026-03-15",
+      "downloaded_on": "2026-09-28",
+      "verified_on": "2026-10-02",
+      "content_sha256": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+      "review_status": "approved",
+      "reviewed_by": "fixture reviewer (synthetic, not a real approval)",
+      "reviewed_on": "2026-10-03",
+      "lifecycle_status": "current"
+    }
+  ]
+}

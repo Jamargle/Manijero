@@ -131,6 +131,49 @@ of `--as-of` abstains as `stale_evidence` for every question; a malformed passag
 set, an unknown `source_id`, or an unreadable file stays a hard error (exit `2`).
 `/health` remains the only route, and no model provider is configured.
 
+## Offline land clarification decisions (no route yet)
+
+`app/clarification.py` makes the accepted `needs_land_clarification` response actually happen. It
+composes the accepted modules unchanged (`app/retrieval.py`, `app/abstention.py`,
+`app/generation.py`): it never reads a catalog or a passage file itself, never calls a model or the
+network, and never filters by applicability anywhere else.
+
+When the question depends on a detail the supplied lands differ on, the person is asked which land
+(or lands) the question is about instead of the service guessing one arbitrarily. Only the opaque
+local ids are returned on the wire; the client owns the names and collects the selection, so no
+name, note, area, or timestamp leaves the device.
+
+- A clarification is offered **only** for `mode: all_active` with **two or more** lands. `general`,
+  a single land, and a `selected` request (the person has already chosen) delegate to the accepted
+  `answer_or_abstain`, so a `selected` request is never asked to clarify again.
+- The only discriminating dimensions are `water_regime` and `production_method` (the two a request
+  can carry); `crop` is not a request field, so a `crop` restriction applies to every land and never
+  discriminates. Detection is conservative and lexical, in the citation window (the first `max_claims`
+  candidates, matching `abstention`).
+- An omitted, blank, or `unknown` land attribute is compatible with every candidate and never
+  excludes one; only a known value that disagrees with a candidate's declared applicability excludes
+  that candidate, and no value is ever inferred.
+- A clarification payload is exactly the accepted `AskResponse` keys with
+  `status: "needs_land_clarification"`, `answer: ""`, `sources: []`, `land_scope: "selected"`, and a
+  non-empty, unique list of the request's own land ids. `contracts/` is untouched.
+
+Run the report-only tool against the synthetic fixtures:
+
+```sh
+python3 backend/scripts/evaluate_clarification.py \
+  --catalog backend/tests/fixtures/clarification/catalog.json \
+  --passages backend/tests/fixtures/clarification/passages.json \
+  --eval backend/tests/fixtures/clarification/eval_questions.jsonl \
+  --as-of 2026-10-13 --k 5
+```
+
+It prints each question's outcome, the chosen land ids for a clarification, and the per-outcome
+counts (`--json` for machine-readable output). Clarification invariants (empty answer, no sources, a
+non-empty list drawn from the request's own land ids) are **enforced** (exit `1`); outcome coverage is
+not unless `--fail-on-miss` is passed. A malformed passage set, an unknown `source_id`, or an
+unreadable file stays a hard error (exit `2`). `/health` remains the only route, and no model
+provider is configured.
+
 Tests:
 
 ```sh

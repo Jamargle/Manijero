@@ -101,3 +101,24 @@ Operational MUST/MUST NOT rules that future features have to respect on top of
   details never leave it with a question, that omission in the payload means "not needed" and never
   "invented", and that the current lands must be re-read at submit and retry time so an added,
   edited, or removed land is reflected without exposing anything new.
+
+## Land clarification
+
+- **MUST**: a land clarification (`needs_land_clarification`) MUST be decided by the service — never by
+  the client — and offered only when the request is `mode: all_active` with two or more lands whose
+  known attributes disagree with a retrieved candidate's `applicability`; `general`, a single land, and
+  a `selected` request MUST delegate to the accepted answer/abstention path and MUST never be asked to
+  clarify again (a `selected` request is a person who has already chosen). A clarification payload MUST
+  be exactly the accepted `AskResponse` keys with `answer: ""`, `sources: []`, and a non-empty unique
+  list of the request's own opaque land ids; it MUST NOT carry a passage, excerpt, figure, date, or a
+  `crop`-based distinction (the request has no crop field), and an omitted/`unknown` land attribute
+  MUST never exclude a candidate or be given an invented value. The client MUST resolve `land_ids_to_choose`
+  against the local list, show the lands' **saved names and known attributes** (never invent, rename, or
+  reorder a land; ignore a returned id it does not store) and, on the person's choice, resubmit the
+  **exact original wording** as `mode: selected` over only the chosen local ids with only the needed
+  attributes (a chosen land no longer stored degrades to the accepted `general` request) while appending
+  **no second user message**. Reason: `land_clarification` established that the service alone knows the
+  retrieved source applicability (so the trigger cannot live in the client), that a person must never be
+  asked to choose when only one land exists or after they already chose, and that the whole point of the
+  feature — the assistant asking instead of guessing one land — is lost if the client fabricates a land,
+  loses the person's wording, or dresses the question up as a new one.

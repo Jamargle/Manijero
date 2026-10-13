@@ -428,4 +428,96 @@ class ChatConversationTest {
         assertEquals(1, conversation.state.messages.count { it.speaker == Speaker.ASSISTANT })
         assertNull(conversation.state.failure)
     }
+
+    @Test
+    fun `a clarification resubmits the exact wording as a selected request with only the chosen land`() = runTest {
+        val lands = listOf(
+            land(id = "land-1", name = "Los Olivos", waterRegime = LocalWaterRegime.IRRIGATED),
+            land(id = "land-2", name = "La Loma", waterRegime = LocalWaterRegime.DRYLAND),
+        )
+        val requests = mutableListOf<AskRequest>()
+        val service = object : AnswerService {
+            override suspend fun ask(request: AskRequest): AskResponse {
+                requests += request
+                return if (requests.size == 1) {
+                    AskResponse(
+                        status = AnswerStatus.needs_land_clarification,
+                        answer = "",
+                        sources = emptyList(),
+                        land_scope = LandContextMode.selected,
+                        land_ids_to_choose = listOf("land-1", "land-2"),
+                    )
+                } else {
+                    response("Respuesta para el terreno elegido.")
+                }
+            }
+        }
+        val conversation = ChatConversation(service, this, landsProvider = { lands })
+
+        conversation.onAction(ChatHomeAction.QuestionChanged(originalQuestion))
+        conversation.onAction(ChatHomeAction.AskClicked)
+        advanceUntilIdle()
+
+        // The first request carries every land and asks the service to choose; no answer is invented.
+        assertEquals(1, requests.size)
+        assertEquals(LandContextMode.all_active, requests.single().land_context.mode)
+        assertTrue(conversation.state.awaitingLandClarification)
+        assertEquals(listOf("land-1", "land-2"), conversation.state.landIdsToChoose)
+        assertEquals(originalQuestion, conversation.state.clarificationQuestion)
+        assertEquals(1, conversation.state.messages.count { it.speaker == Speaker.USER })
+        assertEquals(0, conversation.state.messages.count { it.speaker == Speaker.ASSISTANT })
+
+        conversation.onAction(ChatHomeAction.LandChoiceSubmitted(listOf("land-1")))
+        advanceUntilIdle()
+
+        assertEquals(2, requests.size)
+        val selected = requests.last()
+        assertEquals(originalQuestion, selected.question)
+        assertEquals(LandContextMode.selected, selected.land_context.mode)
+        assertEquals(listOf("land-1"), selected.land_context.lands.map { it.id })
+        assertEquals(WaterRegime.irrigated, selected.land_context.lands.single().water_regime)
+        assertNull(selected.land_context.lands.single().production_method)
+        // No second user message: the transcript keeps exactly the original entry plus one answer.
+        assertEquals(1, conversation.state.messages.count { it.speaker == Speaker.USER })
+        assertEquals("Respuesta para el terreno elegido.", conversation.state.messages.last().text)
+        assertEquals(SubmissionPhase.IDLE, conversation.state.phase)
+    }
+
+    @Test
+    fun `a land choice for a land removed meanwhile degrades to the accepted general request`() = runTest {
+        var current = listOf(land("land-1", name = "Los Olivos"), land("land-2", name = "La Loma"))
+        val requests = mutableListOf<AskRequest>()
+        val service = object : AnswerService {
+            override suspend fun ask(request: AskRequest): AskResponse {
+                requests += request
+                return if (requests.size == 1) {
+                    AskResponse(
+                        status = AnswerStatus.needs_land_clarification,
+                        answer = "",
+                        sources = emptyList(),
+                        land_scope = LandContextMode.selected,
+                        land_ids_to_choose = listOf("land-1", "land-2"),
+                    )
+                } else {
+                    response("Respuesta única.")
+                }
+            }
+        }
+        val conversation = ChatConversation(service, this, landsProvider = { current })
+
+        conversation.onAction(ChatHomeAction.QuestionChanged(originalQuestion))
+        conversation.onAction(ChatHomeAction.AskClicked)
+        advanceUntilIdle()
+
+        // The chosen land is removed before the person confirms: the wording is resent as general.
+        current = listOf(land("land-1", name = "Los Olivos"))
+        conversation.onAction(ChatHomeAction.LandChoiceSubmitted(listOf("land-2")))
+        advanceUntilIdle()
+
+        assertEquals(2, requests.size)
+        val resubmitted = requests.last()
+        assertEquals(originalQuestion, resubmitted.question)
+        assertEquals(LandContextMode.general, resubmitted.land_context.mode)
+        assertTrue(resubmitted.land_context.lands.isEmpty())
+    }
 }
