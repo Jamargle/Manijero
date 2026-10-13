@@ -228,3 +228,12 @@ Capture: focused and full test counts/names; the byte-for-byte string comparison
 ### Follow-up status after `answer_source_cards`
 
 - **R5 closed from this side** (2026-10-13): for a conforming payload (distinct `[n]` markers exactly `1..sources.size`) `answer_source_cards` now renders each `[n]` token as a reference numeral with a matching numbered source card; a non-conforming payload (F1: absent, sparse, out-of-range, non-numeric, or leading-zero markers) rewrites nothing, so this feature's accepted answer/abstention rendering is unchanged.
+
+### Follow-up status after `chat_accessibility`
+
+- **U2 decided** (2026-10-13): an `answered` assistant entry **is** now a polite live region, exactly like
+  the abstention. `ChatAssistantCard` gained a defaulted `liveRegionMode` and the `answered` branch
+  passes `LiveRegionMode.Polite`; the `Tú` entries, the defensive `needs_land_clarification` branch, the
+  working notice, the non-merging failure notice (its `Reintentar` stays a separate focusable node), and
+  the abstention keep their accepted announcements. This adds no copy, token, or state and does not
+  revise the accepted answer/abstention rendering.

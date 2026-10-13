@@ -398,3 +398,11 @@ Also:
 - [ ] Feasible checks pass (or the exact environment blocker is reported) with no previously passing
       test regressing; the CLI, backend tests, and client tests exist and pass; no E2E/UI coverage is
       claimed; `feature_list.json`/`PROGRESS.md` report only commands actually run.
+
+### Follow-up status after `chat_accessibility`
+
+- **N2 closed** (2026-10-13): the chooser no longer flashes the "no puedo mostrar tus terrenos" fallback
+  before the local read resolves. `clarificationLands` is now `List<Land>?` (`null` = unresolved) and
+  `LandClarificationChooser` renders only its title and explanation while it is `null`; the fallback
+  appears only for a resolved empty list (or a failed read, which resolves to `emptyList()`), and the
+  rows plus `Continuar` otherwise. No copy, string, or clarification behavior changed.

@@ -92,7 +92,9 @@
 | 2026-10-13 | Accepted `answer_land_scope` | Independent validator re-ran the contract validator (exit 0), the focused `:shared:jvmTest` classes, `:shared:jvmTest --rerun-tasks` (181/0; `ChatHomeStateTest` 44, `ChatConversationTest` 16; 174→181, no test removed), `:shared:testAndroidHostTest --rerun-tasks` (167/0), `:shared:compileKotlinIosSimulatorArm64`, `:desktopApp:build :androidApp:assembleDebug --rerun-tasks` (debug APK), `./init.sh --verify` (exit 0, 91 tasks), `git diff --check`, and the `Color(0x)`/logging greps; byte-for-byte checked the three strings (numstat +3/-0) and independently reproduced the per-entry behavior with its own probe test (each scope copied per entry, an earlier `selected` entry surviving a later `general` turn while `lastResponseStatus` is the latest, clarification appending no entry, `general` default). It confirmed the exhaustive `else`-free caption mapping, the neutral caption inside the merged-semantics node on answered/abstained entries only, the abstention treatment intact, and clean scope (only the intended 8 files plus the spec); a scoped security review found no blocking issue. Findings N1-N4 non-blocking. Record: `docs/validations/answer_land_scope.md`. |
 | 2026-10-13 | Implemented `land_data_disclosure` (self-verified; awaiting independent validation) | Added the Compose-free pinned `privacy/LandDataDisclosure.kt` (SharedLandAttribute + pinned order) and the stateless `privacy/PrivacyScreen.kt` (sections + exhaustive `sharedAttributeLabel` + `Volver`, normal and widthDp=320/fontScale=2f previews); `ChatHomeScreen` gained a defaulted `onPrivacyClick`, an always-visible plain-Spanish summary, and a labelled `Privacidad y ayuda` control; `App()` gained `AppDestination.Privacy` and the `PrivacyScreen` branch (no repository needed); one chat-home preview. 22 new strings shipped byte-for-byte (`strings.xml` +22/-0). New pure `LandDataDisclosureTest` (3) ties the pinned list to the encoded `MinimalLandContext` optional-key count and to the DTO property count. `python3 contracts/validate_examples.py` exit 0; focused `:shared:jvmTest` (3/0); `:shared:jvmTest --rerun-tasks` 184/0 (was 181, +3); `:shared:testAndroidHostTest --rerun-tasks` 170/0 (was 167, +3); `:shared:compileKotlinIosSimulatorArm64`; `:desktopApp:build :androidApp:assembleDebug --rerun-tasks` (72 tasks); `./init.sh --verify` exit 0; `git diff --check` and the logging/`Color(0x)` greps clean. `CONSTRAINTS.md` gained the land-data-disclosure MUST rule. The literal low-digital-confidence comprehension check was not run (no reviewer available) and is an outstanding manual check. |
 | 2026-10-13 | Accepted `land_data_disclosure` | Independent validator re-ran the contract validator (exit 0), the focused `:shared:jvmTest` class (3/0), `:shared:jvmTest --rerun-tasks` (184/0, 20 suites, `LandDataDisclosureTest` 3/0; was 181, +3), `:shared:testAndroidHostTest --rerun-tasks` (170/0, 16 suites), `:shared:compileKotlinIosSimulatorArm64`, `:desktopApp:build :androidApp:assembleDebug --rerun-tasks` (72 tasks, debug APK), `./init.sh --verify` (exit 0, 91 tasks), and `git diff --check`; byte-for-byte checked all 22 new strings (numstat +22/-0) and confirmed no existing string changed, the `Color(0x)` (only `theme/ManijeroColors.kt`) and logging greps, and `MinimalLandContext` still exactly four properties. It confirmed the always-visible chat-home summary + labelled `Privacidad y ayuda` control, the notice content and over-promise guards, the exhaustive `else`-free `sharedAttributeLabel`, the payload-correspondence test, and clean scope (`contracts/`, `backend/`, `knowledge/`, `lands/`, `theme/`, `androidApp/`, `desktopApp/`, `shared/src/iosMain/`, Gradle, `init.sh` untouched; no new module/dependency/ViewModel/route). A scoped security review found no blocking issue. Findings N1-N5 non-blocking (N2 the literal low-digital-confidence comprehension check remains an outstanding manual check; N3 summary placement below the fold owned by `chat_accessibility`; N4 `no lo sé` vs wire `unknown` is spec-mandated; N5 rendered-evidence gap owned by `chat_accessibility`). Record: `docs/validations/land_data_disclosure.md`. |
+| 2026-10-13 | Implemented `chat_accessibility` (passing, awaiting independent validation) | Added the pure `TranscriptScroll.kt` (`TranscriptScrollKey`/`transcriptScrollKey`) plus `TranscriptScrollTest` (8 tests), the `answered` polite live region (`ChatAssistantCard` `liveRegionMode`), a `bringIntoViewRequester` **1dp** end-of-transcript marker driven by a `LaunchedEffect` on the scroll key, the chooser's `List<Land>?` loading state (no false fallback flash), `horizontalAlignment = CenterHorizontally` with an effective 720dp cap, a `heading()` on the title, and three previews (wide window, long conversation at `fontScale = 1.3f`, chooser while resolving). Evidence: contract validator exit 0; `:shared:jvmTest --rerun-tasks` 192/0 (was 184, +8); `:shared:testAndroidHostTest --rerun-tasks` 178/0; `:desktopApp:build :androidApp:assembleDebug --rerun-tasks` (72 tasks); `./init.sh --verify` exit 0; iOS compile; the greps; `strings.xml` numstat empty; `git diff --check` clean. Android emulator: 1.0/2.0 no-clipping dumps, ≥48dp targets, merged/named entries, `checkable` chooser rows, no 'no puedo mostrar tus terrenos' in any dump, TalkBack bound and enabled; auto-scroll proven by submitting from the page bottom at 2.0 (newest content in view, composer/buttons/privacy below the fold). Desktop: the 720dp column centred at 800/1400pt and 372 wide at 420pt (AX geometry), named controls, keyboard reachable/activatable. Docs: `CONSTRAINTS.md` chat-accessibility MUST rule, `DESIGN.md` baseline + remaining gaps, spec §2 implementation finding, `response_states` U2 note, `land_clarification` N2 note. Gaps: Desktop visual focus indication unverifiable (host capture blocked; no outline added), TalkBack utterance not captured, no UI-test harness, Desktop text scaling preview-only, and the answered/abstained/chooser device captures used a temporary reverted probe. |
 
+| 2026-10-13 | Accepted `chat_accessibility` | Independent validator re-ran the contract validator (exit 0), the focused `TranscriptScrollTest` (8/0), `:shared:jvmTest --rerun-tasks` (192/0, 21 suites, +8, none removed), `:shared:testAndroidHostTest --rerun-tasks` (178/0), `:desktopApp:build :androidApp:assembleDebug --rerun-tasks` (72 tasks, fresh APK), `./init.sh --verify` (exit 0, 91 tasks), and the greps; confirmed `strings.xml` numstat empty and `git diff --check` clean. It re-drove the Android emulator on an APK it rebuilt/installed itself (1.0/2.0 no clipping, every clickable node ≥48dp, no 'no puedo mostrar tus terrenos' in any dump, the auto-scroll reproduced scrolling up to the newest element without reaching the page bottom) and the Desktop app through the macOS AX tree (720dp cap centred, one merged entry node, `Reintentar` a separate focusable button), and reproduced the pure scroll key with its own 7-case probe. Scope clean (`ChatHomeState.kt`, `ChatConversation.kt`, `chat/`, `lands/`, `privacy/`, `theme/`, `strings.xml`, `contracts/`, `backend/`, `knowledge/`, platform roots, Gradle, `init.sh` untouched); no `Color(0x)` outside `theme/`, no min-size override, no logging, no new module/dependency/endpoint; a feature-scoped security review found no blocking issue. Findings N1-N6 non-blocking. Record: `docs/validations/chat_accessibility.md`. |
 
 ## Feature evidence
 
@@ -1621,3 +1623,150 @@ Honest gaps:
   no-lands fallback rather than a fabricated land; previews supply a sample list.
 - `init.sh` is unchanged: `--verify` already runs the shared tests and the Android/Desktop builds,
   and the backend slice is verified with the documented Python commands.
+
+### chat_accessibility — accepted
+
+Spec: `docs/specs/chat_accessibility.md` (new). Independent validation (`accept`, 2026-10-13; record:
+`docs/validations/chat_accessibility.md`): the validator re-ran the contract validator,
+`:shared:jvmTest --rerun-tasks` (192/0, +8, none removed), `:shared:testAndroidHostTest --rerun-tasks`
+(178/0), the Android/Desktop builds, `./init.sh --verify` (exit 0), and the greps; re-drove the Android
+emulator on an APK it rebuilt itself (1.0/2.0 no clipping, every clickable node >= 48dp, no
+false no-lands fallback, auto-scroll reproduced) and the Desktop app through the macOS AX tree; and
+reproduced the pure scroll key with its own probe. Carried gaps (Desktop visual focus indication,
+TalkBack announcement capture, no UI-test harness) are recorded in `DESIGN.md` and in the validation
+record. All evidence below was produced in this worktree on the final tree.
+
+What changed (implementation):
+
+- `shared/src/commonMain/kotlin/com/jamarglex/manijero/TranscriptScroll.kt` (new, pure, Compose-free):
+  `TranscriptScrollKey(entryCount, phase, hasFailure, awaitingLandClarification)` and
+  `transcriptScrollKey(state)`. The key changes only when a transcript element is appended or the
+  working/failure/clarification state appears, so it decides *when* to move and nothing scrolls for a
+  keystroke, an example selection, or an equal-state re-reduce.
+- `shared/src/commonTest/kotlin/com/jamarglex/manijero/TranscriptScrollTest.kt` (new, 8 tests): a new
+  `Tú`/`Asistente` entry, entering/leaving `SUBMITTING`, a failure appearing/clearing, a clarification
+  appearing and the resubmission after a choice each change the key; a keystroke, an example selection,
+  an equal-state re-reduce and a refused late response do not.
+- `shared/src/commonMain/kotlin/com/jamarglex/manijero/App.kt`:
+  - `ChatAssistantCard` gained a defaulted `liveRegionMode: LiveRegionMode? = null`; the `answered`
+    branch passes `LiveRegionMode.Polite` (the `Tú` entries, the working notice, the abstention, the
+    defensive clarification branch and the non-merging failure notice are unchanged, so `Reintentar`
+    stays its own focusable node).
+  - `ChatHomeScreen` holds a `BringIntoViewRequester` on a **1dp** end-of-transcript marker
+    (`.fillMaxWidth().height(1.dp).bringIntoViewRequester(...)`) after the messages, failure notice,
+    working notice and chooser; a `LaunchedEffect(scrollKey)` calls `bringIntoView()` only when the key
+    differs from the remembered first key. The marker must not be zero-height — the reasoning
+    (`localBoundingBoxOf` collapsing an empty rect to `Rect.Zero`, so the responder drops the request)
+    is recorded in a comment and in the spec.
+  - `clarificationLands` is now `List<Land>?` in `App()` and `ChatHomeScreen` (`null` = the guarded
+    local read has not resolved), and `LandClarificationChooser(lands: List<Land>?)` renders its title
+    and explanation only for `null`, the `chat_home_clarification_no_lands` fallback only for a
+    resolved empty (or failed) list, and the checkbox rows plus `Continuar` otherwise.
+  - The outer content `Column` gained `horizontalAlignment = Alignment.CenterHorizontally`, the
+    top-level blocks use `.widthIn(max = ContentMaxWidth).fillMaxWidth()` (the earlier `fillMaxWidth()`
+    first made the 720dp cap ineffective), and the title `Text` gained `Modifier.semantics { heading() }`.
+  - Previews added: a wide window (`widthDp = 1000`), a long conversation at `fontScale = 1.3f`, and a
+    chooser-while-resolving (`clarificationLands = null`); the three chooser previews were updated.
+- `CONSTRAINTS.md`: the "Chat accessibility" MUST rule. `DESIGN.md`: the "Accessibility and validation"
+  section records the inspected Android/Desktop baseline and the remaining gaps.
+- `docs/specs/response_states.md`: U2 decided (an `answered` entry is a polite live region).
+  `docs/specs/land_clarification.md`: N2 closed (the fallback flash).
+- Not changed: `ChatHomeState.kt`, `ChatConversation.kt`, `chat/`, `lands/`, `privacy/`, `theme/`,
+  `strings.xml`, `contracts/`, `backend/`, `knowledge/`, `androidApp/`, `desktopApp/`,
+  `shared/src/iosMain/`, all Gradle files, and `init.sh`; no new module, dependency, permission,
+  ViewModel, navigation, control, or logging.
+
+Verification (commands run from the repository root unless noted):
+
+- `python3 contracts/validate_examples.py` → "Validated 2 request and 3 response examples against
+  answer_api_contract" (exit 0).
+- `./gradlew :shared:jvmTest --tests "com.jamarglex.manijero.TranscriptScrollTest"` → BUILD SUCCESSFUL
+  (report XML: 8 tests / 0 failures / 0 errors).
+- `./gradlew :shared:jvmTest --rerun-tasks` → BUILD SUCCESSFUL, **192 tests / 0 failures / 21 suites**
+  (was 184; +8 `TranscriptScrollTest`, no test removed).
+- `./gradlew :shared:testAndroidHostTest --rerun-tasks` → BUILD SUCCESSFUL, **178 tests / 0 failures /
+  17 suites** (was 170, +8).
+- `./gradlew :desktopApp:build :androidApp:assembleDebug --rerun-tasks` → BUILD SUCCESSFUL (72
+  actionable tasks executed).
+- `./init.sh --verify` → BUILD SUCCESSFUL (exit 0, 91 actionable tasks).
+- `./gradlew :shared:compileKotlinIosSimulatorArm64` → BUILD SUCCESSFUL.
+- `grep -rn "Color(0x" shared/src/commonMain/kotlin/com/jamarglex/manijero --include="*.kt" | grep -v /theme/`
+  → no matches (every match is in `theme/ManijeroColors.kt`).
+- `grep -rn "LocalMinimumInteractiveComponentSize\|minimumInteractiveComponentSize" shared/src` → no
+  matches; `grep -rn "println\|Log\.\|Logger\|printStackTrace\|NSLog\|System\.out" shared/src androidApp/src desktopApp/src`
+  → no matches.
+- `git diff --numstat -- shared/src/commonMain/composeResources/values/strings.xml` → empty;
+  `git diff --check` → clean.
+
+Android evidence (real emulator-5554, `Medium_Phone_API_35`, density 2.625, shipped
+`androidApp-debug.apk`; raw dumps/screenshots in the gitignored `build/evidence/`):
+
+- Enlarged text: at `font_scale 1.0` and `2.0` the home, a long answered reply with two source cards,
+  an abstention, the working notice, the failure notice and the clarification chooser render with no
+  clipping, overlap, or horizontal overflow (every `uiautomator` node inside 0..1080 × 0..2400);
+  screenshots `cap-f10-*.png`, `cap-f20-*.png`, `final-*.png`.
+- Touch targets at 1.0: every clickable node is at least 126px = 48dp (suggestions `[63,594][1017,720]`
+  and siblings, `Preguntar` `[63,1417][351,1543]`, `Mis terrenos`, `Privacidad y ayuda`, source-card
+  open button `[105,1151][612,1277]`, chooser row `[105,1087][975,1362]` = 105dp tall, `Reintentar`
+  `[105,1056][401,1182]`); `Preguntar` is disabled with an empty composer and enabled with a draft.
+- Names and merged entries (`uiautomator dump --compressed`): each transcript entry is one merged node
+  reading `Tú`/`Asistente` + scope caption + optional state label + body; the source-card control carries
+  `content-desc` "Abrir el documento oficial: «…»"; the failure notice's `Reintentar` is a separate
+  clickable+focusable node.
+- Clarification chooser: rows are `checkable=true` toggles exposing the saved name + known details,
+  `checked` flips false→true on tap, `Continuar` becomes focusable once a land is selected, and "no puedo
+  mostrar tus terrenos" appears in **none** of the dumps (`a11y-clarification.xml`,
+  `a11y-clarification-checked.xml`) — the false-limitation flash is not reproducible.
+- Announcements: TalkBack is enabled and bound (`settings put secure enabled_accessibility_services
+  com.google.android.marvin.talkback/...` succeeds; `dumpsys accessibility` shows a bound TalkBack
+  service). The answered live region is verified by its code path and semantics wiring, not by a captured
+  utterance (TalkBack speech is not logged here).
+- Auto-scroll (decisive, shipped build, `font_scale 2.0`, long question): the page was scrolled to its
+  very bottom first (`Privacidad y ayuda` `[250,2197][830,2295]`, `Preguntar` `[126,1591][433,1689]` and
+  the composer `[63,944][1017,1517]` all visible, no transcript/failure on screen), then `Preguntar` was
+  tapped. After the append the dump shows the newest content in view — the user entry tail `[105,0][975,421]`
+  and the failure notice `[105,517][975,1294]` with `Reintentar` `[168,1347][489,1445]` — while the
+  composer, `Preguntar`, `Mis terrenos`, the privacy summary and `Privacidad y ayuda` are all absent from
+  the dump (below the fold): the view scrolled **up** to the newest element and neither stayed at nor
+  jumped to the page bottom (`build/evidence/flow7-bottom-2.0.xml`, `flow7-after-2.0.xml`/`.png`). At
+  `font_scale 1.0` submitting at the page top leaves the title at `[63,84]` and shows the `Tú` entry +
+  failure notice + `Reintentar` already in view, i.e. nothing scrolls when the target is already visible
+  (`flow6-*.xml`).
+- Launch frame (report-only `visual_foundation` U4): `launch-frame-a/b.png` show the platform default
+  splash (system icon on the light background) fading over the already-rendered chat home — no dark/black
+  frame, and at rest the title sits below the status bar.
+
+Desktop evidence (real `:desktopApp:run`, window "Manijero"; the macOS accessibility tree via
+JXA/System Events, because host pixels are unavailable):
+
+- Geometry: at an 800pt window every content block is exactly 720 wide at x=88; at 1400pt the same 720
+  block is centred at x=388 with no overflow; at 420pt all blocks are 372 wide at x=72 with wrapped text
+  and no clipping — the 720dp cap is effective and centred.
+- Names: every control has an `AXDescription` (the three suggestion questions, "Preguntar", "Mis
+  terrenos", "Privacidad y ayuda") and "Preguntar" reports `AXEnabled=false` with an empty composer; a
+  merged transcript entry reads as one node ("Tú, ¿Qué obligaciones tengo por la condicionalidad?") and
+  the failure notice's "Reintentar" is a separate `AXButton`.
+- Keyboard: with the composer focused, Shift+Tab moved focus to the third suggestion and Space activated
+  it (the composer filled); Cmd+A/Backspace cleared it — reachable and activatable by keyboard. Forward
+  Tab is consumed by the multi-line composer as a tab character (`TextFieldKeyInput`: `KeyCommand.TAB ->
+  if (!singleLine) CommitTextCommand("\t", 1) else consumed = false`), a platform text-field behaviour
+  rather than a defect.
+
+Honest gaps (nothing below is claimed as passing):
+
+- The Desktop **visual** focus indication could not be inspected: host screen capture is blocked for the
+  verification process (`screencapture -x` returns only the desktop wallpaper, and no
+  ffmpeg/ffprobe/magick/PIL/Quartz exists). Per the spec's verify-first instruction no shared outline was
+  added; the default Material indication was relied on. Recorded as an open item in `DESIGN.md`.
+- The answered live-region *announcement* was not captured as audio/video (TalkBack is bound but its
+  speech is not logged; no screen-recording tool on the host).
+- No Compose UI-test harness exists (spec R1/U1) and this repo refuses test-only dependencies, so merged
+  semantics, live regions, and focus order are verified by the `uiautomator`/AX dumps, the previews, and
+  code inspection rather than an automated UI test.
+- Desktop OS text scaling has no runtime integration, so Desktop large-text evidence stays preview-based.
+- The answered/abstained/clarification device captures used a temporary non-committed probe
+  `AnswerService` (since reverted; `git status` shows no `androidApp` change), because the shipped
+  default is `UnavailableAnswerService` and there is no `/ask` route; the scroll, touch-target,
+  focusability, and 1.0/2.0 geometry evidence was captured on the shipped build.
+- The transcript stays in the single scrolling page (no pinned composer plus its own scroll region, spec
+  U2) and reference numerals are not tappable (spec U5) — both deliberately out of scope.
