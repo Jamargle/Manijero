@@ -93,6 +93,45 @@ Typography uses the platform system sans-serif, generous line height, and a base
 - Test the main journey with users who have low digital confidence. Ask them to add two lands, ask a land-dependent question, identify which land the answer refers to, and find the source without coaching.
 - Avoid claiming the UI is accessible until these checks have been performed on Android and Desktop.
 
+### Chat surface baseline (`chat_accessibility`, 2026-10-13)
+
+The shared chat surface has been inspected on a real Android emulator (`Medium_Phone_API_35`,
+system `font_scale` 1.0 and 2.0, `uiautomator` accessibility dumps) and in a Desktop session (the
+macOS accessibility tree; the window resized narrow and wide). What is verified:
+
+- **Enlarged text.** At `font_scale 2.0` every chat state — home, a long answered reply with two
+  source cards, an abstention, the working notice, a failure notice, and the clarification chooser —
+  wraps with no clipping, overlap, or horizontal overflow, and the newest transcript content is
+  brought into view while the composer and privacy summary stay below the fold.
+- **Names and merged entries.** Each transcript entry is one merged node reading its `Tú`/`Asistente`
+  label, scope caption, optional state label, and body; the chooser rows are checkbox toggles
+  exposing the saved name plus known details and their checked state; the source-card control carries
+  a description naming the document; every control has a text name; the screen title carries an
+  `heading()` semantic; and the failure notice's `Reintentar` stays a separate focusable node.
+- **Announcements.** A newly appended `answered` reply is now a polite live region, alongside the
+  accepted working notice, abstention, and failure notice. The answered announcement is confirmed by
+  its semantics wiring and code path, not by a captured TalkBack utterance (TalkBack is bound on the
+  emulator, but its spoken output is not logged).
+- **Targets and contrast.** Every clickable chat control measures at least 48dp at density 2.625
+  (measured from the dump), no minimum-size override exists, and the chat text/control colour pairs
+  are covered by the accepted `ManijeroColorsTest` table.
+- **Keyboard and focus (Desktop).** Controls are named through the accessibility description and are
+  reachable and activatable by keyboard (for example Shift+Tab out of the multi-line composer, then
+  Space activates the focused suggestion). Forward Tab is consumed by the multi-line composer as a
+  tab character; that is a platform text-field behaviour, not a defect.
+- **Wide windows.** The 720dp readable content column is capped and centred (measured at 800pt, a
+  1400pt window, and a 420pt narrow window with no overflow).
+
+Recorded remaining gaps (not claimed as passing):
+
+- The Desktop **visual** focus indication could not be inspected, because host screen-capture
+  permission was not granted to the verification process; the default Material focus indication was
+  therefore relied on and no additional outline was added.
+- There is no Compose UI-test harness, so merged semantics, live regions, and focus order are
+  verified by the accessibility dumps/previews and code inspection rather than an automated UI test.
+- Desktop OS text scaling has no runtime integration, so Desktop large-text evidence stays
+  preview-based.
+
 ## Platform consistency
 
 Implement the Compose UI and product behavior in shared `commonMain`. Adapt navigation, window sizing, keyboard behavior, and input affordances to phone and desktop instead of forcing a narrow phone layout onto large screens. Keep only platform integrations and entry points in platform-specific source sets so the later iOS target can reuse the same UI and business logic.

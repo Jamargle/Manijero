@@ -147,3 +147,23 @@ Operational MUST/MUST NOT rules that future features have to respect on top of
   established that a person must be able to trust the plain-Spanish notice to match what the app
   actually does, so over-promising a backup or under-describing the payload is the failure to avoid;
   `chat_accessibility` audits the surface next.
+
+## Chat accessibility
+
+- **MUST**: the chat surface MUST keep plain-Spanish text on every control and transcript entry (never
+  an unnamed button), one `mergeDescendants` node per transcript entry reading its `Tú`/`Asistente`
+  label, scope caption, optional state label, and body, and every newly appended assistant reply —
+  `answered` as well as `abstained` — a `LiveRegionMode.Polite` node (a `Tú` entry is never
+  announced as a reply, and the failure notice MUST stay a polite live region that does not merge its
+  retry control, so `Reintentar` remains its own focusable node). It MUST NOT convey any state by
+  colour alone, MUST keep a visible focus indication on its controls (Material's default indication,
+  or a shared outline that keeps it — never remove it), MUST NOT override Material's minimum
+  interactive size (no `LocalMinimumInteractiveComponentSize`), MUST bring the newest transcript
+  element (entry, working notice, failure notice, or chooser) into view once per appended element
+  without moving the composer's text or focus and without jumping to the page bottom, MUST keep the
+  capped content column centred instead of stretched, and MUST NOT render the clarification chooser's
+  "no puedo mostrar tus terrenos" fallback before the guarded local read resolves (an unresolved read
+  shows only the title and explanation). Reason: `chat_accessibility` established the first
+  accessibility baseline for this surface, and a later feature can silently regress a control's name,
+  an entry's merged node, an announcement, a target size, or the scroll timing without any test
+  failing.

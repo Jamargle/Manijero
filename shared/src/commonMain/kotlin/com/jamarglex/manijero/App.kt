@@ -4,10 +4,14 @@ import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.widthIn
+import androidx.compose.foundation.relocation.BringIntoViewRequester
+import androidx.compose.foundation.relocation.bringIntoViewRequester
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.selection.toggleable
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -35,6 +39,7 @@ import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.semantics.LiveRegionMode
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.heading
 import androidx.compose.ui.semantics.liveRegion
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.AnnotatedString
@@ -200,15 +205,17 @@ fun App(
 
     // The clarification chooser reads the local lands exactly once when a clarification appears, and
     // clears them otherwise. The read is guarded and never logged: a failure shows the fallback
-    // notice instead of a fabricated land. The chooser filters this list to the ids the service
-    // returned, so a land that is not stored locally can never be offered.
-    var clarificationLands by remember { mutableStateOf<List<Land>>(emptyList()) }
+    // notice instead of a fabricated land. `null` means the read has not resolved yet, so the chooser
+    // renders its title and explanation only and never flashes the "no lands" fallback before the
+    // local read can answer. The chooser filters this list to the ids the service returned, so a land
+    // that is not stored locally can never be offered.
+    var clarificationLands by remember { mutableStateOf<List<Land>?>(null) }
     val awaitingLandClarification = conversation.state.awaitingLandClarification
     LaunchedEffect(awaitingLandClarification) {
         clarificationLands = if (awaitingLandClarification) {
             runCatching { landRepository?.list().orEmpty() }.getOrElse { emptyList() }
         } else {
-            emptyList()
+            null
         }
     }
 
@@ -397,7 +404,7 @@ internal fun ChatHomeScreen(
     onAction: (ChatHomeAction) -> Unit,
     onLandsClick: (() -> Unit)?,
     onPrivacyClick: (() -> Unit)? = null,
-    clarificationLands: List<Land> = emptyList(),
+    clarificationLands: List<Land>? = null,
     modifier: Modifier = Modifier,
 ) {
     val suggestedQuestionResources = listOf(
@@ -405,6 +412,18 @@ internal fun ChatHomeScreen(
         Res.string.chat_home_suggestion_sigpac,
         Res.string.chat_home_suggestion_condicionalidad,
     )
+
+    // The newest transcript content is brought into view once per appended element — a new entry, the
+    // working indication, a failure notice, or the chooser. `TranscriptScrollKey` (pure, tested)
+    // decides when; the marker below is the only thing that moves. The key at first composition is
+    // remembered so opening or returning to the chat never scrolls, and nothing else on the page
+    // (composer text, focus, page bottom) is touched.
+    val transcriptEndRequester = remember { BringIntoViewRequester() }
+    val scrollKey = transcriptScrollKey(state)
+    val initialScrollKey = remember { scrollKey }
+    LaunchedEffect(scrollKey) {
+        if (scrollKey != initialScrollKey) transcriptEndRequester.bringIntoView()
+    }
 
     Surface(
         modifier = modifier.fillMaxSize(),
@@ -416,17 +435,26 @@ internal fun ChatHomeScreen(
                 .verticalScroll(rememberScrollState())
                 .padding(horizontal = 24.dp, vertical = 32.dp),
             verticalArrangement = Arrangement.spacedBy(20.dp),
+            // The 720dp content cap is centred, so a wide Desktop window reads as one column instead
+            // of a column hugging the left edge. No width, spacing, or child changes.
+            horizontalAlignment = Alignment.CenterHorizontally,
         ) {
+            // Every top-level block is capped at the readable width *before* filling, so the cap is
+            // real: `fillMaxWidth()` first would take the window's whole width and `widthIn(max)`
+            // could no longer shrink it. Combined with the centring above, a wide Desktop window
+            // shows one centred 720dp column instead of a phone layout stretched edge to edge.
             Column(
                 modifier = Modifier
-                    .fillMaxWidth()
-                    .widthIn(max = ContentMaxWidth),
+                    .widthIn(max = ContentMaxWidth)
+                    .fillMaxWidth(),
                 verticalArrangement = Arrangement.spacedBy(12.dp),
             ) {
                 Text(
                     text = stringResource(Res.string.chat_home_title),
                     style = MaterialTheme.typography.headlineMedium,
                     color = MaterialTheme.colorScheme.onBackground,
+                    // The screen title is the one heading semantic on this surface.
+                    modifier = Modifier.semantics { heading() },
                 )
                 Text(
                     text = stringResource(Res.string.chat_home_description),
@@ -437,8 +465,8 @@ internal fun ChatHomeScreen(
 
             Column(
                 modifier = Modifier
-                    .fillMaxWidth()
-                    .widthIn(max = ContentMaxWidth),
+                    .widthIn(max = ContentMaxWidth)
+                    .fillMaxWidth(),
                 verticalArrangement = Arrangement.spacedBy(12.dp),
             ) {
                 state.messages.forEach { message ->
@@ -464,17 +492,31 @@ internal fun ChatHomeScreen(
 
                 if (state.awaitingLandClarification) {
                     LandClarificationChooser(
-                        lands = clarificationLands.filter { land -> land.id in state.landIdsToChoose },
+                        lands = clarificationLands?.filter { land -> land.id in state.landIdsToChoose },
                         landIdsToChoose = state.landIdsToChoose,
                         onAction = onAction,
                     )
                 }
+
+                // The end-of-transcript marker: a 1dp, decorative node after every transcript
+                // element. `bringIntoView` on it scrolls just enough to show the newest content,
+                // not to the bottom of the page (the composer and the privacy summary stay below
+                // it). The height must not be zero: `NodeCoordinator.localBoundingBoxOf` collapses
+                // an empty (zero-height) rect to `Rect.Zero`, which the scroll responder then
+                // reads as "already visible at the container origin" and silently drops the
+                // request — verified on the Android emulator (implementation finding).
+                Spacer(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(1.dp)
+                        .bringIntoViewRequester(transcriptEndRequester),
+                )
             }
 
             Column(
                 modifier = Modifier
-                    .fillMaxWidth()
-                    .widthIn(max = ContentMaxWidth),
+                    .widthIn(max = ContentMaxWidth)
+                    .fillMaxWidth(),
                 verticalArrangement = Arrangement.spacedBy(8.dp),
             ) {
                 Text(
@@ -503,8 +545,8 @@ internal fun ChatHomeScreen(
                 value = state.question,
                 onValueChange = { onAction(ChatHomeAction.QuestionChanged(it)) },
                 modifier = Modifier
-                    .fillMaxWidth()
-                    .widthIn(max = ContentMaxWidth),
+                    .widthIn(max = ContentMaxWidth)
+                    .fillMaxWidth(),
                 label = { Text(stringResource(Res.string.chat_home_question_label)) },
                 placeholder = { Text(stringResource(Res.string.chat_home_question_hint)) },
                 isError = state.isOverCharacterLimit,
@@ -518,7 +560,7 @@ internal fun ChatHomeScreen(
             )
 
             Row(
-                modifier = Modifier.fillMaxWidth().widthIn(max = ContentMaxWidth),
+                modifier = Modifier.widthIn(max = ContentMaxWidth).fillMaxWidth(),
                 horizontalArrangement = Arrangement.spacedBy(12.dp),
             ) {
                 Button(
@@ -540,8 +582,8 @@ internal fun ChatHomeScreen(
             // wiring (the iOS scaffold and previews) only the summary line shows.
             Column(
                 modifier = Modifier
-                    .fillMaxWidth()
-                    .widthIn(max = ContentMaxWidth),
+                    .widthIn(max = ContentMaxWidth)
+                    .fillMaxWidth(),
                 verticalArrangement = Arrangement.spacedBy(8.dp),
             ) {
                 Text(
@@ -595,6 +637,8 @@ private fun ChatMessageBubble(message: ChatMessage, modifier: Modifier = Modifie
                         text = message.text,
                         scopeLabel = stringResource(landScopeCaption(message.landScope)),
                         annotatedText = answerAnnotations(presentation.segments),
+                        // A newly appended answer is announced politely, exactly like the abstention.
+                        liveRegionMode = LiveRegionMode.Polite,
                     )
                     if (presentation.cards.isNotEmpty()) {
                         SourceCardsSection(cards = presentation.cards)
@@ -636,6 +680,7 @@ private fun ChatAssistantCard(
     modifier: Modifier = Modifier,
     scopeLabel: String? = null,
     annotatedText: AnnotatedString? = null,
+    liveRegionMode: LiveRegionMode? = null,
 ) {
     ChatBubble(
         modifier = modifier,
@@ -645,6 +690,7 @@ private fun ChatAssistantCard(
         text = text,
         annotatedText = annotatedText,
         containerColor = MaterialTheme.colorScheme.surface,
+        liveRegionMode = liveRegionMode,
     )
 }
 
@@ -822,15 +868,19 @@ private fun ChatNoticeBubble(
  * name and known attributes (reused from the accepted land strings) with a multi-select checkbox, and
  * one primary `Continuar` enabled only once at least one land is selected. Nothing is renamed,
  * reordered, or invented: the list is already filtered to the service's opaque ids and the local
- * store's order. When no saved land matches (or the local read failed), a short plain notice is shown
- * and no control is offered, so a land can never be fabricated.
+ * store's order.
+ *
+ * [lands] is `null` while the guarded local read has not resolved yet, so only the title and the
+ * explanation show and the "cannot show your lands" fallback can never flash before the read answers.
+ * A resolved list with no matching land (or a failed read) shows that fallback and no control, so a
+ * land can never be fabricated.
  *
  * Each row is one merged-semantics checkbox control (label + details + checked state, never colour
  * alone) and the whole control meets the large-target guidance.
  */
 @Composable
 private fun LandClarificationChooser(
-    lands: List<Land>,
+    lands: List<Land>?,
     landIdsToChoose: List<String>,
     onAction: (ChatHomeAction) -> Unit,
     modifier: Modifier = Modifier,
@@ -858,57 +908,62 @@ private fun LandClarificationChooser(
                 style = MaterialTheme.typography.bodyLarge,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
-            if (lands.isEmpty()) {
-                Text(
+            when {
+                // The local read has not resolved yet: no fallback, no rows, and no control.
+                lands == null -> Unit
+
+                lands.isEmpty() -> Text(
                     text = stringResource(Res.string.chat_home_clarification_no_lands),
                     style = MaterialTheme.typography.bodyLarge,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
-            } else {
-                lands.forEach { land ->
-                    val checked = land.id in selectedIds
-                    Row(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .toggleable(
-                                value = checked,
-                                role = Role.Checkbox,
-                                onValueChange = { isChecked ->
-                                    selectedIds = if (isChecked) {
-                                        selectedIds + land.id
-                                    } else {
-                                        selectedIds - land.id
-                                    }
-                                },
-                            )
-                            .padding(vertical = 12.dp),
-                        verticalAlignment = Alignment.CenterVertically,
-                    ) {
-                        Checkbox(checked = checked, onCheckedChange = null)
-                        Column(
-                            modifier = Modifier.padding(start = 12.dp),
-                            verticalArrangement = Arrangement.spacedBy(4.dp),
+
+                else -> {
+                    lands.forEach { land ->
+                        val checked = land.id in selectedIds
+                        Row(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .toggleable(
+                                    value = checked,
+                                    role = Role.Checkbox,
+                                    onValueChange = { isChecked ->
+                                        selectedIds = if (isChecked) {
+                                            selectedIds + land.id
+                                        } else {
+                                            selectedIds - land.id
+                                        }
+                                    },
+                                )
+                                .padding(vertical = 12.dp),
+                            verticalAlignment = Alignment.CenterVertically,
                         ) {
-                            Text(
-                                text = land.name,
-                                style = MaterialTheme.typography.bodyLarge,
-                                color = MaterialTheme.colorScheme.onSurface,
-                            )
-                            LandDetails(
-                                municipality = land.municipality,
-                                waterRegime = land.waterRegime,
-                                productionMethod = land.productionMethod,
-                            )
+                            Checkbox(checked = checked, onCheckedChange = null)
+                            Column(
+                                modifier = Modifier.padding(start = 12.dp),
+                                verticalArrangement = Arrangement.spacedBy(4.dp),
+                            ) {
+                                Text(
+                                    text = land.name,
+                                    style = MaterialTheme.typography.bodyLarge,
+                                    color = MaterialTheme.colorScheme.onSurface,
+                                )
+                                LandDetails(
+                                    municipality = land.municipality,
+                                    waterRegime = land.waterRegime,
+                                    productionMethod = land.productionMethod,
+                                )
+                            }
                         }
                     }
-                }
-                Button(
-                    onClick = {
-                        onAction(ChatHomeAction.LandChoiceSubmitted(selectedIds.toList()))
-                    },
-                    enabled = selectedIds.isNotEmpty(),
-                ) {
-                    Text(stringResource(Res.string.chat_home_clarification_continue))
+                    Button(
+                        onClick = {
+                            onAction(ChatHomeAction.LandChoiceSubmitted(selectedIds.toList()))
+                        },
+                        enabled = selectedIds.isNotEmpty(),
+                    ) {
+                        Text(stringResource(Res.string.chat_home_clarification_continue))
+                    }
                 }
             }
         }
@@ -1088,6 +1143,53 @@ private fun ChatHomeWithQuestionPreview() {
             state = ChatHomeState(question = "¿Cuándo debo revisar mi olivar?"),
             onAction = {},
             onLandsClick = {},
+        )
+    }
+}
+
+@Preview(name = "Chat home wide window", widthDp = 1000)
+@Composable
+private fun ChatHomeWideWindowPreview() {
+    ManijeroTheme {
+        ChatHomeScreen(
+            state = ChatHomeState(
+                messages = listOf(
+                    ChatMessage(Speaker.USER, "¿Qué necesito preparar para la solicitud única?"),
+                    ChatMessage(Speaker.ASSISTANT, ANSWERED_SAMPLE, AnswerStatus.answered, SOURCE_SAMPLE),
+                ),
+            ),
+            onAction = {},
+            onLandsClick = {},
+            onPrivacyClick = {},
+        )
+    }
+}
+
+@Preview(name = "Chat home long conversation, large text", fontScale = 1.3f)
+@Composable
+private fun ChatHomeLongConversationLargeTextPreview() {
+    ManijeroTheme {
+        ChatHomeScreen(
+            state = ChatHomeState(
+                question = "¿Puedo regar hoy?",
+                messages = listOf(
+                    ChatMessage(Speaker.USER, "¿Cuánto cuesta matricular un tractor viejo?"),
+                    ChatMessage(Speaker.ASSISTANT, ABSTAINED_SAMPLE_NO_EVIDENCE, AnswerStatus.abstained),
+                    ChatMessage(Speaker.USER, "¿Qué necesito preparar para la solicitud única?"),
+                    ChatMessage(Speaker.ASSISTANT, ANSWERED_SAMPLE, AnswerStatus.answered, SOURCE_SAMPLE),
+                    ChatMessage(Speaker.USER, "¿Qué obligaciones tengo por la condicionalidad?"),
+                    ChatMessage(
+                        Speaker.ASSISTANT,
+                        ANSWERED_TWO_SOURCES_SAMPLE,
+                        AnswerStatus.answered,
+                        SOURCE_SAMPLE_TWO,
+                        LandContextMode.all_active,
+                    ),
+                ),
+            ),
+            onAction = {},
+            onLandsClick = {},
+            onPrivacyClick = {},
         )
     }
 }
@@ -1379,6 +1481,24 @@ private fun clarificationLand(
     createdAtEpochMillis = 0,
     updatedAtEpochMillis = 0,
 )
+
+@Preview(name = "Chat home clarification chooser while the local read resolves")
+@Composable
+private fun ChatHomeClarificationLoadingPreview() {
+    ManijeroTheme {
+        ChatHomeScreen(
+            state = ChatHomeState(
+                lastResponseStatus = AnswerStatus.needs_land_clarification,
+                landIdsToChoose = listOf("land-1", "land-2"),
+            ),
+            onAction = {},
+            onLandsClick = {},
+            // `null` is the unresolved guarded local read: title and explanation only, never the
+            // "no puedo mostrar tus terrenos" fallback.
+            clarificationLands = null,
+        )
+    }
+}
 
 @Preview(name = "Chat home clarification chooser, two lands")
 @Composable
