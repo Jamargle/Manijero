@@ -49,6 +49,7 @@ import com.jamarglex.manijero.chat.AnswerSegment
 import com.jamarglex.manijero.chat.AnswerService
 import com.jamarglex.manijero.chat.AnswerSource
 import com.jamarglex.manijero.chat.AnswerStatus
+import com.jamarglex.manijero.chat.LandContextMode
 import com.jamarglex.manijero.chat.RequestFailure
 import com.jamarglex.manijero.chat.SourceCard
 import com.jamarglex.manijero.chat.UnavailableAnswerService
@@ -79,6 +80,7 @@ import com.jamarglex.manijero.lands.toEditLandState
 import com.jamarglex.manijero.lands.toRemoveLandState
 import com.jamarglex.manijero.theme.LocalManijeroSemanticColors
 import com.jamarglex.manijero.theme.ManijeroTheme
+import org.jetbrains.compose.resources.StringResource
 import org.jetbrains.compose.resources.stringResource
 import manijero.shared.generated.resources.Res
 import manijero.shared.generated.resources.chat_answer_state_abstained
@@ -101,6 +103,9 @@ import manijero.shared.generated.resources.chat_home_suggestion_solicitud_unica
 import manijero.shared.generated.resources.chat_home_suggestions_title
 import manijero.shared.generated.resources.chat_home_title
 import manijero.shared.generated.resources.chat_home_working
+import manijero.shared.generated.resources.chat_land_scope_all_active
+import manijero.shared.generated.resources.chat_land_scope_general
+import manijero.shared.generated.resources.chat_land_scope_selected
 import manijero.shared.generated.resources.chat_source_excerpt_label
 import manijero.shared.generated.resources.chat_source_issuing_body
 import manijero.shared.generated.resources.chat_source_label
@@ -553,6 +558,7 @@ private fun ChatMessageBubble(message: ChatMessage, modifier: Modifier = Modifie
                 ) {
                     ChatAssistantCard(
                         text = message.text,
+                        scopeLabel = stringResource(landScopeCaption(message.landScope)),
                         annotatedText = answerAnnotations(presentation.segments),
                     )
                     if (presentation.cards.isNotEmpty()) {
@@ -570,6 +576,7 @@ private fun ChatMessageBubble(message: ChatMessage, modifier: Modifier = Modifie
                     modifier = modifier,
                     label = stringResource(Res.string.chat_speaker_assistant),
                     labelColor = MaterialTheme.colorScheme.onSurfaceVariant,
+                    scopeLabel = stringResource(landScopeCaption(message.landScope)),
                     stateLabel = stringResource(Res.string.chat_answer_state_abstained),
                     stateLabelColor = semanticColors.caution,
                     text = message.text,
@@ -592,16 +599,31 @@ private fun ChatMessageBubble(message: ChatMessage, modifier: Modifier = Modifie
 private fun ChatAssistantCard(
     text: String,
     modifier: Modifier = Modifier,
+    scopeLabel: String? = null,
     annotatedText: AnnotatedString? = null,
 ) {
     ChatBubble(
         modifier = modifier,
         label = stringResource(Res.string.chat_speaker_assistant),
         labelColor = MaterialTheme.colorScheme.primary,
+        scopeLabel = scopeLabel,
         text = text,
         annotatedText = annotatedText,
         containerColor = MaterialTheme.colorScheme.surface,
     )
+}
+
+/**
+ * The scope caption for one answer, mapped exhaustively from the decoded
+ * [LandContextMode]. There is no `else`: a fourth mode would break compilation instead of silently
+ * rendering nothing. The caption only states which stored lands were taken into account — it never
+ * names a land or id, never implies the land details prove eligibility, and adds no confident or
+ * success affordance.
+ */
+private fun landScopeCaption(scope: LandContextMode): StringResource = when (scope) {
+    LandContextMode.general -> Res.string.chat_land_scope_general
+    LandContextMode.all_active -> Res.string.chat_land_scope_all_active
+    LandContextMode.selected -> Res.string.chat_land_scope_selected
 }
 
 /**
@@ -917,11 +939,13 @@ private fun ChatFailureNotice(
 
 /**
  * One transcript entry. The speaker is always written out as a label so the entries stay
- * distinguishable without relying on color, and the label, optional state label, and text are merged
- * into a single node for assistive technologies. [borderColor], [stateLabel], and [stateLabelColor]
- * are defaulted so existing call sites stay unchanged. When [annotatedText] is present it renders
- * instead of the plain [text] (the same body with citation reference numerals), so every other call
- * site keeps a plain `String` body.
+ * distinguishable without relying on color, and the label, optional scope caption, optional state
+ * label, and text are merged into a single node for assistive technologies. [borderColor],
+ * [scopeLabel], [stateLabel], and [stateLabelColor] are defaulted so existing call sites stay
+ * unchanged. The scope caption is neutral plain text (never a badge, checkmark, or success color) and
+ * renders directly below the speaker label and above any [stateLabel]/body. When [annotatedText] is
+ * present it renders instead of the plain [text] (the same body with citation reference numerals), so
+ * every other call site keeps a plain `String` body.
  */
 @Composable
 private fun ChatBubble(
@@ -931,6 +955,7 @@ private fun ChatBubble(
     containerColor: Color,
     modifier: Modifier = Modifier,
     borderColor: Color = MaterialTheme.colorScheme.outlineVariant,
+    scopeLabel: String? = null,
     stateLabel: String? = null,
     stateLabelColor: Color = labelColor,
     liveRegionMode: LiveRegionMode? = null,
@@ -958,6 +983,13 @@ private fun ChatBubble(
                 style = MaterialTheme.typography.labelLarge,
                 color = labelColor,
             )
+            if (scopeLabel != null) {
+                Text(
+                    text = scopeLabel,
+                    style = MaterialTheme.typography.labelLarge,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
+            }
             if (stateLabel != null) {
                 Text(
                     text = stateLabel,
@@ -1064,6 +1096,98 @@ private fun ChatHomeSourceCardNarrowLargeTextPreview() {
                         ANSWERED_TWO_SOURCES_SAMPLE,
                         AnswerStatus.answered,
                         SOURCE_SAMPLE_TWO,
+                    ),
+                ),
+            ),
+            onAction = {},
+            onLandsClick = {},
+        )
+    }
+}
+
+@Preview(name = "Chat home land scope, all lands")
+@Composable
+private fun ChatHomeLandScopeAllActivePreview() {
+    ManijeroTheme {
+        ChatHomeScreen(
+            state = ChatHomeState(
+                messages = listOf(
+                    ChatMessage(Speaker.USER, "¿Qué necesito preparar para la solicitud única?"),
+                    ChatMessage(
+                        Speaker.ASSISTANT,
+                        ANSWERED_SAMPLE,
+                        AnswerStatus.answered,
+                        SOURCE_SAMPLE,
+                        LandContextMode.all_active,
+                    ),
+                ),
+            ),
+            onAction = {},
+            onLandsClick = {},
+        )
+    }
+}
+
+@Preview(name = "Chat home land scope, selected lands")
+@Composable
+private fun ChatHomeLandScopeSelectedPreview() {
+    ManijeroTheme {
+        ChatHomeScreen(
+            state = ChatHomeState(
+                messages = listOf(
+                    ChatMessage(Speaker.USER, "¿Qué necesito preparar para la solicitud única?"),
+                    ChatMessage(
+                        Speaker.ASSISTANT,
+                        ANSWERED_SAMPLE,
+                        AnswerStatus.answered,
+                        SOURCE_SAMPLE,
+                        LandContextMode.selected,
+                    ),
+                ),
+            ),
+            onAction = {},
+            onLandsClick = {},
+        )
+    }
+}
+
+@Preview(name = "Chat home land scope, abstention with all lands")
+@Composable
+private fun ChatHomeLandScopeAbstainedPreview() {
+    ManijeroTheme {
+        ChatHomeScreen(
+            state = ChatHomeState(
+                messages = listOf(
+                    ChatMessage(Speaker.USER, "¿Cuánto cuesta matricular un tractor viejo?"),
+                    ChatMessage(
+                        Speaker.ASSISTANT,
+                        ABSTAINED_SAMPLE_NO_EVIDENCE,
+                        AnswerStatus.abstained,
+                        emptyList(),
+                        LandContextMode.all_active,
+                    ),
+                ),
+            ),
+            onAction = {},
+            onLandsClick = {},
+        )
+    }
+}
+
+@Preview(name = "Chat home land scope narrow, large text", widthDp = 320, fontScale = 2f)
+@Composable
+private fun ChatHomeLandScopeNarrowLargeTextPreview() {
+    ManijeroTheme {
+        ChatHomeScreen(
+            state = ChatHomeState(
+                messages = listOf(
+                    ChatMessage(Speaker.USER, "¿Qué necesito preparar para la solicitud única?"),
+                    ChatMessage(
+                        Speaker.ASSISTANT,
+                        ANSWERED_SAMPLE,
+                        AnswerStatus.answered,
+                        SOURCE_SAMPLE,
+                        LandContextMode.selected,
                     ),
                 ),
             ),

@@ -23,11 +23,12 @@ class ChatHomeStateTest {
         answer: String = "Una respuesta.",
         landIds: List<String> = emptyList(),
         sources: List<AnswerSource> = emptyList(),
+        landScope: LandContextMode = LandContextMode.general,
     ) = AskResponse(
         status = status,
         answer = answer,
         sources = sources,
-        land_scope = LandContextMode.general,
+        land_scope = landScope,
         land_ids_to_choose = landIds,
     )
 
@@ -256,6 +257,103 @@ class ChatHomeStateTest {
 
         val assistant = state.messages.single { it.speaker == Speaker.ASSISTANT }
         assertTrue(assistant.sources.isEmpty())
+    }
+
+    @Test
+    fun `an assistant entry defaults to the safe general scope`() {
+        // The default is "not using lands": a future creation site that forgets the field must never
+        // imply land context.
+        assertEquals(LandContextMode.general, ChatMessage(Speaker.ASSISTANT, "texto").landScope)
+    }
+
+    @Test
+    fun `each decoded land scope is copied onto the assistant entry`() {
+        val scopes = listOf(
+            LandContextMode.general,
+            LandContextMode.all_active,
+            LandContextMode.selected,
+        )
+
+        scopes.forEach { scope ->
+            val state = submitting().reduce(
+                ChatHomeAction.ResponseReceived(response(answer = "Respuesta.", landScope = scope)),
+            ).state
+
+            assertEquals(1, state.messages.count { it.speaker == Speaker.ASSISTANT })
+            val assistant = state.messages.single { it.speaker == Speaker.ASSISTANT }
+            assertEquals(scope, assistant.landScope)
+            assertEquals("Respuesta.", assistant.text)
+        }
+    }
+
+    @Test
+    fun `a user entry never carries an assistant land scope`() {
+        val state = submitting().reduce(
+            ChatHomeAction.ResponseReceived(response(landScope = LandContextMode.selected)),
+        ).state
+
+        val user = state.messages.single { it.speaker == Speaker.USER }
+        assertEquals(LandContextMode.general, user.landScope)
+    }
+
+    @Test
+    fun `an earlier entry keeps its own scope after a later reply`() {
+        val selected = submitting().reduce(
+            ChatHomeAction.ResponseReceived(
+                response(answer = "Para el elegido.", landScope = LandContextMode.selected),
+            ),
+        ).state
+
+        val nextTurn = selected
+            .reduce(ChatHomeAction.QuestionChanged("¿Y esto?"))
+            .state
+            .reduce(ChatHomeAction.AskClicked)
+            .state
+            .reduce(
+                ChatHomeAction.ResponseReceived(
+                    response(answer = "General.", landScope = LandContextMode.general),
+                ),
+            )
+            .state
+
+        assertEquals(4, nextTurn.messages.size)
+        // Each entry keeps the scope its own response carried, not the latest turn's scope.
+        assertEquals(LandContextMode.selected, nextTurn.messages[1].landScope)
+        assertEquals(LandContextMode.general, nextTurn.messages[3].landScope)
+    }
+
+    @Test
+    fun `an abstained entry carries its decoded scope`() {
+        val state = submitting().reduce(
+            ChatHomeAction.ResponseReceived(
+                response(
+                    status = AnswerStatus.abstained,
+                    answer = "No puedo confirmarlo.",
+                    landScope = LandContextMode.all_active,
+                ),
+            ),
+        ).state
+
+        val assistant = state.messages.single { it.speaker == Speaker.ASSISTANT }
+        assertEquals(AnswerStatus.abstained, assistant.answerStatus)
+        assertEquals(LandContextMode.all_active, assistant.landScope)
+    }
+
+    @Test
+    fun `a clarification still appends no assistant entry with a scope`() {
+        val state = submitting().reduce(
+            ChatHomeAction.ResponseReceived(
+                response(
+                    status = AnswerStatus.needs_land_clarification,
+                    answer = "",
+                    landIds = listOf("land-1"),
+                    landScope = LandContextMode.selected,
+                ),
+            ),
+        ).state
+
+        assertEquals(1, state.messages.size)
+        assertTrue(state.messages.none { it.speaker == Speaker.ASSISTANT })
     }
 
     @Test

@@ -37,11 +37,12 @@ class ChatConversationTest {
     private fun response(
         answer: String = "Una respuesta.",
         sources: List<AnswerSource> = emptyList(),
+        landScope: LandContextMode = LandContextMode.general,
     ) = AskResponse(
         status = AnswerStatus.answered,
         answer = answer,
         sources = sources,
-        land_scope = LandContextMode.general,
+        land_scope = landScope,
         land_ids_to_choose = emptyList(),
     )
 
@@ -150,6 +151,26 @@ class ChatConversationTest {
         val assistant = conversation.state.messages.single { it.speaker == Speaker.ASSISTANT }
         assertEquals(sources, assistant.sources)
         assertEquals(AnswerStatus.answered, assistant.answerStatus)
+        assertEquals(SubmissionPhase.IDLE, conversation.state.phase)
+    }
+
+    @Test
+    fun `an answered response with a non-general scope carries it on the assistant entry`() = runTest {
+        val service = object : AnswerService {
+            override suspend fun ask(request: AskRequest): AskResponse =
+                response(answer = "Para el terreno elegido.", landScope = LandContextMode.selected)
+        }
+        val conversation = ChatConversation(service, this, landsProvider = { emptyList() })
+
+        conversation.onAction(ChatHomeAction.QuestionChanged(originalQuestion))
+        conversation.onAction(ChatHomeAction.AskClicked)
+        advanceUntilIdle()
+
+        assertEquals(1, conversation.state.messages.count { it.speaker == Speaker.USER })
+        val assistant = conversation.state.messages.single { it.speaker == Speaker.ASSISTANT }
+        assertEquals(LandContextMode.selected, assistant.landScope)
+        assertEquals(AnswerStatus.answered, assistant.answerStatus)
+        assertEquals("Para el terreno elegido.", assistant.text)
         assertEquals(SubmissionPhase.IDLE, conversation.state.phase)
     }
 

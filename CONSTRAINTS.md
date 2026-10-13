@@ -122,3 +122,14 @@ Operational MUST/MUST NOT rules that future features have to respect on top of
   asked to choose when only one land exists or after they already chose, and that the whole point of the
   feature — the assistant asking instead of guessing one land — is lost if the client fabricates a land,
   loses the person's wording, or dresses the question up as a new one.
+
+## Client land scope
+
+- **MUST**: every assistant entry MUST render only the `land_scope` its own decoded response carried,
+  copied at the single creation site `ChatHomeState.ResponseReceived` (never from
+  `lastResponseStatus`), and that caption MUST state in plain Spanish which lands were taken into
+  account (`general` / all lands / the chosen lands) while MUST NOT naming a land or an id, implying
+  that land details prove eligibility, adding a confident or success affordance, or appearing on a
+  failed request or a clarification. Reason: `answer_land_scope` established that a person must be
+  able to tell at a glance whether an answer used none, all, or the chosen lands without ever being
+  told their land's details prove they qualify; `chat_accessibility` renders this transcript next.

@@ -3,6 +3,7 @@ package com.jamarglex.manijero
 import com.jamarglex.manijero.chat.AnswerSource
 import com.jamarglex.manijero.chat.AnswerStatus
 import com.jamarglex.manijero.chat.AskResponse
+import com.jamarglex.manijero.chat.LandContextMode
 import com.jamarglex.manijero.chat.MAX_QUESTION_LENGTH
 import com.jamarglex.manijero.chat.RequestFailure
 import com.jamarglex.manijero.chat.askRequestFor
@@ -49,12 +50,12 @@ data class ChatHomeState(
 enum class SubmissionPhase { IDLE, SUBMITTING }
 
 /**
- * One transcript entry. [answerStatus] and [sources] are meaningful only for [Speaker.ASSISTANT]
- * entries and are copied from the decoded [AskResponse] at the single creation site
- * ([ChatHomeAction.ResponseReceived]); neither is ever read for a [Speaker.USER] entry and neither is
+ * One transcript entry. [answerStatus], [sources], and [landScope] are meaningful only for
+ * [Speaker.ASSISTANT] entries and are copied from the decoded [AskResponse] at the single creation
+ * site ([ChatHomeAction.ResponseReceived]); none is ever read for a [Speaker.USER] entry and none is
  * ever inferred from [ChatHomeState.lastResponseStatus], so every entry keeps the payload it arrived
  * with. The defaults keep existing user entries compiling; a future assistant-entry creation site
- * must set both from the decoded response.
+ * must set all three from the decoded response.
  */
 data class ChatMessage(
     val speaker: Speaker,
@@ -62,6 +63,12 @@ data class ChatMessage(
     val answerStatus: AnswerStatus = AnswerStatus.answered,
     /** The `sources` the response arrived with, in payload order. Never read for [Speaker.USER]. */
     val sources: List<AnswerSource> = emptyList(),
+    /**
+     * Assistant-only: the `land_scope` the response arrived with. Never read for [Speaker.USER]. The
+     * default is the safe `general`: a future creation site that forgets the field shows "not using
+     * lands" rather than implying land context.
+     */
+    val landScope: LandContextMode = LandContextMode.general,
 )
 
 enum class Speaker { USER, ASSISTANT }
@@ -147,7 +154,15 @@ fun ChatHomeState.reduce(action: ChatHomeAction): ChatReduction = when (action) 
         if (phase != SubmissionPhase.SUBMITTING) ChatReduction(this) else {
             val response = action.response
             val assistantMessage = response.answer.takeIf { it.isNotEmpty() }
-                ?.let { ChatMessage(Speaker.ASSISTANT, it, response.status, response.sources) }
+                ?.let {
+                    ChatMessage(
+                        Speaker.ASSISTANT,
+                        it,
+                        response.status,
+                        response.sources,
+                        response.land_scope,
+                    )
+                }
             ChatReduction(
                 copy(
                     messages = if (assistantMessage == null) messages else messages + assistantMessage,
