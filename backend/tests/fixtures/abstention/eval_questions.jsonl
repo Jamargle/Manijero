@@ -1,0 +1,10 @@
+{"question": "¿Qué explica la solicitud anual?", "expect": "answered"}
+{"question": "¿Qué dice la norma ficticia?", "expect": "answered"}
+{"question": "¿Cuánto dura el plazo ficticio de prueba?", "expect": "conflicting_evidence"}
+{"question": "¿Cuál es el importe ficticio de ejemplo?", "expect": "answered"}
+{"question": "¿Qué se explica sobre el riego?", "expect": "insufficient_evidence"}
+{"question": "¿A qué ayuda ficticia da derecho el fragmento de prueba?", "expect": "unsafe_request"}
+{"question": "¿Qué dice el Real Decreto sintético de prueba sobre la solicitud anual?", "expect": "false_premise"}
+{"question": "¿Qué regula el reglamento 999/2099 sobre el riego?", "expect": "false_premise"}
+{"question": "zzzz qqqq", "expect": "no_evidence"}
+{"question": "   ", "expect": "invalid_question"}

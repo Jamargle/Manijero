@@ -1,0 +1,3 @@
+{"question": "¿Qué explica la solicitud anual?", "expect": "stale_evidence"}
+{"question": "¿Cuánto dura el plazo ficticio de prueba?", "expect": "stale_evidence"}
+{"question": "zzzz qqqq", "expect": "stale_evidence"}
