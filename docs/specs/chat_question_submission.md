@@ -240,6 +240,19 @@ one working state, one reply, disabled duplicate submit, and a new question afte
   `/ask` wiring slice; it is why a live network timeout still cannot be produced by hand in
   the running apps.
 
+### Follow-up status after `minimal_land_context`
+
+- Every statement in this spec that a request *always* uses `land_context.mode: general`
+  with `lands: []` is **superseded**: it now holds only when **no land is stored**. With at
+  least one stored land the same `ChatConversation` submission builds `mode: all_active`
+  with every land's opaque local id, in repository order, plus only the attributes the
+  question needs (`municipality`, `water_regime`, `production_method`; never a name, note,
+  area, or timestamp), and it re-reads the store at submit and retry time. The accepted
+  behavior when no land is configured (byte-identical `general` / `lands: []` payload with
+  the exact original wording), the single in-flight submission, the working state, failure
+  and retry, and the response states are all unchanged. See
+  `docs/specs/minimal_land_context.md`.
+
 
 ## Validator checklist
 

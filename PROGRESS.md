@@ -21,6 +21,7 @@
 - `response_states` is accepted: each assistant transcript entry now carries its own decoded `answerStatus` (copied from `response.status` in `ResponseReceived`), so a supported answer and an abstention are visibly different and distinguishable in place. `ChatMessageBubble` branches exhaustively on speaker × status: an answered reply keeps the neutral `surface` `Asistente` card with the server `answer` verbatim, while an abstained reply renders in the accepted `cautionSurface`/`caution` tokens with the new `Sin respuesta segura` label, the pinned limitation message verbatim, merged semantics and a polite live region — never colour alone, never a confident legal-certainty treatment, and never folded into the danger failure notice. `CONSTRAINTS.md` records the client MUST rule. Independent validation accepted 2026-10-13 (record: `docs/validations/response_states.md`); the rendered-evidence gap stays with `chat_accessibility` and the marker-card rendering with `answer_source_cards`.
 - `remove_land` is accepted (record: `docs/validations/remove_land.md`): each `Mis terrenos` row now exposes a visible `Eliminar` control (accessible description names the land; the row card stays non-clickable) that opens the pure `RemoveLandState` + stateless `RemoveLandScreen` confirmation, which repeats the land's exact saved name and known details. Only an explicit `Eliminar el terreno` calls `LandRepository.delete(id)` exactly once — in the existing `App()` composition root, never while composing or at startup — mapped to `REMOVED` + re-read + return to the list, `LAND_MISSING` on a `false` result, and `WRITE_FAILED` on a thrown failure (both keeping the confirmation on screen with no navigation and no false confirmation); `Cancelar` writes nothing. `LandListConfirmation.REMOVED` renders the new `remove_land_removed` copy (`ADDED`/`UPDATED` unchanged), and the row detail lines were factored into an `internal LandDetails`. One simple removal path with no undo; `CONSTRAINTS.md` records the “Land removal” MUST rule.
 - `answer_source_cards` is accepted: each answered reply now shows its cited documents as numbered source cards inside the transcript (title, issuing body, location, formatted verification date, and an always-visible excerpt in one merged semantics node) with one `Abrir documento oficial` control that opens only an https target through `LocalUriHandler`, while each `[n]` marker in the body becomes a superscript reference numeral. The pure `chat/CitationPresentation.kt` layer is fail-closed: `ChatMessage` gains assistant-only `sources` copied only in `ResponseReceived`, references/card numbers appear only when the distinct markers are exactly `1..sources.size` (carried `grounded_answer_generation` F1 handled from the client side), and an abstention renders no source, reference, figure, date, or link. This closes `response_states` R5 for conforming payloads; the backend F1 hardening and the `knowledge/README.md` sentence stay backend-owned follow-ups (record: `docs/validations/answer_source_cards.md`).
+- `minimal_land_context` is accepted (record: `docs/validations/minimal_land_context.md`): a question's `land_context` is no longer always `general`. The new pure, Compose-free `chat/LandContextBuilder.kt` maps the current `List<Land>` into the accepted `LandContext`/`MinimalLandContext`: with at least one stored land the payload is `all_active` with every land in repository order under its opaque local id and only the attributes the question needs (a pinned, folded whole-token vocabulary over `municipality`, `water_regime`, `production_method`); a needed but unknown stored value is sent as `unknown`, an unset municipality is omitted, and no name, note, area, timestamp, or contract-unknown key can be sent. `ChatConversation` reads the lands through an injected `landsProvider` at submit **and** retry (a failing read degrades to the accepted `general` request instead of a failure) and `App()` supplies `{ landRepository?.list().orEmpty() }`. No UI, string, preview, contract, backend, or `lands/` change.
 
 ## Start and verify
 
@@ -80,6 +81,8 @@
 | 2026-10-13 | Accepted `remove_land` | Independent validator re-ran `./init.sh`, the focused three-class run (15/0), `:shared:jvmTest --rerun-tasks` (117/0, 17 suites), `:shared:testAndroidHostTest --rerun-tasks` (104/0, 13 suites), `:shared:compileKotlinIosSimulatorArm64 --rerun-tasks`, and `./init.sh --verify`; byte-for-byte checked the eight new strings and the `CONSTRAINTS.md` rule; wrote and deleted its own scratch JVM probe against the real `FileLandStorage` (byte-identical surviving record, absent-id `false` no-write, throwing-write no-op, header-only last-land store) and independently re-drove the Android emulator for the literal verification (remove one of two lands, `Cancelar` byte-identical, force-stop + relaunch showing only the survivor, last-land empty state + re-add, `font_scale 2.0`). Findings F1-F6 non-blocking. Record: `docs/validations/remove_land.md`. |
 | 2026-10-13 | Implemented `answer_source_cards` (self-verified; awaiting independent validation) | Added the pure Compose-free `chat/CitationPresentation.kt`, assistant-only `ChatMessage.sources` copied in `ResponseReceived`, the `App.kt` answered-branch source-card section with `annotatedText` reference numerals and one `Abrir documento oficial` control via `LocalUriHandler`, nine pinned Spanish strings, four refreshed/new previews, new `CitationPresentationTest` (23) plus 4 added reducer/conversation tests, a `CONSTRAINTS.md` client MUST rule, and a one-line R5-closed note in `docs/specs/response_states.md`. `python3 contracts/validate_examples.py`, `:shared:jvmTest --rerun-tasks` (129/0), `:shared:testAndroidHostTest --rerun-tasks` (118/0), `:desktopApp:build :androidApp:assembleDebug --rerun-tasks` (72 tasks), `./init.sh --verify`, and `:shared:compileKotlinIosSimulatorArm64` pass; greps and byte-for-byte string check clean. |
 | 2026-10-13 | Accepted `answer_source_cards` | Independent validator re-ran the contract validator, the focused three-class run, `:shared:jvmTest --rerun-tasks` (129/0), `:shared:testAndroidHostTest --rerun-tasks` (118/0), `:desktopApp:build :androidApp:assembleDebug --rerun-tasks` (72 tasks, exit 0), `./init.sh --verify` (exit 0), `:shared:compileKotlinIosSimulatorArm64`, and the `iosSimulatorArm64` test run (129/0, `CitationPresentationTest` 23/0 on Kotlin/Native); independently reproduced text fidelity, the non-conforming/abstention fail-closed paths, the F1 non-prefix case, the URL/date matrices, per-entry sources, and byte-for-byte the nine strings; confirmed no rendering from `lastResponseStatus`, clean scope, no logging, and no `Color(0x)` outside `theme/`. Findings N1-N7 non-blocking (N1 closed at acceptance; N7 backend F1 handoff escalated). Record: `docs/validations/answer_source_cards.md`. |
+| 2026-10-13 | Implemented `minimal_land_context` (self-verified; awaiting independent validation) | Added the pure Compose-free `chat/LandContextBuilder.kt` (pinned folded whole-token vocabulary, exhaustive local→contract enum mapping, `all_active` with every stored land / `general` only when none, `unknown` sent as `unknown`, unset municipality omitted, `generalAskRequest` kept as the empty-list branch); changed `ChatEffect.request(lands)`, gave `ChatConversation` a guarded `landsProvider` read at submit and retry, and wired `App()` with `{ landRepository?.list().orEmpty() }` plus the `remember` key. New `LandContextBuilderTest` (13), 4 `ChatConversationTest` cases, 1 MockEngine body capture; `@Test` 144 → 162 with no test removed. `python3 contracts/validate_examples.py`; `:shared:jvmTest --rerun-tasks` 162/0; `:shared:testAndroidHostTest --rerun-tasks` 148/0; `:shared:compileKotlinIosSimulatorArm64`; `:desktopApp:build :androidApp:assembleDebug --rerun-tasks` (72 tasks, APK 35.8 MB); `./init.sh --verify` exit 0; greps and `git diff --check` clean. `CONSTRAINTS.md` gained the client land-context MUST rule and `docs/specs/chat_question_submission.md` records the supersession. |
+| 2026-10-13 | Accepted `minimal_land_context` | Independent validator reproduced the literal verification with its own temporary transport-level probe over a real `FileLandStorage`/`LandRepository` (needed attribute only, ids verbatim, no name/notes/area/timestamp; ids-only for no-vocabulary questions; unset municipality omitted; byte-identical `general` payload with no lands; retry re-reading a land added after a local read failure), and re-ran `python3 contracts/validate_examples.py`, `:shared:jvmTest --rerun-tasks` (162/0, 19 classes), `:shared:testAndroidHostTest --rerun-tasks` (148/0), `:shared:compileKotlinIosSimulatorArm64 :desktopApp:build :androidApp:assembleDebug --rerun-tasks` (76 tasks, APK bytes matched), `./init.sh --verify` (exit 0), the logging/`Color(0x)` greps, and a `:desktopApp:run` smoke; confirmed the vocabulary matches the spec table, no test removed (144→162), and clean scope. Findings N1-N5 non-blocking (N1: no `municipality` bound vs the contract's 160 maxLength; N5 carried `/ask` routing F1). Record: `docs/validations/minimal_land_context.md`. |
 
 
 ## Feature evidence
@@ -1383,3 +1386,115 @@ recorded at this acceptance; N2 un-run manual/render evidence disclosed and owne
 `chat_accessibility`; N3 no calendar-day check in the date formatter; N4 4-digit tokens never match;
 N5 non-conforming payloads still show unnumbered cards; N6 per-composition call without `remember`;
 N7 backend F1 handoff escalated). Record: `docs/validations/answer_source_cards.md`.
+
+### minimal_land_context — accepted
+
+Spec: `docs/specs/minimal_land_context.md`. Implemented and self-verified by the implementer, then
+independently validated (`accept`, 2026-10-13; record: `docs/validations/minimal_land_context.md`).
+
+What changed:
+
+- New `shared/src/commonMain/kotlin/com/jamarglex/manijero/chat/LandContextBuilder.kt` (pure,
+  standard-library only, Compose-free): `LandContextNeeds(waterRegime, productionMethod,
+  municipality)`, `landContextNeeds(question)`, `minimalLandContext(land, needs)`,
+  `landContextFor(question, lands)`, and `askRequestFor(question, lands)`. The decision is a pinned,
+  reviewable vocabulary matched on **whole folded tokens** (lowercase plus a fixed accent table
+  `á à ä â→a`, `é è ë ê→e`, `í ì ï î→i`, `ó ò ö ô→o`, `ú ù ü û→u`, `ñ→n`; tokens are maximal runs of
+  letters/digits), so `agua` never matches `aguacate` and every term is at least four characters.
+  Mode is `all_active` with every stored land in repository order whenever at least one land exists
+  (no topic classifier gates it), and `general`/`lands: []` only when the list is empty, where
+  `askRequestFor` delegates to the unchanged `generalAskRequest` so the no-land payload is
+  byte-identical. A needed but unknown stored value is sent as `unknown`; an unset or blank
+  municipality is always omitted; the local→contract enum mapping is an exhaustive `when` with no
+  `else`, so a new stored value breaks compilation instead of being mis-sent. Property order, ids,
+  and land order stay exactly as stored (no sort, dedupe, or rename), and `answerJson`
+  (`explicitNulls = false`) omits every not-needed property from the wire payload.
+- `shared/src/commonMain/kotlin/com/jamarglex/manijero/ChatHomeState.kt`: only `ChatEffect.request`
+  changed — it now takes the lands explicitly (`fun ChatEffect.request(lands: List<Land>)`), so a
+  call site cannot forget them while the reducer stays pure and `AskClicked`/`RetryClicked` are
+  untouched.
+- `shared/src/commonMain/kotlin/com/jamarglex/manijero/ChatConversation.kt`: new
+  `landsProvider: () -> List<Land> = { emptyList() }` constructor parameter (defaulted, so the
+  existing `ChatConversation(service, scope)` construction keeps working) consumed in `submit` as
+  `runCatching { landsProvider() }.getOrElse { emptyList() }`, so every submit **and** every retry
+  uses the lands stored at that moment and a failing local read degrades to the accepted `general`
+  request instead of turning a question into a failure (never logged, never surfaced).
+- `shared/src/commonMain/kotlin/com/jamarglex/manijero/App.kt`: the conversation is remembered with
+  `landRepository` added to the keys and built with `landsProvider = { landRepository?.list().orEmpty() }`.
+  No destination, screen, string, preview, or layout changed, so `strings.xml` stays byte-identical.
+- Durable docs: `CONSTRAINTS.md` gained the "Client land context" MUST rule (ids and only the needed
+  attributes; no name, note, area, timestamp, invented value, or placeholder; `unknown` instead of a
+  guess; `general` only when no land is stored). `docs/specs/chat_question_submission.md` gained a
+  "Follow-up status after `minimal_land_context`" note superseding its always-`general` statement.
+- Not changed: `contracts/`, `backend/`, `knowledge/`, `lands/`, `theme/`, `strings.xml`,
+  `shared/src/iosMain/`, the platform entry points, all Gradle files, and `init.sh`; no new module,
+  dependency, ViewModel, navigation framework, coroutine API, permission, or network call.
+
+Encoded request bodies (literal feature-list verification, from a temporary JVM probe that was then
+deleted; the committed tests assert them byte for byte). Lands: `land-1` (name "Los Olivos",
+municipality Martos, `IRRIGATED`, `ORGANIC`, area 12.5, a private note, non-zero timestamps) and
+`land-2` (name only):
+
+- `¿Puedo regar hoy?` →
+  `{"question":"¿Puedo regar hoy?","land_context":{"mode":"all_active","lands":[{"id":"land-1","water_regime":"irrigated"},{"id":"land-2","water_regime":"unknown"}]}}`
+  (the needed attribute only, both ids verbatim; no `name`, `notes`, `areaHectares`, timestamp,
+  `municipality`, or `production_method` key appears anywhere).
+- `¿Puedo producir en ecológico?` →
+  `...{"lands":[{"id":"land-1","production_method":"organic"},{"id":"land-2","production_method":"unknown"}]}}`
+- `¿En qué municipio está mi terreno?` →
+  `...{"lands":[{"id":"land-1","municipality":"Martos"},{"id":"land-2"}]}` (the unset municipality is
+  omitted, not sent as a placeholder).
+- `¿Cuál es el plazo de la solicitud única?` (matches no vocabulary) →
+  `...{"lands":[{"id":"land-1"},{"id":"land-2"}]}` (ids only, the lands are never dropped).
+- No lands → `{"question":"¿Puedo regar hoy?","land_context":{"mode":"general","lands":[]}}`,
+  byte-identical to the accepted `generalAskRequest` payload.
+
+Commands actually run (repository root; all pass):
+
+- `python3 contracts/validate_examples.py` → "Validated 2 request and 3 response examples against
+  answer_api_contract".
+- `./gradlew :shared:jvmTest --rerun-tasks` → BUILD SUCCESSFUL, **162 tests / 0 failures / 19
+  classes** (`LandContextBuilderTest` 13 new, `ChatConversationTest` 13, `ChatHomeStateTest` 31,
+  `KtorAnswerServiceTest` 9, `CitationPresentationTest` 23, plus the unchanged land/theme suites).
+- `./gradlew :shared:testAndroidHostTest --rerun-tasks` → BUILD SUCCESSFUL, **148 tests / 0
+  failures / 15 classes**.
+- `./gradlew :shared:compileKotlinIosSimulatorArm64` → BUILD SUCCESSFUL.
+- `./gradlew :desktopApp:build :androidApp:assembleDebug --rerun-tasks` → 72 tasks executed, BUILD
+  SUCCESSFUL (`androidApp/build/outputs/apk/debug/androidApp-debug.apk`, 35,865,622 bytes).
+- `./init.sh --verify` → exit 0 (91 tasks, BUILD SUCCESSFUL).
+- Focused `:shared:jvmTest --tests LandContextBuilderTest/ChatConversationTest/ChatHomeStateTest/KtorAnswerServiceTest`
+  → BUILD SUCCESSFUL.
+- Tests added with none removed: `@Test` count 144 at HEAD → 162 (+13 `LandContextBuilderTest`,
+  +4 `ChatConversationTest`, +1 `KtorAnswerServiceTest`). No log line was added (the land read and
+  the request stay unlogged).
+
+Privacy and scope checks:
+
+- `grep -rn "println|Log\.|Logger|printStackTrace|NSLog|System\.out" shared/src androidApp/src desktopApp/src`
+  → no matches.
+- `grep -rn "Color(0x" shared/src/commonMain/kotlin/com/jamarglex/manijero | grep -v /theme/` → no
+  matches; `MinimalLandContext` still has exactly the four contract properties; `strings.xml` numstat
+  0.
+- `git status --porcelain` (per path) confirms `contracts/`, `backend/`, `knowledge/`, `lands/`,
+  `theme/`, `composeResources`, `androidApp/src`, `desktopApp/src`, the Gradle files, and `init.sh`
+  are untouched.
+- `git diff --check` → clean.
+
+Honest gaps:
+
+- There is no persistent E2E runner and `POST /ask` is still unrouted (carried
+  `chat_question_submission` F1), so there is no live end-to-end answer to smoke; the transport-level
+  encoded-body capture plus the pure builder tests are the honest automated equivalent and no
+  on-device network evidence is claimed.
+- Desktop launch smoke: `:desktopApp:run` started `com.jamarglex.manijero.MainKt` with the real
+  `FileLandStorage` and stayed alive about 50 s with no exception in the run log until it was
+  stopped (no interactive click-through and no screenshot; the app never submits on startup, so
+  nothing was sent).
+- The vocabulary is a pinned content decision, not a measurement: a wording that misses a term sends
+  fewer attributes and therefore a more general (never wrong) answer; widening the table is a spec
+  and test change.
+- A failing local land read silently degrades to `general`, so a store problem can never block a
+  question, and the payload then honestly says `general`; `ChatConversation.submit` reads the lands
+  synchronously (matching the accepted `land_list` read), which is deliberate for MVP store sizes.
+- `land_clarification`/`answer_land_scope` (choice and scope presentation), B13 applicability, and
+  the land-data disclosure copy remain with their own features.

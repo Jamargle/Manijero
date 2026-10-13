@@ -161,8 +161,15 @@ fun App(
     answerService: AnswerService = UnavailableAnswerService,
 ) {
     val scope = rememberCoroutineScope()
-    val conversation = remember(answerService, scope) {
-        ChatConversation(answerService = answerService, scope = scope)
+    // The land list is read at submit time and again on every retry (never while composing), so a
+    // land added, edited, or removed after the chat screen opened is reflected in the next request.
+    // With no repository (the iOS scaffold and previews) the accepted `general` request is used.
+    val conversation = remember(answerService, scope, landRepository) {
+        ChatConversation(
+            answerService = answerService,
+            scope = scope,
+            landsProvider = { landRepository?.list().orEmpty() },
+        )
     }
     var destination by remember { mutableStateOf(AppDestination.Chat) }
     var addLandState by remember { mutableStateOf(AddLandState()) }

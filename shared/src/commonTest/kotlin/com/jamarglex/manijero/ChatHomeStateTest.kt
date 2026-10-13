@@ -88,7 +88,7 @@ class ChatHomeStateTest {
 
         val effect = reduction.effect as ChatEffect.Submit
         assertEquals(originalQuestion, effect.question)
-        val request = effect.request()
+        val request = effect.request(emptyList())
         assertEquals(originalQuestion, request.question)
         assertEquals(LandContextMode.general, request.land_context.mode)
         assertTrue(request.land_context.lands.isEmpty())
@@ -360,7 +360,7 @@ class ChatHomeStateTest {
 
         val effect = retry.effect as ChatEffect.Submit
         assertEquals(originalQuestion, effect.question)
-        assertEquals(originalQuestion, effect.request().question)
+        assertEquals(originalQuestion, effect.request(emptyList()).question)
     }
 
     @Test
