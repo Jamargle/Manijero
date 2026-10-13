@@ -15,6 +15,7 @@
 - The offline grounded-generation boundary now exists: `backend/app/generation.py` (code-owned citation markers and notice, `verify_draft` grounding rules, deterministic extractive generator, fail-closed `NotAnswered` reasons, accepted-`AskResponse` assembly) and `backend/scripts/evaluate_generation.py` (report-only CLI, grounding invariants enforced with exit `1`). It answers only from `Retriever` candidates, keeps `/health` as the only route, and configures no model provider. Fixture report: 5 answers, 8 claims, 0 ungrounded claims, 1 no-evidence outcome. `CONSTRAINTS.md` records the answer-grounding MUST rules.
 - `visual_foundation` (the shared olive-toned theme in `commonMain`) is accepted: `shared/src/commonMain/kotlin/com/jamarglex/manijero/theme/ManijeroColors.kt`, `ManijeroTheme.kt`, and `ManijeroTypography.kt` define the `DESIGN.md` tokens, a fully specified `lightColorScheme`, a `LocalManijeroSemanticColors` local for caution/strong olive, and the `bodySmall` line-height override; `ManijeroTheme` is applied once inside `App()` and all fifteen existing previews use it (record: `docs/validations/visual_foundation.md`). `response_states`, `answer_source_cards`, `network_error_recovery`, `land_list`, `edit_land`, `remove_land`, and `chat_accessibility` now have their `visual_foundation` dependency satisfied.
 - `land_list` is accepted: `Mis terrenos` now opens the shared lands **list** (the parent surface of the add form) via pure `LandListState`/`LandListAction`/`reduce` and the stateless `LandListScreen`, with a single synchronous `LandRepository.list()` read on entry/retry/after-save, an empty state that names `Añadir terreno`, a distinct plain-Spanish failure state (`Reintentar`, no add action), non-clickable merged-semantics rows, and a device-scoped saved confirmation. The intended routing change moves the `add_land` return destination to the list and removes the now-unreachable chat-home confirmation (record: `docs/validations/land_list.md`). `edit_land`, `remove_land`, and `minimal_land_context` now have their `land_list` dependency satisfied.
+- The offline abstention boundary now exists: `backend/app/abstention.py` turns every "no safe answer" outcome into one deterministic, code-owned `Abstention` with a stable reason (`invalid_question`, `no_evidence`, `insufficient_evidence`, `stale_evidence`, `conflicting_evidence`, `false_premise`, `unsafe_request`, `generator_abstained`, `generation_error`) and one pinned plain-Spanish message per reason (`ABSTENTION_MESSAGES`; no digit, no date, always a next step). It adds the pre-checks the accepted generation feature deferred — an instrument/article presupposition no retrieved candidate contains, two `critical` candidates disagreeing about the same documented unit, and a catalog that declares sources but has none eligible as of `--as-of` — and `backend/scripts/evaluate_abstention.py` reports the assembled decision per question with the abstention invariants enforced (exit `1`). Every payload is exactly the accepted `AskResponse` keys with `status: abstained`, `sources: []`, and `land_ids_to_choose: []`; the sub-reason stays Python-level, `/health` remains the only route, and no model provider is configured. Detection is lexical and conservative, and no score threshold is a release gate.
 
 ## Start and verify
 
@@ -25,6 +26,7 @@
 - Source catalog check: `python3 backend/scripts/validate_source_catalog.py knowledge/source_catalog.json --as-of YYYY-MM-DD`
 - Retrieval baseline (fixture, report-only): `python3 backend/scripts/evaluate_retrieval.py --catalog backend/tests/fixtures/retrieval/catalog.json --passages backend/tests/fixtures/retrieval/passages.json --eval backend/tests/fixtures/retrieval/eval_questions.jsonl --as-of 2026-10-13 --k 5`
 - Grounded generation (fixture, report-only; grounding invariants enforced): `python3 backend/scripts/evaluate_generation.py --catalog backend/tests/fixtures/generation/catalog.json --passages backend/tests/fixtures/generation/passages.json --eval backend/tests/fixtures/generation/eval_questions.jsonl --as-of 2026-10-13 --k 5`
+- Abstention decisions (fixture, report-only; abstention invariants enforced): `python3 backend/scripts/evaluate_abstention.py --catalog backend/tests/fixtures/abstention/catalog.json --passages backend/tests/fixtures/abstention/passages.json --eval backend/tests/fixtures/abstention/eval_questions.jsonl --as-of 2026-10-13 --k 5` (a catalog whose sources are all ineligible as of `--as-of` yields `corpus: not_current` and `stale_evidence` for every question; omit `--passages` in that case)
 - Backend tests: `cd backend && python -m pytest` (note: bare `pytest` cannot collect `tests/test_health.py`, because nothing puts `backend/` on `sys.path`; use `python -m pytest` or install the test runner into a local virtualenv)
 
 
@@ -61,6 +63,8 @@
 | 2026-10-13 | Accepted `grounded_answer_generation` | Independent validator reproduced the 100 focused / 221 full pytest passes, the fixture CLI run (exit 0; 5 answers, 8 claims, 0 ungrounded, 0 invented sources, 1 no-evidence), the literal feature-list verification, the empty-corpus runs, byte-identical `--json` runs, an independent socket guard, and fail-closed paths; confirmed the assembled payload matches `AskResponse`/`AnswerSource`, the retrieval baseline is unchanged (`hit@5 = 0.857`), fixtures are synthetic-only, and scope is clean with no repo dependency. Findings F1/F2 non-blocking. See `docs/validations/grounded_answer_generation.md`. |
 | 2026-10-13 | Implemented `land_list` (self-verified; awaiting independent validation) | Added pure `LandListState`/`LandListAction`/`reduce` and the stateless resource-backed `LandListScreen` with 11 previews, 9 new `land_list_*` strings, and `App()` wiring: a `LandList` destination with one synchronous read site, the intended `Mis terrenos` routing change, and removal of the unreachable chat-home confirmation. `:shared:jvmTest` 60 tests, `:shared:testAndroidHostTest` 57 tests, `./init.sh --verify` pass; Android emulator and Desktop smoke recorded. |
 | 2026-10-13 | Accepted `land_list` | Independent validator re-ran `./init.sh`, the focused and full `:shared:jvmTest` (60/0), `:shared:testAndroidHostTest` (57/0), `./init.sh --verify`, and a full `--rerun-tasks` build, and byte-for-byte checked the nine new strings against the spec; confirmed the failure/empty-state distinction and file-by-file scope discipline (only the intended `add_land` routing change). Findings F1-F6 non-blocking. See `docs/validations/land_list.md`. |
+| 2026-10-13 | Implemented `safe_abstention` (passing, awaiting independent validation) | Added `backend/app/abstention.py` (9-reason taxonomy, pinned Spanish `ABSTENTION_MESSAGES`, false-premise/unit-conflict/stale-corpus pre-checks, one-way generation-reason map, `to_abstention_response`), `backend/scripts/evaluate_abstention.py` (offline report CLI; abstention invariants enforced, exit 0/1/2), `backend/tests/test_abstention.py` (178 tests), and synthetic fixtures `backend/tests/fixtures/abstention/*`; updated `backend/README.md` and `CONSTRAINTS.md`. Current-corpus run exit 0 (3 answered, 7 abstained, 0 abstentions with sources, 0 abstentions with figures, invariants hold, 0 expect-mismatches); expired-catalog run exit 0 with 3/3 `stale_evidence`; feature-list check: out-of-corpus → `no_evidence` and a numbered `Real Decreto` → `false_premise`, both with `sources: []` and a pinned rule-free message; `python -m pytest tests/test_abstention.py` 178 passed and `python -m pytest` 399 passed; generation/retrieval baselines and `contracts/validate_examples.py` unchanged; `py_compile` and `git diff --check` clean. No dependency, no route, no client change. |
+| 2026-10-13 | Accepted `safe_abstention` | Independent validator reproduced the 178 focused / 399 full pytest passes, both CLI runs (current: 3 answered / 7 abstained, 0 abstentions with sources or figures, invariants hold; expired/non-approved/non-current: every question `stale_evidence`), the fail-closed exit 2 cases, the exit 0/1 contract, byte-identical `--json` runs, an independent `jsonschema` check of every payload against the dereferenced `AskResponse`, a byte-for-byte comparison of the nine pinned messages, its own out-of-corpus/false-premise/conflict probes, generator provenance, a stricter socket/DNS guard, and the unchanged generation (`5/8/0/1`) and retrieval (`hit@5 = 0.857`) baselines; confirmed `contracts/` and all do-not-touch files unmodified, `/health` the only route, synthetic labelled fixtures, and no repo dependency. Findings N1-N4 non-blocking. See `docs/validations/safe_abstention.md`. |
 
 ## Feature evidence
 
@@ -537,8 +541,10 @@ Limitations (honest):
 - Nothing about a canonical corpus changed: no `knowledge/passages.json` was
   created, and the fixture corpus is tiny, synthetic, and implementer-authored,
   so nothing here is a legal-coverage or answer-quality claim.
-- `safe_abstention` is not implemented: this feature returns machine-readable
-  reason codes only, and never user-facing abstention copy.
+- `safe_abstention` was not implemented by this feature: it returned
+  machine-readable reason codes only and no user-facing abstention copy. (The
+  later `safe_abstention` feature, now accepted, consumes those codes and owns
+  the pinned abstention copy.)
 
 ### land_list — accepted
 
@@ -618,3 +624,142 @@ Honest gaps:
   `LandStoreFormat.decode` contract, which `land_list` is forbidden to change (F2b).
 - Spec-recorded limits stand: two identical name-only lands render identically; `areaHectares` and
   `notes` are not shown; the read is synchronous on the composition frame.
+
+### safe_abstention — accepted
+
+Spec: `docs/specs/safe_abstention.md`. Status is `accepted` after independent validation (record:
+`docs/validations/safe_abstention.md`, 2026-10-13). Detection is lexical and conservative, and no
+score threshold is a release gate.
+
+What was added:
+
+- `backend/app/abstention.py` — the stable 9-reason taxonomy (`ABSTENTION_REASONS`), one pinned
+  plain-Spanish message per reason (`ABSTENTION_MESSAGES`, no digit, no date, always a next step), a
+  frozen `Abstention` (`reason`, `generation_reason`, `issues`, `claims`; no text field, so copy is
+  code-owned), the one-way `GENERATION_REASON_MAP` (`no_candidates`→`no_evidence`,
+  `grounding_failed`→`insufficient_evidence`, `policy_failed`→`unsafe_request`, everything else
+  unchanged, unknown→`generation_error`), `prepare_corpus` (a corpus-level `stale_evidence`
+  `Abstention` when the catalog declares sources but `eligible_source_ids` is empty as of `as_of`),
+  `answer_or_abstain` (pre-checks then the accepted `generate_grounded_answer`), the lexical
+  presupposition check (`presupposed_identifiers` / `has_unsupported_presupposition`), the
+  unit-anchored conflict check (`CRITICAL_UNITS` / `unit_values` / `find_unit_conflict`), and
+  `to_abstention_response` (exactly the accepted `AskResponse` keys with `status: abstained`,
+  `sources: []`, `land_ids_to_choose: []`).
+- `backend/scripts/evaluate_abstention.py` — offline report-only CLI (stdlib only, no network, no
+  model provider) with `--catalog/--passages/--eval/--as-of/--k/--json/--fail-on-miss`, per-question
+  outcome/reason/generation-reason/issue-codes/message, corpus `current`/`not_current`, and the
+  aggregate counters `abstentions_with_sources`, `abstentions_with_figures`,
+  `abstention_invariants_hold`. Exit `0` reported, `1` on a violated abstention invariant or (only
+  with `--fail-on-miss`) an expect mismatch, `2` on unreadable/invalid input or arguments.
+- `backend/tests/test_abstention.py` — 178 focused tests (taxonomy/copy, payload shape, every
+  generation reason mapped, `prepare_corpus` current/stale/hard-error, false premise hit/miss, unit
+  conflict vs different units, generator-never-called, determinism, socket guard, content-silent
+  diagnostics, CLI 0/1/2, fixture hygiene, accepted-generation regression).
+- `backend/tests/fixtures/abstention/{catalog.json,passages.json,eval_questions.jsonl,eval_questions_stale.jsonl}`
+  — synthetic, labelled fixtures (7 passages: ordinary, identifier-present, two `critical` fictitious
+  deadlines, a multi-sentence excerpt, a starter-eligibility excerpt, a `critical` fictitious amount).
+  Every numeric line is marked `cifra inventada`; the only numbered reference is a deliberately
+  impossible `999/2099`.
+- `backend/README.md` and `CONSTRAINTS.md` — the abstention boundary, taxonomy table, CLI usage, and
+  one MUST rule (an abstention may never carry a source, figure, or date, and its copy is code-owned).
+
+Commands actually run and real results:
+
+- `python3 backend/scripts/evaluate_abstention.py --catalog backend/tests/fixtures/abstention/catalog.json --passages backend/tests/fixtures/abstention/passages.json --eval backend/tests/fixtures/abstention/eval_questions.jsonl --as-of 2026-10-13 --k 5`
+  → exit `0`; `corpus: current`; eligible sources `2`, indexed passages `7`, excluded `0`; answered
+  `3`, abstained `7`, `abstentions with sources: 0`, `abstentions with figures: 0`,
+  `abstention invariants hold: yes`, `outcomes differing from expect: 0` (10 questions). Outcomes:
+  answered for the solicitud/norma/importe questions; `conflicting_evidence` for the fictitious plazo
+  question (`unit_conflict`; `critical` 30 días vs `critical` 45 días); `insufficient_evidence`
+  (generation reason `grounding_failed`, issue `uncited_sentence`) for the multi-sentence excerpt;
+  `unsafe_request` (generation reason `policy_failed`, issue `eligibility_claim`) for the
+  starter-eligibility excerpt; `false_premise` for the `Real Decreto sintético` and the numbered
+  `reglamento 999/2099` questions (`unconfirmed_presupposition`); `no_evidence` for `zzzz qqqq`;
+  `invalid_question` for a blank question. Two `critical` passages about different units (a `días`
+  deadline and a `euros` amount) still answer, so the accepted covered critical question is not
+  over-abstained.
+- Stale corpus: `python3 backend/scripts/evaluate_abstention.py --catalog backend/tests/fixtures/retrieval/catalog_expired.json --eval backend/tests/fixtures/abstention/eval_questions_stale.jsonl --as-of 2026-10-13 --k 5` (no `--passages`)
+  → exit `0`; `corpus: not_current`; answered `0`, abstained `3`, every question `stale_evidence`
+  (issue `stale_corpus`, `sources: []`, pinned message). Unit tests reproduce the same for
+  `catalog_not_approved.json` and `catalog_not_current.json` and confirm the stale `Abstention` wins
+  over an `invalid_question`. A structurally broken catalog, a malformed passage set, an unknown
+  `source_id`, and an unreadable file stay hard errors (`CatalogRejectedError`/`PassageSetError`;
+  CLI exit `2`), and the canonical empty `knowledge/source_catalog.json` still prepares a retriever
+  with 0 sources and 0 passages.
+- Literal feature-list verification with a two-line JSONL outside the repo: `¿Cuánto cuesta matricular un tractor viejo?`
+  → `no_evidence` (generation reason `no_candidates`, `sources: 0`, message "No he encontrado esta
+  información en los documentos oficiales que tengo. Te recomiendo consultar con tu oficina comarcal
+  agraria o con tu cooperativa.") and `¿Qué dice el Real Decreto 123/2099 sobre el plazo de la solicitud?`
+  → `false_premise` (issue `unconfirmed_presupposition`, `sources: 0`, message "No puedo confirmar ese
+  dato con los documentos oficiales revisados. Comprueba el nombre o el número exacto con tu oficina
+  comarcal agraria o con tu cooperativa."). `0` answered, `2` abstained, `0` with sources, `0` with
+  figures, invariants hold, `0` expect-mismatches; no invented legal fact appears. The same
+  identifier present in a candidate does not trigger the check (the `norma` question still answers).
+- Exit contract and determinism: `--fail-on-miss` → exit `0` on the fixtures and exit `1` on a
+  deliberately mismatched expectation while printing byte-identical output; without the flag the
+  mismatch still exits `0`; `--k 0` → exit `2` ("--k must be a positive integer"); a malformed eval
+  line, an eval file with no questions, an invalid `--as-of`, a missing catalog, and a missing or
+  malformed passage set each exit `2` with empty stdout. Two `--json` runs are byte-identical
+  (`cmp` exit `0`). A payload that leaks a source, a land choice, a blank/over-long message, a digit
+  or a date, a non-`abstained` status, or an off-taxonomy reason makes the CLI exit `1`.
+- Tests: `cd backend && python -m pytest tests/test_abstention.py` → **178 passed**;
+  `cd backend && python -m pytest` → **399 passed** (221 existing + 178 new); `python3 -m py_compile backend/app/abstention.py backend/scripts/evaluate_abstention.py backend/tests/test_abstention.py`
+  → clean; `git diff --check` → clean.
+- Offline and content-silent: tests monkeypatch `socket.socket` to raise and the pipeline still
+  abstains in both `prepare_corpus` and `answer_or_abstain`; a test asserts `abstention.py` imports
+  no `socket`/`urllib`/`httpx`/`requests`; a test asserts no question text, excerpt text, or figure
+  number reaches the issue diagnostics or the emitted message; a recorded generator draft is
+  discarded whole.
+- Regression boundaries unchanged: generation CLI → exit `0`, `5` answers, `8` claims, `0`
+  ungrounded, `1` no-evidence; retrieval CLI → `hit@5 = 0.857 (6/7)`, `recall@5 = 0.857`,
+  `MRR = 0.857`; the 6 accepted generation eval questions re-run through `answer_or_abstain` still
+  resolve exactly as their expects say; `python3 contracts/validate_examples.py` → "Validated 2
+  request and 3 response examples against answer_api_contract".
+- Change scope: `git status --porcelain` shows only `backend/README.md`, `CONSTRAINTS.md`,
+  `feature_list.json`, and `PROGRESS.md` modified (`backend/README.md` +54 / `CONSTRAINTS.md` +13
+  insertions) plus the new paths; `contracts/`, `backend/app/generation.py`,
+  `backend/app/retrieval.py`, `backend/app/source_catalog.py`, `backend/app/main.py`,
+  `backend/scripts/evaluate_generation.py`, `backend/tests/test_generation.py`, `knowledge/`,
+  `backend/requirements.txt`, `init.sh`, and all client/shared code are unmodified (checked per path).
+
+Honest gaps:
+
+- No `/ask` route and no persistent E2E harness exist, so the abstention reason stays observable only
+  through this CLI and these tests until the route slice exists; no browser/API/E2E test was run.
+- Android/Desktop/Gradle and `./init.sh` checks were not run: no product UI, route, or shared code
+  changed and `init.sh` has no backend command.
+- Detection is lexical, not semantic: a retrieval miss, or two unrelated `critical` passages that
+  share a unit, can abstain. `prepare_corpus` treats any declared-but-all-ineligible catalog as
+  `stale_evidence` even when the ineligibility comes from a malformed currency field (structurally
+  broken catalogs stay hard errors). Widening conflict detection requires measurement, not assumption.
+- No calibrated threshold and no trap-set measurement is introduced (`land_safety_evaluation` owns
+  both); the tiny implementer-authored synthetic corpus means no reason code here is a coverage or
+  answer-quality claim.
+- Carried-forward accepted generation finding F2 (non-iterable `source_markers` at the model seam) is
+  unchanged.
+- Environment note: this worktree has no `python` on `PATH` and the system interpreter has no
+  `pytest`, so pytest ran from a temporary venv outside the repository (Python 3.9.6) with the repo's
+  own `backend/requirements.txt` installed into it; no dependency was added to the repo.
+
+Independent validation (2026-10-13): accept. The validator did not trust the implementer report and
+reproduced the 178 focused / 399 full pytest passes, `py_compile` and `git diff --check`, both CLI runs
+(current corpus: 3 answered / 7 abstained, 0 abstentions with sources or figures, invariants hold; and
+expired/non-approved/non-current catalogs: every question `stale_evidence`), the fail-closed exit `2`
+cases with located JSON paths, the exit `0`/`1` contract, byte-identical `--json` runs (also under two
+`PYTHONHASHSEED` values), an independent `jsonschema` validation of every payload against the
+dereferenced `AskResponse`, a byte-for-byte comparison of the nine pinned messages plus digit/date and
+eligibility checks, its own out-of-corpus, false-premise (present/absent/different-instrument/location-
+only), and same-unit-versus-different-unit conflict probes, generator provenance (0 generator calls for
+invalid/no_evidence/false_premise/conflict; rejected drafts never emitted), and a stricter independent
+`socket`/DNS guard that still abstains and answers. It confirmed the unchanged generation
+(`5` answers, `8` claims, `0` ungrounded, `1` no-evidence) and retrieval (`hit@5 = 0.857 (6/7)`,
+`recall@5 = 0.857`, `MRR = 0.857`) baselines, `contracts/validate_examples.py` passing with
+`contracts/` untouched, `GET /health` the only route, synthetic labelled fixtures with no real legal
+fact, and no repo dependency (pytest ran from an out-of-repo venv, Python 3.9.6). Findings N1-N4 are
+non-blocking: N1 (evidence wording over-narrow about which files were modified; corrected here),
+N2 (a structurally-plausible-but-semantically-invalid catalog can yield `stale_evidence` instead of a
+hard error; matches spec rule 6, fails safe, owner a later catalog-hardening slice), N3
+(`test_abstention.py:553` uses a real-looking statute id `7/2022`; a pure extractor literal, prefer an
+impossible id for fixture-policy consistency), N4 (substring containment in the presupposition check
+can under-abstain, e.g. `ley` inside `leyenda`; the prescribed lexical behaviour, to be measured in
+`land_safety_evaluation`). Record: `docs/validations/safe_abstention.md`.
