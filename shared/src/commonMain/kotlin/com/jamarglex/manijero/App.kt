@@ -27,16 +27,27 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.semantics.LiveRegionMode
+import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.liveRegion
 import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.text.AnnotatedString
+import androidx.compose.ui.text.SpanStyle
+import androidx.compose.ui.text.buildAnnotatedString
+import androidx.compose.ui.text.style.BaselineShift
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import com.jamarglex.manijero.chat.AnswerSegment
 import com.jamarglex.manijero.chat.AnswerService
+import com.jamarglex.manijero.chat.AnswerSource
 import com.jamarglex.manijero.chat.AnswerStatus
 import com.jamarglex.manijero.chat.RequestFailure
+import com.jamarglex.manijero.chat.SourceCard
 import com.jamarglex.manijero.chat.UnavailableAnswerService
+import com.jamarglex.manijero.chat.answerSourcePresentation
 import com.jamarglex.manijero.lands.AddLandAction
 import com.jamarglex.manijero.lands.AddLandScreen
 import com.jamarglex.manijero.lands.AddLandState
@@ -73,17 +84,48 @@ import manijero.shared.generated.resources.chat_home_suggestion_solicitud_unica
 import manijero.shared.generated.resources.chat_home_suggestions_title
 import manijero.shared.generated.resources.chat_home_title
 import manijero.shared.generated.resources.chat_home_working
+import manijero.shared.generated.resources.chat_source_excerpt_label
+import manijero.shared.generated.resources.chat_source_issuing_body
+import manijero.shared.generated.resources.chat_source_label
+import manijero.shared.generated.resources.chat_source_link_unavailable
+import manijero.shared.generated.resources.chat_source_location
+import manijero.shared.generated.resources.chat_source_open
+import manijero.shared.generated.resources.chat_source_open_description
+import manijero.shared.generated.resources.chat_source_section_title
+import manijero.shared.generated.resources.chat_source_verified_on
 import manijero.shared.generated.resources.chat_speaker_assistant
 import manijero.shared.generated.resources.chat_speaker_you
 
 private val ContentMaxWidth = 720.dp
 
 // Preview samples only, never shipped copy. The two abstention samples are pinned code-owned
-// messages taken verbatim from the accepted abstention contract; the answered sample shows the
+// messages taken verbatim from the accepted abstention contract; the answered samples show the
 // lead-in and orientative notice that are already part of the server `answer`.
 private const val ANSWERED_SAMPLE =
-    "Según los documentos oficiales revisados: presenta la solicitud dentro del plazo indicado en la convocatoria. " +
+    "Según los documentos oficiales revisados: presenta la solicitud dentro del plazo indicado en la convocatoria. [1] " +
         "Información orientativa basada en documentos oficiales. No sustituye el asesoramiento profesional."
+
+// Preview-only two-source answer body: the accepted fixture's answer text with a `[1]`/`[2]` marker
+// on each sentence, so the two duplicated source cards are numbered. No claim text is invented.
+private const val ANSWERED_TWO_SOURCES_SAMPLE =
+    "La solicitud única reúne determinadas ayudas de la PAC en una declaración anual. [1] " +
+        "Revisa la convocatoria y confirma los requisitos con la oficina agraria antes de presentarla. [2]"
+
+// Preview-only source sample, copied verbatim from contracts/examples/response-answered.json.
+private val SOURCE_SAMPLE = listOf(
+    AnswerSource(
+        title = "Solicitud única de la PAC",
+        issuing_body = "Ministerio de Agricultura, Pesca y Alimentación",
+        url = "https://www.mapa.gob.es/",
+        location = "Información de la solicitud única",
+        published_or_updated_on = "2026-01-15",
+        verified_on = "2026-10-01",
+        excerpt = "La solicitud única es el procedimiento anual para solicitar determinadas ayudas de la PAC.",
+    ),
+)
+
+// The accepted sample duplicated, preview-only, so the two-card layout is exercised.
+private val SOURCE_SAMPLE_TWO = SOURCE_SAMPLE + SOURCE_SAMPLE
 
 private const val ABSTAINED_SAMPLE_NO_EVIDENCE =
     "No he encontrado esta información en los documentos oficiales que tengo. " +
@@ -404,7 +446,29 @@ private fun ChatMessageBubble(message: ChatMessage, modifier: Modifier = Modifie
             // A supported answer keeps the calm neutral card. The code-owned lead-in and orientative
             // notice are already inside the server `answer`, so no client label, disclaimer, badge,
             // or "verified" affordance is added: that would be the confident treatment to avoid.
-            AnswerStatus.answered -> ChatAssistantCard(text = message.text, modifier = modifier)
+            // When the reply cites sources, each `[n]` marker becomes a reference numeral and every
+            // cited source is shown as a card below the answer.
+            AnswerStatus.answered -> {
+                val presentation = answerSourcePresentation(
+                    status = message.answerStatus,
+                    answer = message.text,
+                    sources = message.sources,
+                )
+                Column(
+                    modifier = modifier
+                        .fillMaxWidth()
+                        .widthIn(max = ContentMaxWidth),
+                    verticalArrangement = Arrangement.spacedBy(12.dp),
+                ) {
+                    ChatAssistantCard(
+                        text = message.text,
+                        annotatedText = answerAnnotations(presentation.segments),
+                    )
+                    if (presentation.cards.isNotEmpty()) {
+                        SourceCardsSection(cards = presentation.cards)
+                    }
+                }
+            }
 
             // An abstention is a decoded answer, not a failure: it stays in the transcript with the
             // caution tokens, an explicit text state label, and the server message verbatim. The
@@ -434,13 +498,158 @@ private fun ChatMessageBubble(message: ChatMessage, modifier: Modifier = Modifie
 
 /** The neutral assistant card shared by a supported answer and a defensive clarification. */
 @Composable
-private fun ChatAssistantCard(text: String, modifier: Modifier = Modifier) {
+private fun ChatAssistantCard(
+    text: String,
+    modifier: Modifier = Modifier,
+    annotatedText: AnnotatedString? = null,
+) {
     ChatBubble(
         modifier = modifier,
         label = stringResource(Res.string.chat_speaker_assistant),
         labelColor = MaterialTheme.colorScheme.primary,
         text = text,
+        annotatedText = annotatedText,
         containerColor = MaterialTheme.colorScheme.surface,
+    )
+}
+
+/**
+ * Builds the annotated reply body when the reply has reference markers, or returns null when there
+ * is nothing to annotate so the plain `String` body renders unchanged. A reference numeral is drawn
+ * as a superscript numeral: a position/size cue first and colour second, never a tappable link (the
+ * source card holds the one large, labelled control).
+ */
+@Composable
+private fun answerAnnotations(segments: List<AnswerSegment>): AnnotatedString? {
+    if (segments.none { it is AnswerSegment.Reference }) return null
+    val referenceStyle = SpanStyle(
+        baselineShift = BaselineShift.Superscript,
+        color = MaterialTheme.colorScheme.onSurfaceVariant,
+    )
+    return buildAnnotatedString {
+        segments.forEach { segment ->
+            when (segment) {
+                is AnswerSegment.Text -> append(segment.text)
+                is AnswerSegment.Reference -> withStyle(referenceStyle) {
+                    append(segment.number.toString())
+                }
+            }
+        }
+    }
+}
+
+/**
+ * The cited sources of one answered reply, in payload order. The heading and one card per source are
+ * rendered under the answer; nothing is reordered, merged, or deduplicated.
+ */
+@Composable
+private fun SourceCardsSection(cards: List<SourceCard>, modifier: Modifier = Modifier) {
+    Column(
+        modifier = modifier
+            .fillMaxWidth()
+            .widthIn(max = ContentMaxWidth),
+        verticalArrangement = Arrangement.spacedBy(12.dp),
+    ) {
+        Text(
+            text = stringResource(Res.string.chat_source_section_title),
+            style = MaterialTheme.typography.titleMedium,
+            color = MaterialTheme.colorScheme.onBackground,
+        )
+        cards.forEach { card -> SourceCardView(card = card) }
+    }
+}
+
+/**
+ * One cited source. The number label, title, issuing body, location, verification date, and excerpt
+ * are one merged semantics node so assistive technology reads them together; the excerpt is always
+ * visible in its own block and is never collapsed or truncated. The `Abrir documento oficial`
+ * control is a separate focusable button whose accessible description names the source. When the URL
+ * is not openable, the pinned unavailability line is shown instead and no control is offered.
+ */
+@Composable
+private fun SourceCardView(card: SourceCard, modifier: Modifier = Modifier) {
+    Surface(
+        modifier = modifier.fillMaxWidth(),
+        shape = RoundedCornerShape(16.dp),
+        color = MaterialTheme.colorScheme.surface,
+        border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant),
+    ) {
+        Column(
+            modifier = Modifier.padding(horizontal = 16.dp, vertical = 12.dp),
+            verticalArrangement = Arrangement.spacedBy(12.dp),
+        ) {
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .semantics(mergeDescendants = true) {},
+                verticalArrangement = Arrangement.spacedBy(4.dp),
+            ) {
+                card.number?.let { number ->
+                    Text(
+                        text = stringResource(Res.string.chat_source_label, number),
+                        style = MaterialTheme.typography.labelLarge,
+                        color = MaterialTheme.colorScheme.primary,
+                    )
+                }
+                Text(
+                    text = card.title,
+                    style = MaterialTheme.typography.titleMedium,
+                    color = MaterialTheme.colorScheme.onSurface,
+                )
+                SourceCardDetail(stringResource(Res.string.chat_source_issuing_body, card.issuingBody))
+                SourceCardDetail(stringResource(Res.string.chat_source_location, card.location))
+                card.verifiedOn?.let { verifiedOn ->
+                    SourceCardDetail(stringResource(Res.string.chat_source_verified_on, verifiedOn))
+                }
+                Surface(
+                    modifier = Modifier.fillMaxWidth(),
+                    shape = RoundedCornerShape(12.dp),
+                    color = MaterialTheme.colorScheme.surfaceVariant,
+                ) {
+                    Column(
+                        modifier = Modifier.padding(12.dp),
+                        verticalArrangement = Arrangement.spacedBy(4.dp),
+                    ) {
+                        Text(
+                            text = stringResource(Res.string.chat_source_excerpt_label),
+                            style = MaterialTheme.typography.labelLarge,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        )
+                        Text(
+                            text = card.excerpt,
+                            style = MaterialTheme.typography.bodyLarge,
+                            color = MaterialTheme.colorScheme.onSurface,
+                        )
+                    }
+                }
+            }
+
+            val link = card.link
+            if (link != null) {
+                // One best-effort open: the platform URI handler is the only path, and a platform
+                // that refuses (e.g. Desktop without AWT BROWSE support) must never crash the screen.
+                val uriHandler = LocalUriHandler.current
+                val openDescription =
+                    stringResource(Res.string.chat_source_open_description, card.title)
+                Button(
+                    onClick = { runCatching { uriHandler.openUri(link) } },
+                    modifier = Modifier.semantics { contentDescription = openDescription },
+                ) {
+                    Text(stringResource(Res.string.chat_source_open))
+                }
+            } else {
+                SourceCardDetail(stringResource(Res.string.chat_source_link_unavailable))
+            }
+        }
+    }
+}
+
+@Composable
+private fun SourceCardDetail(text: String) {
+    Text(
+        text = text,
+        style = MaterialTheme.typography.bodyLarge,
+        color = MaterialTheme.colorScheme.onSurfaceVariant,
     )
 }
 
@@ -521,7 +730,9 @@ private fun ChatFailureNotice(
  * One transcript entry. The speaker is always written out as a label so the entries stay
  * distinguishable without relying on color, and the label, optional state label, and text are merged
  * into a single node for assistive technologies. [borderColor], [stateLabel], and [stateLabelColor]
- * are defaulted so existing call sites stay unchanged.
+ * are defaulted so existing call sites stay unchanged. When [annotatedText] is present it renders
+ * instead of the plain [text] (the same body with citation reference numerals), so every other call
+ * site keeps a plain `String` body.
  */
 @Composable
 private fun ChatBubble(
@@ -534,6 +745,7 @@ private fun ChatBubble(
     stateLabel: String? = null,
     stateLabelColor: Color = labelColor,
     liveRegionMode: LiveRegionMode? = null,
+    annotatedText: AnnotatedString? = null,
 ) {
     Surface(
         modifier = modifier
@@ -564,11 +776,19 @@ private fun ChatBubble(
                     color = stateLabelColor,
                 )
             }
-            Text(
-                text = text,
-                style = MaterialTheme.typography.bodyLarge,
-                color = MaterialTheme.colorScheme.onSurface,
-            )
+            if (annotatedText != null) {
+                Text(
+                    text = annotatedText,
+                    style = MaterialTheme.typography.bodyLarge,
+                    color = MaterialTheme.colorScheme.onSurface,
+                )
+            } else {
+                Text(
+                    text = text,
+                    style = MaterialTheme.typography.bodyLarge,
+                    color = MaterialTheme.colorScheme.onSurface,
+                )
+            }
         }
     }
 }
@@ -603,7 +823,7 @@ private fun ChatHomeWithQuestionPreview() {
     }
 }
 
-@Preview(name = "Chat home with answered response")
+@Preview(name = "Chat home with answered response and one source")
 @Composable
 private fun ChatHomeAnsweredConversationPreview() {
     ManijeroTheme {
@@ -611,7 +831,51 @@ private fun ChatHomeAnsweredConversationPreview() {
             state = ChatHomeState(
                 messages = listOf(
                     ChatMessage(Speaker.USER, "¿Qué necesito preparar para la solicitud única?"),
-                    ChatMessage(Speaker.ASSISTANT, ANSWERED_SAMPLE, AnswerStatus.answered),
+                    ChatMessage(Speaker.ASSISTANT, ANSWERED_SAMPLE, AnswerStatus.answered, SOURCE_SAMPLE),
+                ),
+            ),
+            onAction = {},
+            onLandsClick = {},
+        )
+    }
+}
+
+@Preview(name = "Chat home with answered response and two sources")
+@Composable
+private fun ChatHomeAnsweredTwoSourcesPreview() {
+    ManijeroTheme {
+        ChatHomeScreen(
+            state = ChatHomeState(
+                messages = listOf(
+                    ChatMessage(Speaker.USER, "¿Qué necesito preparar para la solicitud única?"),
+                    ChatMessage(
+                        Speaker.ASSISTANT,
+                        ANSWERED_TWO_SOURCES_SAMPLE,
+                        AnswerStatus.answered,
+                        SOURCE_SAMPLE_TWO,
+                    ),
+                ),
+            ),
+            onAction = {},
+            onLandsClick = {},
+        )
+    }
+}
+
+@Preview(name = "Chat home source card narrow, large text", widthDp = 320, fontScale = 2f)
+@Composable
+private fun ChatHomeSourceCardNarrowLargeTextPreview() {
+    ManijeroTheme {
+        ChatHomeScreen(
+            state = ChatHomeState(
+                messages = listOf(
+                    ChatMessage(Speaker.USER, "¿Qué necesito preparar para la solicitud única?"),
+                    ChatMessage(
+                        Speaker.ASSISTANT,
+                        ANSWERED_TWO_SOURCES_SAMPLE,
+                        AnswerStatus.answered,
+                        SOURCE_SAMPLE_TWO,
+                    ),
                 ),
             ),
             onAction = {},
@@ -647,7 +911,7 @@ private fun ChatHomeBothResponseStatesPreview() {
                     ChatMessage(Speaker.USER, "¿Cuánto cuesta matricular un tractor viejo?"),
                     ChatMessage(Speaker.ASSISTANT, ABSTAINED_SAMPLE_NO_EVIDENCE, AnswerStatus.abstained),
                     ChatMessage(Speaker.USER, "¿Qué necesito preparar para la solicitud única?"),
-                    ChatMessage(Speaker.ASSISTANT, ANSWERED_SAMPLE, AnswerStatus.answered),
+                    ChatMessage(Speaker.ASSISTANT, ANSWERED_SAMPLE, AnswerStatus.answered, SOURCE_SAMPLE),
                 ),
             ),
             onAction = {},

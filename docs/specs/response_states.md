@@ -224,3 +224,7 @@ Capture: focused and full test counts/names; the byte-for-byte string comparison
 - [ ] No `Color(0x` outside `theme/`, and no logging/printing of question, answer, payload, or exception text (grep evidence).
 - [ ] `:shared:jvmTest`, `:shared:testAndroidHostTest`, `./init.sh --verify`, and the contract validator pass (or the exact environment blocker is reported) with no previously passing test regressing; no E2E/UI-test coverage is claimed.
 - [ ] `feature_list.json`/`PROGRESS.md` were not modified by planning; the final diff matches this spec's file list, and the F1 limitation is recorded rather than worked around.
+
+### Follow-up status after `answer_source_cards`
+
+- **R5 closed from this side** (2026-10-13): for a conforming payload (distinct `[n]` markers exactly `1..sources.size`) `answer_source_cards` now renders each `[n]` token as a reference numeral with a matching numbered source card; a non-conforming payload (F1: absent, sparse, out-of-range, non-numeric, or leading-zero markers) rewrites nothing, so this feature's accepted answer/abstention rendering is unchanged.

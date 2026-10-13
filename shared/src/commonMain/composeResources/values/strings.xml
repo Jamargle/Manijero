@@ -54,4 +54,13 @@
     <string name="chat_home_suggestion_solicitud_unica">¿Qué necesito preparar para la solicitud única?</string>
     <string name="chat_home_suggestion_sigpac">¿Qué es el SIGPAC y para qué sirve?</string>
     <string name="chat_home_suggestion_condicionalidad">¿Qué obligaciones tengo por la condicionalidad?</string>
+    <string name="chat_source_section_title">Fuentes</string>
+    <string name="chat_source_label">Fuente %1$d</string>
+    <string name="chat_source_issuing_body">Publica: %1$s</string>
+    <string name="chat_source_location">Parte del documento: %1$s</string>
+    <string name="chat_source_verified_on">Comprobado el %1$s</string>
+    <string name="chat_source_excerpt_label">Texto del documento</string>
+    <string name="chat_source_open">Abrir documento oficial</string>
+    <string name="chat_source_open_description">Abrir el documento oficial: «%1$s»</string>
+    <string name="chat_source_link_unavailable">No se puede abrir este enlace desde aquí.</string>
 </resources>
