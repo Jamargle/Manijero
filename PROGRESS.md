@@ -15,6 +15,7 @@
 - The offline grounded-generation boundary now exists: `backend/app/generation.py` (code-owned citation markers and notice, `verify_draft` grounding rules, deterministic extractive generator, fail-closed `NotAnswered` reasons, accepted-`AskResponse` assembly) and `backend/scripts/evaluate_generation.py` (report-only CLI, grounding invariants enforced with exit `1`). It answers only from `Retriever` candidates, keeps `/health` as the only route, and configures no model provider. Fixture report: 5 answers, 8 claims, 0 ungrounded claims, 1 no-evidence outcome. `CONSTRAINTS.md` records the answer-grounding MUST rules.
 - `visual_foundation` (the shared olive-toned theme in `commonMain`) is accepted: `shared/src/commonMain/kotlin/com/jamarglex/manijero/theme/ManijeroColors.kt`, `ManijeroTheme.kt`, and `ManijeroTypography.kt` define the `DESIGN.md` tokens, a fully specified `lightColorScheme`, a `LocalManijeroSemanticColors` local for caution/strong olive, and the `bodySmall` line-height override; `ManijeroTheme` is applied once inside `App()` and all fifteen existing previews use it (record: `docs/validations/visual_foundation.md`). `response_states`, `answer_source_cards`, `network_error_recovery`, `land_list`, `edit_land`, `remove_land`, and `chat_accessibility` now have their `visual_foundation` dependency satisfied.
 - `land_list` is accepted: `Mis terrenos` now opens the shared lands **list** (the parent surface of the add form) via pure `LandListState`/`LandListAction`/`reduce` and the stateless `LandListScreen`, with a single synchronous `LandRepository.list()` read on entry/retry/after-save, an empty state that names `Añadir terreno`, a distinct plain-Spanish failure state (`Reintentar`, no add action), non-clickable merged-semantics rows, and a device-scoped saved confirmation. The intended routing change moves the `add_land` return destination to the list and removes the now-unreachable chat-home confirmation (record: `docs/validations/land_list.md`). `edit_land`, `remove_land`, and `minimal_land_context` now have their `land_list` dependency satisfied.
+- `network_error_recovery` is accepted: the chat failure path is now visible and recoverable in shared `commonMain`. `ChatHomeState` keeps `failure: RequestFailure?`/`failedQuestion` **outside** `messages`, `RequestFailed(failure)` and the new `RetryClicked` re-send the exact original wording with no second user message, and `ChatFailureNotice` shows the two plain-Spanish notices with a danger-styled `Reintentar` as a polite live region. `KtorAnswerService` translates Ktor failures into the payload-free `AnswerServiceUnavailableException`/`AnswerServiceErrorException`, and `answerHttpClient` installs a bounded `HttpTimeout` plus `expectSuccess = true`, closing carried finding F2 from `chat_question_submission` (F1, the platform `/ask` wiring, stays with its own slice). `CONSTRAINTS.md` records the client MUST rule. Independent validation accepted 2026-10-13 (record: `docs/validations/network_error_recovery.md`); F1 (platform `/ask` wiring) remains with its own slice.
 
 ## Start and verify
 
@@ -61,6 +62,8 @@
 | 2026-10-13 | Accepted `grounded_answer_generation` | Independent validator reproduced the 100 focused / 221 full pytest passes, the fixture CLI run (exit 0; 5 answers, 8 claims, 0 ungrounded, 0 invented sources, 1 no-evidence), the literal feature-list verification, the empty-corpus runs, byte-identical `--json` runs, an independent socket guard, and fail-closed paths; confirmed the assembled payload matches `AskResponse`/`AnswerSource`, the retrieval baseline is unchanged (`hit@5 = 0.857`), fixtures are synthetic-only, and scope is clean with no repo dependency. Findings F1/F2 non-blocking. See `docs/validations/grounded_answer_generation.md`. |
 | 2026-10-13 | Implemented `land_list` (self-verified; awaiting independent validation) | Added pure `LandListState`/`LandListAction`/`reduce` and the stateless resource-backed `LandListScreen` with 11 previews, 9 new `land_list_*` strings, and `App()` wiring: a `LandList` destination with one synchronous read site, the intended `Mis terrenos` routing change, and removal of the unreachable chat-home confirmation. `:shared:jvmTest` 60 tests, `:shared:testAndroidHostTest` 57 tests, `./init.sh --verify` pass; Android emulator and Desktop smoke recorded. |
 | 2026-10-13 | Accepted `land_list` | Independent validator re-ran `./init.sh`, the focused and full `:shared:jvmTest` (60/0), `:shared:testAndroidHostTest` (57/0), `./init.sh --verify`, and a full `--rerun-tasks` build, and byte-for-byte checked the nine new strings against the spec; confirmed the failure/empty-state distinction and file-by-file scope discipline (only the intended `add_land` routing change). Findings F1-F6 non-blocking. See `docs/validations/land_list.md`. |
+| 2026-10-13 | Implemented `network_error_recovery` (self-verified; awaiting independent validation) | Added the visible, recoverable failure path in `commonMain`: `ChatHomeState` gains `failure`/`failedQuestion` (outside `messages`), `RequestFailed(failure)` and `RetryClicked`; new `chat/AnswerFailure.kt` (`RequestFailure` + two payload-free exceptions); `KtorAnswerService` failure translation and `answerHttpClient` bounded `HttpTimeout` + `expectSuccess`; `ChatFailureNotice` with the `Reintentar` action and two previews; three spec-verbatim strings; 22 new tests (78 JVM / 69 Android host, 0 failures). `python3 contracts/validate_examples.py`, `./init.sh --verify`, `:androidApp:assembleDebug`, `:desktopApp:build`, and `:shared:compileKotlinIosSimulatorArm64` pass; Android emulator smoke captured the notice, the preserved wording, and a retry that returns to the same state. CONSTRAINTS.md gained the client MUST rule and `chat_question_submission.md` records F2 as closed from this side. |
+| 2026-10-13 | Accepted `network_error_recovery` | Independent validator re-ran the contract validator, the focused three-class run (40/0), `:shared:jvmTest` (78/0), `:shared:testAndroidHostTest` (69/0), `:desktopApp:build`, `:androidApp:assembleDebug`, `:shared:compileKotlinIosSimulatorArm64`, and `./init.sh --verify` (exit 0); reproduced the bounded-timeout, `500`/`422`, and undecodable-`200` failure paths; byte-for-byte checked the three strings; and confirmed the failure-never-renders-as-an-answer invariant, retry without a duplicate user message, exact-wording retention, and clean scope. Findings N1-N5 non-blocking. Record: `docs/validations/network_error_recovery.md`. |
 
 ## Feature evidence
 
@@ -618,3 +621,115 @@ Honest gaps:
   `LandStoreFormat.decode` contract, which `land_list` is forbidden to change (F2b).
 - Spec-recorded limits stand: two identical name-only lands render identically; `areaHectares` and
   `notes` are not shown; the read is synchronous on the composition frame.
+
+### network_error_recovery — accepted
+
+What changed:
+
+- `shared/src/commonMain/kotlin/com/jamarglex/manijero/ChatHomeState.kt`: `ChatHomeState` gains
+  `failure: RequestFailure?` and `failedQuestion: String?`, both kept **outside** `messages`, so a
+  failure can never render as an assistant answer. `ChatHomeAction.RequestFailed` becomes
+  `data class RequestFailed(val failure: RequestFailure)`, and the new `data object RetryClicked`
+  re-emits `ChatEffect.Submit(failedQuestion)` only from `IDLE` with a retained failure, sets
+  `SUBMITTING`, clears `failure`/`question`, and leaves `messages`/`failedQuestion` untouched, so a
+  retry appends no second user message and a repeated failure stays retryable. `AskClicked`,
+  `QuestionChanged`, `SuggestedQuestionSelected` and `ResponseReceived` clear the notice;
+  `canAsk`/`isOverCharacterLimit`/`awaitingLandClarification` are unchanged.
+- `shared/src/commonMain/kotlin/com/jamarglex/manijero/chat/AnswerFailure.kt` (new): the
+  `RequestFailure` enum (`COULD_NOT_REACH_SERVICE`, `SERVICE_ERROR`) plus the two payload-free
+  exceptions `AnswerServiceUnavailableException`/`AnswerServiceErrorException` with fixed literal
+  messages, so no URL, body, or question text can travel with a failure.
+- `shared/src/commonMain/kotlin/com/jamarglex/manijero/chat/AnswerService.kt`: `answerHttpClient`
+  sets `expectSuccess = true` and installs bounded `HttpTimeout` (`REQUEST_TIMEOUT_MILLIS` 15_000,
+  `CONNECT_TIMEOUT_MILLIS` 10_000, `SOCKET_TIMEOUT_MILLIS` 15_000; the request bound is a parameter
+  only so tests can use a tiny one). `KtorAnswerService.ask` rethrows `CancellationException` and
+  translates `ResponseException`/`ContentConvertException`/`SerializationException` to the service
+  error and `kotlinx.io.IOException` (timeout, connect, socket, I/O) to the unavailable signal.
+- `shared/src/commonMain/kotlin/com/jamarglex/manijero/ChatConversation.kt`: maps
+  `AnswerServiceUnavailableException` to `RequestFailed(COULD_NOT_REACH_SERVICE)` and every other
+  exception (including `UnavailableAnswerService`'s `IllegalStateException`) to
+  `RequestFailed(SERVICE_ERROR)`; still rethrows `CancellationException`; no logging was added.
+- `shared/src/commonMain/kotlin/com/jamarglex/manijero/App.kt`: `ChatFailureNotice` renders from
+  `state.failure` after the transcript — themed `errorContainer` fill with an `error` border, the
+  `onErrorContainer` message, and a `Reintentar` button using the `error`/`onError` pair. It is a
+  polite live region, carries no `Asistente` label, is never a `ChatMessage`, and is mutually
+  exclusive with the working indication. Two previews added (unreachable; service error at
+  `widthDp = 320`, `fontScale = 2f`).
+- `shared/src/commonMain/composeResources/values/strings.xml`: `chat_home_failure_unreachable`,
+  `chat_home_failure_service`, `chat_home_retry` shipped byte-for-byte from the spec (verified with
+  an XML parse + string comparison); `chat_home_working`, `chat_home_question_too_long`,
+  `chat_home_needs_land_clarification`, `chat_speaker_you`/`chat_speaker_assistant` and
+  `land_list_retry` are unchanged.
+- `CONSTRAINTS.md`: new "Client request failure" MUST rule (a failed/unreached request is never an
+  answer and recovery keeps the exact wording). `docs/specs/network_error_recovery.md`: four
+  implementation findings (IF1-IF4). `docs/specs/chat_question_submission.md`: F2 recorded as closed
+  from this side, F1 still owned by the `/ask` wiring slice.
+- Not changed: `contracts/`, `backend/`, `knowledge/`, `androidApp/`, `desktopApp/`, `shared/src/iosMain/`,
+  `theme/`, any Gradle file or the version catalog, and `init.sh`; no new module, dependency, engine
+  wiring, base URL, ViewModel, DI, or coroutine scope (Ktor `HttpTimeout` ships in `ktor-client-core`).
+
+Verification (commands run from the repository root unless noted):
+
+- `python3 contracts/validate_examples.py` → "Validated 2 request and 3 response examples against
+  answer_api_contract" (exit 0).
+- `./gradlew :shared:jvmTest --tests "com.jamarglex.manijero.ChatHomeStateTest" --tests
+  "com.jamarglex.manijero.ChatConversationTest" --tests
+  "com.jamarglex.manijero.chat.KtorAnswerServiceTest"` → BUILD SUCCESSFUL, 40 tests / 0 failures.
+- `./gradlew :shared:jvmTest --rerun-tasks` → BUILD SUCCESSFUL, **78 tests / 0 failures**
+  (`ChatHomeStateTest` 25, `ChatConversationTest` 7, `KtorAnswerServiceTest` 8, plus the 38
+  pre-existing).
+- `./gradlew :shared:testAndroidHostTest` → BUILD SUCCESSFUL, **69 tests / 0 failures**.
+- `./gradlew :desktopApp:build` and `./gradlew :androidApp:assembleDebug` → BUILD SUCCESSFUL
+  (`androidApp-debug.apk` rebuilt); `./init.sh --verify` → BUILD SUCCESSFUL.
+- `./gradlew :shared:compileKotlinIosSimulatorArm64` → BUILD SUCCESSFUL, so the new `commonMain`
+  Ktor/kotlinx-io usage does not break the pre-existing iOS target.
+- Timeout evidence (carried finding R1 fallback): `HttpClient.plugin(HttpTimeout)` is not readable as
+  a config in Ktor 3.1, so the test asserts installation (a missing plugin throws), that the three
+  named constants are finite and differ from `HttpTimeoutConfig.INFINITE_TIMEOUT_MS`, and a stalled
+  `MockEngine` with `requestTimeoutMillis = 200` fails in ~0.3 s as
+  `AnswerServiceUnavailableException` instead of hanging. `expectSuccess` is proven behaviourally (a
+  `500` carrying the accepted `answered` fixture body and a declared `422` both fail; the accepted
+  `200` fixture still decodes on the same client), and an undecodable `200` body fails too.
+- Android emulator smoke (`Medium_Phone_API_35`, 1080x2400, rebuilt debug APK, shipped default
+  `UnavailableAnswerService`): selecting an example and pressing `Preguntar` shows one `Tú` bubble
+  with the exact question, **no** `Asistente` answer, the service-error notice
+  ("El servicio no está disponible en este momento, así que todavía no tengo tu respuesta. Inténtalo
+  otra vez dentro de un momento.") in the danger colours with a red `Reintentar`, and the exact
+  wording still in the composer; `Reintentar` returns to the same single-notice state with still
+  exactly one user message and no duplicate; selecting another example clears the notice and refills
+  the composer. Screenshots were inspected and deleted.
+- Privacy: `grep -rn "println\|Log\.\|Logger\|printStackTrace\|NSLog" shared/src androidApp/src
+  desktopApp/src` → no matches (exit 1). The new exception messages are fixed literals and the Ktor
+  messages (which name the endpoint) are never rethrown, logged, or shown; no network call other than
+  the existing `POST /ask` was added.
+
+Honest gaps:
+
+- A live network timeout cannot be produced in the running apps until platform `/ask` engine/endpoint
+  wiring exists (carried finding F1, separate owner). The `COULD_NOT_REACH_SERVICE` notice therefore
+  has no on-device screenshot; it is covered by the `MockEngine` timeout probe, the installed-constant
+  assertions, and the reducer/transport tests.
+- The Desktop app launched the shared UI (`MainKt` frontmost, no exception in the run log) but an
+  interactive Desktop click-through/screenshot of the notice was not captured in this non-interactive
+  session.
+- No Compose UI-test harness exists, so no automated UI or E2E coverage is claimed; the observable
+  working state during a retry is too brief to capture on the default path (`UnavailableAnswerService`
+  throws synchronously).
+- Recorded behaviour: `RetryClicked` clears the composer as specified, so a draft typed during the
+  failed request and left unsent is discarded by an explicit retry; the person can instead press
+  `Preguntar` with that draft, which dismisses the notice (spec finding IF1).
+Independent validation (2026-10-13): accept. The validator re-ran the acceptance checks with
+`--rerun-tasks` (contract validator; focused three-class run 40/0; `:shared:jvmTest` 78/0;
+`:shared:testAndroidHostTest` 69/0; `:desktopApp:build`; `:androidApp:assembleDebug`;
+`:shared:compileKotlinIosSimulatorArm64`; `./init.sh --verify` exit 0) and independently
+reproduced the stalled-`MockEngine` request timeout (200 ms bound fired in 0.209 s as the
+unavailable signal), the `500`/`422` and undecodable-`200` service-error paths with the `200`
+fixtures still decoding, byte-for-byte equality of the three spec strings, the
+failure-never-renders-as-an-answer invariant, retry with no duplicate user message and exact
+wording retention, and scope discipline (no new module/dependency/Gradle/contract/backend/land/
+theme/`init.sh` change). It confirmed on the resolved `kotlinx-io-core-jvm` artifact that
+catching `kotlinx.io.IOException` also catches `java.io.IOException` and its timeout subclasses,
+so real unreachable-service failures map to the correct notice, and found no leak. Non-blocking
+findings N1-N5 recorded; F1 (platform `/ask` engine/endpoint wiring) stays with its own slice and
+F2 (bounded timeout) is closed from this side. Record:
+`docs/validations/network_error_recovery.md`.

@@ -18,3 +18,15 @@ Operational MUST/MUST NOT rules that future features have to respect on top of
   `to_answer_response`), never by a generator. Reason: marker `[n]` must keep
   meaning `sources[n-1]`, and the notice is a fixed orientative line, not
   generated prose.
+
+## Client request failure
+
+- **MUST**: a request that failed or never reached the answer service MUST NOT be rendered as an
+  answer, and recovery MUST keep the exact original wording. The failure lives in
+  `ChatHomeState.failure` and is shown as a separate notice — never a transcript entry, never an
+  `Asistente` label — while `RetryClicked` re-sends `ChatHomeState.failedQuestion` verbatim and
+  appends no second user message (`ChatConversation` classifies the thrown failure; the transport
+  signals are the payload-free `AnswerServiceUnavailableException`/`AnswerServiceErrorException`).
+  Reason: `network_error_recovery` established that a person must never believe an unanswered
+  question was answered, and `response_states`/`answer_source_cards` will render this transcript
+  next, so a retryable failure must keep the question recoverable and out of the answer stream.

@@ -229,6 +229,18 @@ one working state, one reply, disabled duplicate submit, and a new question afte
 - Network failure behavior is owned by the next recovery feature, but request state must
   still be released safely and without data leakage.
 
+### Follow-up status after `network_error_recovery`
+
+- Finding **F2** from `docs/validations/chat_question_submission.md` (no request timeout) is
+  **closed from this side**: `answerHttpClient` now installs a bounded Ktor `HttpTimeout`
+  (`REQUEST_TIMEOUT_MILLIS`/`CONNECT_TIMEOUT_MILLIS`/`SOCKET_TIMEOUT_MILLIS`) with
+  `expectSuccess = true`, and both timeout and error responses map into the visible
+  failure/retry path instead of leaving the composer submitting forever.
+- Finding **F1** (no platform `/ask` engine/endpoint wiring) remains open and owned by the
+  `/ask` wiring slice; it is why a live network timeout still cannot be produced by hand in
+  the running apps.
+
+
 ## Validator checklist
 
 - [ ] Shared UI/business behavior remains in `commonMain`; platform code is only HTTP

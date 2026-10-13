@@ -12,6 +12,7 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
@@ -33,6 +34,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.jamarglex.manijero.chat.AnswerService
+import com.jamarglex.manijero.chat.RequestFailure
 import com.jamarglex.manijero.chat.UnavailableAnswerService
 import com.jamarglex.manijero.lands.AddLandAction
 import com.jamarglex.manijero.lands.AddLandScreen
@@ -48,11 +50,14 @@ import org.jetbrains.compose.resources.stringResource
 import manijero.shared.generated.resources.Res
 import manijero.shared.generated.resources.chat_home_ask
 import manijero.shared.generated.resources.chat_home_description
+import manijero.shared.generated.resources.chat_home_failure_service
+import manijero.shared.generated.resources.chat_home_failure_unreachable
 import manijero.shared.generated.resources.chat_home_lands
 import manijero.shared.generated.resources.chat_home_needs_land_clarification
 import manijero.shared.generated.resources.chat_home_question_hint
 import manijero.shared.generated.resources.chat_home_question_label
 import manijero.shared.generated.resources.chat_home_question_too_long
+import manijero.shared.generated.resources.chat_home_retry
 import manijero.shared.generated.resources.chat_home_suggestion_condicionalidad
 import manijero.shared.generated.resources.chat_home_suggestion_sigpac
 import manijero.shared.generated.resources.chat_home_suggestion_solicitud_unica
@@ -220,6 +225,16 @@ internal fun ChatHomeScreen(
                     ChatMessageBubble(message = message)
                 }
 
+                // A failure is state, never a transcript entry, so it can never be read as an
+                // assistant answer. It is mutually exclusive with the working indication
+                // (failure != null only when idle, the working notice only while submitting).
+                state.failure?.let { failure ->
+                    ChatFailureNotice(
+                        failure = failure,
+                        onRetry = { onAction(ChatHomeAction.RetryClicked) },
+                    )
+                }
+
                 if (state.phase == SubmissionPhase.SUBMITTING) {
                     ChatNoticeBubble(
                         text = stringResource(Res.string.chat_home_working),
@@ -338,6 +353,63 @@ private fun ChatNoticeBubble(
 }
 
 /**
+ * One recoverable failure. It is rendered from [ChatHomeState.failure] and never appended to the
+ * transcript, so a failed request can never look like an assistant answer. The message says in
+ * plain Spanish that there is no answer yet, and the always-visible `Reintentar` button resends
+ * the exact original wording.
+ *
+ * Danger is communicated by the text plus that label, never by colour alone, and the notice is a
+ * polite live region so a screen reader announces it. The retry uses the themed danger pair
+ * (`error`/`onError`); no raw colour is used here.
+ *
+ * The reducer retains the sent wording for every failure reachable from a submission, so the
+ * `Reintentar` action is always actionable here.
+ */
+@Composable
+private fun ChatFailureNotice(
+    failure: RequestFailure,
+    onRetry: () -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    val message = when (failure) {
+        RequestFailure.COULD_NOT_REACH_SERVICE ->
+            stringResource(Res.string.chat_home_failure_unreachable)
+
+        RequestFailure.SERVICE_ERROR ->
+            stringResource(Res.string.chat_home_failure_service)
+    }
+    Surface(
+        modifier = modifier
+            .fillMaxWidth()
+            .widthIn(max = ContentMaxWidth)
+            .semantics { liveRegion = LiveRegionMode.Polite },
+        shape = RoundedCornerShape(16.dp),
+        color = MaterialTheme.colorScheme.errorContainer,
+        border = BorderStroke(1.dp, MaterialTheme.colorScheme.error),
+    ) {
+        Column(
+            modifier = Modifier.padding(horizontal = 16.dp, vertical = 12.dp),
+            verticalArrangement = Arrangement.spacedBy(12.dp),
+        ) {
+            Text(
+                text = message,
+                style = MaterialTheme.typography.bodyLarge,
+                color = MaterialTheme.colorScheme.onErrorContainer,
+            )
+            Button(
+                onClick = onRetry,
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = MaterialTheme.colorScheme.error,
+                    contentColor = MaterialTheme.colorScheme.onError,
+                ),
+            ) {
+                Text(stringResource(Res.string.chat_home_retry))
+            }
+        }
+    }
+}
+
+/**
  * One transcript entry. The speaker is always written out as a label so the entries stay
  * distinguishable without relying on color, and the label and text are merged into a
  * single node for assistive technologies.
@@ -451,6 +523,42 @@ private fun ChatHomeOverLimitPreview() {
     ManijeroTheme {
         ChatHomeScreen(
             state = ChatHomeState(question = "a".repeat(2_100)),
+            onAction = {},
+            onLandsClick = {},
+        )
+    }
+}
+
+@Preview(name = "Chat home failure, unreachable service")
+@Composable
+private fun ChatHomeFailureUnreachablePreview() {
+    ManijeroTheme {
+        ChatHomeScreen(
+            state = ChatHomeState(
+                question = "¿Puedo regar hoy?",
+                messages = listOf(ChatMessage(Speaker.USER, "¿Puedo regar hoy?")),
+                failure = RequestFailure.COULD_NOT_REACH_SERVICE,
+                failedQuestion = "¿Puedo regar hoy?",
+            ),
+            onAction = {},
+            onLandsClick = {},
+        )
+    }
+}
+
+@Preview(name = "Chat home failure narrow, large text", widthDp = 320, fontScale = 2f)
+@Composable
+private fun ChatHomeFailureNarrowLargeTextPreview() {
+    ManijeroTheme {
+        ChatHomeScreen(
+            state = ChatHomeState(
+                question = "¿Qué necesito preparar para la solicitud única?",
+                messages = listOf(
+                    ChatMessage(Speaker.USER, "¿Qué necesito preparar para la solicitud única?"),
+                ),
+                failure = RequestFailure.SERVICE_ERROR,
+                failedQuestion = "¿Qué necesito preparar para la solicitud única?",
+            ),
             onAction = {},
             onLandsClick = {},
         )

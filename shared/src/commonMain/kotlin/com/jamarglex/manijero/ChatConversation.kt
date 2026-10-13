@@ -4,6 +4,8 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import com.jamarglex.manijero.chat.AnswerService
+import com.jamarglex.manijero.chat.AnswerServiceUnavailableException
+import com.jamarglex.manijero.chat.RequestFailure
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
@@ -35,10 +37,13 @@ class ChatConversation(
             onAction(ChatHomeAction.ResponseReceived(answerService.ask(effect.request())))
         } catch (cancellation: CancellationException) {
             throw cancellation
+        } catch (_: AnswerServiceUnavailableException) {
+            // The service was not reached; nothing was answered.
+            onAction(ChatHomeAction.RequestFailed(RequestFailure.COULD_NOT_REACH_SERVICE))
         } catch (_: Exception) {
-            // Failure copy and retry belong to the recovery feature; here the request
-            // must only stop blocking the composer.
-            onAction(ChatHomeAction.RequestFailed)
+            // Error status, unusable body, no service configured, or any other failure: the
+            // exception text is never logged or shown, and no answer is invented.
+            onAction(ChatHomeAction.RequestFailed(RequestFailure.SERVICE_ERROR))
         }
     }
 }
