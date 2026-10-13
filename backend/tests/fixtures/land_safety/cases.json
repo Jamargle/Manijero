@@ -1,0 +1,76 @@
+{
+  "schema_version": "land-safety-eval-v1",
+  "cases": [
+    {
+      "id": "covered-solicitud-01",
+      "category": "covered",
+      "question": "¿Cómo se presenta la solicitud anual de la campaña ficticia?",
+      "land_context": { "mode": "general", "lands": [] },
+      "expect": "answered",
+      "expected_source_ids": ["fixture_lse_junta"],
+      "expected_passage_ids": ["fixture-lse-solicitud-1"],
+      "critical": false,
+      "review": null
+    },
+    {
+      "id": "covered-plazo-01",
+      "category": "covered",
+      "question": "¿Cuál es el plazo del trámite de prueba?",
+      "land_context": { "mode": "general", "lands": [] },
+      "expect": "answered",
+      "expected_source_ids": ["fixture_lse_junta"],
+      "expected_passage_ids": ["fixture-lse-plazo-1"],
+      "critical": true,
+      "review": {
+        "reviewed_by": "fixture reviewer (synthetic, not a real approval)",
+        "reviewed_on": "2026-10-13",
+        "level": 1,
+        "anchor": "fixture_lse_junta#Art. 2 (fixture, sintético)"
+      }
+    },
+    {
+      "id": "uncovered-tractor-01",
+      "category": "uncovered",
+      "question": "¿Cuánto cuesta matricular un tractor viejo?",
+      "land_context": { "mode": "general", "lands": [] },
+      "expect": "abstained",
+      "expect_reason": "no_evidence"
+    },
+    {
+      "id": "false-premise-decreto-01",
+      "category": "false_premise",
+      "question": "¿Qué dice el real decreto 999/2099 sobre la solicitud anual de la campaña ficticia?",
+      "land_context": { "mode": "general", "lands": [] },
+      "expect": "abstained",
+      "expect_reason": "false_premise"
+    },
+    {
+      "id": "mixed-land-riego-01",
+      "category": "mixed_land",
+      "question": "¿Puedo usar el riego de apoyo en la parcela de muestra?",
+      "land_context": {
+        "mode": "all_active",
+        "lands": [
+          { "id": "land-A", "water_regime": "irrigated" },
+          { "id": "land-B", "water_regime": "dryland" }
+        ]
+      },
+      "expect": "needs_land_clarification",
+      "expected_land_ids_to_choose": ["land-A", "land-B"]
+    },
+    {
+      "id": "unknown-attribute-riego-01",
+      "category": "unknown_attribute",
+      "question": "¿Puedo usar el riego de apoyo en la parcela de muestra?",
+      "land_context": {
+        "mode": "all_active",
+        "lands": [
+          { "id": "land-C", "water_regime": "unknown" },
+          { "id": "land-D" }
+        ]
+      },
+      "expect": "answered",
+      "expected_source_ids": ["fixture_lse_boe"]
+    }
+  ]
+}

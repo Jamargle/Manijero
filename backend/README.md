@@ -174,6 +174,55 @@ not unless `--fail-on-miss` is passed. A malformed passage set, an unknown `sour
 unreadable file stays a hard error (exit `2`). `/health` remains the only route, and no model
 provider is configured.
 
+## Offline land-safety evaluation (no route yet)
+
+`app/land_safety_eval.py` is the offline, report-only safety harness. It runs the
+accepted end-to-end decision (`app/clarification.py::answer_with_clarification`,
+which already composes retrieval, grounding, abstention, and land clarification)
+over a reviewed, source-anchored case set and reports, per category, whether the
+service returned the correct sources, abstained safely, or clarified the correct
+land. It imports the accepted modules unchanged: it never re-implements
+eligibility, grounding, or clarification, never reads a catalog or a passage file
+itself, never configures a model provider, and never touches the network. Grading
+is deterministic rule checking, not a semantic judge.
+
+A case is a Git-tracked, human-reviewed artifact. A case whose expectation turns
+on a critical fact must carry a completed `review` block; without it the set fails
+closed at load time (exit `2`). The harness records that provenance but a human
+must verify the fact itself. The case-set contract is `knowledge/land_safety_eval.schema.json`
+(`land-safety-eval-v1`); see `knowledge/README.md` for the fields and the review
+procedure.
+
+Run the report-only tool against the synthetic fixtures:
+
+```sh
+python3 backend/scripts/evaluate_land_safety.py \
+  --catalog backend/tests/fixtures/land_safety/catalog.json \
+  --passages backend/tests/fixtures/land_safety/passages.json \
+  --cases backend/tests/fixtures/land_safety/cases.json \
+  --as-of 2026-10-13 --k 5
+```
+
+It prints each case's outcome and per-check verdicts, the per-category table, the
+metric block, and the critical-review section (`--json` for machine-readable
+output). The enforced **safety invariants** (a payload that leaks or invents:
+an abstention carrying a source, a figure, or a date; a clarification carrying an
+answer or a foreign land id; an answered payload with no source or an
+out-of-range marker) make it exit `1`. Coverage metrics are **report-only**: an
+expected-source/clarification mismatch only exits `1` with `--fail-on-miss`, and
+`--passages`/`--cases` may be omitted for a corpus summary that invents nothing.
+`/health` remains the only route, and no model provider is configured.
+
+The measured fixture baseline is: `covered_source_hit_rate` `1.000 (2/2)`,
+`correct_abstention_rate` `1.000 (2/2)`, `correct_clarification_rate`
+`1.000 (1/1)`, `no_over_clarification_rate` `1.000 (3/3)`, and
+`expected_outcome_match_rate` `1.000 (6/6)`. It is **synthetic and
+implementer-authored**: it exercises the mechanism and the trap taxonomy, not
+legal coverage or real user questions, and it is not legal-coverage evidence.
+The `MasterPlanV3` §9.2 numbers (`hit@5 85%`, correct abstention `100%`, invented
+numbers/dates `0`) are **inherited proposals, not enforced release gates**;
+enforcement is a later, separately agreed change.
+
 Tests:
 
 ```sh

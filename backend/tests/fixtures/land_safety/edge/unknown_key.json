@@ -1,0 +1,14 @@
+{
+  "schema_version": "land-safety-eval-v1",
+  "cases": [
+    {
+      "id": "unknown-key-01",
+      "category": "covered",
+      "question": "¿Pregunta sintética cubierta?",
+      "land_context": { "mode": "general", "lands": [] },
+      "expect": "answered",
+      "expected_source_ids": ["fixture_lse_junta"],
+      "unexpected": "value"
+    }
+  ]
+}

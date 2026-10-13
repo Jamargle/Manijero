@@ -1,0 +1,15 @@
+{
+  "schema_version": "land-safety-eval-v1",
+  "cases": [
+    {
+      "id": "clarification-without-land-ids-01",
+      "category": "mixed_land",
+      "question": "¿Pregunta sintética entre terrenos?",
+      "land_context": {
+        "mode": "all_active",
+        "lands": [{ "id": "land-A" }, { "id": "land-B" }]
+      },
+      "expect": "needs_land_clarification"
+    }
+  ]
+}

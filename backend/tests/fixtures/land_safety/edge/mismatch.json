@@ -1,0 +1,13 @@
+{
+  "schema_version": "land-safety-eval-v1",
+  "cases": [
+    {
+      "id": "mismatch-uncovered-expected-answer-01",
+      "category": "covered",
+      "question": "¿Cuánto cuesta matricular un tractor viejo?",
+      "land_context": { "mode": "general", "lands": [] },
+      "expect": "answered",
+      "expected_source_ids": ["fixture_lse_junta"]
+    }
+  ]
+}

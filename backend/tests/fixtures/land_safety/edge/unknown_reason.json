@@ -1,0 +1,13 @@
+{
+  "schema_version": "land-safety-eval-v1",
+  "cases": [
+    {
+      "id": "unknown-reason-01",
+      "category": "uncovered",
+      "question": "¿Pregunta sintética fuera del corpus?",
+      "land_context": { "mode": "general", "lands": [] },
+      "expect": "abstained",
+      "expect_reason": "not_a_reason"
+    }
+  ]
+}
