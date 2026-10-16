@@ -131,6 +131,14 @@ Recorded remaining gaps (not claimed as passing):
   verified by the accessibility dumps/previews and code inspection rather than an automated UI test.
 - Desktop OS text scaling has no runtime integration, so Desktop large-text evidence stays
   preview-based.
+- **Wide-window cap is chat-home-only (recorded finding, pre-existing).** Independently measured at a
+  1400x900 Desktop window: the chat home is capped and centred (720pt at x=400), but the `Mis terrenos`
+  list, the add/edit/remove land forms, and the privacy notice use `.fillMaxWidth().widthIn(max = 720.dp)`
+  with no centring and render full-width (1352pt at x=84) — not capped, not centred. Cause: the chat
+  applies the cap before the fill, the land/privacy screens fill first. This is **pre-existing**
+  behavior (the `chat_accessibility` cap was scoped to `ChatHomeScreen`), recorded in
+  `docs/validations/desktop_mvp_build.md` finding H1; it is **not** verified as capped/centred, and a
+  capped/centred land layout, if wanted, is a separate product feature.
 
 ### Land add/edit form baseline (`land_form_accessibility`, 2026-10-13)
 
