@@ -53,13 +53,16 @@ case "$mode" in
     ./gradlew --version
     cat <<'EOF'
 
-This checkout contains the accepted chat, backend-health, API-contract, source-catalog, and local-land-store features; retrieval, answer generation, response states, and the visual foundation remain deferred.
-Standard verification:
-  ./init.sh --verify
+Manijero MVP — the Android and Desktop apps render the shared Kotlin Multiplatform UI and behavior in shared/src/commonMain. See PROGRESS.md and feature_list.json for the accepted feature set and current status.
 
-Run targets:
-  ./init.sh --android
-  ./init.sh --desktop
+Standard verification:
+  ./init.sh --verify     # shared tests + Android debug APK + Desktop build
+
+Build and run:
+  ./init.sh --android    # androidApp/build/outputs/apk/debug/androidApp-debug.apk
+  ./init.sh --desktop    # launch the Desktop app
+
+Known limitation: the backend has no /ask route yet, so the shipped app answers a question with the plain-Spanish failure notice and a Reintentar button, not a grounded answer.
 EOF
     ;;
   --verify)
