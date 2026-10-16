@@ -24,14 +24,22 @@ Implement product behavior and Compose UI in shared `commonMain`. Keep platform 
 
 ## Running the MVP targets
 
-Use the run configurations in Android Studio/IntelliJ. Common Gradle tasks in the current template may include:
+The shared Kotlin Multiplatform UI and behavior live in `shared/src/commonMain` and are rendered by both MVP targets.
+
+Standard verification (shared host tests + Android debug APK + Desktop build):
 
 ```sh
-./gradlew :androidApp:assembleDebug
-./gradlew :desktopApp:run
+./init.sh --verify
 ```
 
-Confirm task names against the current Gradle project before relying on them; template module names can change.
+Build and run:
+
+```sh
+./init.sh --android    # builds androidApp/build/outputs/apk/debug/androidApp-debug.apk
+./init.sh --desktop    # launches the Desktop app
+```
+
+Known limitation: the backend has no `/ask` route yet, so a question in the shipped app ends in the plain-Spanish failure notice with a `Reintentar` button, not a grounded answer. iOS remains outside MVP delivery (see "MVP platforms").
 
 ## Product principles
 
