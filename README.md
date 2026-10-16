@@ -39,6 +39,8 @@ Build and run:
 ./init.sh --desktop    # launches the Desktop app
 ```
 
+The Desktop app keeps its lands in `~/.manijero/lands-v1.txt` (the shared `land-store-v1` format); remove that file to start from an empty list.
+
 Known limitation: the backend has no `/ask` route yet, so a question in the shipped app ends in the plain-Spanish failure notice with a `Reintentar` button, not a grounded answer. iOS remains outside MVP delivery (see "MVP platforms").
 
 ## Product principles

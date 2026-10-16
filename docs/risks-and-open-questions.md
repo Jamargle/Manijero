@@ -47,6 +47,7 @@ Resolved product direction lives in [the build brief](build-brief.md) and [domai
 | Exact LLM, embedding, vector-store, and hosting providers | Before deployment; verify cost, terms, limits, and operational fit |
 | Retention of questions, feedback, and traces | Before enabling telemetry with real users |
 | Desktop packaging and supported operating systems | Before pilot distribution |
+| Whether the lands list/forms and the privacy notice should share the chat home's 720dp capped/centred column on a wide Desktop window (they currently render full-width — pre-existing, recorded as finding H1 in `docs/validations/desktop_mvp_build.md`) | If a wide-window land layout is wanted; a separate feature, not part of `desktop_mvp_build` |
 
 ### Later
 
