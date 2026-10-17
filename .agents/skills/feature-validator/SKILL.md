@@ -46,7 +46,7 @@ Identify:
 - spec path,
 - implementation diff,
 - claimed status in `feature_list.json` (a lean index: `spec` and `validation` point at the feature's documents),
-- evidence recorded in the `Feature evidence` section of `../../../docs/specs/<feature-id>.md` and in `../../../PROGRESS.md`.
+- evidence recorded in the `Feature evidence` section of `../../../docs/specs/<feature-id>.md` and in `../../../docs/progress/session-log.md`.
 
 Status convention:
 

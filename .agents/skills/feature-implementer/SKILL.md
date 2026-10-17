@@ -99,7 +99,7 @@ After verification:
 
 - update `feature_list.json` for the selected feature only (status, and the `spec`/`validation` paths); it is a lean index, so do not add an `evidence` array,
 - record exact evidence for checks that passed in the `Feature evidence` section of `../../../docs/specs/<feature-id>.md`,
-- update `../../../PROGRESS.md` with what changed, what ran, what failed, and the next best step,
+- append the session entry to `../../../docs/progress/session-log.md` with what changed, what ran, what failed, and the next best step, and update the `../../../PROGRESS.md` status board only when the accepted set, open items, or honesty limits change,
 - update the session handoff note if it exists or if the session leaves meaningful incomplete state,
 - update durable docs required by the spec or discovered during implementation.
 

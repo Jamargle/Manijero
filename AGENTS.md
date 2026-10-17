@@ -8,7 +8,7 @@ Read the row that matches the work in front of you; a routine feature change nee
 
 | Work in front of you | Read | On demand |
 |---|---|---|
-| Every session | [PROGRESS.md](PROGRESS.md) "Current state" — accepted set, open items, honesty limits | [docs/progress/current-state.md](docs/progress/current-state.md) and [docs/progress/feature-evidence.md](docs/progress/feature-evidence.md): long-form history, not for routine work |
+| Every session | [PROGRESS.md](PROGRESS.md) "Current state" — accepted set, open items, honesty limits | [docs/progress/current-state.md](docs/progress/current-state.md), [docs/progress/feature-evidence.md](docs/progress/feature-evidence.md), and [docs/progress/session-log.md](docs/progress/session-log.md): long-form history and the chronological change log, not for routine work |
 | Plan, implement, or validate one feature | its spec [docs/specs/](docs/specs/)/`<feature-id>.md` and its acceptance record [docs/validations/](docs/validations/)/`<feature-id>.md` | [feature_list.json](feature_list.json) for status and dependencies |
 | User-facing UI or Spanish copy | [DESIGN.md](DESIGN.md) | the spec of the feature that owns the surface |
 | A domain term, product-scope, or audience question | [CONTEXT.md](CONTEXT.md) — glossary, users, scope markers | [docs/build-brief.md](docs/build-brief.md), [docs/domain-model.md](docs/domain-model.md) |
@@ -25,7 +25,7 @@ Verify in the smallest tier that covers the change, cheapest first: `./init.sh -
 ## Track the work
 
 - [feature_list.json](feature_list.json) is a lean index of status, dependencies, and verification. Feature detail lives in [docs/specs/](docs/specs/)/`<feature-id>.md` (section "Feature evidence") and its acceptance record in [docs/validations/](docs/validations/)/`<feature-id>.md`.
-- Record verified progress in [PROGRESS.md](PROGRESS.md) — the status board and the session log.
+- Record verified progress in [PROGRESS.md](PROGRESS.md) — the status board — and append the chronological entry to [docs/progress/session-log.md](docs/progress/session-log.md).
 
 ## Project skills
 

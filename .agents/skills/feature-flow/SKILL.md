@@ -96,7 +96,7 @@ Mode summary: until-accepted is the default full pipeline for one feature; one-s
 Creating the commit is the main orchestrator's final step after the validator returns `accept`; subagents never commit (see Hard Rules). The orchestrator must commit the accepted feature before reporting the flow complete.
 
 1. Run `git status --short` and inspect the relevant diff.
-2. Persist acceptance by updating `feature_list.json` for the selected feature to status `accepted`, keeping its `spec`/`validation` paths current. Do not add an `evidence` array. Create or update `../../../docs/validations/<feature-id>.md` with the acceptance record, and append the concise evidence lines to the `Feature evidence` section of `../../../docs/specs/<feature-id>.md`. Record the session's verified progress in `../../../PROGRESS.md` as usual.
+2. Persist acceptance by updating `feature_list.json` for the selected feature to status `accepted`, keeping its `spec`/`validation` paths current. Do not add an `evidence` array. Create or update `../../../docs/validations/<feature-id>.md` with the acceptance record, and append the concise evidence lines to the `Feature evidence` section of `../../../docs/specs/<feature-id>.md`. Record the session's verified progress in `../../../docs/progress/session-log.md`, and update the `../../../PROGRESS.md` status board if the accepted set or open items changed.
 3. Identify the files changed for the accepted feature, including required harness/docs/evidence updates.
 4. Stage only those files. Do not stage unrelated user or other-agent changes.
 5. Create one Conventional Commit, using a message that names the feature. Prefer:
