@@ -115,7 +115,7 @@ The handoff headings below are intentionally in Spanish: the skill is written in
 Include:
 
 - `Qué se ha hecho`: 2-5 bullets summarizing the accepted behavior, not internal noise.
-- `Cómo probarlo`: the automatic command, usually `CI=true ./scripts/init.sh`, plus concrete manual/local steps when the feature has observable behavior. Prefer commands the user can run directly. If manual testing needs env vars, database, a dev server, or a port, state that explicitly.
+- `Cómo probarlo`: the command that actually exercises the accepted feature — the spec's focused block `./scripts/init.sh --feature <feature-id>`, or `CI=true ./scripts/init.sh --fast` for the no-device surface (`CI=true ./scripts/init.sh --verify` for the full gate). Never present the bare `./scripts/init.sh`: it only prints a toolchain banner and exits 0 without running any check. Plus concrete manual/local steps when the feature has observable behavior. Prefer commands the user can run directly. If manual testing needs env vars, database, a dev server, or a port, state that explicitly.
 - `Validación`: validator verdict and the most relevant checks/smokes that actually ran.
 - `Commit`: hash and Conventional Commit message.
 - `Siguiente`: next feature id and next required role/action.

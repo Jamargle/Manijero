@@ -72,7 +72,7 @@ Check:
 
 Run the repo standard gate and focused checks when practical. If checks are expensive, unavailable, or require external services, inspect recorded evidence and state what was not rerun.
 
-If `scripts/init.sh` exists after a runnable baseline has been created, treat it as the standard non-blocking startup/verification gate. It should execute the relevant checks and fail on errors. If it only prints commands while the repo is already bootstrapped, raise a `revise` finding with a concrete repair brief. It must not start long-running processes such as a dev server.
+If `scripts/init.sh` exists after a runnable baseline has been created, treat it as the standard non-blocking startup/verification gate. At least one invocation must execute the relevant checks and fail on errors; a print-only bare default is fine only when the script also exposes real checks-running tiers (for example `--feature`/`--fast`/`--verify`). If the script *only* prints commands and never runs checks while the repo is already bootstrapped, raise a `revise` finding with a concrete repair brief. It must not start long-running processes such as a dev server.
 
 Spend the cheapest useful tier first: `./scripts/init.sh --feature <feature-id>` runs the focused block the spec publishes, `./scripts/init.sh --fast` covers the no-device surface, and `./scripts/init.sh --verify` is the full gate. Confirm independently that the feature's published focused block is accurate and still runs; a stale or wrong block is a `revise` finding.
 

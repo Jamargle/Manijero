@@ -31,16 +31,9 @@ Do not use `passing` to mean final approval. Final approval is a validator verdi
 
 ## `scripts/init.sh` Rule
 
-Once a repository has a runnable baseline, `scripts/init.sh` should be an executable non-blocking gate, not a help screen.
+Once a repository has a runnable baseline, `scripts/init.sh` must expose an executable non-blocking gate, not merely a help screen: at least one invocation must run the standard checks that can run without external long-lived services, fail fast on errors via `set -euo pipefail`, avoid starting blocking commands such as `pnpm dev`, and optionally print manual follow-up commands after checks pass.
 
-Default behavior:
-
-- execute the standard checks that can run without external long-lived services,
-- fail fast on errors via `set -euo pipefail`,
-- avoid starting blocking commands such as `pnpm dev`,
-- optionally print manual follow-up commands after checks pass.
-
-For a Next.js baseline, a good default is:
+Whatever invocation the docs present as the verification gate must actually run checks. For a Next.js baseline, a checks-running default is:
 
 ```bash
 pnpm lint
@@ -49,7 +42,7 @@ pnpm test
 pnpm build
 ```
 
-Only allow an informational-only `scripts/init.sh` during an explicitly pre-bootstrap phase.
+A print-only invocation is acceptable only as the cheapest informational tier, and only when the script also exposes real checks-running tiers (for example a focused per-feature tier, a no-device tier, and the full gate). On a tiered harness the bare `./scripts/init.sh` may print the toolchain status and the available tiers and exit 0, as long as the checks are reachable through named tiers. A script that can *only* print the checks is allowed only during an explicitly pre-bootstrap phase.
 
 Use the strongest applicable available checks:
 
