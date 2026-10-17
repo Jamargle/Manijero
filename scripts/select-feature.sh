@@ -32,7 +32,7 @@ python_bin() {
 
 usage() {
   cat <<'EOF'
-Usage: scripts/select-feature [--next|--status]
+Usage: ./scripts/select-feature.sh [--next|--status]
 
   --next    Print the next dependency-ready feature id and its next role (default)
   --status  Print the feature status board and unfinished-feature readiness
