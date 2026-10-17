@@ -8,7 +8,7 @@ Read the row that matches the work in front of you; a routine feature change nee
 
 | Work in front of you | Read | On demand |
 |---|---|---|
-| Every session | [PROGRESS.md](PROGRESS.md) "Current state" — accepted set, open items, honesty limits | [docs/progress/current-state.md](docs/progress/current-state.md) for the long-form narrative and [docs/progress/session-log.md](docs/progress/session-log.md) for the chronological pointer index: on demand, not for routine work |
+| Every session | [PROGRESS.md](PROGRESS.md) "Current state" — accepted set, open items, honesty limits | [docs/progress/current-state.md](docs/progress/current-state.md) for the product and architecture narrative and [docs/progress/session-log.md](docs/progress/session-log.md) for the chronological pointer index: on demand, not for routine work |
 | Plan, implement, or validate one feature | the spec contract [docs/specs/](docs/specs/)/`<feature-id>.md` and its acceptance record [docs/validations/](docs/validations/)/`<feature-id>.md` | the feature's appendix [docs/specs/](docs/specs/)/`<feature-id>.appendix.md` (repository research, implementation plan, validator checklist, feature evidence) and [feature_list.json](feature_list.json) for status and dependencies |
 | User-facing UI or Spanish copy | [DESIGN.md](DESIGN.md) | the spec of the feature that owns the surface |
 | A domain term, product-scope, or audience question | [CONTEXT.md](CONTEXT.md) — glossary, users, scope markers | [docs/build-brief.md](docs/build-brief.md), [docs/domain-model.md](docs/domain-model.md) |

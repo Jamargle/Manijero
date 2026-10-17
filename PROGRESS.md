@@ -26,7 +26,7 @@ Last updated: 2026-10-17.
 
 **Detail on demand**
 
-- `docs/progress/current-state.md` — the long-form per-feature narrative.
+- `docs/progress/current-state.md` — the product and architecture narrative.
 - `docs/progress/session-log.md` — the chronological pointer index (newest entries last); one line per event, never restated evidence.
 - `docs/specs/<feature-id>.md` — the feature's contract: goal, acceptance scenarios, expected file changes, and focused verification; its planning and verification record is the sibling `docs/specs/<feature-id>.appendix.md` (repository research, implementation plan, validator checklist, "Feature evidence").
 - `docs/validations/<feature-id>.md` — the authoritative acceptance record per accepted feature.
