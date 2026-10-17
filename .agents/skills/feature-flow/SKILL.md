@@ -34,27 +34,26 @@ The main agent is the orchestrator. It chooses the next role, launches the right
 
 1. `../../../AGENTS.md`
 2. `../../../PROGRESS.md`
-3. `feature_list.json`
+3. `./scripts/select-feature --next` (feature selection); read `feature_list.json` only when you must update a feature's status
 4. `docs/specs/` if present
 5. `docs/validations/` if present
 6. Current git status
 
 ## Feature Selection
 
-If the user provides a feature id, use that feature.
+Run `./scripts/select-feature --next`. It reads `feature_list.json` and prints the selected feature id and its next role; do not read or re-derive the index by hand.
 
-If no feature id is provided, select in this order:
+- `NEXT_FEATURE` / `NEXT_ROLE` — the next dependency-ready feature and the role to run (`planner`, `implementer`, or `validator`).
+- `NEXT_ROLE=none` — no dependency-ready unfinished feature. `NEXT_REASON=all features accepted` means the list is complete; otherwise `NEXT_BLOCKED` lists each blocked id and its unmet `depends_on` ids — report those instead of selecting a later blocked feature.
+- When the user provides a feature id, use that feature; take its role from the Role Selection rules below (the selector does not know a user-chosen id).
 
-1. A feature with status `in_progress`.
-2. The first `passing` feature in `feature_list.json` order; `passing` always means implemented and self-verified but not independently accepted.
-3. The first feature whose status is neither `passing` nor `accepted` in `feature_list.json` order whose `depends_on` prerequisites are satisfied and that already has a spec.
-4. The first feature whose status is neither `passing` nor `accepted` in `feature_list.json` order whose `depends_on` prerequisites are satisfied and that has no spec.
+Run `./scripts/select-feature --status` for the whole-board view: a `SUMMARY` line by status, the next feature/role, and one `FEATURE` line per unfinished feature with `ready`, `unmet`, `role`, and `spec` state. When the user asks what can run in parallel, list the unfinished features with `ready=yes` in `feature_list.json` order.
 
-A feature is dependency-ready when every id in `depends_on` references a feature whose status is `accepted`. For legacy feature lists, a dependency with status `passing` may be treated as ready only when `../../../PROGRESS.md` or `../../../docs/validations/<feature-id>.md` contains explicit independent validator acceptance evidence. If `depends_on` is absent in an older feature list, treat it as `[]` for backward compatibility, but prefer adding it when maintaining the list.
-
-If no unfinished feature is dependency-ready, report the blocking dependency ids instead of selecting a later blocked feature. When the user asks what can run in parallel, list all dependency-ready unfinished features in `feature_list.json` order.
+The selector treats a dependency as satisfied only when its status is `accepted` (`passing` is not accepted) and never selects a `blocked` feature. It picks, in order: an `in_progress` feature, then the first `passing` feature, then the first dependency-ready unfinished feature that has a spec, then the first that has none.
 
 ## Role Selection
+
+`./scripts/select-feature --next` reports `NEXT_ROLE` for the selected feature using the rules below; apply the same rules when the user provides a feature id. The selector checks whether the spec file exists, so you must still judge rule 1 when the spec is present but stale.
 
 For the selected feature:
 

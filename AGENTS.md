@@ -22,6 +22,8 @@ Read the row that matches the work in front of you; a routine feature change nee
 
 Verify in the smallest tier that covers the change, cheapest first: `./init.sh --feature <feature-id>` runs the focused command block the feature spec publishes, `./init.sh --fast` runs the shared host tests, the contract examples, the backend tests, and the offline evaluators without any Android SDK or Desktop build, and `./init.sh --verify` is the full gate. `./init.sh` alone only checks the toolchain and prints those commands.
 
+Pick the next feature and its next role with `./scripts/select-feature --next`; `./scripts/select-feature --status` prints the board and each unfinished feature's readiness. Do not read or re-derive `feature_list.json` by hand for selection; read it only when you must update a feature's status.
+
 ## Track the work
 
 - [feature_list.json](feature_list.json) is a lean index of `id`, `area`, `title`, `status`, `depends_on`, `spec`, and `validation`. The feature's user-visible behavior, verification, and notes live in the "Source metadata" section of [docs/specs/](docs/specs/)/`<feature-id>.md`; its verification lives in that spec's "Feature evidence" section, and its acceptance record lives in [docs/validations/](docs/validations/)/`<feature-id>.md`.

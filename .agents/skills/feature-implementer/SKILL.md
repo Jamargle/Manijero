@@ -24,7 +24,7 @@ You are the implementer/generator, not the planner and not the final validator.
 
 1. `../../../AGENTS.md`
 2. `../../../PROGRESS.md`
-3. `feature_list.json`
+3. `./scripts/select-feature --next` (feature selection); read `feature_list.json` only when you must update the selected feature's status
 4. Selected feature spec: `../../../docs/specs/<feature-id>.md`
 5. Durable docs if present and relevant:
    - `../../../ARCHITECTURE.md`
@@ -33,11 +33,11 @@ You are the implementer/generator, not the planner and not the final validator.
    - relevant docs under `docs/`
 6. Existing application files named in the spec's repository research and expected file changes.
 
-If no feature id is provided, choose the feature that is currently `in_progress`; otherwise choose the first feature in `feature_list.json` order whose status is neither `passing` nor `accepted`, whose `depends_on` prerequisites are satisfied, and that already has `../../../docs/specs/<feature-id>.md`.
+If no feature id is provided, run `./scripts/select-feature --next` and use `NEXT_FEATURE` / `NEXT_ROLE`; do not read or re-derive `feature_list.json` by hand. Proceed only when `NEXT_ROLE=implementer`. If `NEXT_ROLE=validator`, the feature is `passing` and belongs to `feature-validator`; if `NEXT_ROLE=planner`, stop and ask the user to run the planner/spec step first; if `NEXT_ROLE=none`, report `NEXT_REASON`/`NEXT_BLOCKED` and stop.
 
-A dependency is satisfied when the referenced feature id exists and has status `accepted`. For legacy feature lists, a dependency with status `passing` may be treated as satisfied only when durable evidence shows independent validator acceptance. If `depends_on` is absent in an older feature list, treat it as `[]` for backward compatibility.
+A dependency is satisfied when its status is `accepted` (`passing` is not accepted) and never selects a `blocked` feature. Run `./scripts/select-feature --status` if you need the per-feature readiness of the unfinished set.
 
-If no spec exists for the selected feature, stop and ask the user to run the planner/spec step first.
+If no spec exists for the selected feature (the selector prints `NEXT_SPEC=-` and `NEXT_ROLE=planner`), stop and ask the user to run the planner/spec step first.
 
 ## Workflow
 
