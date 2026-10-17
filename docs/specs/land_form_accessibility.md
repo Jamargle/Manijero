@@ -26,7 +26,7 @@ Make the add and edit land forms verifiably usable with enlarged system text, a 
 
 - No visible copy change: `add_land_*`, `edit_land_*`, and `land_list_*` strings stay byte-identical. "Understandable unknown options" comes from the existing visible description, the default `No lo sé`, and the new group-qualified accessible name; rewording the mixed labels is a product copy review, not this slice (U1).
 - No change to `AddLandState`/`EditLandState`/`reduce`/`toDraftOrNull()`, `Land`, `LandDraft`, `LandRepository`, the `land-store-v1` format, the storage adapters, or the `App()` read/write call sites (the save already preserves values and clears the error on the next edit).
-- No change to `LandListScreen`, `RemoveLandScreen`, `PrivacyScreen`, the chat surface, `theme/`, entry points, `contracts/`, `backend/`, `knowledge/`, or `init.sh`.
+- No change to `LandListScreen`, `RemoveLandScreen`, `PrivacyScreen`, the chat surface, `theme/`, entry points, `contracts/`, `backend/`, `knowledge/`, or `scripts/init.sh`.
 - No new module, dependency (including test-only), ViewModel, coroutine, navigation, dialog, or Compose UI-test harness; no logging of land data or exceptions.
 - No wide-window centring of the land columns and no layout restructure: large-window adaptation is owned by `desktop_mvp_build` (U2).
 - No iOS release work; product UI and behavior stay in `commonMain`.
@@ -64,17 +64,6 @@ Given a storage write that fails (or an edit target that is no longer stored), w
 ### Nothing else changes
 
 Given the feature ships, when the existing suites run, then the add/edit screens' behavior, copy, layout and persistence, and the accepted list/removal/privacy/chat surfaces behave exactly as before, with no previously passing test regressing and no new module, dependency, or logging.
-
-## Repository research
-
-- `shared/src/commonMain/kotlin/com/jamarglex/manijero/lands/AddLandScreen.kt` / `EditLandScreen.kt`: both are `Surface` + `Column(verticalScroll)` + an inner `.fillMaxWidth().widthIn(max = 720.dp)` column; a required `OutlinedTextField` with `isError = state.showNameError` + `supportingText = add_land_name_error`, an optional municipality field, two `ChoiceGroup`s (the shared `internal ChoiceGroup`/`ChoiceItem`), a `LiveRegionMode.Polite` failure `Text`, and full-width `Guardar*`/`Cancelar`. **Gaps:** no `selectableGroup()`; the group label is a plain `Text` never associated with its options, so `No lo sé` appears twice with no group context; option rows carry no accessible name beyond the child text; no `heading()` on the titles; the name error is only a supporting text — no announcement and no focus move, so a screen-reader/keyboard user pressing Guardar hears nothing and stays on the button. Existing previews already cover blank, error, known values, failures, long text, compact, wide and `fontScale = 2f`.
-- `shared/src/commonMain/kotlin/com/jamarglex/manijero/lands/AddLandState.kt` / `EditLandState.kt`: pure reducers. `SaveClicked` sets `showNameError = !hasName`; every field edit clears `showNameError` (and the edit form's `failure`); `toDraftOrNull()` returns `null` for a blank name, so "nothing is written" is already reducer-level and tested. **Note for the fix:** the error flag stays `true` across a repeated blank-name attempt, so a state-keyed `LaunchedEffect` alone would not re-focus — request focus from the save path.
-- `shared/src/commonMain/kotlin/com/jamarglex/manijero/App.kt`: `AppDestination.AddLand`/`EditLand` render the two screens with named callbacks; the single `create`/`update` call sites catch failures without logging. Nothing here changes.
-- `shared/src/commonMain/composeResources/values/strings.xml`: 102 strings, one Spanish file, every control labelled (`add_land_name_label`, `add_land_municipality_label`, `add_land_water_label` = `Riego`, `add_land_production_label` = `Producción`, `add_land_unknown` = `No lo sé`, `add_land_name_error`, `edit_land_*`).
-- `theme/ManijeroColors.kt` + `ManijeroColorsTest` hold the WCAG pair table (no pair change needed); `DESIGN.md` "Accessibility and validation" records the chat baseline and forbids claiming accessibility before the checks are done. `LandListScreen.kt` keeps merged rows, labelled `Editar`/`Eliminar` controls and polite confirmations — used only as the journey in and out.
-- Tests today are pure/real-store (`AddLandStateTest`, `EditLandStateTest`, `LandRepositoryTest`, `EditLandRepositoryTest`, the two Desktop store tests); no Compose UI-test artifact exists and the repo refuses test-only dependencies. `compose.foundation` 1.12.1 is present, so `selectableGroup`/`FocusRequester` need no dependency. `init.sh --verify` runs `:shared:jvmTest :shared:testAndroidHostTest :androidApp:assembleDebug :desktopApp:build`. Prior features recorded a real Android emulator (`Medium_Phone_API_35`, `adb`, `uiautomator dump`) and the Desktop app through the macOS AX tree, and recorded honestly that TalkBack speech is not capturable and Desktop screen capture was denied.
-
-Sized correctly: two existing stateless screens plus one new string, no data model, no persistence, no transport, no contract change; like `chat_accessibility` it is verification-dominant.
 
 ## Technical approach
 
@@ -133,67 +122,7 @@ No visual change: same background, Material 3 fields, radio rows, error role, bu
 - **Modify** `shared/src/commonMain/composeResources/values/strings.xml`: add `add_land_choice_description` only.
 - **Update** `CONSTRAINTS.md` (new "Land form accessibility" MUST rule) and `DESIGN.md` (land add/edit accessibility baseline + gaps).
 - **Append one short note each** to `docs/specs/add_land.md` and `docs/specs/edit_land.md`: the deferred accessibility checks are now done (precedent: the `response_states` U2 and `land_clarification` N2 notes).
-- **Do not modify** `AddLandState.kt`, `EditLandState.kt`, `Land.kt`, `LandDraft.kt`, `LandRepository.kt`, the storage adapters/format, `LandListScreen.kt`, `RemoveLandScreen.kt`, `PrivacyScreen.kt`, `App.kt`, `ChatHomeState.kt`, `ChatConversation.kt`, `chat/`, `privacy/`, `theme/`, `androidApp/`, `desktopApp/`, `shared/src/iosMain/`, `contracts/`, `backend/`, `knowledge/`, any Gradle file, `init.sh`, and `feature_list.json`/`PROGRESS.md` while implementing.
-
-## Implementation plan and tasks
-
-1. Add `selectableGroup()`, the group-qualified `contentDescription` and the `heading()` semantics; confirm no option row gained a second focus stop and the selected state still comes from `selectable`.
-2. Add the name-field `FocusRequester`, the focus move from the save path and the error announcement on both screens; confirm the reducers/`App()` are untouched and a repeated blank-name save re-focuses.
-3. Add the single string key and the two combined previews, then byte-check `strings.xml` (`1 0`, no other change).
-4. Run the automated checks and greps below.
-5. Android: install the debug APK, set `font_scale` 1.0 and 2.0, and dump both forms with `uiautomator` (see the evidence list); attempt TalkBack and record the outcome honestly.
-6. Desktop: `:desktopApp:run`, open the form, complete/correct it by keyboard only reading values from the macOS AX tree, and resize narrow and wide; record whether the visual focus indication could be inspected.
-7. Update `CONSTRAINTS.md`, `DESIGN.md` and the two one-line spec notes; record the low-digital-confidence checks; touch `feature_list.json`/`PROGRESS.md` only after independent validation.
-
-Suggested new `CONSTRAINTS.md` rule, "Land form accessibility":
-
-> **MUST**: the land add and edit forms MUST keep a plain-Spanish text name on every control, MUST name each choice option with its group (`Riego: No lo sé`, `Producción: No lo sé`) inside a `selectableGroup`, MUST expose each form title as a heading, and MUST NOT leave a blank-name save silent: the unchanged required-name message is shown *and* announced and input focus returns to the name field with every entered value preserved. Reason: `land_form_accessibility` established that two identically named `No lo sé` options and an unannounced validation error are exactly the failures a person with low digital confidence or a screen reader cannot recover from on their own.
-
-## Verification plan and evidence
-
-```sh
-./init.sh
-./gradlew :shared:jvmTest --rerun-tasks          # expect the prior 192 tests, 0 failures, none removed
-./gradlew :shared:testAndroidHostTest --rerun-tasks
-./gradlew :shared:compileKotlinIosSimulatorArm64
-./gradlew :desktopApp:build :androidApp:assembleDebug --rerun-tasks
-./init.sh --verify
-git diff --numstat -- shared/src/commonMain/composeResources/values/strings.xml   # expect 1 0
-grep -rn "Color(0x" shared/src/commonMain/kotlin/com/jamarglex/manijero --include=*.kt   # only theme/
-grep -rn "LocalMinimumInteractiveComponentSize\|minimumInteractiveComponentSize" shared/src   # none
-grep -rn "println\|Log\.\|Logger\|printStackTrace\|NSLog" shared/src androidApp/src desktopApp/src   # none
-git diff --check
-```
-
-Android (real emulator; `adb install -r androidApp/build/outputs/apk/debug/androidApp-debug.apk`,
-`adb shell settings put system font_scale 2.0` then `1.0`,
-`adb shell uiautomator dump … && adb pull …`) — record for **both** forms: the `content-desc` of all
-eight option nodes at 1.0 and 2.0; the minimal clickable-node size; whether any node falls outside
-`0..width × 0..height`; the name field `focused="true"` after a blank-name save with
-`add_land_name_error` visible; that correcting the name saves one land with the list confirmation;
-and one edit of one of two lands leaving the other row unchanged. Known harness quirk: a tap inside
-the IME window can type instead of pressing a button — dismiss the keyboard first.
-
-Desktop: `./init.sh --desktop`, then Tab/Shift+Tab through the fields and options, type into the name
-and municipality fields, activate an option and `Guardar terreno`/`Guardar cambios` by keyboard, and
-read the values/control names from the AX tree; resize narrow (≈420pt) and wide (≥1000pt) and record
-wrapping. If the visual focus indication cannot be inspected (host screen capture was denied before),
-record that exact limitation and rely on the default Material indication — do not add an outline on a
-guess.
-
-Preview review: every add/edit preview, including the blank-name error preview and the new narrow +
-`fontScale = 2f` error preview, re-checked in greyscale for the non-colour-cue requirement.
-
-Low-digital-confidence manual validation (the feature-list note) — record each task as run or as an
-outstanding manual check: (1) add a land with only a name; (2) add a second with a municipality and
-both attributes; (3) explain what `No lo sé` means and what happens if they choose it; (4) leave the
-name empty, read the message and correct it without help; (5) find `Editar` and correct one land's
-name. Never claim this session if no reviewer was available.
-
-Capture: focused and full test counts before/after, the `strings.xml` numstat, the greps, the Android
-dump excerpts/screenshots, the Desktop AX/keyboard record with its limits, the TalkBack attempt
-outcome, and the manual-validation record (or its absence). No persistent E2E command and no Compose
-UI-test harness exist, so no automated UI/E2E result is claimed.
+- **Do not modify** `AddLandState.kt`, `EditLandState.kt`, `Land.kt`, `LandDraft.kt`, `LandRepository.kt`, the storage adapters/format, `LandListScreen.kt`, `RemoveLandScreen.kt`, `PrivacyScreen.kt`, `App.kt`, `ChatHomeState.kt`, `ChatConversation.kt`, `chat/`, `privacy/`, `theme/`, `androidApp/`, `desktopApp/`, `shared/src/iosMain/`, `contracts/`, `backend/`, `knowledge/`, any Gradle file, `scripts/init.sh`, and `feature_list.json`/`PROGRESS.md` while implementing.
 
 ## Honest limitations to record
 
@@ -218,7 +147,7 @@ UI-test harness exist, so no automated UI/E2E result is claimed.
 | `DESIGN.md` | **Update during implementation** | Extend "Accessibility and validation" with the land add/edit baseline actually checked and the remaining gaps; that section forbids claiming accessibility before these checks. |
 | `docs/specs/add_land.md`, `docs/specs/edit_land.md` | **Append one short note each after implementation** | The deferred accessibility validation (and `edit_land` F3/F6) is closed or explicitly deferred from this side; accepted behavior is not revised. |
 | `feature_list.json`, `PROGRESS.md` | After verified implementation only | Record status, the checks actually run and every unperformed/manual limit; planning does not touch them. |
-| `AGENTS.md`, `CONTEXT.md`, `docs/build-brief.md`, `docs/domain-model.md`, `docs/risks-and-open-questions.md`, `ARCHITECTURE.md`, `init.sh` | Not needed | The plain-Spanish/accessibility/shared-`commonMain` rules already govern; no product, domain, module, boundary, or script-mode change is introduced. |
+| `AGENTS.md`, `CONTEXT.md`, `docs/build-brief.md`, `docs/domain-model.md`, `docs/risks-and-open-questions.md`, `ARCHITECTURE.md`, `scripts/init.sh` | Not needed | The plain-Spanish/accessibility/shared-`commonMain` rules already govern; no product, domain, module, boundary, or script-mode change is introduced. |
 
 ## Risks and open decisions
 
@@ -230,16 +159,24 @@ UI-test harness exist, so no automated UI/E2E result is claimed.
 - **U2 Large-window layout** — wide-window adaptation of the land columns stays with `desktop_mvp_build`.
 - **U3 Compose UI-test dependency later** — deliberately not now (repo precedent).
 
-## Validator checklist
+## Focused verification
 
-- [ ] Both forms' option rows expose a group-qualified accessible name (`Riego: No lo sé`, `Producción: No lo sé`, …) inside a `selectableGroup`, reporting role and selected state, with no extra focus stop added.
-- [ ] Both form titles carry `heading()`; every control keeps a plain-Spanish visible label; no visible string changed.
-- [ ] A blank-name save writes nothing, shows the unchanged message, moves input focus to the name field (a repeated attempt re-focuses), preserves every value and selection, and clears the error when typing resumes; correcting it writes exactly one record.
-- [ ] The storage-failure and missing-land messages stay polite live regions with no confirmation, no success navigation and the values still on screen.
-- [ ] At `font_scale 2.0` / `fontScale = 2f` and `widthDp = 320` the forms wrap with no clipping, overlap or horizontal overflow and stay scrollable.
-- [ ] On Android every clickable node is ≥48dp with no minimum-size override, and the error state is never colour-only (greyscale cue recorded).
-- [ ] On Desktop the form is completable and correctable by keyboard only, with a visible focus indication or the exact limitation recorded, and the AX tree shows named controls.
-- [ ] `strings.xml` numstat is exactly `1 0`, the new key matches this spec byte-for-byte and is used only as an accessible name.
-- [ ] No `Color(0x` outside `theme/`; no logging; no new module, dependency, Gradle change, endpoint, permission, or Compose UI-test artifact.
-- [ ] `:shared:jvmTest --rerun-tasks` (previous 192 tests, none removed), `:shared:testAndroidHostTest`, the iOS compile, the Android/Desktop builds, `./init.sh --verify`, and `git diff --check` pass, or the exact blocker is reported.
-- [ ] Only the two form screens, `strings.xml`, `CONSTRAINTS.md`, `DESIGN.md`, the two spec notes and the new spec changed; the reducers, repository, `App()`, the list/removal/privacy/chat surfaces, `theme/`, entry points, `contracts/`, `backend/`, `knowledge/`, Gradle and `init.sh` are untouched; the low-digital-confidence check is recorded as run or outstanding; `feature_list.json`/`PROGRESS.md` changed only after independent validation.
+`./scripts/init.sh --feature <feature-id>` runs exactly the block below. It is the feature-scoped
+tier of `./scripts/init.sh --fast`, and the cheapest check that still touches what this feature
+changed; `./scripts/init.sh --verify` remains the full gate.
+
+<!-- verify:start -->
+```sh
+# No new test class: this feature is verified through the forms' existing reducers plus the
+# manual screen-reader and keyboard checks recorded in the evidence below.
+./gradlew :shared:jvmTest --tests AddLandStateTest --tests EditLandStateTest
+```
+<!-- verify:end -->
+
+## Appendix
+
+The planning and verification record for this feature — repository research, implementation
+plan and tasks, verification plan, evidence to capture, implementation findings, validator
+checklist, and the feature evidence — moved verbatim to
+[`docs/specs/land_form_accessibility.appendix.md`](land_form_accessibility.appendix.md) on 2026-10-17 to keep this contract short.
+`docs/validations/land_form_accessibility.md` remains the authoritative acceptance record.

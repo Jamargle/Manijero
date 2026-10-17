@@ -7,6 +7,8 @@
 - **Depends on:** `chat_home`, `answer_api_contract`, `backend_health` (all accepted)
 - **Source behavior:** A person enters a question, submits it once, sees that the
   assistant is working, and receives the service response in the conversation.
+- **Source verification:** Submit a question to a local or mocked service and confirm the response appears once in the conversation.
+- **Note from the feature list:** Preserve the user's original wording.
 
 ## Goal
 
@@ -66,33 +68,6 @@ answer. Given it returns `needs_land_clarification`, then the flow retains the s
 and supplied opaque IDs for the later land-clarification feature and does not invent a
 land choice or display a fabricated legal conclusion. This slice may show a neutral
 temporary plain-Spanish acknowledgement; it must not claim the question was answered.
-
-## Repository research
-
-Inspected:
-
-- `shared/src/commonMain/kotlin/com/jamarglex/manijero/App.kt`: one shared Compose
-  screen owns `ChatHomeState` locally; submit currently only displays a placeholder.
-- `ChatHomeState.kt` and `ChatHomeStateTest.kt`: reducer preserves original wording
-  and rejects blank input; it has no request, conversation, or failure state.
-- `shared/src/commonMain/composeResources/values/strings.xml`: Spanish UI strings are
-  centralized in Compose resources.
-- `contracts/openapi.yaml`: canonical `/ask` request and three response states;
-  general requests require an empty lands array and a question no longer than 2,000
-  characters. Source and land-clarification payloads are already typed by contract.
-- `backend/app/main.py` and `backend/README.md`: no `/ask` route exists yet; `/health`
-  proves HTTP liveness only.
-- `shared/build.gradle.kts` / `gradle/libs.versions.toml`: shared module has Compose,
-  lifecycle, and kotlin-test only; it has no HTTP, serialization, coroutine, or mock
-  HTTP dependencies yet.
-- `init.sh`: available checks are shared JVM/Android host tests and Android/Desktop
-  builds; there is no persistent end-to-end test runner.
-
-Relevant constraints come from `CONTEXT.md`, `docs/build-brief.md`,
-`docs/domain-model.md`, `DESIGN.md`, and `docs/risks-and-open-questions.md`: shared
-`commonMain` behavior/UI, plain Spanish, no raw-question or land-data logging, and
-minimal service context. `MasterPlanV3.md` calls for a client API boundary, Ktor
-`MockEngine` tests, and a deterministic `/ask` pipeline.
 
 ## Technical approach
 
@@ -158,54 +133,6 @@ need meaningful Compose semantics, readable scaled text, keyboard reachability o
 Desktop, and a large primary action. The transcript must remain scrollable without
 clipping the active composer; test small Android windows and wide Desktop windows.
 
-## Implementation plan and tasks
-
-1. Confirm the contract fixtures with `python3 contracts/validate_examples.py`; choose
-   Ktor versions compatible with the existing Kotlin 2.4.20/Compose setup.
-2. Define DTOs, request mapping, narrow service interface, injected endpoint/client,
-   and a MockEngine-backed test double. Encode only the contract's general request.
-3. Implement the pure state machine and tests for blank/over-limit rejection, exact
-   wording, one in-flight request, success, returned status retention, and recovery to
-   editable idle state after completion/failure.
-4. Wire the shared use case to Compose with lifecycle-safe coroutine handling and
-   render messages/progress using resource strings and accessible semantics.
-5. Add focused transport tests that assert POST path/body and decode the accepted
-   answered fixture; add one UI/presentation test or reducer assertion proving a
-   response becomes exactly one assistant message.
-6. Run feasible builds and manually use a deterministic mock/local `/ask` responder.
-   Record evidence and only then update `feature_list.json` and `PROGRESS.md` with the
-   implementation result; the planner must not mark the feature complete.
-
-## Verification plan
-
-Run before and after implementation:
-
-```sh
-python3 contracts/validate_examples.py
-./gradlew :shared:jvmTest
-./gradlew :shared:testAndroidHostTest
-./gradlew :desktopApp:build
-./gradlew :androidApp:assembleDebug
-./init.sh --verify
-```
-
-The last two Android-inclusive checks may be environment-blocked if this worktree has
-no valid Android SDK; record the actual outcome rather than claiming success. There is
-no E2E command today, so focused common/JVM reducer plus Ktor MockEngine tests are the
-appropriate automated coverage. Once a local `/ask` implementation is available,
-manually submit an answered fixture through Android and Desktop: verify exact user text,
-one working state, one reply, disabled duplicate submit, and a new question afterward.
-
-## Evidence to capture
-
-- Test output for the contract validator and shared tests.
-- MockEngine assertion showing `POST /ask`, original question, and exactly
-  `{ "mode": "general", "lands": [] }` land context.
-- Build output for Desktop and, if configured, Android.
-- A short Android/Desktop manual-smoke record or screenshot showing the Spanish working
-  state and one completed conversation; identify the mock/local responder used.
-- Confirmation that logs/test diagnostics contain no raw question or land content.
-
 ## Durable documentation impact
 
 - `AGENTS.md`: **not needed**; its shared-code, privacy, and Spanish-copy rules already
@@ -254,20 +181,23 @@ one working state, one reply, disabled duplicate submit, and a new question afte
   `docs/specs/minimal_land_context.md`.
 
 
-## Validator checklist
+## Focused verification
 
-- [ ] Shared UI/business behavior remains in `commonMain`; platform code is only HTTP
-  engine/configuration wiring.
-- [ ] Blank and over-2,000-character questions make no request; accepted input retains
-  exact original wording.
-- [ ] One active submission produces one user message, one visible working state, and
-  at most one assistant message for the response.
-- [ ] The request is contract-valid `POST /ask` with `general` and no land data.
-- [ ] Returned response statuses are decoded without invented sources, land labels, or
-  legal conclusions; status-specific presentation is not claimed complete.
-- [ ] Spanish copy, semantic labels, text scaling, scrollability, and Desktop keyboard
-  operation are reviewed.
-- [ ] MockEngine/reducer tests and all feasible Gradle checks pass, with environmental
-  blockers documented.
-- [ ] No backend, contract, unrelated feature, or planning-progress status is changed
-  without implementation evidence.
+`./scripts/init.sh --feature <feature-id>` runs exactly the block below. It is the feature-scoped
+tier of `./scripts/init.sh --fast`, and the cheapest check that still touches what this feature
+changed; `./scripts/init.sh --verify` remains the full gate.
+
+<!-- verify:start -->
+```sh
+python3 contracts/validate_examples.py
+./gradlew :shared:jvmTest --tests ChatHomeStateTest --tests ChatConversationTest --tests KtorAnswerServiceTest
+```
+<!-- verify:end -->
+
+## Appendix
+
+The planning and verification record for this feature — repository research, implementation
+plan and tasks, verification plan, evidence to capture, implementation findings, validator
+checklist, and the feature evidence — moved verbatim to
+[`docs/specs/chat_question_submission.appendix.md`](chat_question_submission.appendix.md) on 2026-10-17 to keep this contract short.
+`docs/validations/chat_question_submission.md` remains the authoritative acceptance record.

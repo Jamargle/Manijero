@@ -24,35 +24,34 @@ You are the implementer/generator, not the planner and not the final validator.
 
 1. `../../../AGENTS.md`
 2. `../../../PROGRESS.md`
-3. `feature_list.json`
-4. Selected feature spec: `../../../docs/specs/<feature-id>.md`
+3. `./scripts/select-feature.sh --next` (feature selection); read `feature_list.json` only when you must update the selected feature's status
+4. Selected feature spec contract: `../../../docs/specs/<feature-id>.md`, plus its appendix `../../../docs/specs/<feature-id>.appendix.md` for repository research, the implementation plan and tasks, the validator checklist, and existing evidence.
 5. Durable docs if present and relevant:
    - `../../../ARCHITECTURE.md`
    - `../../../CONSTRAINTS.md`
    - `../../../DESIGN.md` when the spec has UI or visual behavior
    - relevant docs under `docs/`
-6. Existing application files named in the spec's repository research and expected file changes.
+6. Existing application files named in the spec contract's expected file changes and the appendix's repository research.
 
-If no feature id is provided, choose the feature that is currently `in_progress`; otherwise choose the first feature in `feature_list.json` order whose status is neither `passing` nor `accepted`, whose `depends_on` prerequisites are satisfied, and that already has `../../../docs/specs/<feature-id>.md`.
+If no feature id is provided, run `./scripts/select-feature.sh --next` and use `NEXT_FEATURE` / `NEXT_ROLE`; do not read or re-derive `feature_list.json` by hand. Proceed only when `NEXT_ROLE=implementer`. If `NEXT_ROLE=validator`, the feature is `passing` and belongs to `feature-validator`; if `NEXT_ROLE=planner`, stop and ask the user to run the planner/spec step first; if `NEXT_ROLE=none`, report `NEXT_REASON`/`NEXT_BLOCKED` and stop.
 
-A dependency is satisfied when the referenced feature id exists and has status `accepted`. For legacy feature lists, a dependency with status `passing` may be treated as satisfied only when durable evidence shows independent validator acceptance. If `depends_on` is absent in an older feature list, treat it as `[]` for backward compatibility.
+A dependency is satisfied when its status is `accepted` (`passing` is not accepted) and never selects a `blocked` feature. Run `./scripts/select-feature.sh --status` if you need the per-feature readiness of the unfinished set.
 
-If no spec exists for the selected feature, stop and ask the user to run the planner/spec step first.
+If no spec exists for the selected feature (the selector prints `NEXT_SPEC=-` and `NEXT_ROLE=planner`), stop and ask the user to run the planner/spec step first.
 
 ## Workflow
 
 ### 1. Confirm The Contract
 
-Read the selected spec and identify:
+Read the selected spec contract (`../../../docs/specs/<feature-id>.md`) and identify:
 
 - goal and non-goals,
 - acceptance scenarios,
 - expected file changes,
 - durable documentation impact,
-- implementation tasks,
-- verification plan,
-- evidence to capture,
-- validator checklist.
+- the focused verification block.
+
+Read its appendix (`../../../docs/specs/<feature-id>.appendix.md`) for the repository research, implementation tasks, verification plan, evidence to capture, and validator checklist.
 
 If the spec is too vague for implementation, stop with a concise blocker and recommend revising the spec.
 
@@ -80,9 +79,9 @@ Rules:
 
 ### 4. Self-Verify
 
-Run the spec's verification plan and the repo's standard gate. If a required check cannot run, document exactly why and what is missing.
+Run the spec's verification plan and the repo's standard gate, cheapest tier first: `./scripts/init.sh --feature <feature-id>` (the focused block the spec publishes), then `./scripts/init.sh --fast`, and `./scripts/init.sh --verify` when the change touches the Android/Desktop surface, packaging, or shared public behavior. If a required check cannot run, document exactly why and what is missing.
 
-If the feature creates or updates `init.sh`, make it an executable non-blocking gate: it should run the standard verification checks for the current repo state and must not start long-running dev servers. A script that only prints the checks is not enough unless the repo is still pre-bootstrap.
+If the feature creates or updates `scripts/init.sh`, make it an executable non-blocking gate: some invocation (a checks-running default, or named tiers such as `--feature`/`--fast`/`--verify`) must run the standard verification checks for the current repo state and fail on error, and none may start long-running dev servers. A print-only invocation is acceptable only as the cheapest informational tier when the script also exposes real checks-running tiers; a script that can *only* print the checks is not enough unless the repo is still pre-bootstrap.
 
 Self-verification should include the strongest applicable levels available today:
 
@@ -97,9 +96,9 @@ If any required check fails, fix it or leave the feature non-passing with a clea
 
 After verification:
 
-- update `feature_list.json` for the selected feature only,
-- record exact evidence for checks that passed,
-- update `../../../PROGRESS.md` with what changed, what ran, what failed, and the next best step,
+- update `feature_list.json` for the selected feature only (status, and the `spec`/`validation` paths); it is a lean index, so do not add an `evidence` array,
+- record exact evidence for checks that passed in the `Feature evidence` section of `../../../docs/specs/<feature-id>.appendix.md`; never copy the same verification elsewhere,
+- do not append verification prose to `../../../docs/progress/session-log.md`; the main orchestrator adds one pointer line when the feature is accepted. Update the `../../../PROGRESS.md` status board only when the accepted set, open items, or honesty limits change,
 - update the session handoff note if it exists or if the session leaves meaningful incomplete state,
 - update durable docs required by the spec or discovered during implementation.
 

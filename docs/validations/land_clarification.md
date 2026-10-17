@@ -33,7 +33,7 @@ and left outside it). No repository file was modified except this record.
 Untouched (verified per path with `git diff --stat`, empty output): `contracts/`,
 `knowledge/`, `backend/app/{generation,retrieval,source_catalog,abstention}.py`,
 `backend/app/main.py`, `backend/requirements.txt`, `theme/`, `lands/`, `androidApp/`,
-`desktopApp/`, `iosApp/`, every Gradle/catalog file, and `init.sh`. `git diff --check`
+`desktopApp/`, `iosApp/`, every Gradle/catalog file, and `scripts/init.sh`. `git diff --check`
 clean.
 
 ## Checks actually run (reproduced, not trusted)
@@ -62,7 +62,7 @@ Backend / contract:
 
 Client (Gradle 9.8.0 wrapper):
 
-- `./init.sh --verify` → BUILD SUCCESSFUL (exit 0).
+- `./scripts/init.sh --verify` → BUILD SUCCESSFUL (exit 0).
 - `./gradlew :shared:jvmTest --rerun-tasks` → BUILD SUCCESSFUL; **174 tests, 0
   failures, 0 errors, 0 skipped** (`ChatHomeStateTest` 38, `ChatConversationTest`
   15, `LandContextBuilderTest` 16).
@@ -155,7 +155,7 @@ synthetic/"no es una norma real"). No blocking security finding.
 `CONSTRAINTS.md` gained the one land-clarification MUST rule; `backend/README.md`
 documents the boundary, rules, CLI, and that `/health` stays the only route;
 `docs/specs/minimal_land_context.md` carries the follow-up ownership note.
-`init.sh` was **not** changed and `--verify` passes. `feature_list.json` and
+`scripts/init.sh` was **not** changed and `--verify` passes. `feature_list.json` and
 `PROGRESS.md` report only commands actually run (aside from N1's count) and
 honestly mark the feature self-verified, not accepted.
 

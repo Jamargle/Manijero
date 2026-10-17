@@ -14,7 +14,7 @@ Validated revision: commit `47e80c8` ("fix: restore chat_home verification wrapp
 
 ## Recorded checks
 
-- `./init.sh` completes with the restored Gradle 9.8.0 wrapper and reports the current
+- `./scripts/init.sh` completes with the restored Gradle 9.8.0 wrapper and reports the current
   feature state; wrapper reproducibility was confirmed.
 - `./gradlew :shared:jvmTest` passes.
 - `./gradlew :desktopApp:build` passes and compiles the shared Compose starting screen.
@@ -22,7 +22,7 @@ Validated revision: commit `47e80c8` ("fix: restore chat_home verification wrapp
 
 ## Environment limitation at acceptance
 
-- `./init.sh --verify`, `./gradlew :shared:testAndroidHostTest`, and `./init.sh --android`
+- `./scripts/init.sh --verify`, `./gradlew :shared:testAndroidHostTest`, and `./scripts/init.sh --android`
   stopped before compilation because the worktree had no `ANDROID_HOME` or
   `local.properties` with `sdk.dir`. No Android result was claimed.
 - Desktop launch/manual smoke was not run because it is an interactive long-running

@@ -73,7 +73,7 @@ interpreter of a temporary virtualenv created **outside** the repository
 - Scope: `git status` confirms `contracts/`, `backend/app/retrieval.py`,
   `backend/app/source_catalog.py`, `backend/app/main.py`,
   `knowledge/source_catalog.json`, `knowledge/passages.schema.json`,
-  `backend/requirements.txt`, `init.sh`, `AGENTS.md`, `CONTEXT.md`, `DESIGN.md`,
+  `backend/requirements.txt`, `scripts/init.sh`, `AGENTS.md`, `CONTEXT.md`, `DESIGN.md`,
   `docs/build-brief.md`, `docs/domain-model.md`, `MasterPlanV3.md`, and all
   client/shared/Android/Desktop code are unmodified. No canonical
   `knowledge/passages.json` was created and no manifest/dependency file was added.
@@ -139,8 +139,8 @@ Non-blocking:
 
 Informational (no action required for this feature):
 
-- **N1.** `init.sh` line 56 still lists retrieval, answer generation, and the
-  visual foundation as deferred; the spec mandates `init.sh`: no change, so this
+- **N1.** `scripts/init.sh` line 56 still lists retrieval, answer generation, and the
+  visual foundation as deferred; the spec mandates `scripts/init.sh`: no change, so this
   is orchestrator housekeeping, as the spec's Risks section already notes.
 - **N2.** The `feature_list.json` evidence quotes the temporary eligibility
   fixture loosely ("`...tienes derecho a ninguna ayuda real.`"); the temporary

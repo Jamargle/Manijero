@@ -2,17 +2,36 @@
 
 Manijero is a Kotlin Multiplatform olive-grove assistant for people with little computer experience. The MVP centers on plain-Spanish, source-grounded chat and basic local management of multiple lands. Android and Desktop are MVP targets; keep business logic and Compose UI in `shared/src/commonMain` for later iOS reuse.
 
+## Route by task
+
+Read the row that matches the work in front of you; a routine feature change needs `PROGRESS.md` "Current state" plus that feature's spec contract. Everything else is on demand, including that feature's appendix and the long-form history in `docs/progress/`.
+
+| Work in front of you | Read | On demand |
+|---|---|---|
+| Every session | [PROGRESS.md](PROGRESS.md) "Current state" — accepted set, open items, honesty limits | [docs/progress/current-state.md](docs/progress/current-state.md) for the product and architecture narrative and [docs/progress/session-log.md](docs/progress/session-log.md) for the chronological pointer index: on demand, not for routine work |
+| Plan, implement, or validate one feature | the spec contract [docs/specs/](docs/specs/)/`<feature-id>.md` and its acceptance record [docs/validations/](docs/validations/)/`<feature-id>.md` | the feature's appendix [docs/specs/](docs/specs/)/`<feature-id>.appendix.md` (repository research, implementation plan, validator checklist, feature evidence) and [feature_list.json](feature_list.json) for status and dependencies |
+| User-facing UI or Spanish copy | [DESIGN.md](DESIGN.md) | the spec of the feature that owns the surface |
+| A domain term, product-scope, or audience question | [CONTEXT.md](CONTEXT.md) — glossary, users, scope markers | [docs/build-brief.md](docs/build-brief.md), [docs/domain-model.md](docs/domain-model.md) |
+| An architecture, module, dependency, or contract boundary | [ARCHITECTURE.md](ARCHITECTURE.md) — the current map | a matching [MasterPlanV3.md](MasterPlanV3.md) section is historical, not current |
+| Backend, `contracts/`, or `knowledge/` work | [ARCHITECTURE.md](ARCHITECTURE.md) plus the artifact's schema or `contracts/openapi.yaml` | `backend/README.md`, [knowledge/README.md](knowledge/README.md) |
+| A rule the change must not break | [CONSTRAINTS.md](CONSTRAINTS.md) — durable MUST/MUST NOT rules | the reason line in the spec that established the rule |
+| An unresolved constraint, risk, or honest limit | [docs/risks-and-open-questions.md](docs/risks-and-open-questions.md) | the matching open item in [PROGRESS.md](PROGRESS.md) |
+| Any Kotlin, Compose, data, DI, navigation, or test code | the matching skill under [.agents/skills/](.agents/skills/) | — |
+
 ## Start and verify
 
-- Read [CONTEXT.md](CONTEXT.md), [the build brief](docs/build-brief.md), [the domain model](docs/domain-model.md), and [the design direction](DESIGN.md) before product work.
-- Read [risks and open questions](docs/risks-and-open-questions.md) and the relevant section of [MasterPlanV3.md](MasterPlanV3.md) for unresolved constraints and technical context.
-- Run `./init.sh` to check the local toolchain and show standard commands. Run `./init.sh --verify` for the documented Android, Desktop, and shared test/build checks.
-- Track user-visible work in [feature_list.json](feature_list.json); record verified progress in [PROGRESS.md](PROGRESS.md).
+Verify in the smallest tier that covers the change, cheapest first: `./scripts/init.sh --feature <feature-id>` runs the focused command block the feature spec publishes, `./scripts/init.sh --fast` runs the shared host tests, the contract examples, the backend tests, and the offline evaluators without any Android SDK or Desktop build, and `./scripts/init.sh --verify` is the full gate. `./scripts/init.sh` alone only checks the toolchain and prints those commands.
+
+Pick the next feature and its next role with `./scripts/select-feature.sh --next`; `./scripts/select-feature.sh --status` prints the board and each unfinished feature's readiness. Do not read or re-derive `feature_list.json` by hand for selection; read it only when you must update a feature's status.
+
+## Track the work
+
+- [feature_list.json](feature_list.json) is a lean index of `id`, `area`, `title`, `status`, `depends_on`, `spec`, and `validation`. The feature's user-visible behavior, verification, and notes live in the "Source metadata" section of [docs/specs/](docs/specs/)/`<feature-id>.md`; the planning and verification record (repository research, implementation plan, validator checklist, and the raw "Feature evidence") lives in the feature's appendix [docs/specs/](docs/specs/)/`<feature-id>.appendix.md`, and its acceptance record lives in [docs/validations/](docs/validations/)/`<feature-id>.md`.
+- Record verified progress in [PROGRESS.md](PROGRESS.md) — the status board — and add one line per accepted feature to [docs/progress/session-log.md](docs/progress/session-log.md), which is a pointer index: link the spec and the acceptance record, never restate the verification.
 
 ## Project skills
 
-- Read the matching skill under `.agents/skills/` for Compose components, data, dependency injection, errors, module structure, navigation, MVI presentation or unit tests.
-- These are opinionated patterns; adapt them to this repository's existing KMP modules and shared `commonMain` architecture. Do not add modules, frameworks, or dependencies solely because a skill example assumes them.
+- The skills under [.agents/skills/](.agents/skills/) are opinionated patterns; adapt them to this repository's existing KMP modules and shared `commonMain` architecture. Do not add modules, frameworks, or dependencies solely because a skill example assumes them.
 
 ## Operating rules
 

@@ -45,8 +45,8 @@ Identify:
 - selected feature id,
 - spec path,
 - implementation diff,
-- claimed status in `feature_list.json`,
-- evidence recorded in `feature_list.json` and `../../../PROGRESS.md`.
+- claimed status in `feature_list.json` (a lean index: `spec` and `validation` point at the feature's documents),
+- evidence recorded in the `Feature evidence` section of `../../../docs/specs/<feature-id>.appendix.md` and the acceptance record `../../../docs/validations/<feature-id>.md`.
 
 Status convention:
 
@@ -72,7 +72,9 @@ Check:
 
 Run the repo standard gate and focused checks when practical. If checks are expensive, unavailable, or require external services, inspect recorded evidence and state what was not rerun.
 
-If `init.sh` exists after a runnable baseline has been created, treat it as the standard non-blocking startup/verification gate. It should execute the relevant checks and fail on errors. If it only prints commands while the repo is already bootstrapped, raise a `revise` finding with a concrete repair brief. It must not start long-running processes such as a dev server.
+If `scripts/init.sh` exists after a runnable baseline has been created, treat it as the standard non-blocking startup/verification gate. At least one invocation must execute the relevant checks and fail on errors; a print-only bare default is fine only when the script also exposes real checks-running tiers (for example `--feature`/`--fast`/`--verify`). If the script *only* prints commands and never runs checks while the repo is already bootstrapped, raise a `revise` finding with a concrete repair brief. It must not start long-running processes such as a dev server.
+
+Spend the cheapest useful tier first: `./scripts/init.sh --feature <feature-id>` runs the focused block the spec publishes, `./scripts/init.sh --fast` covers the no-device surface, and `./scripts/init.sh --verify` is the full gate. Confirm independently that the feature's published focused block is accurate and still runs; a stale or wrong block is a `revise` finding.
 
 Use this hierarchy:
 
@@ -129,7 +131,7 @@ For each finding that leads to `revise` or `block`, include:
 
 If the verdict is `revise`, also include an `Implementation Repair Brief` that can be handed directly to the implementer. It should be ordered, scoped, and executable without this chat.
 
-Do not mark final acceptance in files unless the user explicitly asks. In normal feature-flow orchestration, the main orchestrator persists validator `accept` by setting the feature status to `accepted` in `feature_list.json` and recording concise evidence. If you are run directly as validator, return the verdict and recommended state update instead of editing files.
+Do not mark final acceptance in files unless the user explicitly asks. In normal feature-flow orchestration, the main orchestrator persists validator `accept` by setting the feature status to `accepted` in `feature_list.json`, recording the verification in the appendix's `Feature evidence` section, and adding one pointer line to `docs/progress/session-log.md`. If you are run directly as validator, return the verdict and recommended state update instead of editing files.
 
 ## Output Summary
 

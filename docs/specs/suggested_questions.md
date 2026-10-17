@@ -6,6 +6,7 @@
 - **Status / dependency:** `not_started`; `chat_home` is accepted.
 - **Source behavior:** A person can tap a short example question and have its Spanish text placed in the chat flow, without needing to formulate a prompt.
 - **Source verification:** Tap an example and confirm its text is submitted or ready to submit in the composer.
+- **Note from the feature list:** Use examples drawn from topics actually covered by the approved MVP corpus.
 
 ## Goal
 
@@ -45,21 +46,6 @@ Given no example is selected, when the user enters only whitespace, then `Pregun
 
 Given Android or Desktop renders `App()`, when the suggestion area is reached by touch, pointer, keyboard, or screen reader, then every example has its full question as an accessible text label, uses a Material control with its normal minimum target/state feedback, and its text can wrap at enlarged text scale without clipping or horizontal scrolling.
 
-## Repository research
-
-Inspected:
-
-- `feature_list.json`: this feature depends only on accepted `chat_home`; its note requires examples drawn from approved MVP-corpus topics.
-- `shared/src/commonMain/kotlin/com/jamarglex/manijero/App.kt`: `App()` owns `ChatHomeState`; `ChatHomeScreen` already renders shared explanation, composer, `Preguntar`, and `Mis terrenos`. It is the sole UI change point.
-- `shared/src/commonMain/kotlin/com/jamarglex/manijero/ChatHomeState.kt`: a pure state/reducer already preserves entered wording, disables whitespace-only submission, and clears `submittedQuestion` on `QuestionChanged`.
-- `shared/src/commonTest/kotlin/com/jamarglex/manijero/ChatHomeStateTest.kt`: `kotlin.test` reducer tests are the established focused test pattern.
-- `shared/src/commonMain/composeResources/values/strings.xml`: shared Compose resource strings are already used for all home copy.
-- `androidApp/.../MainActivity.kt` and `desktopApp/.../main.kt`: both call shared `App()`; no platform UI changes are needed.
-- `DESIGN.md`: Home/ask explicitly calls for a small set of example questions; it requires plain Spanish, large controls, shared `commonMain`, keyboard access, and text scaling.
-- `MasterPlanV3.md` §17.3 lists **hypotheses to validate with family**, not an approved prompt catalog; its §11 seed corpus/source entries and `docs/risks-and-open-questions.md` both show first-pilot corpus coverage remains unresolved. The three example strings for this feature were approved separately (see Content decision) without establishing corpus coverage.
-
-There is no navigation framework, Compose UI-test dependency/convention, persistent E2E command, or `ARCHITECTURE.md`/`CONSTRAINTS.md` in the repository. `./init.sh --verify` runs shared host tests plus Android/Desktop builds and does not start a long-running service.
-
 ## Content decision (resolved)
 
 The source/corpus owner has **approved** this compact static whitelist of three questions for this feature. There is **no outstanding content approval**: the strings below are approved to ship. Ship them **verbatim**, including the opening `¿` and the exact accents/punctuation — do not retrim, reword, translate, or append text.
@@ -88,47 +74,11 @@ This approval covers only these three example strings as seed wording for this f
 - **Update** `shared/src/commonMain/kotlin/com/jamarglex/manijero/App.kt`: shared suggestion section, click wiring, and targeted previews.
 - **Update** `shared/src/commonMain/composeResources/values/strings.xml`: approved heading/instruction and example text resources.
 - **Update** `shared/src/commonTest/kotlin/com/jamarglex/manijero/ChatHomeStateTest.kt`: focused reducer coverage.
-- **Do not change** Android/Desktop entry points, Gradle dependencies, backend/contracts, land storage, or `init.sh`.
+- **Do not change** Android/Desktop entry points, Gradle dependencies, backend/contracts, land storage, or `scripts/init.sh`.
 
 ## Visual design impact
 
 Use the current calm Material surface and theme colors; no new palette or icon is needed. Place a concise instruction plus three vertically scannable text controls near the composer. Preserve ample spacing, readable body text, and the current 720dp content maximum. Full question text must be visible (wrap rather than ellipsize) and controls must not rely on color alone to communicate that they are selectable.
-
-## Implementation plan and tasks
-
-1. Ship the three approved strings from the Content decision section verbatim; do not reword, trim, translate, or add date, amount, eligibility, or cooperative-specific premises.
-2. Add resource keys for the approved strings and the reducer action/case, preserving the selected text verbatim.
-3. Render the shared suggestion controls and wire them to `onAction`; add state/layout previews.
-4. Add distinct unit tests for selection replacing arbitrary existing text, selection clearing submitted state, and subsequent edit/submit preserving the selected or edited text. Retain existing whitespace test coverage; include a Unicode/Spanish punctuation selection case.
-5. Run the focused and available platform build checks, then perform Android/Desktop manual checks where environments are available.
-6. Only after implementation and verification, update `feature_list.json` and `PROGRESS.md` with status/evidence; this planning change does not update either.
-
-## Verification plan
-
-Run:
-
-```sh
-./gradlew :shared:jvmTest
-./init.sh --verify
-```
-
-`jvmTest` must cover reducer behavior without I/O. There is no persistent E2E test command or configured Compose UI-test framework, so focused pure tests plus platform manual smoke are sufficient for this state-only UI slice; do not claim E2E coverage.
-
-Manual smoke on both Android and Desktop:
-
-1. Open the home screen with no lands and find all examples without scrolling sideways.
-2. Select each example; confirm exact text appears in the composer, `Preguntar` enables, and no answer/network state appears.
-3. Edit a selected example, submit it, and confirm the existing ready message reflects preparation only.
-4. Check keyboard focus/activation on Desktop and enlarged system text/screen-reader-readable controls on Android; confirm wrapping and no clipping.
-
-Android verification is currently environment-blocked when `ANDROID_HOME`/`local.properties` has no SDK location, as recorded in `PROGRESS.md`; report that limitation rather than marking Android passed. Desktop interactive launch is manual and long-running; `:desktopApp:build` from `--verify` is the non-interactive compilation check.
-
-## Evidence to capture
-
-- Passing `:shared:jvmTest` output, including the new selection tests.
-- `./init.sh --verify` output, or the exact Android SDK blocker while retaining any completed checks.
-- Android and Desktop screenshots or a concise manual-check record showing examples, selected composer text, and enlarged/wrapped text.
-- The recorded approval in the Content decision section of this spec, matched byte-for-byte against the shipped Compose string resources (no separate owner approval remains outstanding).
 
 ## Durable documentation impact
 
@@ -137,13 +87,22 @@ Android verification is currently environment-blocked when `ANDROID_HOME`/`local
 - `ARCHITECTURE.md` and `CONSTRAINTS.md`: **not needed**; neither exists and this feature adds no architecture/constraint.
 - `PROGRESS.md` and `feature_list.json`: **update after verified implementation only** with result/evidence; do not update as part of planning.
 
-## Validator checklist
+## Focused verification
 
-- [ ] The shipped examples are exactly the three approved strings in the Content decision section (verbatim, including `¿` and accents), with no extra, removed, reordered, or reworded prompts.
-- [ ] The home has a small, plain-Spanish, shared suggestion area with all text in Compose resources.
-- [ ] Tapping every example fills—not sends—the composer exactly, enables `Preguntar`, and clears stale submitted state.
-- [ ] Existing whitespace rejection and original-wording submission behavior still pass.
-- [ ] Reducer tests include replacement, stale-state clearing, edit/submit preservation, and a Unicode/Spanish-text case.
-- [ ] Controls are keyboard-operable, screen-reader-readable as text controls, wrap under enlarged text, and fit Android/Desktop layouts.
-- [ ] `:shared:jvmTest` passes; `--verify` result and any Android SDK limitation are truthfully recorded.
-- [ ] No backend, land, navigation, platform-entry, dependency, or unrelated feature changes are included.
+`./scripts/init.sh --feature <feature-id>` runs exactly the block below. It is the feature-scoped
+tier of `./scripts/init.sh --fast`, and the cheapest check that still touches what this feature
+changed; `./scripts/init.sh --verify` remains the full gate.
+
+<!-- verify:start -->
+```sh
+./gradlew :shared:jvmTest --tests ChatHomeStateTest
+```
+<!-- verify:end -->
+
+## Appendix
+
+The planning and verification record for this feature — repository research, implementation
+plan and tasks, verification plan, evidence to capture, implementation findings, validator
+checklist, and the feature evidence — moved verbatim to
+[`docs/specs/suggested_questions.appendix.md`](suggested_questions.appendix.md) on 2026-10-17 to keep this contract short.
+`docs/validations/suggested_questions.md` remains the authoritative acceptance record.

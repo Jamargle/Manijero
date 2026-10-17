@@ -23,7 +23,7 @@ Recommended state update: orchestrator may set `status` to `accepted`.
 Commands were re-run by the validator; `--rerun-tasks` was used on the tests so
 the result is an actual execution, not a cached `UP-TO-DATE` result.
 
-- `./init.sh --verify` (`:shared:jvmTest :shared:testAndroidHostTest
+- `./scripts/init.sh --verify` (`:shared:jvmTest :shared:testAndroidHostTest
   :androidApp:assembleDebug :desktopApp:build`): **BUILD SUCCESSFUL** (exit 0).
 - `./gradlew :shared:jvmTest :shared:testAndroidHostTest --rerun-tasks`:
   **BUILD SUCCESSFUL**, 46 tasks executed. Test XML report totals:
@@ -89,7 +89,7 @@ the result is an actual execution, not a cached `UP-TO-DATE` result.
       keyboard-focus, and screen-reader behavior were **not** executed — no
       emulator/device and no Compose UI-test harness; the spec defers this to the
       `land_form_accessibility` feature and the implementer reported it honestly.
-- [x] Focused tests and feasible builds pass (`./init.sh --verify` green).
+- [x] Focused tests and feasible builds pass (`./scripts/init.sh --verify` green).
 - [x] No unrelated feature, backend, persistence-format, cloud, or iOS-release
       work included.
 
@@ -137,7 +137,7 @@ Scoped to this feature and diff: **no relevant issues found**.
 - `feature_list.json` evidence matches the independently reproduced results;
   `passing` is the correct pre-acceptance state.
 - `PROGRESS.md` records the implementation and honest unverified items.
-- `init.sh --verify` is a real gate (runs tests/builds and fails on error), not a
+- `scripts/init.sh --verify` is a real gate (runs tests/builds and fails on error), not a
   command printer.
 - No persistent E2E harness exists in this repo; the spec justifies focused
   pure-state/repository tests plus manual smoke, consistent with the validator

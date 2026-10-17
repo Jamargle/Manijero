@@ -21,7 +21,7 @@
 - Ran `./gradlew :shared:jvmTest --rerun-tasks`: BUILD SUCCESSFUL, `ChatHomeStateTest` 7/7 (0 failures),
   including replacement, stale-state clearing, verbatim submit plus later edits, and the
   Spanish/Unicode case; the pre-existing whitespace-rejection and original-wording submit tests still pass.
-- Ran `./init.sh --verify`: BUILD SUCCESSFUL. Forced `:shared:testAndroidHostTest`
+- Ran `./scripts/init.sh --verify`: BUILD SUCCESSFUL. Forced `:shared:testAndroidHostTest`
   (`ChatHomeStateTest` 7/7), `:androidApp:assembleDebug` (`androidApp-debug.apk` present), and
   `:desktopApp:build` with `--rerun-tasks`, all passing with the SDK now resolved via
   `local.properties` (`sdk.dir=/Users/jose/Library/Android/sdk`).
@@ -30,7 +30,7 @@
 
 Changed files are limited to the spec, `App.kt`, `ChatHomeState.kt`, `ChatHomeStateTest.kt`,
 `strings.xml`, `PROGRESS.md`, and `feature_list.json`. No changes to `androidApp`/`desktopApp`
-entry points, Gradle dependencies, `init.sh`, backend/contracts, land storage, or navigation.
+entry points, Gradle dependencies, `scripts/init.sh`, backend/contracts, land storage, or navigation.
 
 ## Accessibility notes
 

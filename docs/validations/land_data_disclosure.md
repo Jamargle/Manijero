@@ -29,7 +29,7 @@ expected footprint (unchanged by validation):
 
 Untouched: `contracts/`, `backend/`, `knowledge/`, `lands/`, `theme/`,
 `androidApp/`, `desktopApp/`, `shared/src/iosMain/`, every Gradle file, and
-`init.sh`. `git diff --check` clean. No new module, dependency, ViewModel,
+`scripts/init.sh`. `git diff --check` clean. No new module, dependency, ViewModel,
 endpoint, persistence, navigation, or logging.
 
 ## Independent checks and results
@@ -45,7 +45,7 @@ executions, not cached output:
 - `:shared:testAndroidHostTest --rerun-tasks` → **170 tests / 0 failures** (16 suites; was 167, +3).
 - `:shared:compileKotlinIosSimulatorArm64` → BUILD SUCCESSFUL.
 - `:desktopApp:build :androidApp:assembleDebug --rerun-tasks` → BUILD SUCCESSFUL, 72 tasks, debug APK.
-- `./init.sh --verify` → exit 0, BUILD SUCCESSFUL (91 tasks).
+- `./scripts/init.sh --verify` → exit 0, BUILD SUCCESSFUL (91 tasks).
 - `git diff --check` → clean.
 - Byte-for-byte UTF-8 string comparison vs the spec → 22/22 identical, each key
   once, `strings.xml` numstat `+22/-0`, no existing string changed or deleted.

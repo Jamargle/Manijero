@@ -30,7 +30,7 @@ deleted before returning).
 Untouched: `contracts/`, `backend/`, `knowledge/`, `androidApp/`, `desktopApp/`,
 `shared/src/iosMain/`, the theme source values (`theme/ManijeroColors.kt`,
 `theme/ManijeroTheme.kt`), `lands/`, every Gradle file and the version catalog,
-`init.sh`. `git diff --check` clean. No new module, dependency, engine wiring,
+`scripts/init.sh`. `git diff --check` clean. No new module, dependency, engine wiring,
 base URL, navigation, ViewModel, DI, coroutine scope, endpoint, or shipped fake.
 
 Validated product artifact hashes (sha256):
@@ -54,7 +54,7 @@ executions, not cached `UP-TO-DATE` output:
 - `./gradlew :desktopApp:build :androidApp:assembleDebug --rerun-tasks
   --no-configuration-cache` → **BUILD SUCCESSFUL, 72 tasks executed**, exit 0,
   `androidApp-debug.apk` repackaged.
-- `./init.sh --verify` → **BUILD SUCCESSFUL, exit 0**.
+- `./scripts/init.sh --verify` → **BUILD SUCCESSFUL, exit 0**.
 - `./gradlew :shared:compileKotlinIosSimulatorArm64` → **BUILD SUCCESSFUL**.
 - `grep -rn "Color(0x" …/manijero --include=*.kt` → matches only
   `theme/ManijeroColors.kt` (pre-existing theme test literals unchanged).
@@ -135,7 +135,7 @@ stays payload-free. Only presentation of already-decoded responses changed.
 per-entry `answerStatus` copied from the decoded response, abstention verbatim +
 caution + explicit label + no added content, no confident legal-certainty
 treatment). `ManijeroColorsTest` gained exactly one contrast row. `DESIGN.md`,
-`AGENTS.md`, `docs/risks-and-open-questions.md`, and `init.sh` were correctly
+`AGENTS.md`, `docs/risks-and-open-questions.md`, and `scripts/init.sh` were correctly
 left unchanged.
 
 ## Non-blocking findings

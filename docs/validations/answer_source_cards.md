@@ -33,7 +33,7 @@ footprint (unchanged by validation):
 
 Untouched: `contracts/`, `backend/`, `knowledge/`, `theme/`, `lands/`,
 `androidApp/`, `desktopApp/`, `shared/src/iosMain/`, every Gradle file and the
-version catalog, `init.sh`, and the Android/Desktop entry points. `git diff
+version catalog, `scripts/init.sh`, and the Android/Desktop entry points. `git diff
 --check` clean. No new module, dependency, endpoint, permission, ViewModel, DI,
 navigation, engine, or shipped fake; no logging.
 
@@ -60,7 +60,7 @@ executions, not cached `UP-TO-DATE` output:
 - `./gradlew :desktopApp:build :androidApp:assembleDebug --rerun-tasks` →
   **BUILD SUCCESSFUL, 72 tasks executed**, exit 0, `androidApp-debug.apk`
   repackaged.
-- `./init.sh --verify` → **BUILD SUCCESSFUL, exit 0**.
+- `./scripts/init.sh --verify` → **BUILD SUCCESSFUL, exit 0**.
 - `./gradlew :shared:compileKotlinIosSimulatorArm64 --rerun-tasks` → **BUILD
   SUCCESSFUL** (unmodified tree: the new `commonMain` code compiles for iOS).
 - `./gradlew :shared:iosSimulatorArm64Test --rerun-tasks` → **BUILD SUCCESSFUL,
@@ -153,7 +153,7 @@ platform `openUri` refusal from crashing the screen and logs nothing.
 `CONSTRAINTS.md` gained exactly one "Client source cards" **MUST** rule.
 `docs/specs/response_states.md` gained the one-line R5-closed note the spec
 requires. `DESIGN.md`, `AGENTS.md`, `docs/risks-and-open-questions.md`,
-`knowledge/README.md`, and `init.sh` were correctly left unchanged. The
+`knowledge/README.md`, and `scripts/init.sh` were correctly left unchanged. The
 backend-owned `grounded_answer_generation` F1 hardening and the unconditional
 `[n] == sources[n-1]` sentence in `knowledge/README.md` were **not** changed here
 (follow-up N7).

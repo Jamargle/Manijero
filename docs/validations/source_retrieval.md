@@ -68,7 +68,7 @@ on 2026-10-13. No repair required.
 The change adds an offline, standard-library retrieval boundary plus its passage schema,
 baseline CLI, tests, and synthetic fixtures. Scope was confirmed clean against the spec:
 `contracts/`, `knowledge/source_catalog.json`, `backend/app/source_catalog.py`,
-`backend/app/main.py`, `backend/requirements.txt`, all client/shared code, `init.sh`,
+`backend/app/main.py`, `backend/requirements.txt`, all client/shared code, `scripts/init.sh`,
 `AGENTS.md`, `DESIGN.md`, and `MasterPlanV3.md` are untouched; `/health` remains the only
 route; `knowledge/passages.json` is deliberately absent. No network client, credentials,
 secrets, LLM/provider call, `/ask` route, logging, or unreviewed corpus was introduced.
@@ -88,8 +88,8 @@ Non-blocking:
 - **F2 (low, optional wording).** `PROGRESS.md` line 8 "Retrieval … remain deferred"
   describes the client chat boundary and is still true in context, but reads awkwardly next
   to the new retrieval line. A one-line clarification is optional.
-- **F3 (low, optional follow-up).** `init.sh --check`'s banner still lists retrieval as
-  deferred; the spec mandates `init.sh`: no change, so a refresh would be separate
+- **F3 (low, optional follow-up).** `scripts/init.sh --check`'s banner still lists retrieval as
+  deferred; the spec mandates `scripts/init.sh`: no change, so a refresh would be separate
   housekeeping.
 - **F4 (low, optional hardening).** An eval line naming a nonexistent passage id is counted
   as a miss (exit 0) and only visible in the human report. A warning or exit-2 check would

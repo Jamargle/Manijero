@@ -18,14 +18,14 @@ rules.
 
 | Check | Result |
 |---|---|
-| `git status --porcelain` / `git diff --stat` | exactly the 6 modified + 6 new expected files; no stray edits (`Land.kt`, `LandRepository.kt`, adapters, `land-store-v1`, `LandListState.kt`, add/edit state/screens, entry points, Gradle, `init.sh`, `theme/` untouched) |
+| `git status --porcelain` / `git diff --stat` | exactly the 6 modified + 6 new expected files; no stray edits (`Land.kt`, `LandRepository.kt`, adapters, `land-store-v1`, `LandListState.kt`, add/edit state/screens, entry points, Gradle, `scripts/init.sh`, `theme/` untouched) |
 | `git diff --check` | clean |
-| `./init.sh` | exit 0; still runs the real `--verify` gate |
+| `./scripts/init.sh` | exit 0; still runs the real `--verify` gate |
 | Focused `:shared:jvmTest --tests …RemoveLand* --rerun-tasks` | BUILD SUCCESSFUL, 15/0 (State 8, Repository 5, DesktopStore 2); the first run was `FROM-CACHE`, so `--rerun-tasks` was forced |
 | `:shared:jvmTest --rerun-tasks` | BUILD SUCCESSFUL, 117 tests / 17 suites / 0 failures (all accepted land suites green) |
 | `:shared:testAndroidHostTest --rerun-tasks` | BUILD SUCCESSFUL, 104 tests / 13 suites / 0 failures |
 | `:shared:compileKotlinIosSimulatorArm64 --rerun-tasks` | BUILD SUCCESSFUL (11 tasks executed) |
-| `./init.sh --verify` | BUILD SUCCESSFUL (91 tasks); `androidApp-debug.apk` (35.8 MB) and `desktopApp.jar` produced |
+| `./scripts/init.sh --verify` | BUILD SUCCESSFUL (91 tasks); `androidApp-debug.apk` (35.8 MB) and `desktopApp.jar` produced |
 | Eight new Spanish strings vs the spec's XML block | byte-for-byte equal, each appearing exactly once; `add_land_saved`/`edit_land_saved`/`land_list_edit` unchanged (diff is additions only) |
 | Privacy | `grep -rn "println\|Log\.\|Logger\|printStackTrace\|System.out"` → no matches; no `uses-permission` in any source manifest; the merged debug manifest declares no `INTERNET`; no `Color(0x` outside `theme/`; no new dependency (empty Gradle diff) |
 | `CONSTRAINTS.md` "Land removal" MUST rule vs the spec | matches the spec's suggested text |
@@ -70,7 +70,7 @@ The validator also independently re-drove an **Android emulator** (`Medium_Phone
   `strings.xml`, `App.kt`, `LandListScreen.kt`. New: `RemoveLandState.kt`, `RemoveLandScreen.kt`,
   3 test files, the spec, and this record. `Land.kt`, `LandRepository.kt`, the storage adapters and
   `land-store-v1`, `LandListState.kt`, `AddLandState.kt`/`AddLandScreen.kt`,
-  `EditLandState.kt`/`EditLandScreen.kt`, entry points, Gradle/version catalog, `init.sh`, `theme/`
+  `EditLandState.kt`/`EditLandScreen.kt`, entry points, Gradle/version catalog, `scripts/init.sh`, `theme/`
   and `backend/contracts/knowledge` untouched — no new module, dependency, ViewModel, coroutine,
   dialog/snackbar, navigation framework, network call, permission, or logging.
 - **Cross-feature:** rows stay non-clickable, details stay one merged node, `Eliminar` is a labelled

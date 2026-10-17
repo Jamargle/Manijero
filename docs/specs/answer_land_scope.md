@@ -45,7 +45,7 @@ names a land from it, and never suggests that the land details justify or prove 
 **Non-goals**
 
 - Any change to `contracts/`, `backend/`, `knowledge/`, `theme/`, `lands/`, the platform entry
-  points, Gradle, or `init.sh`. `AskResponse.land_scope` already exists and is already decoded.
+  points, Gradle, or `scripts/init.sh`. `AskResponse.land_scope` already exists and is already decoded.
 - Naming the selected lands, showing a land id, a land detail, or a per-land breakdown: the wire
   carries only the mode, so the caption stays generic.
 - The land-data disclosure notice, what is stored locally, or what leaves the device:
@@ -114,44 +114,6 @@ Given the feature ships, when the existing suites run, then the composer, workin
 suggested questions, chooser, abstention/answered/source-card rendering, failure notice, land
 screens, theme values, contract, and backend behave exactly as before, with no previously passing
 test regressing.
-
-## Repository research
-
-Inspected (paths relative to the repository root):
-
-- `shared/src/commonMain/kotlin/com/jamarglex/manijero/chat/AnswerService.kt`: `AskResponse(status,
-  answer, sources, land_scope, land_ids_to_choose)` already decodes `land_scope: LandContextMode`
-  (`general` / `all_active` / `selected`); no DTO, `answerJson`, or transport change is needed.
-- `shared/src/commonMain/kotlin/com/jamarglex/manijero/ChatHomeState.kt`: `ChatMessage(speaker, text,
-  answerStatus, sources)` is copied only in `ResponseReceived` from the decoded response;
-  `lastResponseStatus` is latest-turn-only and must not be read for rendering.
-- `shared/src/commonMain/kotlin/com/jamarglex/manijero/App.kt`: `ChatMessageBubble` branches
-  exhaustively on `speaker × answerStatus`; the `answered` branch renders `ChatAssistantCard` +
-  `SourceCardsSection`, the `abstained` branch calls `ChatBubble(stateLabel = "Sin respuesta
-  segura", …)`, and the defensive `needs_land_clarification` branch renders a neutral card. `ChatBubble`
-  already takes defaulted `stateLabel`/`borderColor`/`liveRegionMode`/`annotatedText`, so one more
-  defaulted parameter keeps every existing call site unchanged.
-- `shared/src/commonMain/composeResources/values/strings.xml`: one Spanish file; `%1$s`/`%1$d`
-  placeholders and the `«%1$s»` quoting style already exist. No scope string exists today.
-- `contracts/openapi.yaml` + `contracts/examples/response-answered.json` (land_scope `general`) and
-  `response-abstained.json` (land_scope `all_active`): `AskResponse` is `additionalProperties: false`
-  with exactly the five keys, `land_scope` enumerated to the three modes. These two accepted fixtures
-  are the only scope samples to reuse (no invented value).
-- `backend/app/generation.py`/`abstention.py`/`clarification.py`: `to_answer_response` and
-  `to_abstention_response` echo `land_scope = land_context.mode`; `to_clarification_response` hard-codes
-  `selected` (so a client must never label a clarification entry from it — there is none today). No
-  backend change is needed.
-- `shared/src/commonTest/.../{ChatHomeStateTest,ChatConversationTest}.kt`: `kotlin.test`, an inline
-  `AskResponse` builder whose helper currently hard-codes `land_scope = LandContextMode.general`, and
-  fake `AnswerService`s. No Compose UI-test harness exists, so the reducer copy plus previews are the
-  automatable surface.
-- `CONSTRAINTS.md`: the accepted client rules for response states, source cards, land context, and
-  land clarification; `DESIGN.md` lines 78/84 (readable, non-confident treatment; no legality claim).
-- `docs/specs/minimal_land_context.md`, `docs/specs/land_clarification.md`,
-  `docs/specs/answer_source_cards.md`, `docs/specs/response_states.md`: the handoffs above.
-
-Sized correctly: one added field, one label mapping, one UI line, three strings, previews, tests. No
-new data model, persistence, transport, or contract change.
 
 ## Technical approach
 
@@ -242,7 +204,7 @@ not change or delete any existing string.
 - **Update** `CONSTRAINTS.md` during implementation with one short client MUST rule (see durable
   docs).
 - **Do not modify**: `contracts/`, `backend/`, `knowledge/`, `theme/`, `lands/`, `androidApp/`,
-  `desktopApp/`, `shared/src/iosMain/`, any Gradle file or version catalog, `init.sh`, and
+  `desktopApp/`, `shared/src/iosMain/`, any Gradle file or version catalog, `scripts/init.sh`, and
   `feature_list.json`/`PROGRESS.md` while implementing.
 
 ## Visual design impact
@@ -266,57 +228,6 @@ screen-reader/focus policy stay with `chat_accessibility`; Desktop text scaling 
 - **Hands off** the local-data disclosure copy to `land_data_disclosure` and the full
   screen-reader/focus/large-text audit plus transcript auto-scroll to `chat_accessibility`.
 
-## Implementation plan and tasks
-
-1. Add `landScope` to `ChatMessage`, pass `response.land_scope` in `ResponseReceived`, and extend
-   `ChatHomeStateTest`/`ChatConversationTest` (per-entry scope, earlier entry unaffected, abstention
-   scope, clarification appends no entry, existing default-equality assertions still hold).
-2. Add `scopeLabel` to `ChatBubble`, the `landScopeCaption` exhaustive mapping, and the
-   answered/abstained wiring; add the three strings and the previews (general, all-lands, selected,
-   abstention with a scope, narrow/large text).
-3. Run the checks below; byte-for-byte compare the three strings with this spec; run the
-   color-centralization and logging greps.
-4. Update `CONSTRAINTS.md`.
-5. Update `feature_list.json`/`PROGRESS.md` only after implementation and independent validation,
-   recording only the commands actually run (the planner must not mark this feature complete).
-
-## Verification plan and evidence
-
-Run from the repository root:
-
-```sh
-python3 contracts/validate_examples.py
-./gradlew :shared:jvmTest --tests "com.jamarglex.manijero.ChatHomeStateTest" --tests "com.jamarglex.manijero.ChatConversationTest"
-./gradlew :shared:jvmTest --rerun-tasks
-./gradlew :shared:testAndroidHostTest --rerun-tasks
-./gradlew :shared:compileKotlinIosSimulatorArm64
-./gradlew :desktopApp:build :androidApp:assembleDebug --rerun-tasks
-./init.sh --verify
-grep -rn "Color(0x" shared/src/commonMain/kotlin/com/jamarglex/manijero --include=*.kt   # matches only under theme/
-grep -rn "println\|Log\.\|Logger\|printStackTrace\|NSLog" shared/src androidApp/src desktopApp/src   # no matches
-git diff --check
-```
-
-Also:
-
-- **Literal feature-list verification** (general, all-lands, selected): the reducer test asserts the
-  three decoded `land_scope` values each produce one assistant entry carrying that scope, and the
-  previews render the three captions. Because there is no platform `/ask` (carried
-  `chat_question_submission` F1), an empty corpus, and no Compose UI-test harness, the on-device view
-  needs a **temporary, non-committed** fake `AnswerService` at a platform root returning the accepted
-  fixture shapes with each `land_scope`; record what was actually seen and delete the fake afterwards.
-  Do not claim an automated UI or E2E result.
-- Byte-for-byte comparison of the three new strings against this spec; confirm no existing string was
-  changed or deleted and each key appears once.
-- Honest limit: the caption text is verified by the string comparison plus the reducer scope
-  assertions and previews, not by a UI test; the scope is derived only from the decoded response.
-
-Capture: focused and full test counts/names (no test removed); the byte-for-byte string comparison;
-the per-entry scope assertions; a written record (or preview screenshots) of a general, all-lands, and
-selected reply plus the abstention with a scope; the greps; `./init.sh --verify` output (or the exact
-blocker); and confirmation that `contracts/`, `backend/`, `knowledge/`, `theme/`, `lands/`, the entry
-points, Gradle, and `init.sh` are untouched.
-
 ## Durable documentation impact
 
 | Document | Action | Reason |
@@ -326,7 +237,7 @@ points, Gradle, and `init.sh` are untouched.
 | `docs/specs/minimal_land_context.md`, `docs/specs/land_clarification.md`, `docs/specs/answer_source_cards.md`, `docs/specs/response_states.md` | Not needed | Their `land_scope`-rendering handoff is executed here, not revised; the accepted behavior is unchanged. |
 | `AGENTS.md`, `CONTEXT.md`, `docs/build-brief.md`, `docs/domain-model.md`, `docs/risks-and-open-questions.md`, `MasterPlanV3.md` | Not needed | No product, glossary, or domain change; the operating rules (plain Spanish, no invented legal facts, commonMain UI) already govern. |
 | `ARCHITECTURE.md` | Not needed | It does not exist; no module, boundary, or dependency is added. |
-| `init.sh` | Not needed | No new mode; it must not start a service. |
+| `scripts/init.sh` | Not needed | No new mode; it must not start a service. |
 | `feature_list.json`, `PROGRESS.md` | After verified implementation only | Record evidence, status, and the `/ask`/UI-harness limitation then; planning does not touch them. |
 
 ## Risks and open decisions
@@ -348,29 +259,22 @@ points, Gradle, and `init.sh` are untouched.
 - **U2** Whether a `general` answer should hint that adding a land might change the answer
   (a next step): deliberately not added, because a client next step must not imply eligibility.
 
-## Validator checklist
+## Focused verification
 
-- [ ] Every assistant entry carries the `land_scope` its own decoded response arrived with, copied at
-      the single creation site; an earlier entry keeps its scope after a later turn and nothing is
-      rendered from `lastResponseStatus`.
-- [ ] A `general` reply shows `No tiene en cuenta tus terrenos.`, an `all_active` reply shows
-      `Tiene en cuenta todos tus terrenos.`, and a `selected` reply shows
-      `Tiene en cuenta los terrenos que elegiste.`, each below the `Asistente` label, with no land
-      name or id, no confident affordance, and no eligibility claim.
-- [ ] An abstention keeps its caution treatment, its `Sin respuesta segura` label, and its pinned
-      message verbatim, and also shows its scope; a clarification appends no entry and shows no
-      caption; a failed request shows only the accepted danger notice and no caption.
-- [ ] The three strings match this spec verbatim; no existing string was changed or deleted; the
-      scope mapping is an exhaustive, `else`-free `when` over the three modes.
-- [ ] The caption is text (never color alone), lives inside the merged-semantics node, and renders
-      without clipping at `widthDp = 320`/`fontScale = 2f`; the answered card stays neutral.
-- [ ] Product behavior and UI stay in `commonMain`; no new module, dependency, ViewModel, control,
-      endpoint, or logging; `contracts/`, `backend/`, `knowledge/`, `theme/`, `lands/`, the platform
-      roots, Gradle, and `init.sh` are untouched.
-- [ ] No `Color(0x` outside `theme/`, and no logging/printing of a question, answer, payload, or
-      exception text (grep evidence).
-- [ ] `:shared:jvmTest`, `:shared:testAndroidHostTest`, the iOS compile, the Android/Desktop builds,
-      `./init.sh --verify`, and the contract validator pass (or the exact environment blocker is
-      reported) with no previously passing test regressing; no E2E/UI-test coverage is claimed.
-- [ ] `feature_list.json`/`PROGRESS.md` were not modified by planning; the final diff matches this
-      spec's file list; the `/ask`/UI-harness limitation is recorded rather than worked around.
+`./scripts/init.sh --feature <feature-id>` runs exactly the block below. It is the feature-scoped
+tier of `./scripts/init.sh --fast`, and the cheapest check that still touches what this feature
+changed; `./scripts/init.sh --verify` remains the full gate.
+
+<!-- verify:start -->
+```sh
+./gradlew :shared:jvmTest --tests ChatHomeStateTest --tests ChatConversationTest
+```
+<!-- verify:end -->
+
+## Appendix
+
+The planning and verification record for this feature — repository research, implementation
+plan and tasks, verification plan, evidence to capture, implementation findings, validator
+checklist, and the feature evidence — moved verbatim to
+[`docs/specs/answer_land_scope.appendix.md`](answer_land_scope.appendix.md) on 2026-10-17 to keep this contract short.
+`docs/validations/answer_land_scope.md` remains the authoritative acceptance record.

@@ -76,26 +76,6 @@ Given a clarification arrives, when the local land read has not resolved yet, th
 
 Given the feature ships, when the existing suites run, then all accepted copy, states, source cards, scope captions, clarification behavior, land screens and persistence behave exactly as before, with no previously passing test regressing and no new module, dependency, endpoint or logging.
 
-## Repository research
-
-Inspected (paths relative to the repository root):
-
-- `shared/src/commonMain/kotlin/com/jamarglex/manijero/App.kt` (1,442 lines) — the whole chat surface lives here: `ChatHomeScreen` (one outer `Column` with `verticalScroll(rememberScrollState())`, children capped by `fillMaxWidth().widthIn(max = ContentMaxWidth = 720.dp)`, no `horizontalAlignment`), `ChatMessageBubble`, `ChatAssistantCard`, `ChatBubble` (one `semantics(mergeDescendants = true)` node, optional `liveRegionMode`), `SourceCardsSection`/`SourceCardView` (merged metadata node + one `Button` with `contentDescription`), `LandClarificationChooser`, `ChatFailureNotice`, and ~24 `ManijeroTheme` previews including several `widthDp = 320, fontScale = 2f`.
-- `App.kt` announcement state today: the working notice (line 461) and the abstained entry (line 620) are `LiveRegionMode.Polite`; the failure notice's `Surface` is a polite live region (line 948) and does **not** merge descendants, so its `Reintentar` stays a separate focusable node; **an `answered` entry is not a live region** — this is `response_states` U2.
-- `App.kt` clarification wiring (lines 205-213): `clarificationLands` starts as `emptyList()` and is filled by a `LaunchedEffect`, so the first frame after a clarification renders `chat_home_clarification_no_lands` — `land_clarification` N2.
-- `App.kt` has no `bringIntoView`, `onGloballyPositioned` or `heading()` usage, and no focus-indicator modifier; there is no code that scrolls the transcript.
-- `shared/src/commonMain/kotlin/com/jamarglex/manijero/ChatHomeState.kt` — pure `ChatHomeState` (`question`, `messages`, `phase {IDLE, SUBMITTING}`, `submittedQuestion`, `lastResponseStatus`, `landIdsToChoose`, `failure`, `failedQuestion`, `clarificationQuestion`), `ChatMessage(speaker, text, answerStatus, sources, landScope)`, `SubmissionPhase`, and `reduce`. File matches used by this feature's key extractor.
-- `shared/src/commonMain/kotlin/com/jamarglex/manijero/theme/ManijeroColors.kt` — the only hex file; `contrastRatio`/`relativeLuminance` helpers; semantic `caution`/`cautionSurface`/`primaryStrong`. `ManijeroTypography.kt` overrides only `bodySmall` line height (18sp). `ManijeroTheme.kt` applies the theme once in `App()`.
-- `shared/src/commonTest/kotlin/com/jamarglex/manijero/theme/ManijeroColorsTest.kt` — the WCAG pair table (`onSurface` on `cautionSurface` 14.58 was added by `response_states`); the chat pairs used (`onBackground`/`onSurface` 14.96/16.19, `onSurfaceVariant` 7.54/8.16, `primary` label 8.80/9.53, `onSurface` on `surfaceVariant` 12.84, `caution` 7.37/7.56/8.19, `error` 7.46/6.89, `onErrorContainer` 9.18) are already rows there.
-- `shared/src/commonMain/composeResources/values/strings.xml` — one Spanish file, 102 strings; all chat controls already have visible labels (`chat_home_ask`, `chat_home_lands`, `chat_home_privacy`, `chat_source_open`, `chat_home_clarification_continue`, `chat_home_retry`, `chat_speaker_you`/`chat_speaker_assistant`). `chat_home_submitted` is unused and stays untouched.
-- `shared/build.gradle.kts` / `gradle/libs.versions.toml` — `compose.foundation` 1.12.1 is present, so `bringIntoViewRequester`/`windowInsetsPadding` need no new dependency; `commonTest` has only `kotlin-test`, `kotlinx-coroutines-test` and `ktor-client-mock`; **no Compose UI-test artifact exists** and the repo has consistently refused test-only dependencies (`visual_foundation` non-goals).
-- `androidApp/src/main/kotlin/com/jamarglex/manijero/MainActivity.kt` — `enableEdgeToEdge()` then `setContent { App(landRepository) }`, no inset padding (`visual_foundation` U4). `desktopApp/src/main/kotlin/com/jamarglex/manijero/main.kt` — a resizable `Window`.
-- Prior Android evidence used a real emulator (`Medium_Phone_API_35`) with `adb shell settings put system font_scale 2.0`; `land_list`/`remove_land` records report that TalkBack/instrumented assistive access was denied and that no UI-test harness exists.
-- `init.sh --verify` runs `:shared:jvmTest :shared:testAndroidHostTest :androidApp:assembleDebug :desktopApp:build`; no new mode is needed and it must not start a service.
-- `DESIGN.md` lines 66, 72, 90-94 (`fontScale` support, large touch targets, keyboard navigation and visible focus on Desktop, "Avoid claiming the UI is accessible until these checks have been performed on Android and Desktop") and `CONSTRAINTS.md` (per-feature client MUST rules this work must not regress).
-
-Sized correctly: one screen, no data model, no persistence, no transport, no contract change. It is verification-dominant — small code changes plus recorded platform evidence — with one new pure file and its test.
-
 ## Technical approach
 
 ### 1. Announcement policy (App.kt)
@@ -145,53 +125,11 @@ Every claim that was only structural before (greyscale, `fontScale = 2f`, `width
 - **Add** `shared/src/commonMain/kotlin/com/jamarglex/manijero/TranscriptScroll.kt`: `TranscriptScrollKey` + `transcriptScrollKey` (Compose-free).
 - **Modify** `shared/src/commonMain/kotlin/com/jamarglex/manijero/App.kt`: `ChatAssistantCard` live-region parameter and the answered branch; the end-of-transcript marker + bring-into-view effect; `clarificationLands: List<Land>?` (state, `ChatHomeScreen` parameter, `LandClarificationChooser` loading branch); `horizontalAlignment` on the content column; `heading()` on the title; one wide-window preview (`widthDp = 1000`) and one long-conversation preview at `fontScale = 1.3f`; the three chooser previews updated. Optional: the shared focus-outline modifier only if §5 requires it.
 - **Add** `shared/src/commonTest/kotlin/com/jamarglex/manijero/TranscriptScrollTest.kt`: the key changes for a new entry, submitting/working, a failure, a clarification; and does not change for a keystroke, an example selection, or an equal-state re-reduce.
-- **Do not modify**: `ChatHomeState.kt` behavior, `ChatConversation.kt`, `chat/`, `lands/`, `privacy/`, `theme/`, `strings.xml`, `contracts/`, `backend/`, `knowledge/`, `androidApp/`, `desktopApp/`, `shared/src/iosMain/`, any Gradle file or version catalog, `init.sh`, and `feature_list.json`/`PROGRESS.md` while implementing (except the documentation updates below).
+- **Do not modify**: `ChatHomeState.kt` behavior, `ChatConversation.kt`, `chat/`, `lands/`, `privacy/`, `theme/`, `strings.xml`, `contracts/`, `backend/`, `knowledge/`, `androidApp/`, `desktopApp/`, `shared/src/iosMain/`, any Gradle file or version catalog, `scripts/init.sh`, and `feature_list.json`/`PROGRESS.md` while implementing (except the documentation updates below).
 
 ## Visual design and accessibility impact
 
 No token, copy, or state change: the same `surface`/`surfaceVariant`/`outlineVariant`/`cautionSurface`/`errorContainer` treatment, now verifiably readable at 2× text and announced for answers as well as abstentions. The chat keeps one merged, text-labelled node per entry (never colour-only), the 48dp Material minimum target, and the 720dp readable width — centred rather than left-aligned on wide Desktop windows. Known, recorded limits: Android insets/launch frame (U4, report-only), Desktop OS text scaling has no runtime integration (U3, preview-based), no automated UI-test harness (R1), and the transcript is not split into a pinned composer plus its own scroll region (U2).
-
-## Implementation plan and tasks
-
-1. Write `TranscriptScrollTest` first, then `TranscriptScroll.kt`.
-2. Add the answered live region, the end-of-transcript marker and the bring-into-view effect; confirm the working/abstention/failure announcements and the non-merging failure notice are unchanged.
-3. Add the chooser loading state (`List<Land>?`) and update the three chooser previews.
-4. Add the `horizontalAlignment` centring, the `heading()` semantic, and the two new previews; run §5 and add the focus outline only if the check requires it.
-5. Run the automated checks and greps; then the Android emulator checks (font scale, dump, keyboard focus, scroll) and the Desktop checks; capture screenshots/records and the `adb` commands used.
-6. Byte-check that no string changed (`git diff --numstat .../strings.xml`), re-run `docs/validations`-style greps (`Color(0x` only under `theme/`; no logging; no minimum-size override; the `liveRegion`/`mergeDescendants`/`contentDescription` attributes still present).
-7. Update `CONSTRAINTS.md` and `DESIGN.md`; append the short decision notes to `docs/specs/response_states.md` (U2) and `docs/specs/land_clarification.md` (N2 closure). Touch `feature_list.json`/`PROGRESS.md` only after independent validation.
-
-## Verification plan and evidence
-
-Run from the repository root:
-
-```sh
-python3 contracts/validate_examples.py
-./gradlew :shared:jvmTest --tests "com.jamarglex.manijero.TranscriptScrollTest"
-./gradlew :shared:jvmTest --rerun-tasks          # expect the prior 184 + the new tests, 0 failures, none removed
-./gradlew :shared:testAndroidHostTest --rerun-tasks
-./gradlew :desktopApp:build :androidApp:assembleDebug --rerun-tasks
-./init.sh --verify
-grep -rn "Color(0x" shared/src/commonMain/kotlin/com/jamarglex/manijero --include=*.kt   # only under theme/
-grep -rn "LocalMinimumInteractiveComponentSize\|minimumInteractiveComponentSize" shared/src   # no matches
-grep -rn "println\|Log\.\|Logger\|printStackTrace\|NSLog" shared/src androidApp/src desktopApp/src   # no matches
-git diff --numstat -- shared/src/commonMain/composeResources/values/strings.xml   # expected: empty
-```
-
-Android evidence (real emulator, `:androidApp:assembleDebug`):
-
-```sh
-adb install -r androidApp/build/outputs/apk/debug/androidApp-debug.apk
-adb shell settings put system font_scale 2.0     # then 1.0
-adb shell uiautomator dump /sdcard/chat.xml && adb pull /sdcard/chat.xml
-adb shell input keyevent 61                      # TAB, repeated, to read the focus order from the dump
-```
-
-Record for each chat state (home, long answered reply with cards, abstention, working, failure notice, clarification chooser): a screenshot at `font_scale 2.0` and `1.0`; whether a false no-lands fallback appeared; from the dump, the labelled nodes and the merged entry text, the checkbox rows' text/checked state, and which node was `focused`; and — after submitting a long answer — whether the newest entry was brought into view without jumping to the page bottom. Attempt TalkBack (`settings put secure enabled_accessibility_services`); if assistive access is denied, record that and rely on the dump plus code inspection, never claiming a TalkBack pass.
-
-Desktop evidence (`./init.sh --desktop`): resize narrow (`320dp`) and wide (≥ 1000dp) — content stays capped and centred with no horizontal overflow; walk the controls with Tab and capture focus visibility; state honestly if an interactive session is unavailable (then use the `widthDp = 1000` and `fontScale` previews and record the limit). Preview review: every chat preview plus the two new ones, re-checked in greyscale for the non-colour cues.
-
-Capture: test counts/names; the `uiautomator` dump excerpts; screenshots; the greps; the unchanged-`strings.xml` diff; and `./init.sh --verify` output (or the exact blocker).
 
 ## Durable documentation impact
 
@@ -203,7 +141,7 @@ Capture: test counts/names; the `uiautomator` dump excerpts; screenshots; the gr
 | `docs/risks-and-open-questions.md` | Optional | One row for the missing automated accessibility/UI-test coverage, if the orchestrator wants it tracked there rather than only in this spec's risks. |
 | `AGENTS.md`, `CONTEXT.md`, `docs/build-brief.md`, `docs/domain-model.md` | Not needed | The plain-Spanish, accessibility, and shared-`commonMain` rules already govern; no product or domain change. |
 | `ARCHITECTURE.md` | Not needed | It does not exist; no module, boundary, or dependency is added. |
-| `init.sh` | Not needed | No new mode; it must not start a service or an emulator. |
+| `scripts/init.sh` | Not needed | No new mode; it must not start a service or an emulator. |
 | `feature_list.json`, `PROGRESS.md` | After verified implementation only | Record status, the checks actually run, and every unperformed/manual limit then; planning does not touch them. |
 
 ## Risks and open decisions
@@ -221,16 +159,22 @@ Capture: test counts/names; the `uiautomator` dump excerpts; screenshots; the gr
 - **U4** Desktop OS text scaling has no runtime integration, so Desktop large-text evidence stays preview-based.
 - **U5** Whether a reference numeral should become tappable to its card (needs scroll-to-item; not now).
 
-## Validator checklist
+## Focused verification
 
-- [ ] An `answered` reply is a polite live region, the working/abstention/failure announcements are unchanged, a `Tú` entry is never one, and `Reintentar` stays a separate focusable node in the non-merging failure notice.
-- [ ] The newest transcript element (entry, working notice, failure notice or chooser) is brought into view once when appended, the page does not jump to its bottom, and a keystroke, an example selection, or an unrelated recomposition scrolls nothing (asserted by `TranscriptScrollTest` plus the recorded Android check).
-- [ ] The clarification chooser never renders the no-lands fallback before the local read resolves, and still shows it for a genuinely empty or failed read; its copy is unchanged.
-- [ ] At `font_scale 2.0` / `fontScale = 2f` and at `widthDp = 320` nothing is clipped or overlapped, and on a wide Desktop window the 720dp content column is centred with no horizontal overflow.
-- [ ] Every chat control and transcript entry carries a text name; each entry is one merged node with its label, scope, optional state label and body; the chooser rows expose name + known details + checkbox state; the title is a heading; no state is colour-only (greyscale capture recorded).
-- [ ] Keyboard-only operation reaches every control in a predictable order with a visible focus indication on Desktop, or the exact limitation is reported; controls keep Material's minimum interactive size and no minimum-size override exists.
-- [ ] `strings.xml` is unchanged (`--numstat` empty) and every accepted string is byte-identical to its accepted value; the per-entry `answerStatus`/`sources`/`landScope` data and the three transcript treatments are untouched.
-- [ ] No `Color(0x` outside `theme/`; no logging/printing of question, answer, land, payload, or exception text; no new module, dependency, Gradle change, endpoint, permission, or shipped fake.
-- [ ] `:shared:jvmTest` (previous 184 + new, none removed), `:shared:testAndroidHostTest`, the Android/Desktop builds, `./init.sh --verify`, and the contract validator pass, or the exact environment blocker is reported.
-- [ ] Every carried gap named in "Source metadata" is either closed with recorded evidence or explicitly recorded as still open with a reason; no structural-only claim is presented as an inspected render.
-- [ ] `feature_list.json`/`PROGRESS.md` were not modified by planning; the final diff matches this spec's file list; `CONSTRAINTS.md` and `DESIGN.md` were updated as described.
+`./scripts/init.sh --feature <feature-id>` runs exactly the block below. It is the feature-scoped
+tier of `./scripts/init.sh --fast`, and the cheapest check that still touches what this feature
+changed; `./scripts/init.sh --verify` remains the full gate.
+
+<!-- verify:start -->
+```sh
+./gradlew :shared:jvmTest --tests TranscriptScrollTest
+```
+<!-- verify:end -->
+
+## Appendix
+
+The planning and verification record for this feature — repository research, implementation
+plan and tasks, verification plan, evidence to capture, implementation findings, validator
+checklist, and the feature evidence — moved verbatim to
+[`docs/specs/chat_accessibility.appendix.md`](chat_accessibility.appendix.md) on 2026-10-17 to keep this contract short.
+`docs/validations/chat_accessibility.md` remains the authoritative acceptance record.

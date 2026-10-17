@@ -1,5 +1,12 @@
 # Feature spec: local_land_store
 
+## Source metadata
+
+- **Feature:** `local_land_store` — Persist multiple lands locally (`lands`).
+- **Source behavior:** The app can store zero or more distinct lands on the device and retains them after the app is closed and reopened.
+- **Source verification:** Create two distinct records through the repository boundary and confirm both remain after reopening the app.
+- **Note from the feature list:** Choose persistence technology during implementation; define migration and recovery behavior before a real-user pilot.
+
 ## Scope
 
 Provide a shared, platform-independent repository boundary for zero or more local
@@ -40,3 +47,23 @@ composition root.
 Common tests cover validation, distinct ids, update/delete isolation, unknown
 values, and reopening a repository against the same fake persistent storage.
 The shared JVM test task and Android compilation are the focused checks.
+
+## Focused verification
+
+`./scripts/init.sh --feature <feature-id>` runs exactly the block below. It is the feature-scoped
+tier of `./scripts/init.sh --fast`, and the cheapest check that still touches what this feature
+changed; `./scripts/init.sh --verify` remains the full gate.
+
+<!-- verify:start -->
+```sh
+./gradlew :shared:jvmTest --tests LandRepositoryTest
+```
+<!-- verify:end -->
+
+## Appendix
+
+The planning and verification record for this feature — repository research, implementation
+plan and tasks, verification plan, evidence to capture, implementation findings, validator
+checklist, and the feature evidence — moved verbatim to
+[`docs/specs/local_land_store.appendix.md`](local_land_store.appendix.md) on 2026-10-17 to keep this contract short.
+`docs/validations/local_land_store.md` remains the authoritative acceptance record.

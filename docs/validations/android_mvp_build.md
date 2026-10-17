@@ -11,7 +11,7 @@
 - Spec path: `docs/specs/android_mvp_build.md` (new, untracked).
 - Claimed status in `feature_list.json`: `passing` (self-verified; this pass is the
   independent validation).
-- Diff: modified `init.sh` (heredoc banner body only), `README.md`
+- Diff: modified `scripts/init.sh` (heredoc banner body only), `README.md`
   ("Running the MVP targets"), `feature_list.json`, `PROGRESS.md`; new untracked
   `docs/specs/android_mvp_build.md`. No other path changed.
 - Method: did not trust the implementer's report. Re-ran the build with
@@ -23,11 +23,11 @@
 
 | Check | Result |
 |---|---|
-| `./init.sh --verify` | exit `0`; `BUILD SUCCESSFUL`; 91 actionable tasks (`:shared:jvmTest`, `:shared:testAndroidHostTest`, `:androidApp:assembleDebug`, `:desktopApp:build`) |
+| `./scripts/init.sh --verify` | exit `0`; `BUILD SUCCESSFUL`; 91 actionable tasks (`:shared:jvmTest`, `:shared:testAndroidHostTest`, `:androidApp:assembleDebug`, `:desktopApp:build`) |
 | Full rebuild `./gradlew … --rerun-tasks` | exit `0`; `BUILD SUCCESSFUL`; **91 tasks executed, 0 from cache** |
 | APK artifact | `androidApp/build/outputs/apk/debug/androidApp-debug.apk` exists; 36,014,513 bytes; `shasum -a 256 = 4b4ab9d6cc50e026436116defdf3ffb79023dc84b7c715c6ce9b2c8e874ed538` — byte-identical after the independent rebuild and identical to the recorded claim |
-| `./init.sh --check` banner | No "remain deferred" text (grep count 0); names `./init.sh --verify`, `--android`/`--desktop`, the APK path, the `PROGRESS.md`/`feature_list.json` pointer, and the no-`/ask` limitation |
-| `./init.sh --help` / modes | Help and the four modes unchanged; `git diff init.sh` touches only the `--check` heredoc body |
+| `./scripts/init.sh --check` banner | No "remain deferred" text (grep count 0); names `./scripts/init.sh --verify`, `--android`/`--desktop`, the APK path, the `PROGRESS.md`/`feature_list.json` pointer, and the no-`/ask` limitation |
+| `./scripts/init.sh --help` / modes | Help and the four modes unchanged; `git diff scripts/init.sh` touches only the `--check` heredoc body |
 | Emulator | `emulator-5554`; model `sdk_gphone64_arm64`; API 34; Android 14; 1080x2340 |
 | `adb install -r` | `Success`; relaunch after `am force-stop` clean |
 | Land journey | add name-only `Los Olivos` (Riego/Producción `No lo sé`) → saved confirmation; add full `La Solana` (Martos / Regadío / Ecológico) → list shows both in creation order; edit `La Solana` → `La Solana Alta` (one row changed, "Los cambios se han guardado…", other row unchanged); remove `Los Olivos` (confirmation names the land) → one row removed |
@@ -36,12 +36,12 @@
 | Privacy notice | `Privacidad y ayuda` opens the shared disclosure screen with the local/remote/limit sections; `Volver` returns |
 | `font_scale 2.0` pass | home and `Mis terrenos` wrap with max text right edge 1014 of 1080 (no horizontal overflow); reset to 1.0 |
 | `logcat -d` scan | 0 `FATAL EXCEPTION`, 0 `ANR in`, 0 `E AndroidRuntime` app crash; no land or question text in the log (the only `AndroidRuntime` lines are the `uiautomator` dump commands, uid 2000) |
-| Scope | `git status --porcelain` = `M PROGRESS.md`, `M README.md`, `M feature_list.json`, `M init.sh`, `?? docs/specs/android_mvp_build.md`; `git diff --check` clean |
+| Scope | `git status --porcelain` = `M PROGRESS.md`, `M README.md`, `M feature_list.json`, `M scripts/init.sh`, `?? docs/specs/android_mvp_build.md`; `git diff --check` clean |
 | No `/ask` / grounded path | `backend/app/main.py` exposes only `@app.get("/health")`; `App(answerService = UnavailableAnswerService)` is the default wiring and `UnavailableAnswerService.ask` throws — no answered/abstained/source-card render is reachable |
 
 ## Scope discipline
 
-Only `init.sh` (banner body), `README.md` ("Running the MVP targets"),
+Only `scripts/init.sh` (banner body), `README.md` ("Running the MVP targets"),
 `feature_list.json`, `PROGRESS.md`, and the new spec/validation differ. No
 `shared/`, `androidApp/`, `desktopApp/`, `contracts/`, `backend/`, `knowledge/`,
 Gradle, or version-catalog file changed; no new module, dependency, mode,
@@ -93,9 +93,9 @@ question content is logged; the artifact is a debug build only.
 ## Documentation / harness state
 
 - `README.md` "Running the MVP targets" now documents the real commands
-  (`./init.sh --verify` / `--android` / `--desktop`) and the debug APK path, and
+  (`./scripts/init.sh --verify` / `--android` / `--desktop`) and the debug APK path, and
   keeps the iOS-out-of-scope statement.
-- The `./init.sh --check` banner points at the living documents instead of
+- The `./scripts/init.sh --check` banner points at the living documents instead of
   enumerating features, so it cannot go stale again, and states the honest
   limitation.
 - `PROGRESS.md` / `feature_list.json` record only the commands actually run, the
@@ -106,7 +106,7 @@ question content is logged; the artifact is a debug build only.
 
 ## Verdict
 
-**accept.** The feature satisfies the spec: `./init.sh --verify` produces the
+**accept.** The feature satisfies the spec: `./scripts/init.sh --verify` produces the
 debug APK (rebuilt and byte-identical), the APK installs and launches cleanly on
 the emulator, the accepted land journey and persistence work, the chat failure
 path is honest and never renders the question as an answer, the privacy notice

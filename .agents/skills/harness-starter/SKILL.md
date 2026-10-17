@@ -1,6 +1,6 @@
 ---
 name: harness-starter
-description: Create or update the minimal startup harness for a software repository after product discovery and before implementation. Use when the user says to use harness-starter, prepare the initial repo harness, create AGENTS/init/progress/feature list, or move from discovery docs to a coding-agent-ready repository. The skill reads existing discovery docs, derives only AGENTS.md, init.sh, PROGRESS.md, and feature_list.json, and must not reopen discovery, implement product code, initialize frameworks, install dependencies, or create extra harness documents.
+description: Create or update the minimal startup harness for a software repository after product discovery and before implementation. Use when the user says to use harness-starter, prepare the initial repo harness, create AGENTS/init/progress/feature list, or move from discovery docs to a coding-agent-ready repository. The skill reads existing discovery docs, derives only AGENTS.md, scripts/init.sh, PROGRESS.md, and feature_list.json, and must not reopen discovery, implement product code, initialize frameworks, install dependencies, or create extra harness documents.
 ---
 
 # Harness Starter
@@ -14,7 +14,7 @@ Use this skill to create the smallest useful repo harness after discovery is com
 - Do not reopen product discovery unless the discovery docs are missing or contradictory enough to block the harness.
 - Create or update only the minimal startup harness:
   - `../../../AGENTS.md`
-  - `init.sh`
+  - `scripts/init.sh`
   - `../../../PROGRESS.md`
   - `feature_list.json`
 - Do not create `../../../ARCHITECTURE.md`, clean-state checklists, evaluator rubrics, quality documents, implementation plans, issue backlogs, or extra docs unless the user explicitly asks after this skill finishes.
@@ -49,9 +49,9 @@ Check whether each target file already exists. For existing files, preserve inte
 Create/update the four target files using `references/artifact-templates.md`:
 
 - `../../../AGENTS.md`: project landing page and operating rules.
-- `init.sh`: standard startup/verification path, even if initially provisional.
+- `scripts/init.sh`: standard startup/verification path, even if initially provisional.
 - `../../../PROGRESS.md`: current verified state and lightweight session log.
-- `feature_list.json`: machine-readable feature state with verification and evidence fields.
+- `feature_list.json`: machine-readable feature index (identity, status, dependencies, and pointers to each feature's spec and validation record). Feature prose (user-visible behavior, verification, and notes) lives in the spec's "Source metadata" section, not here.
 
 ### 3. Keep Scope Tight
 
@@ -73,7 +73,7 @@ Use `depends_on` to express execution prerequisites. The order of items in `feat
 
 ### 4. Handle Missing Technical Commands
 
-If the app is not bootstrapped yet, `init.sh` should be honest and provisional:
+If the app is not bootstrapped yet, `scripts/init.sh` should be honest and provisional:
 
 - confirm the directory,
 - report that product bootstrap is pending,
@@ -88,12 +88,12 @@ Before finishing, verify:
 
 - `../../../AGENTS.md` answers: what is the project, how to start, how to verify.
 - `feature_list.json` is valid JSON.
-- Every feature has `id`, `area`, `title`, `user_visible_behavior`, `depends_on`, `status`, `verification`, `evidence`, and `notes`.
+- Every feature has `id`, `area`, `title`, `depends_on`, `status`, `spec`, and `validation`. Keep the index lean: put the feature's user-visible behavior, verification, and notes in its spec's "Source metadata" section, not in `feature_list.json`.
 - Every `depends_on` entry references an existing feature `id`, does not reference itself, and does not create a dependency cycle.
 - No feature is an epic/milestone such as "auth and enrollment API", "adaptive dashboard", "review flow", "content import", or "certificate generation and public verification" unless it has first been split into smaller verifiable slices.
 - For non-trivial MVPs, the feature count is not suspiciously low. If there are fewer than 10 features, run a second slicing pass before finishing.
 - `../../../PROGRESS.md` names the standard startup and verification paths, even if provisional.
-- `init.sh` is executable or tell the user to run `chmod +x init.sh` if tooling prevented changing mode.
+- `scripts/init.sh` is executable or tell the user to run `chmod +x scripts/init.sh` if tooling prevented changing mode.
 - No extra files were created.
 
 ## Teaching Note

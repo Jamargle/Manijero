@@ -92,39 +92,6 @@ Given a land was added, edited, or removed after the chat screen was opened, whe
 submitted, then the request uses the lands stored **at that moment**; a retry re-reads that same
 current list.
 
-## Repository research
-
-Inspected:
-
-- `shared/src/commonMain/.../chat/AnswerService.kt`: `AskRequest`/`LandContext`/`MinimalLandContext`
-  already match `contracts/openapi.yaml`; `answerJson` uses `explicitNulls = false`, so omitting an
-  attribute means leaving it `null`; `generalAskRequest(question)` is the accepted `general` builder.
-  No DTO or transport change is required.
-- `ChatHomeState.kt`: pure reducer; `ChatEffect.Submit(question)` carries only the wording and
-  `ChatEffect.request()` maps it with `generalAskRequest`. `ChatConversation.kt` is the only caller of
-  `answerService.ask`, runs the single in-flight submission on the injected composition scope, maps
-  failures to payload-free signals, and never logs — the natural place to read lands and build.
-- `App.kt`: `App(landRepository, answerService)` already receives the one local `LandRepository`, the
-  conversation is created in a `remember`, and the no-argument `App()` (iOS scaffold, previews) has no
-  repository. `ChatHomeScreen` takes no land parameters today.
-- `lands/Land.kt`, `lands/LandRepository.kt`: `Land(id, name, municipality, waterRegime,
-  productionMethod, areaHectares, notes, timestamps)`; `list()` is synchronous, returns repository
-  order, never sorts or dedupes, and normalizes blank municipality/notes to `null`; ids are locally
-  generated opaque strings; there is no archive flag, so "active" means every stored land.
-- `contracts/openapi.yaml`: `MinimalLandContext` = `id` (required, opaque, ≤128), `municipality`
-  (≤160), `water_regime`, `production_method`, `additionalProperties: false`; omission "means the
-  attribute is not needed for this question, not that it is known".
-- Tests and checks: `ChatHomeStateTest` (asserts `general`/empty for a no-lands submit),
-  `ChatConversationTest` (`ChatConversation(service, scope)`), `jvmTest/.../chat/KtorAnswerServiceTest`
-  (MockEngine body capture); `./init.sh --verify`, `:shared:jvmTest`, `:shared:testAndroidHostTest`,
-  `:shared:compileKotlinIosSimulatorArm64`, Android/Desktop builds. No persistent E2E runner exists and
-  there is still no `/ask` route (carried `chat_question_submission` F1).
-- `knowledge/README.md` (land-based selection deferred to `minimal_land_context` /
-  `land_clarification`), `docs/domain-model.md` (all lands by default, unknown stays unknown, minimum
-  attributes, avoid names/notes), `CONTEXT.md`, `docs/build-brief.md`,
-  `docs/risks-and-open-questions.md`, `MasterPlanV3.md` (B13 applicability, D13), and `CONSTRAINTS.md`
-  (one short MUST rule per accepted boundary).
-
 ## Technical approach
 
 1. **New pure builder** `shared/src/commonMain/kotlin/com/jamarglex/manijero/chat/LandContextBuilder.kt`
@@ -197,7 +164,7 @@ clarification; recorded here so the decision is reviewable.
   short follow-up note superseding its always-`general` statement); update `feature_list.json` and
   `PROGRESS.md` **after** verification.
 - **Do not change** `contracts/`, `backend/`, `knowledge/`, `lands/`, `theme/`, `strings.xml`, the
-  platform entry points, Gradle files, or `init.sh`.
+  platform entry points, Gradle files, or `scripts/init.sh`.
 
 ## Visual design impact
 
@@ -219,71 +186,6 @@ receives the minimum land context (and `answer_land_scope` will make the scope v
   whose notice must match this payload.
 - **Owns** the decision that no attribute classifier gates the mode, so a vocabulary change is a spec
   change, not a silent one.
-
-## Implementation plan and tasks
-
-1. Add `LandContextBuilder.kt` (folding helper, pinned term sets, `landContextNeeds`, exhaustive enum
-   mapping, `minimalLandContext`, `landContextFor`, `askRequestFor` delegating to `generalAskRequest`
-   for an empty list).
-2. Write `LandContextBuilderTest.kt`: empty lands → the accepted `general`/empty payload; the two-land
-   water scenario; production-only and municipality-only scenarios; a no-keyword question → ids only;
-   unknown → `unknown`; unset municipality → omitted; accent/case variants (`¿PUEDO REGAR?`, `regadío`,
-   `término municipal`); duplicates and long/Unicode names not merged or altered; repository order and
-   ids preserved; an encoded-body assertion proving the JSON contains only `id` plus the needed
-   attribute keys (no `name`, `notes`, `areaHectares`, timestamps, or null-valued keys).
-3. Change `ChatEffect.request(lands)` and update its two test call sites.
-4. Add `landsProvider` to `ChatConversation`, build the request from the guarded fresh read, and test it
-   in `ChatConversationTest` with a captured `AskRequest` plus a throwing-provider case that still
-   submits as `general`.
-5. Wire `App.kt` (provider from `landRepository`, `remember` keys) and confirm the no-argument `App()`
-   path still compiles and stays `general`.
-6. Add the jvmTest MockEngine capture of the encoded `POST /ask` body for a land-relevant question
-   (`all_active`, both ids, the needed attribute, no name/notes/area key anywhere).
-7. Add the `CONSTRAINTS.md` MUST rule and the `chat_question_submission` follow-up note.
-8. Run the verification commands, capture the evidence, then update `feature_list.json` (status +
-   evidence) and `PROGRESS.md`. The planner must not mark the feature complete.
-
-## Verification plan
-
-```sh
-python3 contracts/validate_examples.py
-./gradlew :shared:jvmTest --rerun-tasks
-./gradlew :shared:testAndroidHostTest --rerun-tasks
-./gradlew :shared:compileKotlinIosSimulatorArm64
-./gradlew :desktopApp:build :androidApp:assembleDebug --rerun-tasks
-./init.sh --verify
-git diff --check
-```
-
-Also:
-
-- The **literal feature-list verification** is the encoded-request capture: print or assert the exact
-  `POST /ask` body for a land-relevant question with two lands and confirm the relevant attribute is
-  present and no name, note, area, or timestamp appears. The MockEngine test is the automated form; a
-  short JVM probe that prints the encoded body may serve as the manual record.
-- `grep -rn "println\|Log\.\|Logger\|printStackTrace\|NSLog" shared/src androidApp/src desktopApp/src`
-  → no matches (the land read and the request stay unlogged).
-- Privacy/scope greps: `MinimalLandContext` still has exactly the four contract properties; no new key
-  in `strings.xml`; `Color(0x` only under `theme/`; `git diff --check` clean.
-- No persistent E2E command exists and `POST /ask` is still unrouted (carried `chat_question_submission`
-  F1), so there is no live end-to-end answer to smoke; the transport-level capture plus the pure
-  builder tests are the honest automated equivalent. Record this limitation rather than claiming
-  on-device network evidence.
-- `init.sh` is **not** changed by this feature: its `--verify` target already runs the shared tests and
-  the Android/Desktop builds, which is exactly what this slice needs; no new script, mode, or
-  long-running server is introduced.
-
-## Evidence to capture
-
-- The encoded request body for a two-land land-relevant question (needed attribute only, no
-  name/notes/area) and for the no-lands case (accepted `general` payload).
-- Test output for `LandContextBuilderTest`, the `ChatConversation` captured-request and
-  throwing-provider cases, and the MockEngine body capture, with total JVM/Android-host test counts
-  (no test removed).
-- `python3 contracts/validate_examples.py`, `./init.sh --verify`, the Android/Desktop builds, the iOS
-  compile, the greps, and `git diff --check` (environment blockers recorded as such), plus confirmation
-  that `contracts/`, `backend/`, `knowledge/`, `lands/`, `strings.xml`, the entry points, Gradle, and
-  `init.sh` are untouched.
 
 ## Durable documentation impact
 
@@ -317,22 +219,23 @@ Also:
   slice; and `ChatConversation` reads lands synchronously in `submit` (matching the accepted
   `land_list` read), which is acceptable for MVP store sizes and is recorded deliberately.
 
-## Validator checklist
+## Focused verification
 
-- [ ] A request for a land-relevant question carries every stored land in repository order with its
-      id verbatim, `mode: all_active`, and the attribute(s) the question needs; no `name`, `notes`,
-      `areaHectares`, timestamp, or contract-unknown key appears anywhere in the encoded body.
-- [ ] A question matching no vocabulary still carries the lands with ids only; `unknown` is sent as
-      `unknown`, and an unset `municipality` is omitted rather than invented or blank.
-- [ ] With no land stored the payload is byte-identical to the accepted `general` / `lands: []`
-      request and the question keeps its exact original wording.
-- [ ] The land list is read at submit and at retry (a land added, edited, or removed after the screen
-      opened is reflected), and a failing local read cannot turn a question into a failure.
-- [ ] The pure builder is in `commonMain`, no UI/string/preview/layout changed, and
-      `contracts/`, `backend/`, `knowledge/`, `lands/`, the entry points, Gradle, and `init.sh` are
-      untouched.
-- [ ] `LandContextBuilderTest`, the `ChatConversation` captured-request case, and the MockEngine body
-      capture exist and pass, with all feasible Gradle checks green and blockers documented.
-- [ ] The `CONSTRAINTS.md` rule and the `chat_question_submission` follow-up note are present;
-      `feature_list.json`/`PROGRESS.md` reflect real evidence only.
-- [ ] No logging, telemetry, or extra network call was added.
+`./scripts/init.sh --feature <feature-id>` runs exactly the block below. It is the feature-scoped
+tier of `./scripts/init.sh --fast`, and the cheapest check that still touches what this feature
+changed; `./scripts/init.sh --verify` remains the full gate.
+
+<!-- verify:start -->
+```sh
+python3 contracts/validate_examples.py
+./gradlew :shared:jvmTest --tests LandContextBuilderTest --tests ChatConversationTest --tests KtorAnswerServiceTest
+```
+<!-- verify:end -->
+
+## Appendix
+
+The planning and verification record for this feature — repository research, implementation
+plan and tasks, verification plan, evidence to capture, implementation findings, validator
+checklist, and the feature evidence — moved verbatim to
+[`docs/specs/minimal_land_context.appendix.md`](minimal_land_context.appendix.md) on 2026-10-17 to keep this contract short.
+`docs/validations/minimal_land_context.md` remains the authoritative acceptance record.

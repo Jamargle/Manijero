@@ -28,7 +28,7 @@ footprint (unchanged by validation):
 
 Untouched: `contracts/`, `backend/`, `knowledge/`, `theme/`, `lands/`,
 `androidApp/`, `desktopApp/`, `shared/src/iosMain/`, every Gradle file, and
-`init.sh`. `git diff --check` clean. No new module, dependency, ViewModel,
+`scripts/init.sh`. `git diff --check` clean. No new module, dependency, ViewModel,
 navigation, control, endpoint, or logging.
 
 ## Independent checks and results
@@ -48,7 +48,7 @@ executions, not cached output:
 - `./gradlew :shared:compileKotlinIosSimulatorArm64` → BUILD SUCCESSFUL.
 - `./gradlew :desktopApp:build :androidApp:assembleDebug --rerun-tasks` →
   BUILD SUCCESSFUL (debug APK).
-- `./init.sh --verify` → BUILD SUCCESSFUL, exit 0 (91 tasks).
+- `./scripts/init.sh --verify` → BUILD SUCCESSFUL, exit 0 (91 tasks).
 - `grep -rn "Color(0x" … --include=*.kt` → matches only
   `theme/ManijeroColors.kt`.
 - Privacy grep `println|Log\.|Logger|printStackTrace|NSLog` over

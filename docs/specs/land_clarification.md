@@ -43,7 +43,7 @@ lands (names from the local list only), and resubmits the **same original questi
 - Rendering the answer's `land_scope` (`answer_land_scope`), a land-data disclosure notice
   (`land_data_disclosure`), or an unknown-attribute follow-up beyond the chooser.
 - Changing any accepted module: `backend/app/{generation,retrieval,source_catalog,abstention}.py`,
-  `contracts/`, `knowledge/`, `theme/`, `lands/`, platform entry points, Gradle, or `init.sh`.
+  `contracts/`, `knowledge/`, `theme/`, `lands/`, platform entry points, Gradle, or `scripts/init.sh`.
 - Re-clarifying a `selected` request (loop protection) or asking the person to choose when no stored
   land or only one land exists.
 - Semantic/embeddings applicability, a calibrated score threshold, or any legal conclusion: detection
@@ -99,54 +99,6 @@ stored details prove eligibility.
 
 Given zero lands, the accepted `general` payload is unchanged; given exactly one land, the accepted
 `all_active` payload is unchanged and no clarification is ever produced for it.
-
-## Repository research
-
-Inspected (paths relative to the repository root):
-
-- `contracts/openapi.yaml` + `contracts/validate_examples.py` + `contracts/examples/response-needs-land-clarification.json`:
-  `status ∈ {answered, abstained, needs_land_clarification}`; a clarification response must have
-  `answer == ""`, `sources == []`, non-empty unique `land_ids_to_choose` (1..128 chars), and a
-  `land_scope ∈ {general, all_active, selected}` (the accepted example uses `selected`). The request
-  `land_context.lands[].id` is the same opaque local id.
-- `shared/.../chat/AnswerService.kt`: `AnswerStatus.needs_land_clarification`, `AskResponse(..., land_scope, land_ids_to_choose)`, `LandContextMode { general, all_active, selected }`, `MinimalLandContext(id, municipality, water_regime, production_method)`, `generalAskRequest`.
-- `shared/.../ChatHomeState.kt`: `ResponseReceived` appends an assistant entry only for a non-empty
-  `answer` (so a clarification appends none), clears `submittedQuestion`, and stores
-  `lastResponseStatus`/`landIdsToChoose`; `awaitingLandClarification` is derived from them. There is
-  no field that survives to resent the original question, and `ChatEffect` has only `Submit(question)`.
-- `shared/.../ChatConversation.kt`: reads lands via `landsProvider` on submit/retry and calls
-  `answerService.ask(effect.request(lands))`; a failing read degrades to `general`; failures map to
-  payload-free signals, never logged.
-- `shared/.../chat/LandContextBuilder.kt`: pure builder producing only `general`/`all_active`;
-  `minimalLandContext` sends only the needed attributes (`unknown` for a needed unknown, municipality
-  omitted when unset); the local→contract enum mapping is exhaustive.
-- `shared/.../App.kt`: `ChatHomeScreen` currently renders a neutral `chat_home_needs_land_clarification`
-  notice when `awaitingLandClarification`, and receives no land list; `App(landRepository, answerService)`
-  already holds the one `LandRepository`.
-- `shared/.../lands/Land.kt` + `LandRepository.kt`: `Land(id, name, municipality, waterRegime,
-  productionMethod, ...)`; `list()` is synchronous, in creation order, opaque ids, no sort/dedupe.
-- `backend/app/abstention.py`: `answer_or_abstain(...)` returns only `Answered | Abstention`;
-  `to_abstention_response` emits `abstained`; there is **no** clarification path today. `abstention.py`
-  explicitly hands "land applicability, land clarification … beyond echoing a validated value" to
-  `minimal_land_context` / `land_clarification`.
-- `backend/app/retrieval.py`: `RetrievedPassage.applicability` is `Optional[Dict[str,str]]` with keys
-  `crop`, `water_regime`, `production_method`; it is "surfaced, **never used to filter here**:
-  applicability-based selection belongs to `minimal_land_context` / `land_clarification`." `Retriever.search`
-  is deterministic and returns candidates with `rank`, `critical`, `applicability`. `LAND_SCOPES` lives
-  in `generation.py`.
-- `MasterPlanV3.md` B13 ("Compare minimal user land attributes with source applicability; preserve
-  unknowns and detect materially different cases → returns clarification-needed when context changes
-  the answer"), D5, §8.2 rule 12 ("do not choose one arbitrarily … ask … before giving personalized
-  guidance"), §8.2 line 470 (clarification keeps `answer` empty, returns only local land ids; the
-  client supplies names and collects the selection).
-- `docs/domain-model.md` rules 2–5 (ask which land; never pick arbitrarily; unknown stays unknown;
-  unanswered questions do not need land selection), `CONTEXT.md`, `CONSTRAINTS.md` (client land-context
-  and no-invented-legal-facts rules), `docs/risks-and-open-questions.md` (medium risk "several lands
-  differ"; open question "exact rule for when all-land answers are safe").
-- `backend/app/main.py`: `/health` is the only route; no `/ask` (carried `chat_question_submission` F1).
-  `backend/scripts/evaluate_{retrieval,generation,abstention}.py` and `backend/tests/fixtures/*` are the
-  CLI/fixture conventions to mirror. Environment: this worktree has no `python` on `PATH`; pytest ran
-  from a temporary out-of-repo venv with no repo dependency.
 
 ## Technical approach
 
@@ -267,7 +219,7 @@ does not differ.
 - **Update** `CONSTRAINTS.md` (one rule) and record the follow-up note in
   `docs/specs/minimal_land_context.md` (its "no land selection" non-goal is now owned here).
 - **Do not change** `contracts/`, `knowledge/`, `backend/app/{generation,retrieval,source_catalog,abstention}.py`,
-  `backend/app/main.py`, `theme/`, `lands/`, platform entry points, Gradle files, or `init.sh`.
+  `backend/app/main.py`, `theme/`, `lands/`, platform entry points, Gradle files, or `scripts/init.sh`.
 
 ## Visual design impact
 
@@ -290,59 +242,6 @@ alone; no answer gains a confident affordance. `answer_land_scope` still owns re
   plus any threshold to `land_safety_evaluation` (the direct dependent feature).
 - **Owns** the decision that a `selected` request is never re-clarified and that the client never
   invents or renames a land.
-
-## Implementation plan and tasks
-
-1. Add `backend/app/clarification.py` (compatibility/difference helpers, `clarify_land_scope`,
-   `answer_with_clarification`, `to_clarification_response`).
-2. Add the synthetic `backend/tests/fixtures/clarification/` set and `backend/scripts/evaluate_clarification.py`.
-3. Add `backend/tests/test_clarification.py`: two lands differing → clarification with both ids; equal
-   lands → delegate (answered/abstained unchanged); `unknown`/omitted never filters; `crop`-only
-   applicability never discriminates; `general`/one land/`selected` never clarify; payload shape and
-   invariants; determinism; socket-guard offline; CLI exit `0`/`1`/`2`.
-4. Add `selectedAskRequest` to `LandContextBuilder.kt` and its tests (mode `selected`, chosen ids,
-   needed attribute only, no forbidden key).
-5. Add `clarificationQuestion`, `LandChoiceSubmitted`, `SubmitSelected`, and the `request` mapping to
-   `ChatHomeState.kt`; extend `ChatConversation.kt`; write the reducer/request tests.
-6. Add the `App.kt` chooser, the `LaunchedEffect` local read, the strings, and the previews.
-7. Add the `CONSTRAINTS.md` rule and the `minimal_land_context.md` follow-up note.
-8. Run the verification commands, capture evidence, then update `feature_list.json`/`PROGRESS.md` (the
-   planner must not mark the feature complete).
-
-## Verification plan and evidence
-
-```sh
-python3 contracts/validate_examples.py
-python3 backend/scripts/evaluate_clarification.py \
-  --catalog backend/tests/fixtures/clarification/catalog.json \
-  --passages backend/tests/fixtures/clarification/passages.json \
-  --eval backend/tests/fixtures/clarification/eval_questions.jsonl \
-  --as-of 2026-10-13 --k 5
-cd backend && python -m pytest tests/test_clarification.py && python -m pytest
-python3 -m py_compile backend/app/clarification.py backend/scripts/evaluate_clarification.py backend/tests/test_clarification.py
-./gradlew :shared:jvmTest --rerun-tasks
-./gradlew :shared:testAndroidHostTest --rerun-tasks
-./gradlew :shared:compileKotlinIosSimulatorArm64
-./gradlew :desktopApp:build :androidApp:assembleDebug --rerun-tasks
-./init.sh --verify
-git diff --check
-```
-
-Also:
-
-- **Literal feature-list verification** (two lands, different relevant attributes): the CLI run and a
-  `test_clarification.py` case where `irrigated` + `dryland` lands on a water question return
-  `needs_land_clarification` with **both** land ids, `answer == ""`, `sources == []`; and the client
-  case where a fake `AnswerService` returns that payload, the chooser allows a selection, and the
-  resubmission is a `selected` request carrying the exact original wording and only the chosen land.
-- Greps: `grep -rn "println\|Log\.\|Logger\|printStackTrace\|NSLog\|System\.out" shared/src backend/app` → no
-  matches; `grep -rn "Color(0x" shared/src/commonMain/kotlin/com/jamarglex/manijero | grep -v /theme/` → no
-  matches; `MinimalLandContext` still has exactly the four contract properties.
-- Honest limit: there is no `/ask` route (carried F1) and no Compose UI-test harness, so the backend
-  decision is observed through the CLI/tests and the client flow through a fake `AnswerService` plus
-  previews; do not claim a live end-to-end answer or automated UI coverage.
-- `init.sh` is **not** changed: `--verify` already runs the shared tests and Android/Desktop builds.
-  The backend slice is verified with the documented Python commands (pytest from an out-of-repo venv).
 
 ## Durable documentation impact
 
@@ -375,34 +274,24 @@ Also:
   repository, so the chooser cannot resolve names there; previews must supply a sample list and the
   shipped path must show the fallback rather than a fabricated land.
 
-## Validator checklist
+## Focused verification
 
-- [ ] Two supplied lands that differ on a dimension a retrieved candidate restricts yield
-      `needs_land_clarification` with `answer == ""`, `sources == []`, `land_scope: selected`, and the
-      ids of the differentiated lands (both, for a differing pair); no one land is chosen arbitrarily.
-- [ ] Lands that do not differ (or candidates that restrict no known land attribute) still follow the
-      accepted `all_active` answered/abstained path unchanged.
-- [ ] An `unknown` or omitted land attribute never filters a candidate and no value is invented;
-      `crop`-only applicability never discriminates.
-- [ ] `general`, one-land, and `selected` requests never produce a clarification (no loops).
-- [ ] The client resubmits the **exact original wording** with `mode: selected` and only the chosen
-      local ids (needed attributes only), appends no second user message, and the chooser lists lands
-      by their saved names from the local list (unknown ids ignored, never invented).
-- [ ] Every clarification payload matches `AskResponse` exactly and `contracts/validate_examples.py`
-      passes with `contracts/` untouched.
-- [ ] `backend/app/{generation,retrieval,source_catalog,abstention}.py`, `main.py`, `knowledge/`,
-      `theme/`, `lands/`, platform roots, Gradle, and `init.sh` are unchanged; fixtures are synthetic
-      and labelled with no real legal fact.
-- [ ] Product behavior and UI stay in `commonMain`; no new module, dependency, ViewModel, endpoint, or
-      logging; the new strings match this spec verbatim and replace the acknowledgement cleanly.
-- [ ] Feasible checks pass (or the exact environment blocker is reported) with no previously passing
-      test regressing; the CLI, backend tests, and client tests exist and pass; no E2E/UI coverage is
-      claimed; `feature_list.json`/`PROGRESS.md` report only commands actually run.
+`./scripts/init.sh --feature <feature-id>` runs exactly the block below. It is the feature-scoped
+tier of `./scripts/init.sh --fast`, and the cheapest check that still touches what this feature
+changed; `./scripts/init.sh --verify` remains the full gate.
 
-### Follow-up status after `chat_accessibility`
+<!-- verify:start -->
+```sh
+python3 backend/scripts/evaluate_clarification.py --catalog backend/tests/fixtures/clarification/catalog.json --passages backend/tests/fixtures/clarification/passages.json --eval backend/tests/fixtures/clarification/eval_questions.jsonl --as-of 2026-10-13 --k 5
+./scripts/init.sh --backend-tests tests/test_clarification.py
+./gradlew :shared:jvmTest --tests LandContextBuilderTest --tests ChatHomeStateTest --tests ChatConversationTest
+```
+<!-- verify:end -->
 
-- **N2 closed** (2026-10-13): the chooser no longer flashes the "no puedo mostrar tus terrenos" fallback
-  before the local read resolves. `clarificationLands` is now `List<Land>?` (`null` = unresolved) and
-  `LandClarificationChooser` renders only its title and explanation while it is `null`; the fallback
-  appears only for a resolved empty list (or a failed read, which resolves to `emptyList()`), and the
-  rows plus `Continuar` otherwise. No copy, string, or clarification behavior changed.
+## Appendix
+
+The planning and verification record for this feature — repository research, implementation
+plan and tasks, verification plan, evidence to capture, implementation findings, validator
+checklist, and the feature evidence — moved verbatim to
+[`docs/specs/land_clarification.appendix.md`](land_clarification.appendix.md) on 2026-10-17 to keep this contract short.
+`docs/validations/land_clarification.md` remains the authoritative acceptance record.

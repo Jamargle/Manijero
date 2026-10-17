@@ -5,6 +5,7 @@
 - Feature: `source_retrieval` — Search reviewed source passages
 - Area: backend
 - Depends on: `source_catalog_validation` (accepted)
+- Feature-list behavior: a question retrieves relevant passages from the reviewed corpus with enough metadata to identify the source and its applicability.
 - Feature-list verification: run source-anchored questions and confirm the expected source passage appears in the returned candidates.
 - Feature-list note: start with a measured retrieval baseline before treating candidate thresholds as release gates.
 - Scope size: one passage data model plus one offline retrieval flow; correctly sized.
@@ -51,21 +52,6 @@ Given a question that differs from the passage only in case or written accents (
 ### Reproducible measured baseline
 
 Given the fixture catalog, passage set, and evaluation questions, when the baseline command runs with an explicit `--as-of` and `--k`, then it prints each question's expected-passage rank plus aggregate `hit@k` and MRR, and the run is deterministic across repeated invocations.
-
-## Repository research
-
-Inspected:
-
-- `feature_list.json`: `source_retrieval` is `not_started`, depends on accepted `source_catalog_validation`, and its note requires a measured baseline before thresholds.
-- `AGENTS.md`, `CONTEXT.md`, `docs/build-brief.md`, `docs/domain-model.md`, `docs/risks-and-open-questions.md`: approved official material only for regulatory claims; sources need a stable link, issuing body, relevant location, and verification date; abstain when evidence is inadequate; evaluation size/metrics/thresholds are set after a measured baseline.
-- `docs/specs/source_catalog_validation.md` and `docs/validations/source_catalog_validation.md`: the accepted gate, its fixture/test conventions, `--as-of` determinism, no-network guarantee, and the explicit handoff of the validated catalog to `source_retrieval`.
-- `backend/app/source_catalog.py`, `backend/scripts/validate_source_catalog.py`, `backend/tests/test_source_catalog.py`, `knowledge/source_catalog.schema.json`, `knowledge/README.md`: standard-library, strict-key, fail-closed validation; approved hosts/issuers; `review_status: approved`, `lifecycle_status: current`, `valid_until` expiry; synthetic fixtures under `backend/tests/fixtures/source_catalog/`.
-- `contracts/openapi.yaml` (`AnswerSource`: `title`, `issuing_body`, `url`, `location`, `published_or_updated_on`, `verified_on`, `excerpt`) and `docs/specs/answer_api_contract.md`: the existing source shape to reuse.
-- `backend/app/main.py`, `backend/README.md`, `backend/requirements.txt`: only `/health` exists; pytest is the backend convention; no retrieval, corpus, embedding, or vector dependency is present.
-- `MasterPlanV3.md` §§6.1–6.3, 9.1–9.2, 11.3: planned legal-structure chunking, mandatory chunk metadata, hybrid search with metadata filters, and retrieval `hit@k` / MRR evaluation on a golden set with thresholds calibrated against a measured baseline.
-- `init.sh`: verifies KMP targets only; it has no backend/retrieval command.
-
-No ingestion, passage/chunk model, retrieval code, embedding client, vector store, golden dataset, or persistent E2E command exists today. `knowledge/source_catalog.json` is valid and intentionally empty (0 sources). `ARCHITECTURE.md`, `CONSTRAINTS.md`, `docs/technical-discovery.md`, `docs/mvp-scope.md`, and the skill's template file are absent.
 
 ## Technical approach
 
@@ -136,7 +122,7 @@ It prints, per question, the expected-passage rank(s), then aggregate `hit@k`, `
 - Update `backend/README.md` — note the offline retrieval module and baseline script (keep `/health` as the only route).
 - Update `feature_list.json` and `PROGRESS.md` after implementation/validation with actual status, commands, and the measured baseline numbers. This planning pass records the spec link only.
 
-`init.sh`: no change. It checks and verifies KMP targets only, so this backend/knowledge feature is verified with the documented Python commands instead of adding a long-running or KMP-coupled step to the wrapper.
+`scripts/init.sh`: no change. It checks and verifies KMP targets only, so this backend/knowledge feature is verified with the documented Python commands instead of adding a long-running or KMP-coupled step to the wrapper.
 
 No changes to `knowledge/source_catalog.json`, `backend/app/source_catalog.py`, `contracts/`, `backend/app/main.py`, or any client/shared code.
 
@@ -153,46 +139,27 @@ None. This is an offline backend boundary; it adds no Compose UI and no user-fac
 - `ARCHITECTURE.md`, `CONSTRAINTS.md`: not needed; both are absent and this focused offline boundary does not establish a broader runtime architecture.
 - `PROGRESS.md` and `feature_list.json`: update after verification, recording the measured fixture baseline and stating plainly that it is synthetic, not a legal-quality claim.
 
-## Implementation plan and tasks
-
-1. Add `knowledge/passages.schema.json` with strict `passage-set-v1` fields, mirroring the catalog schema style; document it in `knowledge/README.md`.
-2. Implement `backend/app/retrieval.py`: strict passage-set loading with located errors, catalog revalidation, eligibility/expiry filtering, Spanish tokenizer, deterministic BM25 scoring, `Retriever`, and `RetrievedPassage` mapping to the accepted `AnswerSource` fields.
-3. Add the fixture catalog, reviewed synthetic passage set, and JSONL evaluation questions under `backend/tests/fixtures/retrieval/`; include edge fixtures for unknown `source_id`, unknown key, malformed JSON, and an expired source.
-4. Implement `backend/scripts/evaluate_retrieval.py` with deterministic `--as-of`, `--k`, per-question ranks, aggregate `hit@k`/`recall@k`/MRR, `--json`, and report-only default exit behavior.
-5. Add `backend/tests/test_retrieval.py`: tokenizer behavior, ranking with a clear best match, deterministic tie-break, metadata mapping, unknown-source error, expired and non-approved exclusion, invalid-catalog refusal, empty-corpus no-candidates, no-network socket guard, and CLI report/exit-code coverage.
-6. Run the baseline CLI and the focused/regression suites; record the measured `hit@k`/MRR numbers and only the commands actually run.
-7. Update `feature_list.json` and `PROGRESS.md` with status and evidence; state that fixtures are synthetic and thresholds are not release gates.
-
-## Verification plan and evidence
-
-Run from the repository root:
-
-```sh
-python3 backend/scripts/validate_source_catalog.py backend/tests/fixtures/retrieval/catalog.json --as-of 2026-10-13
-python3 backend/scripts/evaluate_retrieval.py \
-  --catalog backend/tests/fixtures/retrieval/catalog.json \
-  --passages backend/tests/fixtures/retrieval/passages.json \
-  --eval backend/tests/fixtures/retrieval/eval_questions.jsonl \
-  --as-of 2026-10-13 --k 5
-cd backend && python -m pytest tests/test_retrieval.py
-cd backend && python -m pytest
-git diff --check
-```
-
-Capture: the fixture catalog validating (exit 0); per-question expected-passage ranks and aggregate `hit@5`/MRR as the measured baseline; focused and full pytest counts; the canonical empty corpus returning zero candidates; and confirmation that no network call occurs. Record the baseline in `PROGRESS.md`. No browser, API, or E2E test is required because the feature has no user-facing or API flow and no persistent E2E framework; retrieval ranking is covered by unit tests and the baseline script.
-
-## Validator checklist
-
-- [ ] `knowledge/passages.schema.json` is versioned, tracked, and matches the in-code validator (strict keys, unique ids, applicability values).
-- [ ] A source-anchored fixture question returns its expected passage within rank `k`, above unrelated passages.
-- [ ] Returned candidates expose the source identity, location, dates, applicability, excerpt, and score/rank with contract-compatible fields.
-- [ ] Passages referencing unknown source ids fail with a located error; passages whose source is not approved, not current, or expired are excluded, never silently returned.
-- [ ] The retriever refuses an invalid catalog and performs no network access (socket-guard test).
-- [ ] The canonical empty catalog yields zero candidates with no invented evidence.
-- [ ] The baseline command is deterministic with explicit `--as-of`/`--k`, reports `hit@k`/MRR, and does not fail the build by default.
-- [ ] Fixtures are synthetic, labeled as such, and contain no real deadlines, amounts, or legal claims; no canonical passage corpus is added.
-- [ ] No `/ask`, LLM, client UI, contract, catalog-validator, or unrelated files are changed; `feature_list.json`/`PROGRESS.md` report only verification actually performed.
-
 ## Risks and handoff notes
 
 The baseline measures lexical ranking quality on a tiny synthetic fixture set; it is not evidence about legal coverage, correctness, or real Spanish user questions. Missing ingestion means the passage model is exercised only by fixtures, so the schema may need review when a real parser/chunker lands. Lexical-only retrieval may underperform on synonyms and acronyms; the `Retriever` boundary is intentionally narrow so a later hybrid (vector + BM25 + RRF) implementation can replace `search` without changing consumers. Hand off the ranked `RetrievedPassage` shape and eligibility rules to `grounded_answer_generation`, and keep applicability filtering deferred to `minimal_land_context` / `land_clarification`.
+
+## Focused verification
+
+`./scripts/init.sh --feature <feature-id>` runs exactly the block below. It is the feature-scoped
+tier of `./scripts/init.sh --fast`, and the cheapest check that still touches what this feature
+changed; `./scripts/init.sh --verify` remains the full gate.
+
+<!-- verify:start -->
+```sh
+python3 backend/scripts/evaluate_retrieval.py --catalog backend/tests/fixtures/retrieval/catalog.json --passages backend/tests/fixtures/retrieval/passages.json --eval backend/tests/fixtures/retrieval/eval_questions.jsonl --as-of 2026-10-13 --k 5
+./scripts/init.sh --backend-tests tests/test_retrieval.py
+```
+<!-- verify:end -->
+
+## Appendix
+
+The planning and verification record for this feature — repository research, implementation
+plan and tasks, verification plan, evidence to capture, implementation findings, validator
+checklist, and the feature evidence — moved verbatim to
+[`docs/specs/source_retrieval.appendix.md`](source_retrieval.appendix.md) on 2026-10-17 to keep this contract short.
+`docs/validations/source_retrieval.md` remains the authoritative acceptance record.

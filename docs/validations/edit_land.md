@@ -17,11 +17,11 @@ copy fidelity.
 
 | Check | Result |
 |---|---|
-| `./init.sh` | exit 0 |
+| `./scripts/init.sh` | exit 0 |
 | Focused `:shared:jvmTest --tests EditLandStateTest/EditLandRepositoryTest/EditLandDesktopStoreTest --rerun-tasks` | BUILD SUCCESSFUL, 20/0 (12 + 6 + 2) |
 | `:shared:jvmTest --rerun-tasks` | BUILD SUCCESSFUL, 98 tests / 14 classes / 0 failures |
 | `:shared:testAndroidHostTest --rerun-tasks` | BUILD SUCCESSFUL, 87 tests / 11 classes / 0 failures |
-| `./init.sh --verify` | exit 0 |
+| `./scripts/init.sh --verify` | exit 0 |
 | `:shared:jvmTest :shared:testAndroidHostTest :androidApp:assembleDebug :desktopApp:build --rerun-tasks` | BUILD SUCCESSFUL, 91 tasks executed, 0 from cache; APK regenerated |
 | Accepted `add_land`/`land_list` suites | `AddLandStateTest` 11, `LandListStateTest` 6, `LandRepositoryTest` 4, `AddLandDesktopStoreTest` 1 — all 0 failures |
 | Eight new Spanish strings vs the spec's XML block | byte-for-byte equal, each appearing exactly once; `strings.xml` diff is additions only |
@@ -63,7 +63,7 @@ The validator wrote and then deleted a temporary scratch JVM test against the **
   `strings.xml`, `App.kt`, `AddLandScreen.kt` (visibility only, 2 lines), `LandListScreen.kt`. New:
   `EditLandState.kt`, `EditLandScreen.kt`, 3 test files, the spec. `Land.kt`, `LandRepository.kt`,
   the storage adapters and `land-store-v1`, `AddLandState.kt`, `LandListState.kt`, entry points,
-  Gradle/version catalog, `init.sh`, `theme/`, and `backend/contracts/knowledge` untouched — no new
+  Gradle/version catalog, `scripts/init.sh`, `theme/`, and `backend/contracts/knowledge` untouched — no new
   module, dependency, ViewModel, coroutine, navigation framework, network call, permission, or
   logging.
 - **Cross-feature:** rows stay non-clickable (no `onClick` on the row `Surface`), details stay one

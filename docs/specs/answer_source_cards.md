@@ -69,25 +69,6 @@ Given the feature ships, when the existing suites run, then the composer, workin
 
 Given a card is shown, when assistive technology reads it, then the title, issuing body, location, verification date, and excerpt are read as one merged node, `Abrir documento oficial` is a separate focusable control whose description names the source, and the reference numeral is distinguished by position/size rather than colour alone. The answered reply with its cards renders without clipping or horizontal overflow at `widthDp = 320` and `fontScale = 2f`.
 
-## Repository research
-
-Inspected (paths relative to the repository root):
-
-- `shared/src/commonMain/kotlin/com/jamarglex/manijero/ChatHomeState.kt`: `ChatMessage(speaker, text, answerStatus)` has **no** source field, so the decoded `sources` are currently discarded; `ResponseReceived` is the only site that appends an assistant entry and it copies `response.status` (the pattern to follow for `sources`); `lastResponseStatus` is latest-turn-only and must not be used for rendering.
-- `shared/src/commonMain/kotlin/com/jamarglex/manijero/App.kt`: `ChatMessageBubble` branches exhaustively on `speaker × answerStatus`; `ChatAssistantCard` → `ChatBubble` merges semantics and renders a plain `String` body; the content column is capped at `ContentMaxWidth = 720.dp`; the answered preview sample has no marker (N3).
-- `shared/src/commonMain/kotlin/com/jamarglex/manijero/chat/AnswerService.kt`: `AnswerSource(title, issuing_body, url, location, published_or_updated_on, verified_on, excerpt)` — exactly the seven accepted keys, **no criticality**, with `excerpt` up to 2000 characters; `AskResponse(status, answer, sources, land_scope, land_ids_to_choose)`.
-- `contracts/openapi.yaml`: `AnswerSource` requires all seven keys; `url` is `format: uri`; `verified_on`/`published_or_updated_on` are `format: date`; `abstained` requires `sources: []`; `AskResponse` is `additionalProperties: false`.
-- `backend/app/generation.py`: marker `[n]` is `RetrievedPassage.rank`, `sources` = exactly the cited candidates, deduplicated and ascending (so `[n] == sources[n-1]` under the prefix set); `_render_claim` writes `"{text} [n]"`; `ANSWER_SOURCE_KEYS` drops `passage_id`, `source_id`, `applicability`, `critical`, `score`, `rank`; `LEAD_IN`/`NOTICE` are already inside `answer` and must not be duplicated.
-- `docs/validations/grounded_answer_generation.md` F1: reproduced non-prefix acceptance (`DraftAnswer("answered", rank2.excerpt + " [2]", (2,))` → `len(sources) == 1`); not reachable from the enabled `ExtractiveGroundingGenerator`, and `knowledge/README.md` promises `[n] == sources[n-1]` unconditionally.
-- `shared/src/commonMain/kotlin/com/jamarglex/manijero/theme/`: `surface`, `surfaceVariant`, `onSurfaceVariant`, `outlineVariant`, `primary`, plus `LocalManijeroSemanticColors(caution, cautionSurface, primaryStrong)`; hex colours exist only under `theme/`. `material3` `Button`/`TextButton` give the 48dp minimum target and Desktop keyboard focus for free.
-- `shared/src/commonMain/composeResources/values/strings.xml`: one Spanish file; `%1$s` placeholders are already used (`land_list_municipality`, `land_list_edit_description`), including the `«%1$s»` quoting style to follow.
-- `shared/src/commonMain/kotlin/com/jamarglex/manijero/lands/LandListScreen.kt` lines 188-224: the accepted pattern for a card with an inner `semantics(mergeDescendants = true)` content node **plus** a sibling control carrying its own `contentDescription` — the source card reuses it.
-- `shared/src/commonTest/kotlin/com/jamarglex/manijero/{ChatHomeStateTest,ChatConversationTest}.kt`: `kotlin.test`, inline `AskResponse` builders, fake `AnswerService`s; no Compose UI-test harness exists, so a pure presentation layer is the only automatable surface.
-- `androidApp/.../MainActivity.kt` and `desktopApp/.../main.kt` call `App(landRepository)` with no `answerService`, so the shipped default stays `UnavailableAnswerService`; there is still no `/ask` route and `knowledge/source_catalog.json` is still empty, so no real answer with sources can be produced in the running app (evidence gap, see verification plan).
-- `consume`/open capability: `androidx.compose.ui.platform.LocalUriHandler` is a common (Cmn) API in the already-present `compose-ui` dependency and opens the default browser on Android and on Desktop through AWT (`java.awt.Desktop.browse`); on a Desktop/Linux host without BROWSE support `openUri` throws instead of opening (known Upstream issue), which is why the call must be best-effort and never crash the screen. No new dependency is needed in either case.
-
-Sized correctly: one added field on the transcript entry, one pure presentation file, one UI section, one string set, and tests. One user flow, no new data model, persistence, transport, or contract change.
-
 ## Technical approach
 
 ### 1. Per-entry sources (`ChatHomeState.kt`)
@@ -185,49 +166,11 @@ Plain Spanish, established tú voice, no digit and no date in any client-authore
 - **Update** `shared/src/commonTest/kotlin/com/jamarglex/manijero/ChatHomeStateTest.kt`: an answered response appends one assistant entry carrying the decoded sources in order; a later turn does not change the earlier entry's sources; an abstained entry carries none; clarification still appends no entry.
 - **Update** `shared/src/commonTest/kotlin/com/jamarglex/manijero/ChatConversationTest.kt`: a fake `AnswerService` returning an answered response with a source yields one assistant entry whose `sources` equal the payload.
 - **Update** `CONSTRAINTS.md` during implementation with one short client MUST rule (see durable docs).
-- **Do not modify**: `contracts/`, `backend/`, `knowledge/`, `theme/`, `lands/`, `androidApp/`, `desktopApp/`, `shared/src/iosMain/`, any Gradle file or version catalog, `init.sh`, and `feature_list.json`/`PROGRESS.md` while implementing.
+- **Do not modify**: `contracts/`, `backend/`, `knowledge/`, `theme/`, `lands/`, `androidApp/`, `desktopApp/`, `shared/src/iosMain/`, any Gradle file or version catalog, `scripts/init.sh`, and `feature_list.json`/`PROGRESS.md` while implementing.
 
 ## Visual design and accessibility impact
 
 Uses accepted theme roles only: `surface` + `outlineVariant` for the reply and card, `surfaceVariant`/`onSurfaceVariant` for metadata and the excerpt block, `primary` for the one control, all within the existing 720dp content width; no raw colour, no new token, no confidence affordance. The reference numeral is a superscript numeral (matching the card number) so the citation cue is never colour-only. Each card is one merged semantics node plus a separate `Button` carrying a `contentDescription` that names the source, so a screen-reader user knows which document the control opens; `Button`/`TextButton` keep Material's 48dp minimum target and Desktop focus behaviour. Long titles, locations, and excerpts wrap and the screen still scrolls; at `fontScale = 2f` nothing is clipped and there is no horizontal overflow because the URL is never rendered as text. Known limits owned elsewhere: no transcript auto-scroll (carried F3, `chat_accessibility`), Desktop text scaling is preview-based (`visual_foundation` U3), and the full screen-reader/focus policy is `chat_accessibility`.
-
-## Implementation plan and tasks
-
-1. Write `CitationPresentationTest` first (conforming mapping, text fidelity, non-conforming degradation, abstention gate, URL guard, date formatting) and implement `CitationPresentation.kt` until it passes.
-2. Add `sources` to `ChatMessage`, pass it in `ResponseReceived`, and extend `ChatHomeStateTest`/`ChatConversationTest`.
-3. Add the `annotatedText` parameter to `ChatBubble`, the answered branch, `SourceCardsSection`/`SourceCardView`, and the `LocalUriHandler` control with the best-effort `runCatching`.
-4. Add the nine strings and the refreshed/new previews.
-5. Run the checks below plus the manual link smoke; byte-for-byte compare the nine strings with this spec; run the colour-centralization, logging, and (new) no-raw-marker-in-preview greps.
-6. Update `CONSTRAINTS.md`, and append a short note to `docs/specs/response_states.md` recording that R5 is closed from this side for conforming payloads (the accepted response_states behavior itself is unchanged).
-7. Update `feature_list.json`/`PROGRESS.md` only after implementation and independent validation, recording only the commands actually run and the F1 evidence gap (the planner must not mark this feature complete).
-
-## Verification plan and evidence
-
-Run from the repository root:
-
-```sh
-python3 contracts/validate_examples.py
-./gradlew :shared:jvmTest --tests "com.jamarglex.manijero.chat.CitationPresentationTest" --tests "com.jamarglex.manijero.ChatHomeStateTest" --tests "com.jamarglex.manijero.ChatConversationTest"
-./gradlew :shared:jvmTest
-./gradlew :shared:testAndroidHostTest
-./gradlew :desktopApp:build
-./gradlew :androidApp:assembleDebug
-./init.sh --verify
-grep -rn "Color(0x" shared/src/commonMain/kotlin/com/jamarglex/manijero --include=*.kt   # matches only under theme/
-grep -rn "println\|Log\.\|Logger\|printStackTrace\|NSLog" shared/src androidApp/src desktopApp/src   # no matches
-```
-
-`local.properties` exists in this worktree, so the Android steps are expected to run; if the SDK is unavailable, record the exact blocker instead of claiming a result. There is no persistent E2E command and no Compose UI-test harness, so focused pure tests plus preview/manual review are the justified coverage; do not claim E2E or automated UI coverage.
-
-Manual / preview evidence (record what actually happened):
-
-1. **Feature-list verification (link reachability).** Configure a **temporary, non-committed** fake `AnswerService` in a platform entry point that returns the accepted fixture shape with `[1]` markers added to the answer, then open each card's control on the Android emulator and on Desktop and confirm the default browser opens the cited URL (`https://www.mapa.gob.es/` from `contracts/examples/response-answered.json`). Record the exact URL observed and the app/browser state; delete the fake afterwards. Never commit a fake and never hard-code an endpoint.
-2. Preview/manual review: answered reply with cards, two cards, and an abstention with none; confirm the reference numeral matches the card number and the excerpt is visible without any disclosure step.
-3. `fontScale = 2f` and `widthDp = 320`: no clipping, no horizontal overflow, excerpt and control still readable.
-4. Greyscale check: with colour removed, the card is still identifiable by its `Fuente n`/heading text and the reference numeral is still distinguishable by position.
-5. Honest limitations to state: the canonical corpus is empty and there is still no `/ask` route (carried F1 from `chat_question_submission`), so no *real* cited document can be produced in the running app — the opened URL is the accepted fixture's official URL; Desktop link opening depends on `java.awt.Desktop` BROWSE support and may fail on a Linux host (reported, not hidden); interactive Desktop click-through may be preview-based in a non-interactive session.
-
-Capture: focused and full test counts/names; the nine strings compared byte-for-byte with this spec; the text-fidelity and non-conforming-degradation assertions; the F1 reproduction case as a test (a non-prefix payload yields no numbered card and unmodified text); the URL-guard and date-format tests; the greps; and `./init.sh --verify` output (or the exact blocker).
 
 ## Durable documentation impact
 
@@ -240,7 +183,7 @@ Capture: focused and full test counts/names; the nine strings compared byte-for-
 | `AGENTS.md`, `CONTEXT.md`, `docs/build-brief.md`, `docs/domain-model.md` | Not needed | No product, glossary, or domain change; the operating rules (plain Spanish, accessibility, commonMain UI, minimize land context, no invented legal facts) are already authoritative. |
 | `docs/risks-and-open-questions.md` | Not needed | The "unsupported or outdated legal answer" mitigation already names visible citations and verification dates; this implements it and opens no new question that needs the register. |
 | `ARCHITECTURE.md` | Not needed | It does not exist; no module, boundary, or dependency is added. |
-| `init.sh` | Not needed | No new mode; it must not start a service. |
+| `scripts/init.sh` | Not needed | No new mode; it must not start a service. |
 | `feature_list.json`, `PROGRESS.md` | After verified implementation only | Record evidence, status, and the F1/link-evidence limitations then; planning does not touch them. |
 
 ## Risks and open decisions
@@ -257,16 +200,23 @@ Capture: focused and full test counts/names; the nine strings compared byte-for-
 - **U3 Whether `AnswerSource` should gain a criticality flag** so only the critical excerpt is highlighted: a contract change owned by `answer_api_contract`/`grounded_answer_generation`; do not add it client-side.
 - **U4 Whether `published_or_updated_on` should also be shown** next to the verification date (the medium risk "obsolete rule beside a current one" argues for it); out of the declared scope here, revisit with `answer_land_scope`/`land_safety_evaluation`.
 
-## Validator checklist
+## Focused verification
 
-- [ ] An answered response appends exactly one assistant entry carrying its own decoded `sources` in payload order; a later turn does not alter an earlier entry's sources and nothing is rendered from `lastResponseStatus`.
-- [ ] One card per source shows title, issuing body, location, formatted verification date, and an always-visible (never collapsed, never truncated) excerpt; the reference numeral matching the card number is rendered and no client-authored claim, disclaimer, badge, success colour, or "verificado" wording was added.
-- [ ] `Abrir documento oficial` opens exactly the card's URL through `LocalUriHandler`, its accessible description names the source title, it is a separate focusable control, and a non-https/blank/hostless `url` yields the pinned unavailability line with no control and no crash.
-- [ ] A conforming reply's text is byte-for-byte identical to the server `answer` after substituting each rendered reference back to its `[n]` token; a non-conforming payload (F1 case: absent/sparse/out-of-range/non-numeric markers) rewrites no marker, numbers no card, and leaves the text exactly as received.
-- [ ] An abstention renders no card, reference, figure, date, or link even when a malformed payload carries a `sources` entry, and its pinned message is verbatim; the clarification and failure paths are unchanged.
-- [ ] The nine strings match this spec verbatim; no existing string was changed or deleted (including the unused `chat_home_submitted`); the code-owned notice is not duplicated.
-- [ ] Cards stay inside the existing content width, the excerpt block uses theme roles only, nothing is clipped at `widthDp = 320`/`fontScale = 2f`, and the citation cue is not colour-only.
-- [ ] Product behavior and UI stay in `commonMain`; no new module, dependency, Gradle change, permission, endpoint, engine, or shipped fake; `contracts/`, `backend/`, `knowledge/`, `theme/`, land code, platform roots, and `init.sh` are untouched.
-- [ ] No `Color(0x` outside `theme/`; no logging/printing of URLs, excerpts, questions, payloads, or exception text (grep evidence); no URL or question is sent anywhere new.
-- [ ] `:shared:jvmTest`, `:shared:testAndroidHostTest`, `./init.sh --verify`, and the contract validator pass (or the exact environment blocker is reported) with no previously passing test regressing; no E2E/UI-test coverage is claimed.
-- [ ] `feature_list.json`/`PROGRESS.md` were not modified by planning; the final diff matches this spec's file list; the F1 client-side handling is recorded and the backend F1 hardening plus the `knowledge/README.md` sentence are handed back as follow-ups rather than silently "fixed" here.
+`./scripts/init.sh --feature <feature-id>` runs exactly the block below. It is the feature-scoped
+tier of `./scripts/init.sh --fast`, and the cheapest check that still touches what this feature
+changed; `./scripts/init.sh --verify` remains the full gate.
+
+<!-- verify:start -->
+```sh
+python3 contracts/validate_examples.py
+./gradlew :shared:jvmTest --tests CitationPresentationTest --tests ChatHomeStateTest --tests ChatConversationTest
+```
+<!-- verify:end -->
+
+## Appendix
+
+The planning and verification record for this feature — repository research, implementation
+plan and tasks, verification plan, evidence to capture, implementation findings, validator
+checklist, and the feature evidence — moved verbatim to
+[`docs/specs/answer_source_cards.appendix.md`](answer_source_cards.appendix.md) on 2026-10-17 to keep this contract short.
+`docs/validations/answer_source_cards.md` remains the authoritative acceptance record.

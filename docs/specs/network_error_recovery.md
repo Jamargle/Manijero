@@ -46,7 +46,7 @@ and keeps the wording; this feature adds the visible copy, the retry action, and
 - No new Gradle module, dependency, version, navigation, ViewModel, DI, or coroutine scope: `HttpTimeout`
   ships inside `ktor-client-core`.
 - No change to the accepted API contract, backend, retrieval/generation, land features, theme tokens,
-  platform entry points, `init.sh`, or Gradle files.
+  platform entry points, `scripts/init.sh`, or Gradle files.
 - No logging, printing, telemetry, or display of the question, request payload, URL, or exception text.
 
 ## Job story
@@ -104,53 +104,6 @@ retained wording are cleared and `Preguntar` behaves normally for the new wordin
 
 Given any failure, when it is handled, then no question text, payload, URL, land detail, or exception
 message is logged, printed, or shown, and no network call other than the existing `POST /ask` is made.
-
-## Repository research
-
-Inspected (paths relative to the repository root):
-
-- `shared/src/commonMain/kotlin/com/jamarglex/manijero/ChatHomeState.kt`: pure `ChatHomeState`
-  (`question`, `messages`, `phase {IDLE, SUBMITTING}`, `submittedQuestion`, `lastResponseStatus`,
-  `landIdsToChoose`), `ChatHomeAction` (including an argument-less `data object RequestFailed`),
-  `ChatEffect.Submit`, and `reduce`. `RequestFailed` currently restores `question = question.ifBlank {
-  submittedQuestion }`, clears `submittedQuestion`, and returns to `IDLE` — the failure transition exists and
-  is tested, but there is no failure field, no visible copy, and no retry action.
-- `shared/src/commonMain/kotlin/com/jamarglex/manijero/ChatConversation.kt`: applies `reduce` and runs the
-  single `AnswerService.ask` on the injected scope; it rethrows `CancellationException` and swallows every
-  other exception as `RequestFailed`. This is the only place that classifies a thrown failure today.
-- `shared/src/commonMain/kotlin/com/jamarglex/manijero/chat/AnswerService.kt`: `AnswerService.ask`,
-  `KtorAnswerService` (`client.post("<baseUrl>/ask").body()`), `answerHttpClient(engine)` (installs only
-  `ContentNegotiation`), the contract DTOs, and `UnavailableAnswerService` (throws). `MAX_QUESTION_LENGTH`
-  lives here. No timeout or `expectSuccess` is configured, which is exactly finding F2.
-- `shared/src/commonMain/kotlin/com/jamarglex/manijero/App.kt`: `ChatHomeScreen(state, onAction, onLandsClick)`
-  renders the transcript (`ChatMessageBubble`) plus a `ChatNoticeBubble` for the working state and the
-  clarification acknowledgement; `App()` owns `ChatConversation` via `remember`. Transcript entries are
-  `ChatMessage(Speaker, text)`; the failure UI must be a separate notice, not a message.
-- `shared/src/commonMain/composeResources/values/strings.xml`: one shared Spanish resource file already
-  holding `chat_home_working`, the clarification acknowledgement, `land_list_retry` (`Reintentar`), and the
-  land vocabulary; copy is resource-backed and reused.
-- `shared/src/commonTest/kotlin/com/jamarglex/manijero/ChatHomeStateTest.kt` and
-  `ChatConversationTest.kt`: the established `kotlin.test` patterns (`reduce` assertions; fakes for
-  `AnswerService`); two `ChatHomeStateTest` cases call the argument-less `RequestFailed` and will be updated
-  by this feature. `shared/src/jvmTest/.../chat/KtorAnswerServiceTest.kt` uses `MockEngine` + `runTest` and
-  decodes `contracts/examples/response-answered.json`.
-- `shared/src/commonMain/kotlin/com/jamarglex/manijero/theme/ManijeroColors.kt` / `ManijeroTheme.kt`:
-  `colorScheme.error`/`errorContainer`/`onErrorContainer` are the danger pair (contrast already tested); no
-  raw colors are allowed outside `theme/`.
-- `contracts/openapi.yaml`: `/ask` documents only `200` (with `status`), `400`, and `422`; there is no error
-  body schema, so a non-2xx response cannot be a valid answer.
-- `gradle/libs.versions.toml` / `shared/build.gradle.kts`: Ktor `3.1.3` `ktor-client-core` is already a
-  `commonMain` dependency, so `io.ktor.client.plugins.HttpTimeout` needs no new dependency; `commonTest` has
-  `kotlin-test`, `kotlinx-coroutines-test`, and `ktor-client-mock`.
-- `androidApp/.../MainActivity.kt` and `desktopApp/.../main.kt` call `App(landRepository)` with no
-  `answerService`, so the shipped default is `UnavailableAnswerService` — a real, reproducible
-  "service error" path for manual smoke, while a genuine network timeout needs the F1 wiring.
-- `DESIGN.md` lines 76-77: preserve user-entered data when requests fail, show a clear waiting state, and
-  allow a simple retry after recoverable failures. `docs/risks-and-open-questions.md` has no open row that
-  this feature must settle.
-
-The feature is correctly sized: one added state field plus one action, one notice component, and one
-transport plugin/config change. One user flow, no new data model or persistence.
 
 ## Technical approach
 
@@ -239,7 +192,7 @@ land naming.
   malformed body).
 - **Update** `CONSTRAINTS.md` during implementation with one short client rule (see durable docs).
 - **Do not modify** `contracts/`, `backend/`, `knowledge/`, `androidApp/`, `desktopApp/`,
-  `shared/src/iosMain/`, `theme/`, any Gradle file or the version catalog, `init.sh`, or
+  `shared/src/iosMain/`, `theme/`, any Gradle file or the version catalog, `scripts/init.sh`, or
   `feature_list.json`/`PROGRESS.md` while implementing.
 
 ## Visual and accessibility impact
@@ -254,65 +207,6 @@ clipping and the screen still scrolls vertically. Known limit (owner `chat_acces
 F3): the transcript has no auto-scroll, so on a long conversation the notice may sit below the fold; the
 composer regains the wording, so the question is never lost, but visible auto-scroll is out of scope here.
 
-## Implementation plan and tasks
-
-1. Write the `ChatHomeStateTest` expectations first: `RequestFailed(kind)` sets the reason and retains the
-   exact wording; a draft typed during the request is preserved; `RetryClicked` emits `Submit(originalWording)`
-   with no extra user message and clears the notice; a retry that fails again keeps one user message;
-   `QuestionChanged`/`SuggestedQuestionSelected`/`ResponseReceived` clear the notice; retry is a no-op with
-   no failure or while submitting. Then implement the state/reducer changes.
-2. Add the `RequestFailure` enum and the two payload-free exceptions; translate Ktor failures in
-   `KtorAnswerService.ask`; map them in `ChatConversation`; install `HttpTimeout` and `expectSuccess` with
-   named constants in `answerHttpClient`.
-3. Add `ChatFailureNotice` to `App.kt` with resource-backed copy and previews; keep it out of the
-   `messages` list and mutually exclusive with the working indication.
-4. Extend `ChatConversationTest` (unavailable vs service-error classification, retry to success with one
-   answer and one user message) and `KtorAnswerServiceTest` (stalled response fails within the bound;
-   `500`-with-answer-shaped-body fails and is not an answer; malformed `200` body fails).
-5. Run the checks below plus Desktop/Android manual smoke; report any blocker or unperformed check honestly.
-6. Update `feature_list.json` and `PROGRESS.md` only after implementation and independent validation.
-
-## Verification plan and evidence
-
-Run from the repository root:
-
-```sh
-python3 contracts/validate_examples.py
-./gradlew :shared:jvmTest --tests "com.jamarglex.manijero.ChatHomeStateTest" --tests "com.jamarglex.manijero.ChatConversationTest" --tests "com.jamarglex.manijero.chat.KtorAnswerServiceTest"
-./gradlew :shared:jvmTest
-./gradlew :shared:testAndroidHostTest
-./gradlew :desktopApp:build
-./gradlew :androidApp:assembleDebug
-./init.sh --verify
-```
-
-This worktree has `local.properties`, so the Android steps should run; if the SDK is unavailable, record the
-exact blocker instead of claiming an Android result. There is no persistent E2E command and no Compose
-UI-test harness, so focused pure tests plus MockEngine transport tests are the right automated coverage;
-do not claim E2E or automated UI coverage.
-
-Manual smoke (record what actually happened):
-
-1. Android emulator and Desktop launch the app with the shipped default `UnavailableAnswerService`: submit a
-   question and confirm the service-error notice plus `Reintentar` appear, the exact question stays in the
-   conversation and in the composer, no `Asistente` answer appears, and `Reintentar` shows the working state
-   and returns to the same notice.
-2. Confirm a contract-valid `answered`/`abstained` response (driven by tests or a temporary mock) never
-   shows the failure notice, and that `abstained` is not treated as a failure.
-3. Re-run the reducer tests to demonstrate the retry path ending in exactly one assistant message.
-4. Honest limitation: a real network timeout cannot be reproduced in the running app until the `/ask`
-   platform wiring exists (carried finding F1, separate owner); the timeout is covered by
-   `KtorAnswerServiceTest` with `MockEngine`. If `runTest` cannot drive Ktor's `HttpTimeout` through a
-   stalled mock, cover the timeout-to-copy mapping directly with a fake that throws the unavailable signal,
-   assert the installed bounded timeout constants, and state which probe was used.
-
-Capture: focused and full test counts/names; the three strings compared byte-for-byte with this spec;
-evidence that a failure appends no assistant message and that a retry adds no second user message; the
-`HttpTimeout`/`expectSuccess` assertion and the `500`-not-an-answer test; `./init.sh --verify` output (or the
-exact blocker); a Desktop/Android screenshot or short record of the notice and `Reintentar`; and
-`grep -rn "println\|Log\.\|Logger\|printStackTrace\|NSLog" shared/src androidApp/src desktopApp/src` with no
-matches.
-
 ## Durable documentation impact
 
 - `CONSTRAINTS.md`: **update during implementation** — one short client rule that a request which failed or
@@ -326,7 +220,7 @@ matches.
 - `ARCHITECTURE.md`: **not needed** — it does not exist; this adds no module or architectural boundary.
 - `AGENTS.md`, `CONTEXT.md`, `docs/build-brief.md`, `docs/domain-model.md`: **not needed** — no product,
   glossary, or domain change.
-- `init.sh`: **not needed** — it must not gain modes and must not start a service.
+- `scripts/init.sh`: **not needed** — it must not gain modes and must not start a service.
 - `feature_list.json`, `PROGRESS.md`, `docs/specs/chat_question_submission.md`: **after verified
   implementation only** — record evidence/status then, and reference F2 as closed from this side.
 
@@ -353,65 +247,23 @@ matches.
 - **U3 Notice visibility:** with no auto-scroll, the notice can be below the fold in a long conversation
   (owner `chat_accessibility`, F3); the wording stays in the composer, so nothing is lost.
 
-## Validator checklist
+## Focused verification
 
-- [ ] A timeout/unreachable failure and a service error each show a distinct plain-Spanish notice and a
-      visible `Reintentar`; the notice is not a `ChatMessage` and carries no `Asistente` answer label.
-- [ ] No failure path appends an assistant/answered message, and the message explicitly says the answer has
-      not been received; a contract-valid `answered`/`abstained` response never shows the notice.
-- [ ] The exact original wording (including leading/trailing spaces) is retained after a failure and is what
-      `Reintentar` resends; `RetryClicked` adds no second user message and a repeated failure remains
-      retryable; retry is not actionable while a request is in flight.
-- [ ] The composer cannot remain `SUBMITTING`: `answerHttpClient` installs a bounded `HttpTimeout` with named
-      constants, and a stalled/error `MockEngine` response makes `ask` fail rather than hang.
-- [ ] `expectSuccess` makes a non-2xx `/ask` a failure; a `500` with an answer-shaped body is never presented
-      as an answer; accepted `200` fixtures still decode.
-- [ ] Typing a new question or selecting an example clears the failure notice and restores normal behavior.
-- [ ] Copy is resource-backed and matches this spec's three strings verbatim; danger uses the themed
-      `error`/`errorContainer` pair with text, the notice is a polite live region, and controls keep
-      Material's minimum target size and Desktop keyboard focus.
-- [ ] Product behavior stays in `commonMain`; no new module, dependency, Gradle change, engine wiring, or
-      base URL; `contracts/`, `backend/`, land features, theme tokens, platform entry points, and `init.sh`
-      are untouched.
-- [ ] No question, payload, URL, land detail, or exception text is logged or displayed (grep evidence).
-- [ ] Tests cover classification, retry-to-success, repeated failure, notice dismissal, and the timeout/error
-      transport paths; `:shared:jvmTest`, `:shared:testAndroidHostTest`, and `./init.sh --verify` pass or the
-      exact environment blocker is reported, with no E2E/UI-test claim.
-- [ ] `feature_list.json`/`PROGRESS.md` were not modified by planning, and F2 is referenced as owned/closed
-      here while F1 remains the `/ask` wiring slice's follow-up.
+`./scripts/init.sh --feature <feature-id>` runs exactly the block below. It is the feature-scoped
+tier of `./scripts/init.sh --fast`, and the cheapest check that still touches what this feature
+changed; `./scripts/init.sh --verify` remains the full gate.
 
-## Implementation findings
+<!-- verify:start -->
+```sh
+python3 contracts/validate_examples.py
+./gradlew :shared:jvmTest --tests KtorAnswerServiceTest --tests ChatHomeStateTest --tests ChatConversationTest
+```
+<!-- verify:end -->
 
-Recorded while implementing this spec; the acceptance scenarios and checklist are unchanged.
+## Appendix
 
-- **IF1 — the failure always keeps a retryable wording (spec transition rule refined).** The transition
-  rules say `failedQuestion = submittedQuestion`, but the accepted `QuestionChanged` (and
-  `SuggestedQuestionSelected`) clear `submittedQuestion` while the request is still `SUBMITTING`, so a
-  draft typed — or an example picked — during the request would leave a failure with **no** retryable
-  wording and the notice would offer no `Reintentar`. Implemented as
-  `failedQuestion = submittedQuestion ?: messages.lastOrNull { it.speaker == USER }?.text`: during
-  `SUBMITTING` the last user message *is* the wording this request sent, so the value is identical in the
-  unchanged-composer case and the failure stays retryable and honest in the draft case. Covered by
-  `ChatHomeStateTest.a failure does not overwrite a newly typed question` and
-  `ChatConversationTest.a retry that fails again keeps one user message and stays retryable`.
-  Consequence recorded: `RetryClicked` clears the composer (as specified), so a draft typed during the
-  failed request and left unsent is discarded by an explicit retry; the person can instead press
-  `Preguntar` with that draft, which dismisses the notice.
-- **IF2 — an undecodable 2xx body is caught explicitly.** In Ktor 3.1.3 the content-negotiation failure is
-  `io.ktor.serialization.JsonConvertException : ContentConvertException`, and `ContentConvertException`
-  extends `java.lang.Exception`, **not** `kotlinx.serialization.SerializationException`. `KtorAnswerService`
-  therefore catches `ContentConvertException` (and `SerializationException` for other paths) →
-  `AnswerServiceErrorException`. Guarded by
-  `KtorAnswerServiceTest.a 200 body that cannot be decoded fails instead of fabricating an answer`.
-- **IF3 — the timeout probe used.** Ktor 3.1 exposes `HttpClient.plugin(HttpTimeout)` as
-  `ClientPluginInstance<HttpTimeoutConfig>` with no public config accessor, so the installed request/connect/
-  socket values cannot be read back. The timeout is therefore evidenced by (a) installation, where a missing
-  plugin throws, (b) the three named constants being finite and different from
-  `HttpTimeoutConfig.INFINITE_TIMEOUT_MS`, and (c) a stalled `MockEngine` driven in real time with
-  `requestTimeoutMillis = 200`, which fails in ~0.3 s as `AnswerServiceUnavailableException` instead of
-  hanging. Chosen bounds (planning defaults, U1): request `15_000` ms, connect `10_000` ms, socket
-  `15_000` ms.
-- **IF4 — `expectSuccess = true` verified by behaviour.** `KtorAnswerServiceTest` proves a `500` carrying
-  the accepted `answered` fixture body and a declared `422` both fail as `AnswerServiceErrorException`, and
-  that the existing `200` fixture still decodes on the same client.
-
+The planning and verification record for this feature — repository research, implementation
+plan and tasks, verification plan, evidence to capture, implementation findings, validator
+checklist, and the feature evidence — moved verbatim to
+[`docs/specs/network_error_recovery.appendix.md`](network_error_recovery.appendix.md) on 2026-10-17 to keep this contract short.
+`docs/validations/network_error_recovery.md` remains the authoritative acceptance record.

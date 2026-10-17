@@ -18,7 +18,7 @@ Add a reviewed, source-anchored evaluation set and an offline harness that runs 
 
 - Serving HTTP or wiring `POST /ask`. `backend/app/main.py` keeps `/health` as its only route and no FastAPI/Pydantic dependency is added.
 - A model provider, a semantic judge/NLI, an LLM grader, embeddings, or any network access. The only enabled generator is the accepted code-composed extractive one, and grading is deterministic rule checking.
-- Changing the contract (`contracts/`), the accepted modules (`app/generation.py`, `app/retrieval.py`, `app/abstention.py`, `app/clarification.py`, `app/source_catalog.py`), the per-feature CLIs/tests, `knowledge/source_catalog.json`, `knowledge/passages.schema.json`, `backend/requirements.txt`, `init.sh`, or any client/shared/Android/Desktop/iOS code.
+- Changing the contract (`contracts/`), the accepted modules (`app/generation.py`, `app/retrieval.py`, `app/abstention.py`, `app/clarification.py`, `app/source_catalog.py`), the per-feature CLIs/tests, `knowledge/source_catalog.json`, `knowledge/passages.schema.json`, `backend/requirements.txt`, `scripts/init.sh`, or any client/shared/Android/Desktop/iOS code.
 - Enforcing metric gates or adding CI/nightly automation. Thresholds are reported as *candidate* starting points and are off by default; a separate, agreed change owns enforcement.
 - Adding a canonical real corpus or asserting any real legal fact. All cases/passages remain synthetic and labelled; critical-fact review is recorded as a human process, never performed by the harness.
 - Client presentation or UI. This feature only produces a backend report.
@@ -56,25 +56,6 @@ Given a `critical` case, when the harness loads it without a completed `review` 
 ### Reproducible, report-only baseline
 
 Given the fixtures and an explicit `--as-of`/`--k`, when the harness runs, then it prints each case's outcome plus per-category metrics (`covered_source_hit_rate`, `correct_abstention_rate`, `correct_clarification_rate`, `no_over_clarification_rate`), two `--json` runs are byte-identical, and thresholds are not enforced unless `--fail-on-miss` is passed.
-
-## Repository research
-
-Inspected:
-
-- `feature_list.json`: this feature is `not_started`; `safe_abstention` and `land_clarification` are both `accepted`; the note requires a measured baseline before any gate; `answer_land_scope`, `android_mvp_build`, and `desktop_mvp_build` depend on it.
-- `CONSTRAINTS.md`: the answer-grounding, abstention, client land-context, and land-clarification MUST rules constrain what a safety case may assert.
-- `AGENTS.md`, `CONTEXT.md`, `docs/risks-and-open-questions.md`: approved official sources only for regulatory claims; unknown stays unknown; abstain when evidence is inadequate; evaluation size/metrics/thresholds are set after a measured baseline and must include land-ambiguity and unknown-attribute scenarios; no legal fact may be invented.
-- `MasterPlanV3.md` §9.1–9.2 (evaluation levels; candidate gates `hit@5 85%`, correct abstention `100%`, invented numbers/dates `0` — inherited proposals, not promises) and §12.1–12.5 (golden-dataset principles, fields, composition, and the trap taxonomy: out of corpus/domain, land ambiguity, false premise, organic extrapolation, injection, personalized advice).
-- `docs/specs/safe_abstention.md` §non-goals/risks and `docs/validations/safe_abstention.md`: explicit handoff of the trap set and any score threshold to this feature; the 9-reason taxonomy and pinned messages.
-- `docs/specs/land_clarification.md` and `docs/validations/land_clarification.md`: explicit handoff of measurement; clarification is offered only for `all_active` with ≥ 2 differing lands.
-- `backend/app/clarification.py`: `answer_with_clarification(question, land_context, corpus, *, k, max_claims, as_of, generator)` returns `Answered | Abstention | NeedsLandClarification`; `to_clarification_response`; `land_ids_of`. `Answered.sources` is a tuple of `RetrievedPassage`, so source ids are available for a source-anchored check.
-- `backend/app/abstention.py`: `prepare_corpus`, `answer_or_abstain`, `ABSTENTION_REASONS`, `ABSTENTION_MESSAGES`, `to_abstention_response`, `extract_figures`.
-- `backend/scripts/evaluate_abstention.py` and `backend/scripts/evaluate_clarification.py`: the accepted CLI conventions (strict key validation, located errors, `--as-of`/`--k`/`--json`/`--fail-on-miss`, exit `0`/`1`/`2`, byte-identical `--json`, synthetic labelled fixtures, no network, content-silent diagnostics).
-- `knowledge/README.md`, `knowledge/passages.schema.json`, `knowledge/source_catalog.schema.json`: readable-schema + executable-validator pairing, the review procedure, and the eligibility coupling.
-- `backend/tests/fixtures/{retrieval,generation,abstention,clarification}/`: reusable synthetic approved catalogs, labelled reviewed passages, and JSONL/JSON case files; `catalog_expired.json` reuses the corpus-level stale case.
-- `backend/README.md`, `init.sh`, `PROGRESS.md`: `/health` is the only route; `init.sh` runs KMP checks only and has no backend command; pytest is the backend convention and the worktree has no `python` on `PATH`, so pytest runs from an out-of-repo venv with no repo dependency.
-
-Absent, and therefore not assumed: a `POST /ask` route, a model provider/judge, a canonical `passages.json`, a real legally reviewed corpus, an enforced metric gate, an `ARCHITECTURE.md`, and any persistent E2E command.
 
 ## Technical approach
 
@@ -145,9 +126,9 @@ Run the harness once over the synthetic fixtures and record the measured numbers
 - Update `CONSTRAINTS.md` — one MUST rule: evaluation cases are source-anchored and human-reviewed, a critical case cannot enter the set without completed review provenance, the harness runs the accepted decision unchanged, and no metric is a release gate until measured and agreed.
 - Update `feature_list.json` and `PROGRESS.md` after implementation/validation with the real status, measured baseline, and only the commands actually run. This planning pass records the spec link only.
 
-`init.sh`: no change. It executes KMP checks only and has no backend command; this backend/knowledge slice is verified with the documented Python commands, and no long-running process or new mode is added.
+`scripts/init.sh`: no change. It executes KMP checks only and has no backend command; this backend/knowledge slice is verified with the documented Python commands, and no long-running process or new mode is added.
 
-Explicitly **not** changed: `contracts/`, `backend/app/{generation,retrieval,source_catalog,abstention,clarification}.py`, `backend/app/main.py`, the per-feature `scripts/evaluate_*.py` and `tests/test_*.py`, `knowledge/source_catalog.json`, `knowledge/passages.schema.json`, `backend/requirements.txt`, `init.sh`, and all client/shared/Android/Desktop/iOS code.
+Explicitly **not** changed: `contracts/`, `backend/app/{generation,retrieval,source_catalog,abstention,clarification}.py`, `backend/app/main.py`, the per-feature `scripts/evaluate_*.py` and `tests/test_*.py`, `knowledge/source_catalog.json`, `knowledge/passages.schema.json`, `backend/requirements.txt`, `scripts/init.sh`, and all client/shared/Android/Desktop/iOS code.
 
 ## Visual design impact
 
@@ -163,51 +144,29 @@ None. This is an offline backend/knowledge evaluation harness; it adds no Compos
 - `ARCHITECTURE.md`: not needed; absent, and a focused offline evaluation boundary does not establish a broader runtime architecture.
 - `PROGRESS.md` and `feature_list.json`: update after verification, recording the measured baseline and stating plainly that it is synthetic, not a legal-coverage or legal-correctness claim.
 
-## Implementation plan and tasks
-
-1. Add `knowledge/land_safety_eval.schema.json` with the strict `land-safety-eval-v1` fields and conditional requirements; document it in `knowledge/README.md` together with the critical-review procedure.
-2. Implement `backend/app/land_safety_eval.py`: strict case loading with located errors, `run_case` over `answer_with_clarification`, the per-case checks, the metrics, the enforced safety invariants, and the critical-review gate.
-3. Add the synthetic `backend/tests/fixtures/land_safety/` set: approved catalog, labelled reviewed passages, and cases covering all five categories (including a differing-land pair that must clarify, an unknown/omitted attribute that must not, a false-premise identifier, an uncovered topic, and a critical case with a completed review), plus malformed/incomplete edge documents.
-4. Implement `backend/scripts/evaluate_land_safety.py` with strict input validation, per-case and per-category reporting, the metric block, the critical-review section, `--json`, `--fail-on-miss`, and the `0`/`1`/`2` exit contract.
-5. Add `backend/tests/test_land_safety_eval.py`: case-schema validation (conditional fields, unknown keys, duplicate ids), each category's expected check, the source-anchored match against `Answered.sources`, the no-over-clarification rule, the enforced-invariant failures, the critical-review gate, determinism, socket-guard offline, content-silent diagnostics, and CLI exit `0`/`1`/`2`.
-6. Run the CLI once to measure the baseline; run the focused and full pytest suites, `contracts/validate_examples.py`, the unchanged retrieval/generation/abstention/clarification baselines, `py_compile`, and `git diff --check`; fix inconsistencies.
-7. Update `knowledge/README.md`, `backend/README.md`, and `CONSTRAINTS.md`; record the measured baseline and status in `PROGRESS.md` and `feature_list.json` with only the commands actually run.
-
-## Verification plan and evidence
-
-Run from the repository root:
-
-```sh
-python3 backend/scripts/evaluate_land_safety.py \
-  --catalog backend/tests/fixtures/land_safety/catalog.json \
-  --passages backend/tests/fixtures/land_safety/passages.json \
-  --cases backend/tests/fixtures/land_safety/cases.json \
-  --as-of 2026-10-13 --k 5
-python3 backend/scripts/evaluate_land_safety.py --catalog backend/tests/fixtures/land_safety/catalog.json --cases backend/tests/fixtures/land_safety/cases.json --as-of 2026-10-13 --k 5 --json
-python3 contracts/validate_examples.py
-cd backend && python -m pytest tests/test_land_safety_eval.py
-cd backend && python -m pytest
-python3 -m py_compile backend/app/land_safety_eval.py backend/scripts/evaluate_land_safety.py backend/tests/test_land_safety_eval.py
-git diff --check
-```
-
-Capture: one case per category with its outcome and per-check verdicts (the feature-list verification: covered with its expected source, uncovered and false-premise abstaining, mixed-land clarifying the correct ids, unknown-attribute answering without over-clarifying); the measured per-category baseline and metric block; `--fail-on-miss` exiting `1` on a deliberately mismatched case and `0` on the fixtures; byte-identical repeated `--json` runs; exit `2` for a critical case without a completed review, an unknown category/expect, a missing conditional field, and a malformed case file; the canonical empty catalog with no cases reporting zero candidates; pytest counts for the new file and the full suite; and confirmation that the accepted modules, per-feature CLIs/tests, `contracts/`, `knowledge/source_catalog.json`, `passages.schema.json`, `requirements.txt`, and `init.sh` are unchanged. Note the environment: pytest runs from a venv outside the repository and no dependency is added. No browser/API/E2E test is required because there is no `/ask` route and no persistent E2E harness; the CLI plus unit tests cover the evaluation.
-
-## Validator checklist
-
-- [ ] `knowledge/land_safety_eval.schema.json` is versioned, tracked, and matches the in-code validator (categories, expectations, conditional fields, duplicate-id and unknown-key rejection, critical-review requirement).
-- [ ] A covered case answers and its returned sources include every `expected_source_ids` id; no source outside the corpus is ever cited.
-- [ ] Uncovered and false-premise cases abstain with the expected reason, empty `sources`, and a pinned message with no digit and no date.
-- [ ] A mixed-land case clarifies exactly the expected ids, drawn from the request; an unknown/omitted-attribute case answers and is never clarified.
-- [ ] A `critical` case without a completed `review` block fails to load (exit `2`); well-formed critical cases appear in the report's review section.
-- [ ] The harness runs `answer_with_clarification` unchanged and re-implements no eligibility, grounding, or clarification logic.
-- [ ] The report is deterministic (byte-identical `--json`), offline (socket guard), content-silent in diagnostics, and reports `fixtures_are_synthetic`/`thresholds_are_release_gates: false`.
-- [ ] Metrics are report-only by default; `--fail-on-miss` exits `1` only on a mismatch; safety invariants alone can exit `1`.
-- [ ] `backend/app/{generation,retrieval,source_catalog,abstention,clarification}.py`, `backend/app/main.py`, the per-feature scripts/tests, `contracts/`, `knowledge/{source_catalog.json,passages.schema.json}`, `backend/requirements.txt`, `init.sh`, and all client/shared code are unchanged; fixtures are synthetic and labelled with no real legal fact; `/health` remains the only route.
-- [ ] `feature_list.json`/`PROGRESS.md` report only the commands actually run and record the measured baseline as synthetic, not a legal-coverage or gate claim.
-
 ## Risks and handoff notes
 
 The case set and its baseline are synthetic and implementer-authored: they exercise the mechanism and the trap taxonomy, not legal coverage or real Spanish user questions. The harness records critical-fact review provenance but cannot verify a fact against an original document — a human reviewer must, and until a real legally-reviewed corpus exists the critical cases anchor to labelled synthetic passages. The lexical detection in the accepted slices is conservative (it can abstain or over-ask on a retrieval miss); this feature measures that behaviour rather than changing it, so a low synthetic number is a calibration starting point, not a defect or a gate. Threshold enforcement, nightly runs, a semantic judge, a canonical corpus, and a feedback-to-golden loop are deliberately out of scope.
 
 Handoffs: `answer_land_scope`, `android_mvp_build`, and `desktop_mvp_build` depend on this feature; when a real corpus and a `POST /ask` route land, extend the case set from real, source-anchored questions and only then agree which metrics become hard gates. Carried-forward accepted findings (backend F1 marker/sources hardening, F2 non-iterable `source_markers`, the `land_clarification` >128-char id defensive note) are unchanged and stay with their owners.
+
+## Focused verification
+
+`./scripts/init.sh --feature <feature-id>` runs exactly the block below. It is the feature-scoped
+tier of `./scripts/init.sh --fast`, and the cheapest check that still touches what this feature
+changed; `./scripts/init.sh --verify` remains the full gate.
+
+<!-- verify:start -->
+```sh
+python3 backend/scripts/evaluate_land_safety.py --catalog backend/tests/fixtures/land_safety/catalog.json --passages backend/tests/fixtures/land_safety/passages.json --cases backend/tests/fixtures/land_safety/cases.json --as-of 2026-10-13 --k 5
+./scripts/init.sh --backend-tests tests/test_land_safety_eval.py
+```
+<!-- verify:end -->
+
+## Appendix
+
+The planning and verification record for this feature — repository research, implementation
+plan and tasks, verification plan, evidence to capture, implementation findings, validator
+checklist, and the feature evidence — moved verbatim to
+[`docs/specs/land_safety_evaluation.appendix.md`](land_safety_evaluation.appendix.md) on 2026-10-17 to keep this contract short.
+`docs/validations/land_safety_evaluation.md` remains the authoritative acceptance record.

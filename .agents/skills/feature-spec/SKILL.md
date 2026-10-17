@@ -13,7 +13,7 @@ Use this skill to turn one harness feature into an implementation-ready contract
 - Do not implement code.
 - Do not modify application source files.
 - Do not generate specs for every feature unless the user explicitly asks after this skill finishes.
-- Create or update only `../../../docs/specs/<feature-id>.md` by default.
+- Create or update only the feature's two spec files by default: the contract `../../../docs/specs/<feature-id>.md` and its appendix `../../../docs/specs/<feature-id>.appendix.md`.
 - If the feature id is not provided, select the first feature in `feature_list.json` order whose status is neither `passing` nor `accepted` and whose `depends_on` prerequisites are satisfied.
 - If a feature is too broad to plan cleanly, stop and recommend splitting it in `feature_list.json` instead of producing a vague spec. Rough signal: it needs more than one data model plus one user flow, or the spec would clearly exceed the 100-250 line target.
 - Treat the spec as a contract between agents: planner -> implementer -> validator.
@@ -24,7 +24,7 @@ Use this skill to turn one harness feature into an implementation-ready contract
 1. `../../../AGENTS.md`
 2. `../../../PROGRESS.md`
 3. `feature_list.json`
-4. Existing feature spec if present: `../../../docs/specs/<feature-id>.md`
+4. Existing feature spec if present: `../../../docs/specs/<feature-id>.md` and its appendix `../../../docs/specs/<feature-id>.appendix.md`
 5. Product/discovery docs as needed:
    - `../../../CONTEXT.md`
    - `../../../docs/product-brief.md`
@@ -47,7 +47,7 @@ Use a user-provided feature id when present. Otherwise, choose the first feature
 
 A dependency is satisfied when the referenced feature id exists and has status `accepted`. For legacy feature lists, a dependency with status `passing` may be treated as satisfied only when durable evidence shows independent validator acceptance. If `depends_on` is absent in an older feature list, treat it as `[]` for backward compatibility. If the first unfinished features are blocked by dependencies, skip them only when looking for a later dependency-ready feature; report the skipped blockers in the summary.
 
-Before planning, verify the feature has enough scope information: `id`, `title`, `user_visible_behavior`, `depends_on`, and `verification`. If not, improve the feature entry only if the user explicitly asked for feature-list maintenance; otherwise stop and report the missing fields.
+Before planning, verify the feature has enough scope information: `id`, `title`, and `depends_on` in `feature_list.json`, plus its user-visible behavior and verification. Read those from an existing spec's `Source metadata` section or from the discovery docs; if they are missing everywhere, improve the feature entry only if the user explicitly asked for feature-list maintenance, otherwise stop and report the missing scope. The spec the planner writes records the source behavior, verification, and notes in its own `Source metadata` section.
 
 ### 2. Research The Repository
 
@@ -64,28 +64,36 @@ Investigate how to implement the selected feature in this specific repo:
 
 Record inspected files in the spec. Do not pretend to have inspected files that do not exist.
 
-### 3. Write The Feature Implementation Spec
+### 3. Write The Contract And Its Appendix
 
-Create or update `../../../docs/specs/<feature-id>.md` using `references/spec-template.md`. For a sense of the right level of detail, look at an existing accepted spec such as `../../../docs/specs/bootstrap-nextjs-shell.md`.
+Write two files, and do not create or edit any other spec file:
 
-The spec must include:
+- `../../../docs/specs/<feature-id>.md` — the **contract**: the bounded top block a routine implement or validate read loads.
+- `../../../docs/specs/<feature-id>.appendix.md` — the **record**: on-demand detail plus the growing `Feature evidence`.
+
+The contract must include, in order:
 
 - source feature metadata,
 - goal and non-goals,
 - job story or user story,
 - acceptance scenarios in Given/When/Then style,
-- repository research,
 - technical approach,
 - expected file changes,
 - visual design impact when UI is involved,
 - durable documentation impact,
-- implementation plan,
-- implementation tasks,
+- a focused verification block the harness can run: the exact shell commands for this feature, wrapped in `<!-- verify:start -->` and `<!-- verify:end -->` markers so `./scripts/init.sh --feature <feature-id>` executes them unchanged (see an accepted spec for the shape),
+- an `## Appendix` section that points at the appendix file.
+
+The appendix must include, in order:
+
+- repository research,
+- implementation plan and tasks,
 - verification plan,
 - evidence to capture,
-- validator checklist.
+- an empty `## Feature evidence` section for the implementer to append to,
+- a validator checklist.
 
-Keep the spec concise but operational. A good default target is 100-250 lines. If it grows far beyond that, the feature may need splitting.
+Keep the contract concise but operational. A good default target is 100-250 lines; if it grows far beyond that, the feature may need splitting. For a sense of the level of detail, look at an accepted pair such as `../../../docs/specs/add_land.md` with `../../../docs/specs/add_land.appendix.md`.
 
 ### 4. Quality Gate
 
@@ -96,8 +104,9 @@ Before finishing, check:
 - The plan names concrete files or directories where possible.
 - The tasks are ordered and executable.
 - Verification includes commands or manual checks available in the repo's current state.
+- The focused verification block is executable as published: `./scripts/init.sh --feature <feature-id>` must run it without edits, and it must be the cheapest check that still touches what the feature changes.
 - If a persistent E2E command exists and the feature changes user-visible behavior, authentication, authorization, routing, or API flows, the verification plan should include adding/updating focused E2E coverage or explicitly justify why unit/integration coverage is enough.
-- For shell scripts such as `init.sh`, the spec states whether the script must execute checks, print guidance, start services, or provide modes. The default harness rule is: `init.sh` executes non-blocking startup/verification checks and must not start long-running dev servers. A script that only prints the checks is not enough unless the repo is still pre-bootstrap.
+- For shell scripts such as `scripts/init.sh`, the spec states whether the script must execute checks, print guidance, start services, or provide modes. The default harness rule is: `scripts/init.sh` exposes a non-blocking, checks-running invocation (a default or named tiers) and must not start long-running dev servers. A print-only invocation is acceptable only as the cheapest informational tier alongside real checks-running tiers; a script that can *only* print the checks is not enough unless the repo is still pre-bootstrap.
 - Durable documentation impact is explicit: `../../../ARCHITECTURE.md`, `../../../CONSTRAINTS.md`, `../../../AGENTS.md`, and other durable docs are each marked create/update/not needed with a reason.
 - Non-goals prevent scope creep.
 - Unknowns are explicit and do not hide blocking ambiguity.

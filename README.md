@@ -29,14 +29,14 @@ The shared Kotlin Multiplatform UI and behavior live in `shared/src/commonMain` 
 Standard verification (shared host tests + Android debug APK + Desktop build):
 
 ```sh
-./init.sh --verify
+./scripts/init.sh --verify
 ```
 
 Build and run:
 
 ```sh
-./init.sh --android    # builds androidApp/build/outputs/apk/debug/androidApp-debug.apk
-./init.sh --desktop    # launches the Desktop app
+./scripts/init.sh --android    # builds androidApp/build/outputs/apk/debug/androidApp-debug.apk
+./scripts/init.sh --desktop    # launches the Desktop app
 ```
 
 The Desktop app keeps its lands in `~/.manijero/lands-v1.txt` (the shared `land-store-v1` format); remove that file to start from an empty list.

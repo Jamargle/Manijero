@@ -5,6 +5,7 @@
 - Feature: `grounded_answer_generation` — Generate an evidence-grounded answer
 - Area: backend
 - Depends on: `answer_api_contract` (accepted), `source_retrieval` (accepted)
+- Feature-list behavior: for a covered question, the assistant returns a plain-Spanish answer whose material claims are supported by retrieved approved passages.
 - Feature-list verification: evaluate a covered source-anchored question and check each material claim against its cited passage.
 - Feature-list note: never treat the language model as the source of legal facts.
 - Scope size: one internal claim/answer model plus one offline generation flow (retrieve → draft → verify → assemble); correctly sized, and it deliberately stops at the abstention boundary owned by `safe_abstention`.
@@ -53,21 +54,6 @@ Given the same catalog, passage set, question, `--as-of`, and `k`, when the pipe
 ### Output conforms to the accepted contract without changing it
 
 Given an assembled answered response, when its keys and types are compared with `contracts/openapi.yaml#/components/schemas/AskResponse`, then it matches exactly (required keys, enums, 1200-character bound, non-empty sources for `answered`), `python3 contracts/validate_examples.py` still passes, and `contracts/` is unchanged.
-
-## Repository research
-
-Inspected:
-
-- `feature_list.json`: this feature is `not_started`; both dependencies are `accepted`; its note and verification are the grounding rule above. `safe_abstention` depends on it.
-- `AGENTS.md`, `CONTEXT.md`, `docs/build-brief.md`, `docs/domain-model.md`, `docs/risks-and-open-questions.md`: approved official material only for regulatory claims; no invented dates/amounts/eligibility/article numbers; citations a non-technical user can open; abstain when evidence is inadequate; critical amounts and deadlines need prominent excerpts; land data never proves eligibility; provider choice and provider terms are unresolved.
-- `MasterPlanV3.md` §§3, 5, 6.3–6.4, 8.1–8.3, 9.1–9.2, 11.3: the LLM is a writer, never the knowledge source; `temperature=0`, structured JSON `{found, answer, sources}`, numbered context `[1]…[n]`, extractive mode for `critico:true`, code-added fixed notice lines, and a validation cascade (schema → citations → numeric grounding → semantic grounding → validity → policy → coherence) with "0 invented numbers/dates" as a candidate gate.
-- `docs/specs/source_retrieval.md`, `docs/validations/source_retrieval.md`, `backend/app/retrieval.py`: the accepted `Retriever.search(question, k) -> tuple[RetrievedPassage, ...]` boundary, its eligibility rules, its `AnswerSource`-compatible field names plus retrieval-local fields, and the measured synthetic baseline `hit@5 = 0.857 (6/7)`, `recall@5 = 0.857`, `MRR = 0.857`.
-- `backend/tests/fixtures/retrieval/{catalog,passages}.json`, `eval_questions.jsonl`: synthetic, clearly labeled fixtures that deliberately contain **no** real or even concrete deadlines/amounts.
-- `contracts/openapi.yaml`, `contracts/examples/response-answered.json`, `contracts/validate_examples.py`, `docs/specs/answer_api_contract.md`: `AskResponse` (`status`, `answer` ≤ 1200, `sources`, `land_scope`, `land_ids_to_choose`), `AnswerSource` with `additionalProperties: false`, and `answered` requiring non-empty answer and ≥1 source.
-- `backend/app/main.py`, `backend/README.md`, `backend/requirements.txt`, `knowledge/README.md`, `knowledge/passages.schema.json`, `backend/scripts/evaluate_retrieval.py`, `backend/tests/test_retrieval.py`: `/health` is the only route; pytest is the backend convention and must be run as `python -m pytest`; the report-only CLI style (explicit `--as-of`/`--k`, `--json`, `0`/`1`/`2` exit codes, no network) is the established pattern.
-- `init.sh`: checks and verifies KMP targets only; it has no backend command.
-
-Absent, and therefore not assumed: any `LLMClient`, model provider, prompt, `/ask` route, canonical `knowledge/passages.json`, semantic judge, semantic cache, feedback loop, `ARCHITECTURE.md`, `CONSTRAINTS.md`, and any persistent E2E command. The system interpreter has no `pytest` and the worktree has no `python` on `PATH`; the accepted features ran pytest from a temporary venv outside the repository (no repo dependency added).
 
 ## Technical approach
 
@@ -162,7 +148,7 @@ Per question it prints the outcome, the produced answer, each material claim wit
 - Update `backend/README.md` — the offline generation module and CLI; `/health` remains the only route and no model provider is configured.
 - Update `feature_list.json` and `PROGRESS.md` after implementation/validation with actual status, commands, and results (the orchestrator owns this; the planning pass records the spec link only).
 
-`init.sh`: no change. It already executes the KMP verification checks for the current repo state; this backend slice is verified with the documented Python commands, and no long-running process is added to the wrapper. No changes to `contracts/`, `backend/app/retrieval.py`, `backend/app/source_catalog.py`, `backend/app/main.py`, `knowledge/source_catalog.json`, `knowledge/passages.schema.json`, `backend/requirements.txt`, or any client/shared code. No canonical `knowledge/passages.json` is created.
+`scripts/init.sh`: no change. It already executes the KMP verification checks for the current repo state; this backend slice is verified with the documented Python commands, and no long-running process is added to the wrapper. No changes to `contracts/`, `backend/app/retrieval.py`, `backend/app/source_catalog.py`, `backend/app/main.py`, `knowledge/source_catalog.json`, `knowledge/passages.schema.json`, `backend/requirements.txt`, or any client/shared code. No canonical `knowledge/passages.json` is created.
 
 ## Visual design impact
 
@@ -178,57 +164,11 @@ None. No Compose UI and no client code change. The generated `answer` carries on
 - `CONSTRAINTS.md`: not needed for this slice (AGENTS.md already states the rule and the verifier enforces it). Create it with a single MUST line only if implementation reveals a mechanism-level rule later features must follow and no existing doc covers (for example, "no component may emit a user-visible answer that bypasses `verify_draft`").
 - `PROGRESS.md` and `feature_list.json`: update after verification with the real command output; state plainly that fixtures are synthetic, no model provider is configured, the generator is extractive, and metrics are not release gates.
 
-## Implementation plan and tasks
-
-1. Add `backend/app/generation.py`: draft/report/issue models, Spanish sentence splitting and figure/date normalization helpers, `GroundingGenerator` protocol, `ExtractiveGroundingGenerator`, `verify_draft` with all seven rule groups, `generate_grounded_answer`, and `to_answer_response`.
-2. Add the synthetic `backend/tests/fixtures/generation/` set: approved 2–3 source catalog, reviewed labeled passages (one with a fictitious figure marked `critical`, one ordinary), `eval_questions.jsonl` (covered, unaccented-variant, and `no_candidates` cases), and `drafts_ungrounded.json` keyed by issue code. Keep every value clearly labeled synthetic; assert no real deadline, amount, or article number.
-3. Add `backend/scripts/evaluate_generation.py` with strict input validation (including unknown `expected_passage_ids`), per-claim verdict reporting, aggregate counters, `--json`, and the `0`/`1`/`2` exit-code contract.
-4. Add `backend/tests/test_generation.py`: covered-question answer + per-claim grounding; ascending marker/`sources` order; exact `AnswerSource` key set matching `contracts/examples/response-answered.json`; every `drafts_ungrounded.json` case rejected with its expected issue code; `no_candidates` on the empty canonical catalog and on an out-of-vocabulary question; `invalid_question` bounds; determinism of two identical runs; socket-guard no-network; no excerpt text in rejection messages; `land_scope` validation; and a 1200-character boundary case.
-5. Run the CLI on the fixtures and on the canonical empty catalog, the focused and full pytest suites, `contracts/validate_examples.py`, the unchanged retrieval baseline, `py_compile`, and `git diff --check`; fix any inconsistency.
-6. Verify the feature-list verification literally: capture one covered source-anchored question with each material claim mapped to its cited passage and its grounding verdict.
-7. Update `knowledge/README.md` and `backend/README.md`, then record evidence and status (implementer/orchestrator) with only the commands actually run.
-
-## Verification plan and evidence
-
-Run from the repository root:
-
-```sh
-python3 backend/scripts/evaluate_generation.py \
-  --catalog backend/tests/fixtures/generation/catalog.json \
-  --passages backend/tests/fixtures/generation/passages.json \
-  --eval backend/tests/fixtures/generation/eval_questions.jsonl \
-  --as-of 2026-10-13 --k 5
-python3 backend/scripts/evaluate_generation.py --catalog knowledge/source_catalog.json --as-of 2026-10-13 --k 5
-python3 contracts/validate_examples.py
-python3 backend/scripts/evaluate_retrieval.py \
-  --catalog backend/tests/fixtures/retrieval/catalog.json \
-  --passages backend/tests/fixtures/retrieval/passages.json \
-  --eval backend/tests/fixtures/retrieval/eval_questions.jsonl \
-  --as-of 2026-10-13 --k 5
-cd backend && python -m pytest tests/test_generation.py
-cd backend && python -m pytest
-python3 -m py_compile backend/app/generation.py backend/scripts/evaluate_generation.py backend/tests/test_generation.py
-git diff --check
-```
-
-Capture: the covered question with its per-claim verdicts and cited passages (the feature-list verification); aggregate counters with zero ungrounded claims and zero invented sources; the empty-corpus run producing no answers and exit `0`; the recorded rejected drafts and their issue codes; byte-identical repeated runs; the socket-guard result; pytest counts for the new file and the full suite; the contract validator output plus confirmation that `contracts/` is unchanged; and the unchanged retrieval baseline numbers. Note the environment: pytest runs from a venv outside the repository and no dependency is added. No browser/API/E2E test is required because this feature has no user-facing or API flow and no persistent E2E framework exists; the CLI plus unit tests cover the pipeline.
-
-## Validator checklist
-
-- [ ] A covered source-anchored fixture question yields a cited plain-Spanish `answered` response, and every material claim is traceable to a returned candidate passage.
-- [ ] Figures and dates in a claim are present in its cited passage; a claim with an unsupported figure is rejected, and `critical` claims are literal excerpts.
-- [ ] A draft citing an unknown/undeclared marker, leaving a sentence uncited, inventing a figure or article, or asserting eligibility is rejected with the expected issue code, and nothing from it reaches the payload.
-- [ ] No candidates (empty canonical catalog, out-of-vocabulary question) produce `no_candidates`, no text, and no model call.
-- [ ] The assembled payload matches the accepted `AskResponse`/`AnswerSource` shape (exact key sets), `contracts/validate_examples.py` passes, and `contracts/` is untouched.
-- [ ] The pipeline is deterministic, offline (socket guard), and content-silent in diagnostics (no question or excerpt text in rejections).
-- [ ] `backend/app/retrieval.py`, `backend/app/source_catalog.py`, `backend/app/main.py`, `knowledge/source_catalog.json`, `knowledge/passages.schema.json`, `backend/requirements.txt`, `init.sh`, and all client/shared code are unchanged; no canonical `passages.json` or real legal fact was added.
-- [ ] Fixtures are synthetic and labeled; `feature_list.json`/`PROGRESS.md` report only the commands actually run and state that the generator is extractive and no provider is configured.
-
 ## Risks and handoff notes
 
 The extractive default cannot write fresh prose, so answer readability and plain-Spanish quality are bounded by the reviewed excerpts and by retrieval quality; a hosted-model rephrasing path is deferred pending the provider/privacy review and must pass `verify_draft` unchanged. The checks are lexical: figure presence is not entailment (a passage can contain a number that a claim misreads), the eligibility check is a phrase list, and semantic grounding/conflict detection are explicitly deferred to `safe_abstention` and a later judge. Retrieval thresholds remain uncalibrated, so "covered" here means "retrieval returned at least one candidate and a claim verified", not a measured adequacy gate.
 
-Handoffs: `safe_abstention` consumes the `NotAnswered` reason codes and owns the abstention copy, next step, and stale/conflict/false-premise detection; `land_clarification`/`minimal_land_context` own `land_scope` and applicability; `answer_source_cards`/`response_states` own how markers `[n]`, the notice, and verification dates are presented (and must not duplicate the notice); `land_safety_evaluation` owns measurement. No feature in `feature_list.json` currently owns wiring `POST /ask` in FastAPI or the client's production `AnswerService`, so a live end-to-end answer remains a separate slice — recommend it after `safe_abstention`, when one route can serve all three accepted statuses. Non-blocking observation for the orchestrator: `init.sh`'s `--check` text still lists retrieval and the visual foundation as deferred.
+Handoffs: `safe_abstention` consumes the `NotAnswered` reason codes and owns the abstention copy, next step, and stale/conflict/false-premise detection; `land_clarification`/`minimal_land_context` own `land_scope` and applicability; `answer_source_cards`/`response_states` own how markers `[n]`, the notice, and verification dates are presented (and must not duplicate the notice); `land_safety_evaluation` owns measurement. No feature in `feature_list.json` currently owns wiring `POST /ask` in FastAPI or the client's production `AnswerService`, so a live end-to-end answer remains a separate slice — recommend it after `safe_abstention`, when one route can serve all three accepted statuses. Non-blocking observation for the orchestrator: `scripts/init.sh`'s `--check` text still lists retrieval and the visual foundation as deferred.
 
 ### Implementation findings
 
@@ -253,3 +193,24 @@ Recorded while implementing the spec; none changes the goal or the design.
   catalog and no passages, supply no `--eval` (the index has nothing to grade
   against). This is the strongest reading of the F4-driven requirement.
 
+
+## Focused verification
+
+`./scripts/init.sh --feature <feature-id>` runs exactly the block below. It is the feature-scoped
+tier of `./scripts/init.sh --fast`, and the cheapest check that still touches what this feature
+changed; `./scripts/init.sh --verify` remains the full gate.
+
+<!-- verify:start -->
+```sh
+python3 backend/scripts/evaluate_generation.py --catalog backend/tests/fixtures/generation/catalog.json --passages backend/tests/fixtures/generation/passages.json --eval backend/tests/fixtures/generation/eval_questions.jsonl --as-of 2026-10-13 --k 5
+./scripts/init.sh --backend-tests tests/test_generation.py
+```
+<!-- verify:end -->
+
+## Appendix
+
+The planning and verification record for this feature — repository research, implementation
+plan and tasks, verification plan, evidence to capture, implementation findings, validator
+checklist, and the feature evidence — moved verbatim to
+[`docs/specs/grounded_answer_generation.appendix.md`](grounded_answer_generation.appendix.md) on 2026-10-17 to keep this contract short.
+`docs/validations/grounded_answer_generation.md` remains the authoritative acceptance record.

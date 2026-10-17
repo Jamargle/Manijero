@@ -1,5 +1,12 @@
 # Feature Spec: `chat_home`
 
+## Source metadata
+
+- **Feature:** `chat_home` — Chat starting screen (`client`).
+- **Source behavior:** A person can open the app and see a clear Spanish prompt field and a simple way to begin, even before adding any lands.
+- **Source verification:** On Android and Desktop, open the app with no configured lands and find the question field without assistance.
+- **Note from the feature list:** Implement the shared Compose UI in `commonMain`; keep the first screen calm, readable, and focused on asking a question.
+
 ## Goal
 
 Replace the generated starter greeting with a calm, shared Compose starting screen where a Spanish-speaking user can immediately find a question composer without configuring a land.
@@ -30,3 +37,23 @@ Backend calls, answer rendering, suggested questions, land storage, navigation d
 - `./gradlew :shared:jvmTest`
 - `./gradlew :shared:testAndroidHostTest :androidApp:assembleDebug :desktopApp:build`
 - Manual smoke: open Android/Desktop, locate the Spanish field without adding a land, type a question, and confirm the action becomes available.
+
+## Focused verification
+
+`./scripts/init.sh --feature <feature-id>` runs exactly the block below. It is the feature-scoped
+tier of `./scripts/init.sh --fast`, and the cheapest check that still touches what this feature
+changed; `./scripts/init.sh --verify` remains the full gate.
+
+<!-- verify:start -->
+```sh
+./gradlew :shared:jvmTest --tests ChatHomeStateTest
+```
+<!-- verify:end -->
+
+## Appendix
+
+The planning and verification record for this feature — repository research, implementation
+plan and tasks, verification plan, evidence to capture, implementation findings, validator
+checklist, and the feature evidence — moved verbatim to
+[`docs/specs/chat_home.appendix.md`](chat_home.appendix.md) on 2026-10-17 to keep this contract short.
+`docs/validations/chat_home.md` remains the authoritative acceptance record.

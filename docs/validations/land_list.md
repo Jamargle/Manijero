@@ -27,7 +27,7 @@ results are recorded here together with the first run's confirmations.
 
 Untouched: `Land.kt`, `LandRepository.kt`, both storage adapters,
 `AddLandState.kt`, `AddLandScreen.kt`, `MainActivity.kt`, `desktopApp/main.kt`,
-`MainViewController.kt`, all Gradle files, `init.sh`, `theme/`, `backend/`,
+`MainViewController.kt`, all Gradle files, `scripts/init.sh`, `theme/`, `backend/`,
 `contracts/`, `knowledge/`, `docs/specs/add_land.md`, `PROGRESS.md`,
 `feature_list.json`. `git diff --check` clean. The only cross-feature change is
 the intended `Mis terrenos` routing change and the removal of the now-unreachable
@@ -38,13 +38,13 @@ the intended `Mis terrenos` routing change and the removal of the now-unreachabl
 Commands were re-run by the validator with `--rerun-tasks` / `--no-build-cache`
 so the results are actual executions, not cached `UP-TO-DATE` output.
 
-- `./init.sh`: exit 0 (Gradle 9.8.0 bootstrap; `--verify` is a real gate, not a
+- `./scripts/init.sh`: exit 0 (Gradle 9.8.0 bootstrap; `--verify` is a real gate, not a
   print-only command).
 - `./gradlew :shared:jvmTest --tests LandListStateTest --rerun-tasks`:
   **BUILD SUCCESSFUL**, `LandListStateTest` **6 tests / 0 failures**.
 - `./gradlew :shared:jvmTest --rerun-tasks`: **60 tests / 0 failures / 0 errors**
   across 11 classes.
-- `./init.sh --verify` (`:shared:jvmTest :shared:testAndroidHostTest
+- `./scripts/init.sh --verify` (`:shared:jvmTest :shared:testAndroidHostTest
   :androidApp:assembleDebug :desktopApp:build`): **BUILD SUCCESSFUL** (exit 0);
   `:shared:testAndroidHostTest` **57 tests / 0 failures** (includes
   `AddLandStateTest` 11/0, satisfying the spec's validator note).
@@ -137,7 +137,7 @@ rows.
 - [x] `LandListStateTest` covers empty-load success, failure-not-empty,
       order/duplicate-name/identity preservation, reload clearing, and
       Unicode/long-name preservation; `:shared:jvmTest` (60/0) and
-      `./init.sh --verify` pass.
+      `./scripts/init.sh --verify` pass.
 - [x] New copy/labels are resource-backed and reuse the existing land
       vocabulary; rows merge descendants, confirmation is a polite live region,
       and controls work with large text without color-only cues; product
@@ -175,7 +175,7 @@ rows.
    references `references/validation-rubric.md` and
    `references/security-checklist.md`, which are absent from this checkout; the
    embedded rubric and a portable security review were applied inline. Also,
-   `./init.sh --check` prints a stale status line, and `init.sh` is out of scope
+   `./scripts/init.sh --check` prints a stale status line, and `scripts/init.sh` is out of scope
    for this feature.
 6. **F5 — evidence hygiene, owner: orchestrator (this record).** Manual-smoke
    evidence and the failure trigger are recorded here because the emulator

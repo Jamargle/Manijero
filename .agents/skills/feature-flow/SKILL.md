@@ -21,8 +21,9 @@ The main agent is the orchestrator. It chooses the next role, launches the right
 - Do not implement work in the main agent while a subagent owns that role.
 - Subagents do not create commits. The main orchestrator owns final staging and commit after validator acceptance.
 - Do not treat `passing` as accepted. `passing` means implementer self-verification passed; validator `accept` is independent.
-- After validation returns `accept`, persist acceptance by changing the selected feature status in `feature_list.json` from `passing` to `accepted` and appending concise evidence that names the independent validator acceptance.
+- After validation returns `accept`, persist acceptance by changing the selected feature status in `feature_list.json` from `passing` to `accepted`. `feature_list.json` is a lean index, so never add an `evidence` array: the feature's evidence belongs in that feature's appendix (`docs/specs/<feature-id>.appendix.md`, section `Feature evidence`) and its acceptance record in `docs/validations/<feature-id>.md` — the two canonical stores; `docs/progress/session-log.md` gets one pointer line per accepted feature and never restates evidence.
 - If validation returns `revise`, route the repair brief back to `implementer` for the same feature.
+- Verification is tiered, and each tier must be reachable: a spec that publishes no focused command block is incomplete, and implementer/validator runs use `./scripts/init.sh --feature <feature-id>` and `./scripts/init.sh --fast` before paying for `./scripts/init.sh --verify`.
 - After a `revise` repair, route the same feature back to `validator`; do not stop after the repair unless the user explicitly asked for a single role step.
 - If validation returns `block`, stop and report the blocker.
 - After validation returns `accept`, stage only the accepted feature's changes and create a Conventional Commit before selecting or reporting the next feature.
@@ -33,27 +34,26 @@ The main agent is the orchestrator. It chooses the next role, launches the right
 
 1. `../../../AGENTS.md`
 2. `../../../PROGRESS.md`
-3. `feature_list.json`
+3. `./scripts/select-feature.sh --next` (feature selection); read `feature_list.json` only when you must update a feature's status
 4. `docs/specs/` if present
 5. `docs/validations/` if present
 6. Current git status
 
 ## Feature Selection
 
-If the user provides a feature id, use that feature.
+Run `./scripts/select-feature.sh --next`. It reads `feature_list.json` and prints the selected feature id and its next role; do not read or re-derive the index by hand.
 
-If no feature id is provided, select in this order:
+- `NEXT_FEATURE` / `NEXT_ROLE` — the next dependency-ready feature and the role to run (`planner`, `implementer`, or `validator`).
+- `NEXT_ROLE=none` — no dependency-ready unfinished feature. `NEXT_REASON=all features accepted` means the list is complete; otherwise `NEXT_BLOCKED` lists each blocked id and its unmet `depends_on` ids — report those instead of selecting a later blocked feature.
+- When the user provides a feature id, use that feature; take its role from the Role Selection rules below (the selector does not know a user-chosen id).
 
-1. A feature with status `in_progress`.
-2. The first `passing` feature in `feature_list.json` order; `passing` always means implemented and self-verified but not independently accepted.
-3. The first feature whose status is neither `passing` nor `accepted` in `feature_list.json` order whose `depends_on` prerequisites are satisfied and that already has a spec.
-4. The first feature whose status is neither `passing` nor `accepted` in `feature_list.json` order whose `depends_on` prerequisites are satisfied and that has no spec.
+Run `./scripts/select-feature.sh --status` for the whole-board view: a `SUMMARY` line by status, the next feature/role, and one `FEATURE` line per unfinished feature with `ready`, `unmet`, `role`, and `spec` state. When the user asks what can run in parallel, list the unfinished features with `ready=yes` in `feature_list.json` order.
 
-A feature is dependency-ready when every id in `depends_on` references a feature whose status is `accepted`. For legacy feature lists, a dependency with status `passing` may be treated as ready only when `feature_list.json`, `../../../PROGRESS.md`, or `../../../docs/validations/<feature-id>.md` contains explicit independent validator acceptance evidence. If `depends_on` is absent in an older feature list, treat it as `[]` for backward compatibility, but prefer adding it when maintaining the list.
-
-If no unfinished feature is dependency-ready, report the blocking dependency ids instead of selecting a later blocked feature. When the user asks what can run in parallel, list all dependency-ready unfinished features in `feature_list.json` order.
+The selector treats a dependency as satisfied only when its status is `accepted` (`passing` is not accepted) and never selects a `blocked` feature. It picks, in order: an `in_progress` feature, then the first `passing` feature, then the first dependency-ready unfinished feature that has a spec, then the first that has none.
 
 ## Role Selection
+
+`./scripts/select-feature.sh --next` reports `NEXT_ROLE` for the selected feature using the rules below; apply the same rules when the user provides a feature id. The selector checks whether the spec file exists, so you must still judge rule 1 when the spec is present but stale.
 
 For the selected feature:
 
@@ -95,7 +95,7 @@ Mode summary: until-accepted is the default full pipeline for one feature; one-s
 Creating the commit is the main orchestrator's final step after the validator returns `accept`; subagents never commit (see Hard Rules). The orchestrator must commit the accepted feature before reporting the flow complete.
 
 1. Run `git status --short` and inspect the relevant diff.
-2. Persist acceptance by updating `feature_list.json` for the selected feature to status `accepted` and appending concise validator evidence. If a validation artifact is useful, create or update `../../../docs/validations/<feature-id>.md`; otherwise `feature_list.json` plus `../../../PROGRESS.md` evidence is sufficient.
+2. Persist acceptance by updating `feature_list.json` for the selected feature to status `accepted`, keeping its `spec`/`validation` paths current. Do not add an `evidence` array. Create or update `../../../docs/validations/<feature-id>.md` with the acceptance record, and record the verification in the `Feature evidence` section of `../../../docs/specs/<feature-id>.appendix.md`. Add one pointer line for the accepted feature to `../../../docs/progress/session-log.md` (link the spec and the acceptance record; do not restate verification there), and update the `../../../PROGRESS.md` status board if the accepted set or open items changed.
 3. Identify the files changed for the accepted feature, including required harness/docs/evidence updates.
 4. Stage only those files. Do not stage unrelated user or other-agent changes.
 5. Create one Conventional Commit, using a message that names the feature. Prefer:
@@ -115,7 +115,7 @@ The handoff headings below are intentionally in Spanish: the skill is written in
 Include:
 
 - `Qué se ha hecho`: 2-5 bullets summarizing the accepted behavior, not internal noise.
-- `Cómo probarlo`: the automatic command, usually `CI=true ./init.sh`, plus concrete manual/local steps when the feature has observable behavior. Prefer commands the user can run directly. If manual testing needs env vars, database, a dev server, or a port, state that explicitly.
+- `Cómo probarlo`: the command that actually exercises the accepted feature — the spec's focused block `./scripts/init.sh --feature <feature-id>`, or `CI=true ./scripts/init.sh --fast` for the no-device surface (`CI=true ./scripts/init.sh --verify` for the full gate). Never present the bare `./scripts/init.sh`: it only prints a toolchain banner and exits 0 without running any check. Plus concrete manual/local steps when the feature has observable behavior. Prefer commands the user can run directly. If manual testing needs env vars, database, a dev server, or a port, state that explicitly.
 - `Validación`: validator verdict and the most relevant checks/smokes that actually ran.
 - `Commit`: hash and Conventional Commit message.
 - `Siguiente`: next feature id and next required role/action.

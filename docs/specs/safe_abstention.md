@@ -22,7 +22,7 @@ Turn every "no safe answer" outcome into one deterministic, offline, code-owned 
 - Semantic judgement (NLI/entailment), model-based conflict detection, or a hosted LLM. Detection stays lexical and conservative, as recorded in `MasterPlanV3` §12.4 and `docs/risks-and-open-questions.md`.
 - Score thresholds as release gates. No calibrated score cutoff is introduced; `land_safety_evaluation` owns measurement.
 - Land applicability, land clarification, or `land_scope` behaviour beyond echoing a validated value: those belong to `minimal_land_context` / `land_clarification`.
-- Rewriting or touching `backend/app/generation.py`, `backend/app/retrieval.py`, `backend/app/source_catalog.py`, `backend/tests/test_generation.py`, `backend/scripts/evaluate_generation.py`, `init.sh`, or any client/shared code.
+- Rewriting or touching `backend/app/generation.py`, `backend/app/retrieval.py`, `backend/app/source_catalog.py`, `backend/tests/test_generation.py`, `backend/scripts/evaluate_generation.py`, `scripts/init.sh`, or any client/shared code.
 - Adding real legal documents, deadlines, amounts, article numbers, or a canonical `knowledge/passages.json`. All fixtures stay synthetic and labeled.
 
 ## Job story
@@ -58,24 +58,6 @@ Given a request whose only candidate contains a starter eligibility phrase, when
 ### Deterministic, offline, and contract-conformant
 
 Given the same catalog, passages, question, `as-of`, and `k`, when the pipeline runs twice, then the outcome, reason, and assembled payload are identical, two `--json` CLI runs are byte-identical, a socket guard that blocks `socket.socket` still lets the pipeline abstain, and every payload matches `contracts/openapi.yaml#/components/schemas/AskResponse` with `contracts/validate_examples.py` still passing.
-
-## Repository research
-
-Inspected:
-
-- `feature_list.json`: this feature is `not_started`; `grounded_answer_generation` is `accepted`; `response_states` and `land_safety_evaluation` depend on it.
-- `AGENTS.md`, `CONTEXT.md`, `docs/build-brief.md`, `docs/domain-model.md`: abstain when evidence is absent, ambiguous, expired, conflicting, or inapplicable; never invent dates/amounts/eligibility/article numbers; fixed next step such as the Oficina Comarcal Agraria or the cooperative; critical amounts and deadlines need especially strong evidence.
-- `docs/risks-and-open-questions.md` (high risk "Unsupported or outdated legal answer"; medium risk "Critical sources contradict each other or show amendment history … abstain when status cannot be established") and `MasterPlanV3.md` §8.1 (validation cascade, `found=false` ⇒ fixed message), §9.2 ("correct abstention on trap questions" candidate gate), §12.4 (trap taxonomy: out of corpus/domain, cooperative practices, land ambiguity, false premise, organic extrapolation, prompt injection, personalized advice).
-- `docs/specs/grounded_answer_generation.md` and `docs/validations/grounded_answer_generation.md`: generation returns `NotAnswered(reason, issues, claims)` with reasons `invalid_question`, `no_candidates`, `generator_abstained`, `grounding_failed`, `policy_failed`, `generation_error`; semantic grounding, conflict detection, and user-visible abstention copy are explicitly handed to `safe_abstention`; finding F2 (non-iterable `source_markers`) is a hardening item for the generator seam.
-- `CONSTRAINTS.md`: two answer-grounding MUST rules (nothing user-visible may bypass `verify_draft`; markers/`sources`/notice are code-owned).
-- `backend/app/generation.py`: `Answered`, `NotAnswered`, `GroundingIssue`, `ClaimVerdict`, `generate_grounded_answer(question, retriever, *, k, max_claims, land_scope, as_of, generator)`, `LAND_SCOPES`, `MAX_QUESTION_CHARS`, `MAX_ANSWER_CHARS`, `ELIGIBILITY_PHRASES`, `normalize_text`, `extract_figures`, `to_answer_response`.
-- `backend/app/retrieval.py`: `Retriever.search(question, k)` is deterministic and returns `()` for a blank/out-of-vocabulary question and a zero-match index; `Retriever.from_documents` raises `CatalogRejectedError` for a non-`approved`, non-`current`, or expired catalog; public `eligible_source_ids`, `source_is_eligible`, `PassageSetError`, `load_passage_set`, `DEFAULT_K`, `PASSAGE_SET_SCHEMA_VERSION`.
-- `backend/app/source_catalog.py`: only `review_status: approved` and `lifecycle_status: current` are accepted, and `valid_until` before `--as-of` is ineligible, so any currency failure rejects the whole catalog.
-- `contracts/openapi.yaml` + `contracts/validate_examples.py` + `contracts/examples/response-abstained.json`: `AskResponse` has `additionalProperties: false` and exactly `{status, answer, sources, land_scope, land_ids_to_choose}`; `abstained` requires a non-blank `answer` ≤ 1200, `sources == []`, and `land_ids_to_choose == []`.
-- `backend/scripts/evaluate_generation.py`, `backend/tests/test_generation.py`, `backend/tests/fixtures/generation/*`, `backend/tests/fixtures/retrieval/catalog_expired.json` / `catalog_not_current.json` / `catalog_not_approved.json`: the accepted CLI conventions (`--catalog/--passages/--eval/--as-of/--k/--json/--fail-on-miss`, exit `0`/`1`/`2`, deterministic `--json`), the synthetic-fixture style, and the reusable ineligible-catalog fixtures.
-- `knowledge/README.md`, `backend/README.md`, `init.sh`, `PROGRESS.md`: corpus policy, backend boundaries, and the fact that `init.sh` has no backend command (KMP checks only).
-
-Absent, and therefore not assumed: a `POST /ask` route, any FastAPI dependency on the pipeline, a model provider, a semantic judge, a canonical `passages.json`, an `ARCHITECTURE.md`, and any persistent E2E command. This worktree has no `python` on `PATH` and the system interpreter has no `pytest`; accepted features ran pytest from a temporary out-of-repo venv with no repo dependency.
 
 ## Technical approach
 
@@ -142,9 +124,9 @@ Enforced invariants (exit `1`, because they mean an abstention leaked something)
 - Update `CONSTRAINTS.md` — one new MUST rule: no component may emit an abstention that carries sources, a figure, or a date, and abstention copy is code-owned, never generated.
 - Update `feature_list.json` and `PROGRESS.md` after implementation/validation with the real status, commands, and results (the orchestrator owns this; the planning pass records the spec link only).
 
-Explicitly **not** changed: `contracts/` (including `openapi.yaml`, examples, and `validate_examples.py`), `backend/app/retrieval.py`, `backend/app/source_catalog.py`, `backend/app/main.py`, `backend/app/generation.py`, `backend/scripts/evaluate_generation.py`, `backend/tests/test_generation.py`, `knowledge/*`, `backend/requirements.txt`, `init.sh`, and all client/shared/Android/Desktop code.
+Explicitly **not** changed: `contracts/` (including `openapi.yaml`, examples, and `validate_examples.py`), `backend/app/retrieval.py`, `backend/app/source_catalog.py`, `backend/app/main.py`, `backend/app/generation.py`, `backend/scripts/evaluate_generation.py`, `backend/tests/test_generation.py`, `knowledge/*`, `backend/requirements.txt`, `scripts/init.sh`, and all client/shared/Android/Desktop code.
 
-`init.sh`: no change. It currently executes the KMP verification checks (`--check` prints guidance; `--verify` runs the shared/Android/Desktop Gradle targets) and has no backend command; this backend slice is verified with the documented Python commands, and no long-running process or new mode is added. (The stale `--check` banner text it prints is an accepted, tracked housekeeping item, not part of this feature.)
+`scripts/init.sh`: no change. It currently executes the KMP verification checks (`--check` prints guidance; `--verify` runs the shared/Android/Desktop Gradle targets) and has no backend command; this backend slice is verified with the documented Python commands, and no long-running process or new mode is added. (The stale `--check` banner text it prints is an accepted, tracked housekeeping item, not part of this feature.)
 
 ## Visual design impact
 
@@ -160,63 +142,29 @@ None. No Compose UI and no client code change. The client feature `response_stat
 - `ARCHITECTURE.md`: not needed; absent, and a focused offline decision module does not establish a broader runtime architecture.
 - `PROGRESS.md` and `feature_list.json`: update after verification with the commands actually run; state plainly that fixtures are synthetic, detection is lexical, thresholds are not release gates, and no route exists.
 
-## Implementation plan and tasks
-
-1. Add `backend/app/abstention.py`: `ABSTENTION_REASONS`, `ABSTENTION_MESSAGES`, the generation-reason map, the `Abstention` dataclass (no text field; `message` property), `prepare_corpus`, `answer_or_abstain`, the presupposition extractor, the unit-anchored conflict helper, and `to_abstention_response`.
-2. Add the synthetic `backend/tests/fixtures/abstention/` set (labeled synthetic, no real deadline/amount/article) and the two expectation files.
-3. Add `backend/scripts/evaluate_abstention.py` with strict input validation, per-question reporting, aggregate counters (`abstentions_with_sources`, `abstentions_with_figures`, `abstention_invariants_hold`), `--json`, and the `0`/`1`/`2` contract.
-4. Add `backend/tests/test_abstention.py`: taxonomy/message invariants; payload shape; every generation reason mapped; `prepare_corpus` current vs stale vs hard error; false-premise hit/miss; unit conflict vs different-units non-conflict; no-answer-without-evidence (generator never called); determinism; socket-guard offline; content-silent diagnostics; CLI exit `0`/`1`/`2`; and a regression assertion that `answer_or_abstain` still returns `Answered` for the accepted generation fixtures.
-5. Run the CLI on the current and expired catalogs, the focused and full pytest suites, `contracts/validate_examples.py`, the unchanged generation and retrieval baselines, `py_compile`, and `git diff --check`; fix inconsistencies.
-6. Verify the feature-list verification literally: record one out-of-corpus and one false-premise question returning `abstained` with their reasons and messages, and confirm no invented legal fact appears.
-7. Update `backend/README.md` and `CONSTRAINTS.md`, then record evidence and status with only the commands actually run.
-
-## Verification plan and evidence
-
-Run from the repository root:
-
-```sh
-python3 backend/scripts/evaluate_abstention.py \
-  --catalog backend/tests/fixtures/abstention/catalog.json \
-  --passages backend/tests/fixtures/abstention/passages.json \
-  --eval backend/tests/fixtures/abstention/eval_questions.jsonl \
-  --as-of 2026-10-13 --k 5
-python3 backend/scripts/evaluate_abstention.py \
-  --catalog backend/tests/fixtures/retrieval/catalog_expired.json \
-  --eval backend/tests/fixtures/abstention/eval_questions_stale.jsonl \
-  --as-of 2026-10-13 --k 5
-python3 contracts/validate_examples.py
-python3 backend/scripts/evaluate_generation.py \
-  --catalog backend/tests/fixtures/generation/catalog.json \
-  --passages backend/tests/fixtures/generation/passages.json \
-  --eval backend/tests/fixtures/generation/eval_questions.jsonl \
-  --as-of 2026-10-13 --k 5
-python3 backend/scripts/evaluate_retrieval.py \
-  --catalog backend/tests/fixtures/retrieval/catalog.json \
-  --passages backend/tests/fixtures/retrieval/passages.json \
-  --eval backend/tests/fixtures/retrieval/eval_questions.jsonl \
-  --as-of 2026-10-13 --k 5
-cd backend && python -m pytest tests/test_abstention.py
-cd backend && python -m pytest
-python3 -m py_compile backend/app/abstention.py backend/scripts/evaluate_abstention.py backend/tests/test_abstention.py
-git diff --check
-```
-
-Capture: the out-of-corpus and false-premise questions with their reason, message, and empty `sources` (the feature-list verification); the expired-catalog run where every question is `stale_evidence`; the conflicting-critical question abstaining while a covered question still answers; `--fail-on-miss` exiting `1` on a deliberately mismatched expectation and `0` on the fixtures; byte-identical repeated `--json` runs; the socket-guard result; pytest counts for the new file and the full suite; the contract validator output plus confirmation that `contracts/` is unchanged; and the unchanged generation (`5 answers, 8 claims, 0 ungrounded, 1 no-evidence`) and retrieval (`hit@5 = 0.857 (6/7)`) baselines. Note the environment: pytest runs from a venv outside the repository and no dependency is added. No browser/API/E2E test is required because there is no `/ask` route and no persistent E2E harness; the CLI plus unit tests cover the decision.
-
-## Validator checklist
-
-- [ ] An out-of-corpus question returns `abstained` with reason `no_evidence`, empty `sources`, and a pinned Spanish message with no digit and no date.
-- [ ] A false-premise question (presupposed instrument/article absent from all candidates) returns `abstained` with reason `false_premise` and never asserts the presupposed fact; the same identifier present in a candidate does not trigger it.
-- [ ] An expired/non-`current`/non-`approved` catalog yields a corpus-level `stale_evidence` abstention for every question, while a malformed passage set or unreadable file stays a hard error.
-- [ ] Two critical candidates disagreeing on the same unit abstain as `conflicting_evidence`; two critical candidates about different units still answer, so the accepted covered question is not over-abstained.
-- [ ] Candidates without a verifiable claim map to `insufficient_evidence`; an eligibility assertion maps to `unsafe_request`; generator errors/abstentions map to their reasons; nothing from a rejected draft is emitted.
-- [ ] Every assembled payload matches `AskResponse` exactly, `contracts/validate_examples.py` passes, and `contracts/` is untouched.
-- [ ] The decision is deterministic (byte-identical `--json` runs), offline (socket guard), and content-silent in diagnostics (no question or excerpt text outside the mandated CLI review output).
-- [ ] `backend/app/generation.py`, `backend/app/retrieval.py`, `backend/app/source_catalog.py`, `backend/app/main.py`, `backend/requirements.txt`, `init.sh`, `knowledge/*`, and all client/shared code are unchanged; fixtures are synthetic and labeled with no real legal fact; `/health` remains the only route.
-- [ ] `feature_list.json`/`PROGRESS.md` report only the commands actually run and state that detection is lexical and thresholds are not release gates.
-
 ## Risks and handoff notes
 
 The false-premise and conflict checks are lexical and conservative: a retrieval miss can cause an abstention, and unit-anchored conflict detection can flag two unrelated critical passages that share a unit. Both err toward abstaining, which is the safe direction, and are documented as approximations; a semantic judge/NLI and the measured trap set belong to `land_safety_evaluation`. Broader conflict detection is intentionally narrow so the accepted covered critical question (`días` deadline plus `euros` amount) keeps answering; widening it must be measured, not assumed. The corpus is a tiny implementer-authored synthetic set, so no reason code here is a coverage or answer-quality claim.
 
 Handoffs: `response_states` owns how an abstention is presented and must not add a legal fact or contradict the pinned message; `network_error_recovery` owns retry/offline copy for `generation_error`; `land_clarification`/`minimal_land_context` own `land_scope`; `land_safety_evaluation` owns trap-question measurement and any threshold. No feature currently owns wiring `POST /ask` in FastAPI or the client's production `AnswerService`, so the abstention reason stays observable only through this CLI and the tests until that route exists; recommend the route slice after this feature, when one route can serve `answered`, `abstained`, and `needs_land_clarification`. Carried-forward accepted finding F2 (non-iterable `source_markers` in the generator seam) is unchanged here and still owed to the hosted-model path.
+
+## Focused verification
+
+`./scripts/init.sh --feature <feature-id>` runs exactly the block below. It is the feature-scoped
+tier of `./scripts/init.sh --fast`, and the cheapest check that still touches what this feature
+changed; `./scripts/init.sh --verify` remains the full gate.
+
+<!-- verify:start -->
+```sh
+python3 backend/scripts/evaluate_abstention.py --catalog backend/tests/fixtures/abstention/catalog.json --passages backend/tests/fixtures/abstention/passages.json --eval backend/tests/fixtures/abstention/eval_questions.jsonl --as-of 2026-10-13 --k 5
+./scripts/init.sh --backend-tests tests/test_abstention.py
+```
+<!-- verify:end -->
+
+## Appendix
+
+The planning and verification record for this feature — repository research, implementation
+plan and tasks, verification plan, evidence to capture, implementation findings, validator
+checklist, and the feature evidence — moved verbatim to
+[`docs/specs/safe_abstention.appendix.md`](safe_abstention.appendix.md) on 2026-10-17 to keep this contract short.
+`docs/validations/safe_abstention.md` remains the authoritative acceptance record.

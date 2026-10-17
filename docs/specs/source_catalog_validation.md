@@ -5,7 +5,9 @@
 - Feature: `source_catalog_validation` — Approved source catalog validation
 - Area: knowledge
 - Depends on: `answer_api_contract` (accepted)
+- Feature-list behavior: only catalog entries with approved provenance and required metadata can enter the MVP corpus.
 - Feature-list verification: accept a valid official-source fixture and reject a malformed or non-approved fixture.
+- Feature-list note: keep the MVP corpus curated and manually reviewed; automated discovery is deferred. The validator proves catalog-policy conformance only, never that a document is authentic, current, or legally applicable.
 - Scope size: one versioned data contract plus one offline validation flow; correctly sized.
 
 ## Goal
@@ -41,20 +43,6 @@ Given an entry whose URL host is outside the approved allowlist, uses non-HTTPS,
 ### Reproducible empty starting catalog
 
 Given the repository has no separately reviewed source documents yet, when the canonical catalog is validated, then it is a valid versioned empty catalog and does not imply corpus coverage or readiness to answer legal questions.
-
-## Repository research
-
-Inspected:
-
-- `feature_list.json`: this feature is not started, depends on accepted `answer_api_contract`, and defers automated discovery.
-- `CONTEXT.md`, `docs/build-brief.md`, and `docs/domain-model.md`: regulatory claims require approved official material; sources require a stable link, issuing body, publication/update information, and last verification date.
-- `docs/risks-and-open-questions.md`: unreviewed/malicious corpus content is a high risk; additions and changes need human review, and corpus ownership is unresolved.
-- `MasterPlanV3.md` §§3, 6.1–6.3, 7.4–7.6, and 11.3: catalog decisions live in Git; intended offline flow preserves URL/hash/download date, uses current/validity metadata, and whitelists `boe.es`, `juntadeandalucia.es`, `fega.gob.es`, and `mapa.gob.es`.
-- `contracts/openapi.yaml` and `docs/specs/answer_api_contract.md`: future answer sources expose provenance fields, but no retrieval or corpus implementation exists.
-- `backend/app/main.py`, `backend/tests/test_health.py`, and `backend/README.md`: FastAPI currently has only `/health`; pytest is the existing backend test convention.
-- `init.sh`: verifies KMP targets only; it has no backend/catalog command.
-
-No `knowledge/` directory, catalog, ingestion code, retrieval code, source artifact store, or persistent E2E command exists today. `ARCHITECTURE.md`, `CONSTRAINTS.md`, `docs/technical-discovery.md`, `docs/mvp-scope.md`, and the skill template file are absent.
 
 ## Technical approach
 
@@ -101,41 +89,27 @@ None. This is an offline repository/Knowledge Ops boundary; it changes no Compos
 - `ARCHITECTURE.md` and `CONSTRAINTS.md`: not needed; both are absent and this focused gate does not establish a broader runtime architecture.
 - `PROGRESS.md` and `feature_list.json`: update after verification; do not claim a corpus or legal review merely because the validator exists.
 
-## Implementation plan and tasks
-
-1. Create the versioned schema, canonical empty catalog, and README; make required metadata and approved-host/issuer map explicit without adding unreviewed legal data.
-2. Implement the pure validator and CLI with deterministic `--as-of`, strict keys, local-only I/O, and actionable errors.
-3. Add focused fixtures and pytest coverage for the valid official case and every rejection class in the acceptance scenarios, including no-network behavior if practical via a mocked transport guard.
-4. Run focused checks and validate the canonical empty catalog; fix contract/fixture inconsistencies.
-5. Update feature evidence/status and `PROGRESS.md` with only commands actually run and results.
-
-## Verification plan and evidence
-
-Run from repository root after installing existing backend development dependencies:
-
-```sh
-python3 backend/scripts/validate_source_catalog.py knowledge/source_catalog.json --as-of 2026-10-12
-cd backend && pytest tests/test_source_catalog.py
-```
-
-Also run the existing backend regression suite:
-
-```sh
-cd backend && pytest
-```
-
-Capture command output; accepted fixture name/count; each invalid fixture's non-zero result and diagnostic; canonical empty catalog result; and `git diff --check`. No browser, API, or E2E test is required because the feature has neither a user-facing/API flow nor a persistent E2E framework.
-
-## Validator checklist
-
-- [ ] Canonical catalog and schema are versioned, tracked, and validate while empty.
-- [ ] A valid fixture uses a whitelisted official HTTPS host and all required provenance/review fields.
-- [ ] Malformed, duplicate-ID, non-HTTPS/lookalike/non-approved host, unapproved, non-current, and expired fixtures fail non-zero with useful diagnostics.
-- [ ] Digest/date/order and issuer-host checks are covered by tests.
-- [ ] Validation is local-only, deterministic with `--as-of`, dependency-free, and does not log source content or make legal/currentness claims.
-- [ ] No retrieval, document ingestion, `/ask`, client UI, automated discovery, or unrelated files are added.
-- [ ] `feature_list.json` and `PROGRESS.md` report only verification actually performed.
-
 ## Risks and handoff notes
 
 The validator proves catalog-policy conformance, not that a remote document is authentic, current, or legally applicable. A named corpus-review owner and first-pilot topic coverage remain open product/operations questions. The implementation agent should preserve this distinction, add no real document until it has human approval, and hand the validated catalog boundary to the later `source_retrieval` feature.
+
+## Focused verification
+
+`./scripts/init.sh --feature <feature-id>` runs exactly the block below. It is the feature-scoped
+tier of `./scripts/init.sh --fast`, and the cheapest check that still touches what this feature
+changed; `./scripts/init.sh --verify` remains the full gate.
+
+<!-- verify:start -->
+```sh
+python3 backend/scripts/validate_source_catalog.py knowledge/source_catalog.json --as-of 2026-10-13
+./scripts/init.sh --backend-tests tests/test_source_catalog.py
+```
+<!-- verify:end -->
+
+## Appendix
+
+The planning and verification record for this feature — repository research, implementation
+plan and tasks, verification plan, evidence to capture, implementation findings, validator
+checklist, and the feature evidence — moved verbatim to
+[`docs/specs/source_catalog_validation.appendix.md`](source_catalog_validation.appendix.md) on 2026-10-17 to keep this contract short.
+`docs/validations/source_catalog_validation.md` remains the authoritative acceptance record.
