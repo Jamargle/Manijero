@@ -35,7 +35,8 @@ Usage: ./scripts/init.sh [--check|--fast|--verify|--feature <id>|--backend-tests
 
   --check                   Check Java and the Gradle wrapper, then print standard commands (default)
   --fast                    Shared host tests, contract examples, backend unit tests, and the five
-                            offline evaluators (no Android SDK or Desktop build needed)
+                            offline evaluators, run concurrently (no Android SDK or Desktop build
+                            needed). Fails if any single check fails.
   --verify                  Full gate: --fast, then the Android host tests and the Android/Desktop
                             builds (--full is an alias)
   --feature <id>            Run the focused verification published in docs/specs/<id>.md
@@ -126,17 +127,73 @@ run_backend_tests() {
 }
 
 # Tier 1: everything that runs without an Android device, an emulator, or a Desktop run.
+#
+# The shared host tests, the contract validator, the backend unit tests, the
+# source-catalog validator, and the five offline evaluators are read-only, offline,
+# and mutually independent, so the fast tier runs them concurrently. Each job writes
+# to its own log, so concurrent output never interleaves; the logs are replayed in a
+# fixed order once the job has finished. Every exit code is collected before the tier
+# decides, so the tier fails closed if any single check fails and never aborts a
+# sibling mid-run.
+FAST_JOB_NAMES=()
+FAST_JOB_PIDS=()
+FAST_JOB_LOGS=()
+
+# fast_job <workdir> <job-name> <command...>
+# Starts one fast-tier check in the background, capturing its output to
+# <workdir>/<job-name>.log and registering it for run_offline_checks.
+fast_job() {
+  local workdir="$1" name="$2"
+  shift 2
+  local log="$workdir/$name.log"
+  FAST_JOB_NAMES+=("$name")
+  FAST_JOB_LOGS+=("$log")
+  ( "$@" ) >"$log" 2>&1 &
+  FAST_JOB_PIDS+=("$!")
+}
+
+run_offline_checks() {
+  local workdir
+  workdir="$(mktemp -d "${TMPDIR:-/tmp}/manijero-fast-XXXXXX")"
+  FAST_JOB_NAMES=()
+  FAST_JOB_PIDS=()
+  FAST_JOB_LOGS=()
+
+  fast_job "$workdir" gradle-jvm-test ./gradlew :shared:jvmTest
+  fast_job "$workdir" contract-examples run_python contracts/validate_examples.py
+  fast_job "$workdir" backend-tests run_backend_tests 0
+  fast_job "$workdir" source-catalog run_python backend/scripts/validate_source_catalog.py knowledge/source_catalog.json --as-of "$AS_OF"
+  fast_job "$workdir" retrieval run_python backend/scripts/evaluate_retrieval.py --catalog backend/tests/fixtures/retrieval/catalog.json --passages backend/tests/fixtures/retrieval/passages.json --eval backend/tests/fixtures/retrieval/eval_questions.jsonl --as-of "$AS_OF" --k 5
+  fast_job "$workdir" generation run_python backend/scripts/evaluate_generation.py --catalog backend/tests/fixtures/generation/catalog.json --passages backend/tests/fixtures/generation/passages.json --eval backend/tests/fixtures/generation/eval_questions.jsonl --as-of "$AS_OF" --k 5
+  fast_job "$workdir" abstention run_python backend/scripts/evaluate_abstention.py --catalog backend/tests/fixtures/abstention/catalog.json --passages backend/tests/fixtures/abstention/passages.json --eval backend/tests/fixtures/abstention/eval_questions.jsonl --as-of "$AS_OF" --k 5
+  fast_job "$workdir" clarification run_python backend/scripts/evaluate_clarification.py --catalog backend/tests/fixtures/clarification/catalog.json --passages backend/tests/fixtures/clarification/passages.json --eval backend/tests/fixtures/clarification/eval_questions.jsonl --as-of "$AS_OF" --k 5
+  fast_job "$workdir" land-safety run_python backend/scripts/evaluate_land_safety.py --catalog backend/tests/fixtures/land_safety/catalog.json --passages backend/tests/fixtures/land_safety/passages.json --cases backend/tests/fixtures/land_safety/cases.json --as-of "$AS_OF" --k 5
+
+  printf '\nRunning %d independent offline checks concurrently...\n' "${#FAST_JOB_PIDS[@]}"
+
+  local status=0 failed=() i code
+  for i in "${!FAST_JOB_PIDS[@]}"; do
+    code=0
+    wait "${FAST_JOB_PIDS[$i]}" || code=$?
+    printf '\n---- %s ----\n' "${FAST_JOB_NAMES[$i]}"
+    cat "${FAST_JOB_LOGS[$i]}"
+    if (( code != 0 )); then
+      failed+=("${FAST_JOB_NAMES[$i]}")
+      status=1
+    fi
+  done
+  rm -rf "$workdir"
+
+  if (( status != 0 )); then
+    printf '\nFast tier failed: %s\n' "${failed[*]}" >&2
+    return 1
+  fi
+  printf '\nAll %d offline checks passed.\n' "${#FAST_JOB_PIDS[@]}"
+}
+
 run_fast() {
-  printf '\n== Fast tier: shared host tests, contract examples, and backend checks ==\n'
-  ./gradlew :shared:jvmTest
-  run_python contracts/validate_examples.py
-  run_backend_tests 0
-  run_python backend/scripts/validate_source_catalog.py knowledge/source_catalog.json --as-of "$AS_OF"
-  run_python backend/scripts/evaluate_retrieval.py --catalog backend/tests/fixtures/retrieval/catalog.json --passages backend/tests/fixtures/retrieval/passages.json --eval backend/tests/fixtures/retrieval/eval_questions.jsonl --as-of "$AS_OF" --k 5
-  run_python backend/scripts/evaluate_generation.py --catalog backend/tests/fixtures/generation/catalog.json --passages backend/tests/fixtures/generation/passages.json --eval backend/tests/fixtures/generation/eval_questions.jsonl --as-of "$AS_OF" --k 5
-  run_python backend/scripts/evaluate_abstention.py --catalog backend/tests/fixtures/abstention/catalog.json --passages backend/tests/fixtures/abstention/passages.json --eval backend/tests/fixtures/abstention/eval_questions.jsonl --as-of "$AS_OF" --k 5
-  run_python backend/scripts/evaluate_clarification.py --catalog backend/tests/fixtures/clarification/catalog.json --passages backend/tests/fixtures/clarification/passages.json --eval backend/tests/fixtures/clarification/eval_questions.jsonl --as-of "$AS_OF" --k 5
-  run_python backend/scripts/evaluate_land_safety.py --catalog backend/tests/fixtures/land_safety/catalog.json --passages backend/tests/fixtures/land_safety/passages.json --cases backend/tests/fixtures/land_safety/cases.json --as-of "$AS_OF" --k 5
+  printf '\n== Fast tier: shared host tests, contract examples, backend tests, and offline evaluators ==\n'
+  run_offline_checks
   printf '\nFast tier passed.\n'
 }
 
@@ -187,7 +244,7 @@ Manijero MVP — the Android and Desktop apps render the shared Kotlin Multiplat
 
 Verification tiers:
   ./scripts/init.sh --feature <id>  # focused checks published in docs/specs/<id>.md
-  ./scripts/init.sh --fast          # shared host tests + contract examples + backend tests + offline evaluators
+  ./scripts/init.sh --fast          # shared host tests + contract examples + backend tests + offline evaluators (concurrent)
   ./scripts/init.sh --verify        # --fast + Android host tests + Android debug APK + Desktop build
 
 Build and run:
