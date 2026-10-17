@@ -8,8 +8,12 @@
     "docs/domain-model.md",
     "docs/risks-and-open-questions.md",
     "DESIGN.md",
-    "MasterPlanV3.md"
+    "ARCHITECTURE.md"
   ],
+  "historical_reference": {
+    "path": "MasterPlanV3.md",
+    "guidance": "Historical reference — do not read per feature."
+  },
   "status_values": [
     "not_started",
     "in_progress",
