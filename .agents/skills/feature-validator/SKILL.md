@@ -46,7 +46,7 @@ Identify:
 - spec path,
 - implementation diff,
 - claimed status in `feature_list.json` (a lean index: `spec` and `validation` point at the feature's documents),
-- evidence recorded in the `Feature evidence` section of `../../../docs/specs/<feature-id>.md` and the acceptance record `../../../docs/validations/<feature-id>.md`.
+- evidence recorded in the `Feature evidence` section of `../../../docs/specs/<feature-id>.appendix.md` and the acceptance record `../../../docs/validations/<feature-id>.md`.
 
 Status convention:
 
@@ -131,7 +131,7 @@ For each finding that leads to `revise` or `block`, include:
 
 If the verdict is `revise`, also include an `Implementation Repair Brief` that can be handed directly to the implementer. It should be ordered, scoped, and executable without this chat.
 
-Do not mark final acceptance in files unless the user explicitly asks. In normal feature-flow orchestration, the main orchestrator persists validator `accept` by setting the feature status to `accepted` in `feature_list.json`, recording the verification in the spec's `Feature evidence` section, and adding one pointer line to `docs/progress/session-log.md`. If you are run directly as validator, return the verdict and recommended state update instead of editing files.
+Do not mark final acceptance in files unless the user explicitly asks. In normal feature-flow orchestration, the main orchestrator persists validator `accept` by setting the feature status to `accepted` in `feature_list.json`, recording the verification in the appendix's `Feature evidence` section, and adding one pointer line to `docs/progress/session-log.md`. If you are run directly as validator, return the verdict and recommended state update instead of editing files.
 
 ## Output Summary
 

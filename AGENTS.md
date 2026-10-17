@@ -4,12 +4,12 @@ Manijero is a Kotlin Multiplatform olive-grove assistant for people with little 
 
 ## Route by task
 
-Read the row that matches the work in front of you; a routine feature change needs `PROGRESS.md` "Current state" plus that feature's spec. Everything else is on demand, including the long-form history in `docs/progress/`.
+Read the row that matches the work in front of you; a routine feature change needs `PROGRESS.md` "Current state" plus that feature's spec contract. Everything else is on demand, including that feature's appendix and the long-form history in `docs/progress/`.
 
 | Work in front of you | Read | On demand |
 |---|---|---|
 | Every session | [PROGRESS.md](PROGRESS.md) "Current state" — accepted set, open items, honesty limits | [docs/progress/current-state.md](docs/progress/current-state.md) for the long-form narrative and [docs/progress/session-log.md](docs/progress/session-log.md) for the chronological pointer index: on demand, not for routine work |
-| Plan, implement, or validate one feature | its spec [docs/specs/](docs/specs/)/`<feature-id>.md` and its acceptance record [docs/validations/](docs/validations/)/`<feature-id>.md` | [feature_list.json](feature_list.json) for status and dependencies |
+| Plan, implement, or validate one feature | the spec contract [docs/specs/](docs/specs/)/`<feature-id>.md` and its acceptance record [docs/validations/](docs/validations/)/`<feature-id>.md` | the feature's appendix [docs/specs/](docs/specs/)/`<feature-id>.appendix.md` (repository research, implementation plan, validator checklist, feature evidence) and [feature_list.json](feature_list.json) for status and dependencies |
 | User-facing UI or Spanish copy | [DESIGN.md](DESIGN.md) | the spec of the feature that owns the surface |
 | A domain term, product-scope, or audience question | [CONTEXT.md](CONTEXT.md) — glossary, users, scope markers | [docs/build-brief.md](docs/build-brief.md), [docs/domain-model.md](docs/domain-model.md) |
 | An architecture, module, dependency, or contract boundary | [ARCHITECTURE.md](ARCHITECTURE.md) — the current map | a matching [MasterPlanV3.md](MasterPlanV3.md) section is historical, not current |
@@ -26,7 +26,7 @@ Pick the next feature and its next role with `./scripts/select-feature.sh --next
 
 ## Track the work
 
-- [feature_list.json](feature_list.json) is a lean index of `id`, `area`, `title`, `status`, `depends_on`, `spec`, and `validation`. The feature's user-visible behavior, verification, and notes live in the "Source metadata" section of [docs/specs/](docs/specs/)/`<feature-id>.md`; its verification lives in that spec's "Feature evidence" section, and its acceptance record lives in [docs/validations/](docs/validations/)/`<feature-id>.md`.
+- [feature_list.json](feature_list.json) is a lean index of `id`, `area`, `title`, `status`, `depends_on`, `spec`, and `validation`. The feature's user-visible behavior, verification, and notes live in the "Source metadata" section of [docs/specs/](docs/specs/)/`<feature-id>.md`; the planning and verification record (repository research, implementation plan, validator checklist, and the raw "Feature evidence") lives in the feature's appendix [docs/specs/](docs/specs/)/`<feature-id>.appendix.md`, and its acceptance record lives in [docs/validations/](docs/validations/)/`<feature-id>.md`.
 - Record verified progress in [PROGRESS.md](PROGRESS.md) — the status board — and add one line per accepted feature to [docs/progress/session-log.md](docs/progress/session-log.md), which is a pointer index: link the spec and the acceptance record, never restate the verification.
 
 ## Project skills

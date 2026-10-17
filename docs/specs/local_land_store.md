@@ -60,12 +60,10 @@ changed; `./scripts/init.sh --verify` remains the full gate.
 ```
 <!-- verify:end -->
 
-## Feature evidence
+## Appendix
 
-Moved verbatim from `feature_list.json` on 2026-10-17, when that file became a lean index
-(status, dependencies, and verification only). `feature_list.json` remains authoritative
-for status and dependencies, and `docs/validations/<feature-id>.md` remains authoritative
-for the independent acceptance record.
-
-- Implemented shared LandRepository with versioned local serialization and Android SharedPreferences/Desktop file adapters.
-- Independent review accepted: :shared:jvmTest passes, including two-record reopen persistence, update/delete isolation, unknown values, and validation; Android compilation is environment-blocked because no SDK/local.properties is available. Record: docs/validations/local_land_store.md.
+The planning and verification record for this feature — repository research, implementation
+plan and tasks, verification plan, evidence to capture, implementation findings, validator
+checklist, and the feature evidence — moved verbatim to
+[`docs/specs/local_land_store.appendix.md`](local_land_store.appendix.md) on 2026-10-17 to keep this contract short.
+`docs/validations/local_land_store.md` remains the authoritative acceptance record.

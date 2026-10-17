@@ -12,7 +12,7 @@ Update docs only when the change creates or changes knowledge future agents need
 - `../../../../docs/specs/<feature-id>.md`: update if implementation discovers that the spec was wrong, incomplete, or materially changed by necessary findings.
 - `../../../../docs/progress/session-log.md`: the main orchestrator adds one pointer line per accepted feature; do not append verification prose here (the `../../../../PROGRESS.md` status board changes only when the accepted set, open items, or limits change).
 - `feature_list.json`: update the selected feature's status every implementation session. It is a lean index (`id`, `area`, `title`, `status`, `depends_on`, `spec`, `validation`); do not add an `evidence` array or duplicate the spec's prose here.
-- `docs/specs/<feature-id>.md`: append what changed, what ran, and what failed to its `Feature evidence` section (the canonical verification store).
+- `docs/specs/<feature-id>.appendix.md`: append what changed, what ran, and what failed to its `Feature evidence` section (the canonical verification store).
 
 Do not create architecture or constraints docs just to look complete. Create them when they reduce future rediscovery or prevent future mistakes.
 
@@ -27,7 +27,7 @@ Feature status convention:
 - `accepted`: independent validation returned `accept` and the main orchestrator persisted that result. Implementers must not set this status.
 - `blocked`: implementation cannot continue with the current spec/context.
 
-Do not use `passing` to mean final approval. Final approval is a validator verdict persisted by the main orchestrator as `accepted` in `feature_list.json`, with the verification in the `Feature evidence` section of `../../../../docs/specs/<feature-id>.md`, the acceptance record `../../../../docs/validations/<feature-id>.md`, and one pointer line in `../../../../docs/progress/session-log.md`.
+Do not use `passing` to mean final approval. Final approval is a validator verdict persisted by the main orchestrator as `accepted` in `feature_list.json`, with the verification in the `Feature evidence` section of `../../../../docs/specs/<feature-id>.appendix.md`, the acceptance record `../../../../docs/validations/<feature-id>.md`, and one pointer line in `../../../../docs/progress/session-log.md`.
 
 ## `scripts/init.sh` Rule
 

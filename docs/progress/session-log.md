@@ -2,7 +2,7 @@
 
 Chronological pointer index for Manijero, newest entries last. This file records **what happened
 and where the record lives**, never the verification itself: an accepted feature's raw verification
-is its spec's "Feature evidence" section (`docs/specs/<feature-id>.md`), and its authoritative
+is the `Feature evidence` section of the feature's appendix (`docs/specs/<feature-id>.appendix.md`), and its authoritative
 acceptance record is `docs/validations/<feature-id>.md`. Add exactly one line per event and do not
 restate evidence here.
 
@@ -50,3 +50,4 @@ restate evidence here.
 | 2026-10-17 | Harness: moved the session log out of `PROGRESS.md`. | `docs/progress/session-log.md` |
 | 2026-10-17 | Harness: collapsed the four overlapping copies of feature evidence. | deleted `docs/progress/feature-evidence.md`; this log is now a one-line pointer index; canonical stores are `docs/validations/<feature-id>.md` (acceptance) and the spec's "Feature evidence" (raw verification) |
 | 2026-10-17 | Harness: made `feature_list.json` a true lean index — moved each feature's user-visible behavior, verification, and notes into its spec's "Source metadata" section; the index now carries only `id`, `area`, `title`, `status`, `depends_on`, `spec`, and `validation`. | `feature_list.json`, `docs/specs/<feature-id>.md` |
+| 2026-10-17 | Harness: split every accepted spec into a bounded contract (`docs/specs/<id>.md`) plus a verbatim appendix (`docs/specs/<id>.appendix.md`) holding repository research, implementation plan, verification plan, validator checklist, and "Feature evidence"; evidence now records to the appendix. | `docs/specs/`, `feature_list.json`, `AGENTS.md`, `PROGRESS.md`, `.agents/skills/feature-{spec,implementer,flow,validator}/` |

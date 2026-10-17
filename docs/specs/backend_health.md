@@ -51,13 +51,10 @@ changed; `./scripts/init.sh --verify` remains the full gate.
 ```
 <!-- verify:end -->
 
-## Feature evidence
+## Appendix
 
-Moved verbatim from `feature_list.json` on 2026-10-17, when that file became a lean index
-(status, dependencies, and verification only). `feature_list.json` remains authoritative
-for status and dependencies, and `docs/validations/<feature-id>.md` remains authoritative
-for the independent acceptance record.
-
-- Implemented FastAPI GET /health with documented HTTP 200 response.
-- backend/tests: 2 passed; Uvicorn HTTP smoke check returned the documented JSON body.
-- Independent validation: accept (2026-10-11). Record: docs/validations/backend_health.md.
+The planning and verification record for this feature — repository research, implementation
+plan and tasks, verification plan, evidence to capture, implementation findings, validator
+checklist, and the feature evidence — moved verbatim to
+[`docs/specs/backend_health.appendix.md`](backend_health.appendix.md) on 2026-10-17 to keep this contract short.
+`docs/validations/backend_health.md` remains the authoritative acceptance record.

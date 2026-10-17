@@ -1,7 +1,7 @@
 {
   "project": "Manijero — Olive Grove Assistant",
   "schema_version": "feature-list-v3",
-  "evidence_location": "docs/specs/<feature-id>.md, section \"Feature evidence\"",
+  "evidence_location": "docs/specs/<feature-id>.appendix.md, section \"Feature evidence\"",
   "source_of_truth": [
     "CONTEXT.md",
     "docs/build-brief.md",
