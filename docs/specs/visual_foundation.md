@@ -282,3 +282,18 @@ Evidence to capture: the two test-task outputs with new test names and counts, `
 - [ ] Enlarged-text checks show no clipping on the chat and land screens, with the Desktop scaling limitation reported rather than claimed.
 - [ ] Android and Desktop manual evidence (screenshots or a written record) shows canvas background, olive primary, surface cards/inputs, and caution/danger pairs, and the greyscale check is recorded.
 - [ ] `feature_list.json`/`PROGRESS.md` were not modified by planning; the spec's file list matches the actual diff.
+
+## Feature evidence
+
+Moved verbatim from `feature_list.json` on 2026-10-17, when that file became a lean index
+(status, dependencies, and verification only). `feature_list.json` remains authoritative
+for status and dependencies, and `docs/validations/<feature-id>.md` remains authoritative
+for the independent acceptance record.
+
+- Spec: docs/specs/visual_foundation.md.
+- New shared theme package in commonMain (shared/src/commonMain/kotlin/com/jamarglex/manijero/theme/): ManijeroColors.kt (DESIGN.md tokens + derived values, a fully specified lightColorScheme, ManijeroSemanticColors/LocalManijeroSemanticColors, dependency-free WCAG helpers), ManijeroTypography.kt (single documented bodySmall 16sp->18sp line-height override), and ManijeroTheme.kt (theme + semantic local + review-only token-board previews).
+- ManijeroTheme is applied once inside App() (the shared composition root) and all fifteen existing previews (seven in App.kt, eight in AddLandScreen.kt) use it; the Android, Desktop and iOS hosts stay theme-free and inherit one shared theme. No layout, copy, spacing, or behavior changed; no new module, framework, or dependency.
+- ./init.sh --verify -> BUILD SUCCESSFUL. ./gradlew :shared:jvmTest :shared:testAndroidHostTest --rerun-tasks -> BUILD SUCCESSFUL: 54 JVM tests / 0 failures (ManijeroColorsTest 10, ManijeroTypographyTest 4 new) and 51 Android host tests / 0 failures; :androidApp:assembleDebug and :desktopApp:build pass.
+- Centralization greps: no Color(0x outside theme/; no argument-less MaterialTheme {; MaterialTheme( only in theme/ManijeroTheme.kt; no LocalMinimumInteractiveComponentSize/minimumInteractiveComponentSize override.
+- DESIGN.md updated with the derived-token table and the light-only decision. Self-verified; awaiting independent validation.
+- Independent validator ACCEPTED (record: docs/validations/visual_foundation.md) after re-running ./init.sh --verify and :shared:jvmTest :shared:testAndroidHostTest --rerun-tasks (54 JVM / 51 Android host tests, 0 failures), reproducing the WCAG pairs with an independent computation, and confirming scope discipline (commonMain-only theme, no new module/dependency, hosts/strings/Gradle untouched, no logging).

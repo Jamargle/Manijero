@@ -30,3 +30,17 @@ Backend calls, answer rendering, suggested questions, land storage, navigation d
 - `./gradlew :shared:jvmTest`
 - `./gradlew :shared:testAndroidHostTest :androidApp:assembleDebug :desktopApp:build`
 - Manual smoke: open Android/Desktop, locate the Spanish field without adding a land, type a question, and confirm the action becomes available.
+
+## Feature evidence
+
+Moved verbatim from `feature_list.json` on 2026-10-17, when that file became a lean index
+(status, dependencies, and verification only). `feature_list.json` remains authoritative
+for status and dependencies, and `docs/validations/<feature-id>.md` remains authoritative
+for the independent acceptance record.
+
+- Spec: docs/specs/chat_home.md.
+- Reproducible project wrapper restored from the project setup (Gradle 9.8.0); ./init.sh completes successfully.
+- ./gradlew :shared:jvmTest passes; ./gradlew :desktopApp:build passes and compiles the shared Compose screen.
+- ./init.sh --verify, ./gradlew :shared:testAndroidHostTest, and ./init.sh --android are blocked before compilation because this worktree has no ANDROID_HOME or local.properties sdk.dir.
+- Self-verification passes for the implemented shared/Desktop scope; Android verification remains environment-blocked and is not claimed.
+- Independent validator accepted commit 47e80c8 after confirming scope, accessibility labels, wrapper reproducibility, and all feasible checks. Record: docs/validations/chat_home.md.

@@ -147,3 +147,20 @@ Android verification is currently environment-blocked when `ANDROID_HOME`/`local
 - [ ] Controls are keyboard-operable, screen-reader-readable as text controls, wrap under enlarged text, and fit Android/Desktop layouts.
 - [ ] `:shared:jvmTest` passes; `--verify` result and any Android SDK limitation are truthfully recorded.
 - [ ] No backend, land, navigation, platform-entry, dependency, or unrelated feature changes are included.
+
+## Feature evidence
+
+Moved verbatim from `feature_list.json` on 2026-10-17, when that file became a lean index
+(status, dependencies, and verification only). `feature_list.json` remains authoritative
+for status and dependencies, and `docs/validations/<feature-id>.md` remains authoritative
+for the independent acceptance record.
+
+- Spec: docs/specs/suggested_questions.md.
+- Added ChatHomeAction.SuggestedQuestionSelected(String) and a pure reducer case that sets question to the supplied text and clears submittedQuestion; no API/navigation/dependency added.
+- The three approved example strings are shipped verbatim as shared Compose string resources (chat_home_suggestion_solicitud_unica, chat_home_suggestion_sigpac, chat_home_suggestion_condicionalidad); a byte-for-byte comparison against the spec Content decision passed, and the unapproved deadline wording is absent.
+- ./gradlew :shared:jvmTest passes; ChatHomeStateTest 7/7, including 4 new tests (example replaces existing text, clears stale submitted state, submits verbatim then keeps edits, Spanish/Unicode punctuation intact).
+- ./init.sh --verify BUILD SUCCESSFUL: :shared:jvmTest, :shared:testAndroidHostTest (ChatHomeStateTest 7/7), :androidApp:assembleDebug (androidApp-debug.apk built), :desktopApp:build.
+- Android emulator smoke (Medium_Phone_API_35, 1080x2400, debug APK): all three examples visible without sideways scrolling; tapping each fills the composer with the exact question and enables Preguntar with no answer/network state; submit shows only 'Tu pregunta está lista para continuar.'; re-selecting an example clears the stale submitted message; at font_scale 2.0 the labels wrap to two lines with no horizontal overflow (max right edge 954 of 1080).
+- Desktop: :desktopApp:run launched the shared App() and stayed alive ~50s with no runtime exception; interactive visual/click smoke was not captured in this non-interactive session.
+- Ready for independent validation; no Android SDK blocker remains in this worktree.
+- Independent validator ACCEPTED this feature (record: docs/validations/suggested_questions.md) after re-running :shared:jvmTest --rerun-tasks (ChatHomeStateTest 7/7), :shared:testAndroidHostTest, :androidApp:assembleDebug, and :desktopApp:build, and independently confirming the three shipped strings match the spec byte-for-byte with no unapproved wording.

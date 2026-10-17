@@ -8,7 +8,7 @@ Manijero is a Kotlin Multiplatform olive-grove assistant for people with little 
 - Read [CONTEXT.md](CONTEXT.md), [the build brief](docs/build-brief.md), [the domain model](docs/domain-model.md), and [the design direction](DESIGN.md) before product, domain, or UI work.
 - Read [risks and open questions](docs/risks-and-open-questions.md) and the relevant section of [MasterPlanV3.md](MasterPlanV3.md) for unresolved constraints and technical context.
 - Run `./init.sh` to check the local toolchain and show standard commands. Run `./init.sh --verify` for the documented Android, Desktop, and shared test/build checks.
-- Track user-visible work in [feature_list.json](feature_list.json); record verified progress in [PROGRESS.md](PROGRESS.md) (status board and session log).
+- Track user-visible work in [feature_list.json](feature_list.json) — a lean index of status, dependencies, and verification. Each feature's own document is [docs/specs/](docs/specs/) (`docs/specs/<feature-id>.md`, section "Feature evidence"); record verified progress in [PROGRESS.md](PROGRESS.md) (status board and session log).
 
 ## Project skills
 

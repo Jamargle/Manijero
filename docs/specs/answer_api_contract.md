@@ -118,3 +118,12 @@ the OpenAPI document for the three statuses, `POST /ask`, and the privacy descri
 - [ ] Fixtures cover general, all-land, answered, abstained, and clarification cases.
 - [ ] Focused validation passes with no third-party dependencies.
 - [ ] No application or unrelated feature files are changed.
+
+## Feature evidence
+
+Moved verbatim from `feature_list.json` on 2026-10-17, when that file became a lean index
+(status, dependencies, and verification only). `feature_list.json` remains authoritative
+for status and dependencies, and `docs/validations/<feature-id>.md` remains authoritative
+for the independent acceptance record.
+
+- Accepted after independent contract review: python3 contracts/validate_examples.py, Python syntax compilation, Ruby YAML parse, and git diff --check all passed; answered, abstained, and needs_land_clarification fixtures plus privacy rules were reviewed. Record: docs/validations/answer_api_contract.md.

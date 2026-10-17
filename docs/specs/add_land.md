@@ -171,3 +171,18 @@ Capture command output, environment limitations (especially missing Android SDK)
   `selectableGroup`, and a blank-name save announces the unchanged required-name message and returns
   input focus to the name field. No visible copy, layout, state, persistence, or accepted behavior
   changed.
+
+## Feature evidence
+
+Moved verbatim from `feature_list.json` on 2026-10-17, when that file became a lean index
+(status, dependencies, and verification only). `feature_list.json` remains authoritative
+for status and dependencies, and `docs/validations/<feature-id>.md` remains authoritative
+for the independent acceptance record.
+
+- Spec: docs/specs/add_land.md. Implemented the shared AddLandState/AddLandAction reducer with draft mapping (shared/src/commonMain/.../lands/AddLandState.kt), the stateless resource-backed AddLandScreen with previews (AddLandScreen.kt), Spanish add-land copy in composeResources/values/strings.xml, and App() destination plus lands wiring that catches save failures without logging land data.
+- Composition roots: Android builds one LandRepository(SharedPreferencesLandStorage(applicationContext)); Desktop builds one remembered LandRepository(FileLandStorage(~/.manijero/lands-v1.txt)). The no-argument App() is retained for the iOS scaffold and previews, where the lands action stays unavailable instead of creating a common-code store.
+- ./init.sh --verify passes (this worktree has local.properties after init.sh): :shared:jvmTest 21 tests/0 failures, :shared:testAndroidHostTest 20 tests/0 failures, :androidApp:assembleDebug, :desktopApp:build.
+- New focused tests: 11 in AddLandStateTest (UNKNOWN defaults, blank/whitespace name rejected with no draft, name-only and IRRIGATED/ORGANIC mapping, deliberate MIXED, Unicode name, save-failure retention and retry, error clearing, two-land persistence after reopening) plus AddLandDesktopStoreTest against the real FileLandStorage.
+- Desktop startup smoke: ./gradlew :desktopApp:run launched com.jamarglex.manijero.MainKt with the injected file store and stayed running without startup errors until the session stopped it (SIGTERM exit 143).
+- Not verified by automated UI tests: interactive Android/Desktop device clicks and screen-reader/large-text checks; no emulator, device, or Compose UI-test harness exists, and the spec defers this to land_form_accessibility. Reported honestly rather than claimed.
+- Independent validator accepted (2026-10-12) after re-running ./init.sh --verify, :shared:jvmTest and :shared:testAndroidHostTest with --rerun-tasks (21 and 20 tests, 0 failures), :androidApp:assembleDebug, :desktopApp:build, and a Desktop startup smoke; confirmed scope discipline, commonMain-only product UI, no land data or raw exception logging, and the copy contract. Record: docs/validations/add_land.md.

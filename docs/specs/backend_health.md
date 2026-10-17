@@ -30,3 +30,14 @@ with Uvicorn and request `/health` with `curl` for the operator smoke check.
 `backend/README.md` documents the endpoint and explicitly distinguishes HTTP
 process liveness from dependency readiness. No client or global architecture
 change is required.
+
+## Feature evidence
+
+Moved verbatim from `feature_list.json` on 2026-10-17, when that file became a lean index
+(status, dependencies, and verification only). `feature_list.json` remains authoritative
+for status and dependencies, and `docs/validations/<feature-id>.md` remains authoritative
+for the independent acceptance record.
+
+- Implemented FastAPI GET /health with documented HTTP 200 response.
+- backend/tests: 2 passed; Uvicorn HTTP smoke check returned the documented JSON body.
+- Independent validation: accept (2026-10-11). Record: docs/validations/backend_health.md.

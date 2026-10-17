@@ -11,7 +11,8 @@ Update docs only when the change creates or changes knowledge future agents need
 - `../../../../CONSTRAINTS.md`: create/update when a durable MUST/MUST NOT rule appears that future agents must obey.
 - `../../../../docs/specs/<feature-id>.md`: update if implementation discovers that the spec was wrong, incomplete, or materially changed by necessary findings.
 - `../../../../PROGRESS.md`: update every implementation session.
-- `feature_list.json`: update selected feature status and evidence every implementation session.
+- `feature_list.json`: update the selected feature's status every implementation session. It is a lean index (`id`, `area`, `title`, `user_visible_behavior`, `depends_on`, `status`, `verification`, `spec`, `validation`, `notes`); do not add an `evidence` array.
+- `docs/specs/<feature-id>.md`: append what changed, what ran, and what failed to its `Feature evidence` section.
 
 Do not create architecture or constraints docs just to look complete. Create them when they reduce future rediscovery or prevent future mistakes.
 
@@ -26,7 +27,7 @@ Feature status convention:
 - `accepted`: independent validation returned `accept` and the main orchestrator persisted that result. Implementers must not set this status.
 - `blocked`: implementation cannot continue with the current spec/context.
 
-Do not use `passing` to mean final approval. Final approval is a validator verdict persisted by the main orchestrator as `accepted` in `feature_list.json`, with concise evidence in `feature_list.json` and/or `../../../../PROGRESS.md`.
+Do not use `passing` to mean final approval. Final approval is a validator verdict persisted by the main orchestrator as `accepted` in `feature_list.json`, with concise evidence in `../../../../PROGRESS.md`, the `Feature evidence` section of `../../../../docs/specs/<feature-id>.md`, and the acceptance record `../../../../docs/validations/<feature-id>.md`.
 
 ## `init.sh` Rule
 

@@ -21,7 +21,7 @@ The main agent is the orchestrator. It chooses the next role, launches the right
 - Do not implement work in the main agent while a subagent owns that role.
 - Subagents do not create commits. The main orchestrator owns final staging and commit after validator acceptance.
 - Do not treat `passing` as accepted. `passing` means implementer self-verification passed; validator `accept` is independent.
-- After validation returns `accept`, persist acceptance by changing the selected feature status in `feature_list.json` from `passing` to `accepted` and appending concise evidence that names the independent validator acceptance.
+- After validation returns `accept`, persist acceptance by changing the selected feature status in `feature_list.json` from `passing` to `accepted`. `feature_list.json` is a lean index, so never add an `evidence` array: the feature's evidence belongs in that feature's spec (`docs/specs/<feature-id>.md`, section `Feature evidence`) and its acceptance record in `docs/validations/<feature-id>.md`.
 - If validation returns `revise`, route the repair brief back to `implementer` for the same feature.
 - After a `revise` repair, route the same feature back to `validator`; do not stop after the repair unless the user explicitly asked for a single role step.
 - If validation returns `block`, stop and report the blocker.
@@ -49,7 +49,7 @@ If no feature id is provided, select in this order:
 3. The first feature whose status is neither `passing` nor `accepted` in `feature_list.json` order whose `depends_on` prerequisites are satisfied and that already has a spec.
 4. The first feature whose status is neither `passing` nor `accepted` in `feature_list.json` order whose `depends_on` prerequisites are satisfied and that has no spec.
 
-A feature is dependency-ready when every id in `depends_on` references a feature whose status is `accepted`. For legacy feature lists, a dependency with status `passing` may be treated as ready only when `feature_list.json`, `../../../PROGRESS.md`, or `../../../docs/validations/<feature-id>.md` contains explicit independent validator acceptance evidence. If `depends_on` is absent in an older feature list, treat it as `[]` for backward compatibility, but prefer adding it when maintaining the list.
+A feature is dependency-ready when every id in `depends_on` references a feature whose status is `accepted`. For legacy feature lists, a dependency with status `passing` may be treated as ready only when `../../../PROGRESS.md` or `../../../docs/validations/<feature-id>.md` contains explicit independent validator acceptance evidence. If `depends_on` is absent in an older feature list, treat it as `[]` for backward compatibility, but prefer adding it when maintaining the list.
 
 If no unfinished feature is dependency-ready, report the blocking dependency ids instead of selecting a later blocked feature. When the user asks what can run in parallel, list all dependency-ready unfinished features in `feature_list.json` order.
 
@@ -95,7 +95,7 @@ Mode summary: until-accepted is the default full pipeline for one feature; one-s
 Creating the commit is the main orchestrator's final step after the validator returns `accept`; subagents never commit (see Hard Rules). The orchestrator must commit the accepted feature before reporting the flow complete.
 
 1. Run `git status --short` and inspect the relevant diff.
-2. Persist acceptance by updating `feature_list.json` for the selected feature to status `accepted` and appending concise validator evidence. If a validation artifact is useful, create or update `../../../docs/validations/<feature-id>.md`; otherwise `feature_list.json` plus `../../../PROGRESS.md` evidence is sufficient.
+2. Persist acceptance by updating `feature_list.json` for the selected feature to status `accepted`, keeping its `spec`/`validation` paths current. Do not add an `evidence` array. Create or update `../../../docs/validations/<feature-id>.md` with the acceptance record, and append the concise evidence lines to the `Feature evidence` section of `../../../docs/specs/<feature-id>.md`. Record the session's verified progress in `../../../PROGRESS.md` as usual.
 3. Identify the files changed for the accepted feature, including required harness/docs/evidence updates.
 4. Stage only those files. Do not stage unrelated user or other-agent changes.
 5. Create one Conventional Commit, using a message that names the feature. Prefer:

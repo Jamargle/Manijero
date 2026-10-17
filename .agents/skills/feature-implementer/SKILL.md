@@ -97,8 +97,8 @@ If any required check fails, fix it or leave the feature non-passing with a clea
 
 After verification:
 
-- update `feature_list.json` for the selected feature only,
-- record exact evidence for checks that passed,
+- update `feature_list.json` for the selected feature only (status, and the `spec`/`validation` paths); it is a lean index, so do not add an `evidence` array,
+- record exact evidence for checks that passed in the `Feature evidence` section of `../../../docs/specs/<feature-id>.md`,
 - update `../../../PROGRESS.md` with what changed, what ran, what failed, and the next best step,
 - update the session handoff note if it exists or if the session leaves meaningful incomplete state,
 - update durable docs required by the spec or discovered during implementation.
