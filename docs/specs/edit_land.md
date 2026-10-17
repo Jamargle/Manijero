@@ -137,7 +137,7 @@ Inspected in this planning session:
   values), `commonTest/.../lands/AddLandStateTest.kt`, `commonTest/.../lands/LandRepositoryTest.kt`
   (in-memory `LandStorage` fake, `idGenerator` injection; already asserts
   `update_and_delete_do_not_change_other_land`), and `jvmTest/.../lands/AddLandDesktopStoreTest.kt`
-  (real `FileLandStorage` in a temp dir). `init.sh --verify` runs
+  (real `FileLandStorage` in a temp dir). `scripts/init.sh --verify` runs
   `:shared:jvmTest :shared:testAndroidHostTest :androidApp:assembleDebug :desktopApp:build`.
 - `androidApp/.../MainActivity.kt` and `desktopApp/.../main.kt`: each already constructs exactly one
   repository and passes it to `App(...)`, so **no entry-point change is required**.
@@ -384,7 +384,7 @@ validators should treat them as scope, not regression:
   reopening unchanged.
 - **Update** `CONSTRAINTS.md`: one new MUST rule under a “Land editing” heading (below).
 - **Do not modify** `Land.kt`, `LandRepository.kt`, the storage adapters, `AddLandState.kt`,
-  `MainActivity.kt`, `desktopApp/main.kt`, `MainViewController.kt`, Gradle files, `init.sh`, `theme/`,
+  `MainActivity.kt`, `desktopApp/main.kt`, `MainViewController.kt`, Gradle files, `scripts/init.sh`, `theme/`,
   backend/contracts/knowledge, or `feature_list.json`/`PROGRESS.md` while implementing.
 
 ## Implementation plan and tasks
@@ -429,12 +429,12 @@ Suggested new `CONSTRAINTS.md` rule, “Land editing” section:
 Run from the repository root:
 
 ```sh
-./init.sh
+./scripts/init.sh
 ./gradlew :shared:jvmTest --tests "com.jamarglex.manijero.lands.EditLandStateTest" \
   --tests "com.jamarglex.manijero.lands.EditLandRepositoryTest" \
   --tests "com.jamarglex.manijero.lands.EditLandDesktopStoreTest"
 ./gradlew :shared:jvmTest
-./init.sh --verify   # :shared:jvmTest :shared:testAndroidHostTest :androidApp:assembleDebug :desktopApp:build
+./scripts/init.sh --verify   # :shared:jvmTest :shared:testAndroidHostTest :androidApp:assembleDebug :desktopApp:build
 ```
 
 Also re-run the accepted `add_land`/`land_list` reducer tests and confirm the add confirmation still
@@ -466,7 +466,7 @@ Manual Android and Desktop smoke checks:
 5. Privacy check: `grep -rn "println\|Log\.\|Logger\|printStackTrace" shared/src` returns no matches,
    and no network call, permission, or dependency was added.
 
-Capture: focused test output and counts, the full `:shared:jvmTest` and `./init.sh --verify` output
+Capture: focused test output and counts, the full `:shared:jvmTest` and `./scripts/init.sh --verify` output
 (or the exact Android blocker), the byte-for-byte string comparison, screenshots or a short record for
 the two-land edit, cleared-municipality, un-known, blank-name, and failure states plus enlarged text,
 and the no-logging grep result.
@@ -540,11 +540,11 @@ and the no-logging grep result.
       `commonMain` with no id, area, or notes displayed and no land-data or exception logging/no
       network call.
 - [ ] `EditLandStateTest`, `EditLandRepositoryTest`, and `EditLandDesktopStoreTest` pass;
-      `:shared:jvmTest` passes; `./init.sh --verify` passes or the Android blocker is reported honestly
+      `:shared:jvmTest` passes; `./scripts/init.sh --verify` passes or the Android blocker is reported honestly
       with no E2E/automated-UI claim; the accepted `add_land`/`land_list` tests still pass and their
       copy/behavior is unchanged apart from the declared cross-feature changes.
 - [ ] Scope discipline: `Land.kt`, `LandRepository.kt`, storage adapters/format, `AddLandState.kt`,
-      entry points, Gradle, `init.sh`, `theme/`, backend/contracts/knowledge, and unrelated features
+      entry points, Gradle, `scripts/init.sh`, `theme/`, backend/contracts/knowledge, and unrelated features
       are untouched; the only changes to accepted files are the four declared cross-feature items.
 - [ ] `CONSTRAINTS.md` gained the “Land editing” MUST rule, and `feature_list.json`/`PROGRESS.md` were
       updated only after independent validation.
@@ -563,9 +563,9 @@ and the no-logging grep result.
 
 ## Focused verification
 
-`./init.sh --feature <feature-id>` runs exactly the block below. It is the feature-scoped
-tier of `./init.sh --fast`, and the cheapest check that still touches what this feature
-changed; `./init.sh --verify` remains the full gate.
+`./scripts/init.sh --feature <feature-id>` runs exactly the block below. It is the feature-scoped
+tier of `./scripts/init.sh --fast`, and the cheapest check that still touches what this feature
+changed; `./scripts/init.sh --verify` remains the full gate.
 
 <!-- verify:start -->
 ```sh
@@ -583,8 +583,8 @@ for the independent acceptance record.
 - Spec: docs/specs/edit_land.md. Added pure EditLandState/EditLandFailure/EditLandAction/reduce, Land.toEditLandState() and toDraftOrNull() (shared/src/commonMain/kotlin/com/jamarglex/manijero/lands/EditLandState.kt) where the targeted id is the only record the state may write, a blank name yields no draft, and preservedAreaHectares/preservedNotes are carried through untouched, plus the stateless prefilled EditLandScreen.kt (9 previews, resource-backed copy, polite live-region failure notice distinguishing WRITE_FAILED from LAND_MISSING, one primary Guardar cambios and Cancelar as the back control).
 - Cross-feature (declared in the spec): LandListScreen rows gained a visible Editar control whose accessible description names the land's exact saved name (row card still non-clickable, details still a merged node) and savedConfirmation: Boolean became confirmation: LandListConfirmation? (ADDED renders the unchanged add_land_saved byte-for-byte, UPDATED renders edit_land_saved); ChoiceGroup/ChoiceItem were widened private->internal with no behavior change; App() gained the EditLand destination and the single repository.update(reduced.landId, draft) call site inside the SaveClicked branch (never while composing or at startup), mapping a null result to LAND_MISSING and a thrown failure to WRITE_FAILED with no confirmation and no navigation, and Cancelar clears the state and shows no confirmation. No create/delete call was added to any edit path.
 - New focused tests: commonTest EditLandStateTest (12) and EditLandRepositoryTest (6, in-memory LandStorage fake: one-land isolation with the other record's encoded line byte-identical and both records in creation order, preserved area/notes reaching the stored record, unknown preserved for a name-only land, deliberate unknown persisted, unknown-id update returning null and rewriting nothing) plus jvmTest EditLandDesktopStoreTest (2, real FileLandStorage in a temp dir).
-- Verification: ./init.sh exit 0; focused :shared:jvmTest run 20 tests/0 failures; :shared:jvmTest 98 tests/0 failures across 14 classes (was 78, accepted AddLandStateTest 11, LandListStateTest 6, LandRepositoryTest 4, AddLandDesktopStoreTest 1 still green); ./init.sh --verify -> BUILD SUCCESSFUL with :shared:testAndroidHostTest 87/0 (was 69), :androidApp:assembleDebug APK produced, :desktopApp:build; --rerun-tasks :shared:jvmTest :shared:testAndroidHostTest :androidApp:assembleDebug :desktopApp:build -> 91 tasks executed, same 98/0 and 87/0, BUILD SUCCESSFUL; git diff --check clean.
+- Verification: ./scripts/init.sh exit 0; focused :shared:jvmTest run 20 tests/0 failures; :shared:jvmTest 98 tests/0 failures across 14 classes (was 78, accepted AddLandStateTest 11, LandListStateTest 6, LandRepositoryTest 4, AddLandDesktopStoreTest 1 still green); ./scripts/init.sh --verify -> BUILD SUCCESSFUL with :shared:testAndroidHostTest 87/0 (was 69), :androidApp:assembleDebug APK produced, :desktopApp:build; --rerun-tasks :shared:jvmTest :shared:testAndroidHostTest :androidApp:assembleDebug :desktopApp:build -> 91 tasks executed, same 98/0 and 87/0, BUILD SUCCESSFUL; git diff --check clean.
 - Android emulator smoke (Medium_Phone_API_35, API 35, 1080x2400, fresh install + pm clear, 16 screenshots outside the repo): empty list -> saved Los Olivos (name only) and La Loma (Martos/Regadio/Ecologico) in creation order with the unchanged add confirmation; the row body is not clickable; editing only Los Olivos prefilled correctly (Regadio/Ecologico preselected; the checked rows matched those two) and changing its name returned to the list with 'Los cambios se han guardado en este dispositivo.' and the corrected name in the same first position while La Loma kept every value; editing La Loma, clearing the municipality and choosing No lo se in both groups removed the Municipio line and read No lo se for both; force-stop + relaunch kept both records exactly with no duplicates or stale confirmation; a blank name showed 'Escribe un nombre para el terreno.' with no write and kept the other edited values; Cancelar wrote nothing; font_scale 2.0 wrapped the list and the form with no horizontal overflow (max text right edge 1017 of 1080). Desktop :desktopApp:run startup smoke ran ~6.5 minutes with 0 exceptions until stopped (expected exit 143).
-- Privacy/scope: grep -rn 'println|Log\.|Logger|printStackTrace|System.out' shared/src -> no matches; a byte-for-byte Python comparison of the spec's XML block against composeResources/values/strings.xml matched all eight new keys exactly and each appears once; string land_list_edit_description is used only as the Editar control's accessible description, never as body text; no new module, dependency, network call, permission, ViewModel, coroutine, or navigation framework; Land.kt, LandRepository.kt, the storage adapters/land-store-v1, AddLandState.kt, MainActivity.kt, desktopApp/main.kt, MainViewController.kt, Gradle files, init.sh, theme/, backend/contracts/knowledge stay untouched. CONSTRAINTS.md gained the 'Land editing' MUST rule.
+- Privacy/scope: grep -rn 'println|Log\.|Logger|printStackTrace|System.out' shared/src -> no matches; a byte-for-byte Python comparison of the spec's XML block against composeResources/values/strings.xml matched all eight new keys exactly and each appears once; string land_list_edit_description is used only as the Editar control's accessible description, never as body text; no new module, dependency, network call, permission, ViewModel, coroutine, or navigation framework; Land.kt, LandRepository.kt, the storage adapters/land-store-v1, AddLandState.kt, MainActivity.kt, desktopApp/main.kt, MainViewController.kt, Gradle files, scripts/init.sh, theme/, backend/contracts/knowledge stay untouched. CONSTRAINTS.md gained the 'Land editing' MUST rule.
 - Honest gaps: no Compose UI-test harness exists, so the App() save-decision wiring (LAND_MISSING/WRITE_FAILED, the confirmation, the re-read on return) is covered by code inspection plus the emulator smoke and not by an automated test; the two failure branches are defensive and unit-tested rather than reproduced on the emulator; screen-reader, enlarged-text-at-2x-system-scale verification beyond wrapping, and low-digital-confidence usability stay with land_form_accessibility; no persistent E2E command exists so no E2E or automated UI coverage is claimed; updatedAtEpochMillis is still not meaningful because update receives no timestamp from the app (no clock/date dependency, carried finding F6 from land_list); areaHectares/notes are preserved but neither shown nor editable from this form.
-- Independent validator ACCEPTED this feature (2026-10-13, record: docs/validations/edit_land.md). It re-ran ./init.sh, the focused three-class run (20/0), :shared:jvmTest --rerun-tasks (98 tests / 14 classes / 0 failures), :shared:testAndroidHostTest --rerun-tasks (87 / 11 / 0), ./init.sh --verify, and a full :shared:jvmTest :shared:testAndroidHostTest :androidApp:assembleDebug :desktopApp:build --rerun-tasks (91 tasks executed, 0 from cache); byte-for-byte checked the eight new strings and the CONSTRAINTS.md rule, and confirmed the accepted add_land/land_list suites and copy are intact and the Editar affordance did not regress the non-clickable row. For the literal feature-list verification it wrote and then deleted an independent scratch JVM probe against the real FileLandStorage: editing only the first of two lands left the other record's serialized line byte-identical, order preserved, the edited record keeping its id/createdAt; it also reproduced the byte-identical no-write on a LAND_MISSING (null) update, the blank-name no-draft/no-write path, the emptied-municipality->absent and known->UNKNOWN round-trips, and preserved area/notes, and corroborated six emulator screenshots. Scope clean: Land.kt, LandRepository.kt, the storage adapters/land-store-v1, AddLandState.kt, entry points, Gradle/version catalog, init.sh, theme/, and backend/contracts/knowledge untouched; no new module, dependency, ViewModel, coroutine, navigation framework, network call, or logging. Non-blocking findings: F1 (implementer PROGRESS.md trailing blank line, fixed before the acceptance commit), F2 (a spec sentence overstated the Cancelar re-read; amended to match the code and the accepted add_land cancel path), F3 (no Compose UI-test harness, so App() save-decision wiring is inspection + smoke only), F4 (LAND_MISSING is a defensive/unit-tested branch), F5 (updatedAtEpochMillis still not meaningful, carried land_list F6), F6 (interactive Android smoke is implementer-produced; artifacts and code semantics were corroborated).
+- Independent validator ACCEPTED this feature (2026-10-13, record: docs/validations/edit_land.md). It re-ran ./scripts/init.sh, the focused three-class run (20/0), :shared:jvmTest --rerun-tasks (98 tests / 14 classes / 0 failures), :shared:testAndroidHostTest --rerun-tasks (87 / 11 / 0), ./scripts/init.sh --verify, and a full :shared:jvmTest :shared:testAndroidHostTest :androidApp:assembleDebug :desktopApp:build --rerun-tasks (91 tasks executed, 0 from cache); byte-for-byte checked the eight new strings and the CONSTRAINTS.md rule, and confirmed the accepted add_land/land_list suites and copy are intact and the Editar affordance did not regress the non-clickable row. For the literal feature-list verification it wrote and then deleted an independent scratch JVM probe against the real FileLandStorage: editing only the first of two lands left the other record's serialized line byte-identical, order preserved, the edited record keeping its id/createdAt; it also reproduced the byte-identical no-write on a LAND_MISSING (null) update, the blank-name no-draft/no-write path, the emptied-municipality->absent and known->UNKNOWN round-trips, and preserved area/notes, and corroborated six emulator screenshots. Scope clean: Land.kt, LandRepository.kt, the storage adapters/land-store-v1, AddLandState.kt, entry points, Gradle/version catalog, scripts/init.sh, theme/, and backend/contracts/knowledge untouched; no new module, dependency, ViewModel, coroutine, navigation framework, network call, or logging. Non-blocking findings: F1 (implementer PROGRESS.md trailing blank line, fixed before the acceptance commit), F2 (a spec sentence overstated the Cancelar re-read; amended to match the code and the accepted add_land cancel path), F3 (no Compose UI-test harness, so App() save-decision wiring is inspection + smoke only), F4 (LAND_MISSING is a defensive/unit-tested branch), F5 (updatedAtEpochMillis still not meaningful, carried land_list F6), F6 (interactive Android smoke is implementer-produced; artifacts and code semantics were corroborated).

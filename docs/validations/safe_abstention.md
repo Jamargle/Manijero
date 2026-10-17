@@ -108,7 +108,7 @@ interpreter of a temporary virtualenv created **outside** the repository
   changed. `contracts/`, `backend/app/generation.py`, `backend/app/retrieval.py`,
   `backend/app/source_catalog.py`, `backend/app/main.py`,
   `backend/scripts/evaluate_generation.py`, `backend/tests/test_generation.py`,
-  `knowledge/`, `backend/requirements.txt`, `init.sh`, and all client/shared code
+  `knowledge/`, `backend/requirements.txt`, `scripts/init.sh`, and all client/shared code
   are unmodified. `backend/app/main.py` still declares exactly one route,
   `GET /health`. Fixtures are synthetic and labelled (`fixture`, `no es una norma
   real`, `Sintético`, `cifra inventada`) with a deliberately impossible
@@ -170,6 +170,6 @@ abstain rather than answer, and a rejected draft is discarded whole.
 - `AGENTS.md`, `ARCHITECTURE.md` (absent), `knowledge/README.md`, `CONTEXT.md`,
   `docs/*`, `MasterPlanV3.md`, and `DESIGN.md` were correctly left untouched, per
   the spec's Durable Documentation Impact section.
-- `init.sh` was not changed and was not run: the spec mandates no change and this
-  backend slice has no `init.sh` backend command. No persistent E2E harness exists
+- `scripts/init.sh` was not changed and was not run: the spec mandates no change and this
+  backend slice has no `scripts/init.sh` backend command. No persistent E2E harness exists
   and no `/ask` route exists, so no E2E/browser check is applicable.

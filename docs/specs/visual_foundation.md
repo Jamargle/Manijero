@@ -72,7 +72,7 @@ Inspected (all paths relative to the repository root):
 - `gradle/libs.versions.toml` — Compose Multiplatform 1.12.1, `material3 1.12.0-alpha03`, `kotlin 2.4.20`. No font, color, or theme dependency and none may be added. `shared/build.gradle.kts` exposes `compose.material3`, `compose.foundation`, `compose.ui`, and `ui-tooling-preview` in `commonMain`, and `kotlin-test` in `commonTest`.
 - Existing tests (`ChatHomeStateTest`, `ChatConversationTest`, `KtorAnswerServiceTest`, `LandRepositoryTest`, `AddLandStateTest`, host/desktop scaffold tests, 24 JVM / 22 Android host) never import `androidx.compose.*`; no Compose UI-test harness or screenshot test exists. Compose types are expected to be reachable from the associated test compilation; see Risk R2 for the fallback if they are not.
 - `androidApp/src/main/res/drawable/ic_launcher_background.xml` and `drawable-v24/ic_launcher_foreground.xml` — the launcher artwork is the **unmodified Android Studio template**: solid template green `#3DDC84` background with the white Android robot. There is no olive-grove artwork in the repository, so the requested palette sanity check has nothing to compare against; `DESIGN.md` tokens stay as written (see U1). `androidApp/src/main/AndroidManifest.xml` already uses `@android:style/Theme.Material.Light.NoActionBar`.
-- `./init.sh` — `--verify` runs `:shared:jvmTest :shared:testAndroidHostTest :androidApp:assembleDebug :desktopApp:build`; it must not gain new modes or a long-running service for this feature.
+- `./scripts/init.sh` — `--verify` runs `:shared:jvmTest :shared:testAndroidHostTest :androidApp:assembleDebug :desktopApp:build`; it must not gain new modes or a long-running service for this feature.
 
 The feature is correctly sized: one cross-cutting presentation layer, no data model, no user flow, no new module. Two screens change only at their theme/preview wrapper.
 
@@ -200,7 +200,7 @@ Documented non-requirements: container fills (`surface` vs `canvas` 1.08, `surfa
 - **Modify** `shared/src/commonMain/kotlin/com/jamarglex/manijero/lands/AddLandScreen.kt`: switch the eight previews from `MaterialTheme {` to `ManijeroTheme {`. No layout, copy, or behavior change.
 - **Create** `shared/src/commonTest/kotlin/com/jamarglex/manijero/theme/ManijeroColorsTest.kt`: token values, role mapping, "no Material default leaked", and the contrast pairs.
 - **Create** `shared/src/commonTest/kotlin/com/jamarglex/manijero/theme/ManijeroTypographyTest.kt`: the line-height rule, `labelLarge` rule, and no bundled font family.
-- **Do not modify** `androidApp/src/main/kotlin/com/jamarglex/manijero/MainActivity.kt`, `desktopApp/src/main/kotlin/com/jamarglex/manijero/main.kt`, `shared/src/iosMain/.../MainViewController.kt`, `shared/src/commonMain/composeResources/values/strings.xml`, any Gradle file or version catalog, backend/contracts, land storage, or `init.sh`.
+- **Do not modify** `androidApp/src/main/kotlin/com/jamarglex/manijero/MainActivity.kt`, `desktopApp/src/main/kotlin/com/jamarglex/manijero/main.kt`, `shared/src/iosMain/.../MainViewController.kt`, `shared/src/commonMain/composeResources/values/strings.xml`, any Gradle file or version catalog, backend/contracts, land storage, or `scripts/init.sh`.
 - **Documentation (implementation phase):** update the `DESIGN.md` "Visual foundation" section with the derived token table and the light-only decision; optionally add one row to the implementation-time table in `docs/risks-and-open-questions.md` for dark mode / launcher artwork. Planning changes neither.
 
 ## Implementation plan and tasks
@@ -211,19 +211,19 @@ Documented non-requirements: container fills (`surface` vs `canvas` 1.08, `surfa
 4. Apply `ManijeroTheme` once inside `App()`; repoint all fifteen existing previews; run the existing suites to confirm no behavior regression.
 5. Re-run the contrast table against the shipped values and correct any value that misses its threshold by adjusting the derived value (never by lowering the threshold or dropping a pair).
 6. Run the full command set below, capture output, then perform the Android and Desktop manual checks and the greyscale non-color cue check.
-7. After implementation and independent validation only: update `feature_list.json`/`PROGRESS.md`, refresh the `init.sh` banner text, and make the `DESIGN.md` documentation update.
+7. After implementation and independent validation only: update `feature_list.json`/`PROGRESS.md`, refresh the `scripts/init.sh` banner text, and make the `DESIGN.md` documentation update.
 
 ## Verification plan and evidence
 
 Run from the repository root:
 
 ```sh
-./init.sh                                   # toolchain check; creates local.properties
+./scripts/init.sh                                   # toolchain check; creates local.properties
 ./gradlew :shared:jvmTest                   # existing suites + new theme tests
 ./gradlew :shared:testAndroidHostTest       # same tests on the Android host
 ./gradlew :androidApp:assembleDebug
 ./gradlew :desktopApp:build
-./init.sh --verify                          # the accepted one-shot check
+./scripts/init.sh --verify                          # the accepted one-shot check
 ```
 
 Automated, in-repo checks:
@@ -237,13 +237,13 @@ Automated, in-repo checks:
 Manual checks (record screenshots or a short written record for each):
 
 1. Android emulator (`Medium_Phone_API_35`, debug APK from `:androidApp:assembleDebug`): canvas page background, olive `Preguntar`/`Guardar terreno` buttons, olive `Mis terrenos` navigation label, `Tú` bubble in the low-emphasis neutral and `Asistente` in white with a visible border, and no purple/blue anywhere on the chat or add-land screens.
-2. Desktop (`./init.sh --desktop`): the same checks, plus window resize (narrow and wide) and keyboard focus visibility on the field, `Preguntar`, and `Guardar terreno`.
+2. Desktop (`./scripts/init.sh --desktop`): the same checks, plus window resize (narrow and wide) and keyboard focus visibility on the field, `Preguntar`, and `Guardar terreno`.
 3. Android Studio preview panel: every preview in `App.kt`, `AddLandScreen.kt`, and the theme file renders the olive/canvas palette, and the token-board preview shows caution and danger pairs.
 4. Text scaling: Android `font_scale 2.0` and the `fontScale = 2f` previews — nothing clipped or overlapped on either screen. Desktop OS-level text scaling is not wired in this repository (verified: no font-scale integration exists), so Desktop evidence is preview-based; report that limitation instead of claiming a Desktop scaling pass.
 5. Non-color cues: render the danger message and the caution callout sample, convert the screenshot to greyscale, and confirm the state is still readable from text and control semantics alone.
 6. Submit a question and save a land once on each platform to confirm theming changed appearance only.
 
-Evidence to capture: the two test-task outputs with new test names and counts, `--verify` output (or the exact Android SDK blocker), screenshots/preview captures for chat, add-land, token board, and enlarged text, the greyscale capture, and the three `grep` outputs. This repository has **no persistent E2E or screenshot-test command** (verified: `./init.sh --verify` only runs the shared host tests and the Android/Desktop builds, and no Compose UI-test dependency or harness exists), so focused pure unit tests plus the Android/Desktop manual checks above are the justified coverage for this presentation-layer feature; report that limitation honestly instead of implying E2E coverage. Desktop font-scaling and Android launch-frame behavior remain known gaps (U2, U3, U4).
+Evidence to capture: the two test-task outputs with new test names and counts, `--verify` output (or the exact Android SDK blocker), screenshots/preview captures for chat, add-land, token board, and enlarged text, the greyscale capture, and the three `grep` outputs. This repository has **no persistent E2E or screenshot-test command** (verified: `./scripts/init.sh --verify` only runs the shared host tests and the Android/Desktop builds, and no Compose UI-test dependency or harness exists), so focused pure unit tests plus the Android/Desktop manual checks above are the justified coverage for this presentation-layer feature; report that limitation honestly instead of implying E2E coverage. Desktop font-scaling and Android launch-frame behavior remain known gaps (U2, U3, U4).
 
 ## Durable documentation impact
 
@@ -255,7 +255,7 @@ Evidence to capture: the two test-task outputs with new test names and counts, `
 | `CONSTRAINTS.md` | Not needed | Does not exist; this feature adds no constraint beyond the accessibility baseline already documented. |
 | `AGENTS.md` | Not needed | Its shared-UI, Spanish, accessibility, and no-new-module rules already cover this work. |
 | `CONTEXT.md`, `docs/build-brief.md`, `docs/domain-model.md` | Not needed | No product, glossary, or domain change. |
-| `init.sh` | Not needed for acceptance | The script needs no new mode and must not start a service; refresh the informational banner wording only after acceptance. |
+| `scripts/init.sh` | Not needed for acceptance | The script needs no new mode and must not start a service; refresh the informational banner wording only after acceptance. |
 | `feature_list.json`, `PROGRESS.md` | After verified implementation only | Record evidence/status only after independent validation; planning does not touch them. |
 
 ## Unknowns and risks
@@ -285,9 +285,9 @@ Evidence to capture: the two test-task outputs with new test names and counts, `
 
 ## Focused verification
 
-`./init.sh --feature <feature-id>` runs exactly the block below. It is the feature-scoped
-tier of `./init.sh --fast`, and the cheapest check that still touches what this feature
-changed; `./init.sh --verify` remains the full gate.
+`./scripts/init.sh --feature <feature-id>` runs exactly the block below. It is the feature-scoped
+tier of `./scripts/init.sh --fast`, and the cheapest check that still touches what this feature
+changed; `./scripts/init.sh --verify` remains the full gate.
 
 <!-- verify:start -->
 ```sh
@@ -305,7 +305,7 @@ for the independent acceptance record.
 - Spec: docs/specs/visual_foundation.md.
 - New shared theme package in commonMain (shared/src/commonMain/kotlin/com/jamarglex/manijero/theme/): ManijeroColors.kt (DESIGN.md tokens + derived values, a fully specified lightColorScheme, ManijeroSemanticColors/LocalManijeroSemanticColors, dependency-free WCAG helpers), ManijeroTypography.kt (single documented bodySmall 16sp->18sp line-height override), and ManijeroTheme.kt (theme + semantic local + review-only token-board previews).
 - ManijeroTheme is applied once inside App() (the shared composition root) and all fifteen existing previews (seven in App.kt, eight in AddLandScreen.kt) use it; the Android, Desktop and iOS hosts stay theme-free and inherit one shared theme. No layout, copy, spacing, or behavior changed; no new module, framework, or dependency.
-- ./init.sh --verify -> BUILD SUCCESSFUL. ./gradlew :shared:jvmTest :shared:testAndroidHostTest --rerun-tasks -> BUILD SUCCESSFUL: 54 JVM tests / 0 failures (ManijeroColorsTest 10, ManijeroTypographyTest 4 new) and 51 Android host tests / 0 failures; :androidApp:assembleDebug and :desktopApp:build pass.
+- ./scripts/init.sh --verify -> BUILD SUCCESSFUL. ./gradlew :shared:jvmTest :shared:testAndroidHostTest --rerun-tasks -> BUILD SUCCESSFUL: 54 JVM tests / 0 failures (ManijeroColorsTest 10, ManijeroTypographyTest 4 new) and 51 Android host tests / 0 failures; :androidApp:assembleDebug and :desktopApp:build pass.
 - Centralization greps: no Color(0x outside theme/; no argument-less MaterialTheme {; MaterialTheme( only in theme/ManijeroTheme.kt; no LocalMinimumInteractiveComponentSize/minimumInteractiveComponentSize override.
 - DESIGN.md updated with the derived-token table and the light-only decision. Self-verified; awaiting independent validation.
-- Independent validator ACCEPTED (record: docs/validations/visual_foundation.md) after re-running ./init.sh --verify and :shared:jvmTest :shared:testAndroidHostTest --rerun-tasks (54 JVM / 51 Android host tests, 0 failures), reproducing the WCAG pairs with an independent computation, and confirming scope discipline (commonMain-only theme, no new module/dependency, hosts/strings/Gradle untouched, no logging).
+- Independent validator ACCEPTED (record: docs/validations/visual_foundation.md) after re-running ./scripts/init.sh --verify and :shared:jvmTest :shared:testAndroidHostTest --rerun-tasks (54 JVM / 51 Android host tests, 0 failures), reproducing the WCAG pairs with an independent computation, and confirming scope discipline (commonMain-only theme, no new module/dependency, hosts/strings/Gradle untouched, no logging).

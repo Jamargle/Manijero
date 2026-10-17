@@ -22,7 +22,7 @@ fi
 export ANDROID_HOME
 export ANDROID_SDK_ROOT
 
-REPO_ROOT="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
+REPO_ROOT="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")/.." && pwd)"
 cd "$REPO_ROOT"
 
 # Fixed date for the versioned catalog and the offline evaluators, so the checks are
@@ -31,7 +31,7 @@ AS_OF="${MANIJERO_AS_OF:-2026-10-13}"
 
 usage() {
   cat <<'EOF'
-Usage: ./init.sh [--check|--fast|--verify|--feature <id>|--backend-tests [targets]|--android|--desktop|--help]
+Usage: ./scripts/init.sh [--check|--fast|--verify|--feature <id>|--backend-tests [targets]|--android|--desktop|--help]
 
   --check                   Check Java and the Gradle wrapper, then print standard commands (default)
   --fast                    Shared host tests, contract examples, backend unit tests, and the five
@@ -55,7 +55,7 @@ if [[ ! -x "$REPO_ROOT/gradlew" ]]; then
 fi
 
 if ! command -v java >/dev/null 2>&1; then
-  printf 'Java is required. Install a compatible JDK, then rerun ./init.sh.\n' >&2
+  printf 'Java is required. Install a compatible JDK, then rerun ./scripts/init.sh.\n' >&2
   exit 1
 fi
 
@@ -103,7 +103,7 @@ backend_pytest_hint() {
   printf 'Backend unit tests need pytest. Install it in a local virtualenv and point the harness at it:\n\n'
   printf '  python3 -m venv "${TMPDIR:-/tmp}/manijero-venv"\n'
   printf '  "${TMPDIR:-/tmp}/manijero-venv/bin/pip" install -r backend/requirements.txt pytest\n'
-  printf '  MANIJERO_PYTHON="${TMPDIR:-/tmp}/manijero-venv/bin/python" ./init.sh --verify\n'
+  printf '  MANIJERO_PYTHON="${TMPDIR:-/tmp}/manijero-venv/bin/python" ./scripts/init.sh --verify\n'
 }
 
 # run_backend_tests <required 0|1> [pytest targets...]
@@ -153,7 +153,7 @@ feature_commands() {
 run_feature() {
   local id="${1:-}"
   if [[ -z "$id" ]]; then
-    printf 'Usage: ./init.sh --feature <feature-id>\n' >&2
+    printf 'Usage: ./scripts/init.sh --feature <feature-id>\n' >&2
     exit 2
   fi
   local spec="$REPO_ROOT/docs/specs/$id.md"
@@ -186,13 +186,13 @@ case "$mode" in
 Manijero MVP — the Android and Desktop apps render the shared Kotlin Multiplatform UI and behavior in shared/src/commonMain. See PROGRESS.md and feature_list.json for the accepted feature set and current status.
 
 Verification tiers:
-  ./init.sh --feature <id>  # focused checks published in docs/specs/<id>.md
-  ./init.sh --fast          # shared host tests + contract examples + backend tests + offline evaluators
-  ./init.sh --verify        # --fast + Android host tests + Android debug APK + Desktop build
+  ./scripts/init.sh --feature <id>  # focused checks published in docs/specs/<id>.md
+  ./scripts/init.sh --fast          # shared host tests + contract examples + backend tests + offline evaluators
+  ./scripts/init.sh --verify        # --fast + Android host tests + Android debug APK + Desktop build
 
 Build and run:
-  ./init.sh --android    # androidApp/build/outputs/apk/debug/androidApp-debug.apk
-  ./init.sh --desktop    # launch the Desktop app
+  ./scripts/init.sh --android    # androidApp/build/outputs/apk/debug/androidApp-debug.apk
+  ./scripts/init.sh --desktop    # launch the Desktop app
 
 Known limitation: the backend has no /ask route yet, so the shipped app answers a question with the plain-Spanish failure notice and a Reintentar button, not a grounded answer.
 EOF

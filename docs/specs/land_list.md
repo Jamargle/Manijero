@@ -245,7 +245,7 @@ Estos son los terrenos guardados…             (bodyLarge, onSurfaceVariant)
   state tests built from directly constructed `Land` values (no disk, framework, or Compose I/O).
 - **Do not modify** `Land.kt`, `LandRepository.kt`, storage adapters, `AddLandState.kt`,
   `AddLandScreen.kt`, `MainActivity.kt`, `desktopApp/main.kt`, `MainViewController.kt`, Gradle files,
-  `init.sh`, `theme/`, backend/contracts/knowledge, or `feature_list.json`/`PROGRESS.md` while
+  `scripts/init.sh`, `theme/`, backend/contracts/knowledge, or `feature_list.json`/`PROGRESS.md` while
   implementing.
 
 ## Implementation plan and tasks
@@ -270,10 +270,10 @@ Estos son los terrenos guardados…             (bodyLarge, onSurfaceVariant)
 Run from the repository root:
 
 ```sh
-./init.sh
+./scripts/init.sh
 ./gradlew :shared:jvmTest --tests "com.jamarglex.manijero.lands.LandListStateTest"
 ./gradlew :shared:jvmTest
-./init.sh --verify   # :shared:jvmTest :shared:testAndroidHostTest :androidApp:assembleDebug :desktopApp:build
+./scripts/init.sh --verify   # :shared:jvmTest :shared:testAndroidHostTest :androidApp:assembleDebug :desktopApp:build
 ```
 
 This worktree has `local.properties` (per `PROGRESS.md`), so the Android steps should run; if the SDK
@@ -299,7 +299,7 @@ Manual Android and Desktop smoke checks:
 6. Privacy check: `grep -rn "println\|Log\.\|Logger\|printStackTrace" shared/src` returns no matches
    and no network call was added.
 
-Capture: focused test output and counts, `./init.sh --verify` output (or the exact Android blocker),
+Capture: focused test output and counts, `./scripts/init.sh --verify` output (or the exact Android blocker),
 screenshots or a short record for empty/one-land/two-land/failure plus enlarged text, and the
 no-logging grep result.
 
@@ -332,7 +332,7 @@ no-logging grep result.
       or notes affordance was added.
 - [ ] `LandListStateTest` covers empty-load success, failure-not-empty, order/duplicate-name/identity
       preservation, reload clearing, and Unicode/long-name preservation; `:shared:jvmTest` passes;
-      `./init.sh --verify` passes or the Android blocker is reported honestly with no E2E/UI-test claim.
+      `./scripts/init.sh --verify` passes or the Android blocker is reported honestly with no E2E/UI-test claim.
 - [ ] New copy and labels are resource-backed and reuse the existing land vocabulary; rows merge
       descendants, the confirmation is a polite live region, and controls work with large text and
       Desktop keyboard focus without color-only cues; product UI/state stays in `commonMain` with no
@@ -354,9 +354,9 @@ no-logging grep result.
 
 ## Focused verification
 
-`./init.sh --feature <feature-id>` runs exactly the block below. It is the feature-scoped
-tier of `./init.sh --fast`, and the cheapest check that still touches what this feature
-changed; `./init.sh --verify` remains the full gate.
+`./scripts/init.sh --feature <feature-id>` runs exactly the block below. It is the feature-scoped
+tier of `./scripts/init.sh --fast`, and the cheapest check that still touches what this feature
+changed; `./scripts/init.sh --verify` remains the full gate.
 
 <!-- verify:start -->
 ```sh
@@ -373,7 +373,7 @@ for the independent acceptance record.
 
 - Spec: docs/specs/land_list.md. Added the pure LandListState/LandListAction/reduce (shared/src/commonMain/kotlin/com/jamarglex/manijero/lands/LandListState.kt) where isEmpty means a successful empty read and LoadFailed clears rows so a failed read never looks empty or stale, and the stateless resource-backed LandListScreen (LandListScreen.kt) with non-clickable merged-semantics rows, polite live regions, and previews for empty/two-lands/duplicate-names/many/long/failure/compact/wide/2x font.
 - App.kt gains the LandList destination with a single synchronous read site (runCatching { repository.list() } folded into LandsLoaded/LoadFailed, then reduced) invoked only on entry/retry/after-save, Añadir terreno opening the unchanged AddLandScreen, and cancel/successful save returning to the list; the intended land_list routing change removes the now-unreachable ChatHomeScreen landSavedConfirmation parameter and its preview. AddLandState/AddLandScreen behavior and App() (iOS scaffold/previews) are unchanged; 9 new land_list_* strings in composeResources/values/strings.xml reuse the existing land vocabulary.
-- Verification: ./gradlew :shared:jvmTest --rerun-tasks -> 60 tests / 0 failures (LandListStateTest 6 new); :shared:testAndroidHostTest -> 57 / 0; ./init.sh --verify -> BUILD SUCCESSFUL (:shared:jvmTest, :shared:testAndroidHostTest, :androidApp:assembleDebug APK, :desktopApp:build); --rerun-tasks :androidApp:assembleDebug :desktopApp:build -> BUILD SUCCESSFUL. No E2E or Compose UI-test framework exists, so none is claimed.
+- Verification: ./gradlew :shared:jvmTest --rerun-tasks -> 60 tests / 0 failures (LandListStateTest 6 new); :shared:testAndroidHostTest -> 57 / 0; ./scripts/init.sh --verify -> BUILD SUCCESSFUL (:shared:jvmTest, :shared:testAndroidHostTest, :androidApp:assembleDebug APK, :desktopApp:build); --rerun-tasks :androidApp:assembleDebug :desktopApp:build -> BUILD SUCCESSFUL. No E2E or Compose UI-test framework exists, so none is claimed.
 - Android emulator smoke (Medium_Phone_API_35, 1080x2400): empty state names Añadir terreno with no fake row; saving 'Los Olivos' (name only) returns to the list showing Riego/Producción: No lo sé plus the saved confirmation; a second land (Municipio: Martos, Regadío, Ecológico) adds a distinguishable row in creation order; force-stop + relaunch keeps both with no duplicates or stale confirmation; Volver returns to the chat home and Cancelar returns to the list creating no record; font_scale 2.0 wraps all rows/actions with no horizontal overflow. Desktop run proved no read at startup, the plain-Spanish failure state with only Reintentar and Añadir terreno withheld, failure persisting on retry, and recovery after the store was fixed.
 - Privacy: grep -rn 'println|Log\.|Logger|printStackTrace|System.out' shared/src -> no matches; no network call, permission, dependency, or module added; no land id/area/notes shown and no land data or exception text surfaced.
-- Independent validator ACCEPTED (2026-10-13), record docs/validations/land_list.md: re-ran ./init.sh, the focused and full :shared:jvmTest (60/0), :shared:testAndroidHostTest (57/0), ./init.sh --verify, and a --rerun-tasks build, and byte-for-byte checked the nine new strings plus the reused land vocabulary against the spec; confirmed file-by-file scope discipline (only the intended add_land routing change), the failure/empty-state distinction, and the no-logging/no-network constraints. Findings F1-F6 are non-blocking and carried forward (F1 optional confirmation guard, F2 corrupt-store-content robustness owned by local_land_store hardening, F3 system back handling owned by chat_accessibility, F5 evidence hygiene, F6 default-clock createdAt).
+- Independent validator ACCEPTED (2026-10-13), record docs/validations/land_list.md: re-ran ./scripts/init.sh, the focused and full :shared:jvmTest (60/0), :shared:testAndroidHostTest (57/0), ./scripts/init.sh --verify, and a --rerun-tasks build, and byte-for-byte checked the nine new strings plus the reused land vocabulary against the spec; confirmed file-by-file scope discipline (only the intended add_land routing change), the failure/empty-state distinction, and the no-logging/no-network constraints. Findings F1-F6 are non-blocking and carried forward (F1 optional confirmation guard, F2 corrupt-store-content robustness owned by local_land_store hardening, F3 system back handling owned by chat_accessibility, F5 evidence hygiene, F6 default-clock createdAt).

@@ -32,7 +32,7 @@ footprint (unchanged by validation):
 Untouched: `contracts/`, `backend/`, `knowledge/`, `lands/`, `theme/`,
 `shared/src/commonMain/composeResources/values/strings.xml`, `shared/src/iosMain/`,
 `androidApp/`, `desktopApp/`, every Gradle file and the version catalog, and
-`init.sh`. `git diff --check` clean. No new module, dependency, endpoint,
+`scripts/init.sh`. `git diff --check` clean. No new module, dependency, endpoint,
 permission, ViewModel, navigation, coroutine API, or logging.
 
 ## Literal verification (independently reproduced)
@@ -72,7 +72,7 @@ executions, not cached `UP-TO-DATE` output:
 | `./gradlew :shared:jvmTest --rerun-tasks` | **162 tests / 0 failures** (19 classes; `LandContextBuilderTest` 13, `ChatConversationTest` 13, `KtorAnswerServiceTest` 9, `ChatHomeStateTest` 31) |
 | `./gradlew :shared:testAndroidHostTest --rerun-tasks` | **148 tests / 0 failures** |
 | `./gradlew :shared:compileKotlinIosSimulatorArm64 :desktopApp:build :androidApp:assembleDebug --rerun-tasks` | BUILD SUCCESSFUL, 76 tasks executed; APK 35,865,622 bytes (matches the claim byte-for-byte) |
-| `./init.sh --verify` | exit 0 (91 tasks) — it really executes the checks |
+| `./scripts/init.sh --verify` | exit 0 (91 tasks) — it really executes the checks |
 | `git diff --check` | clean |
 | Logging grep (`println\|Log\.\|Logger\|printStackTrace\|NSLog\|System\.out` in `shared/src androidApp/src desktopApp/src`) | no matches (re-checked after probe deletion) |
 | `Color(0x` outside `theme/` | none |
@@ -104,8 +104,8 @@ comparison.
   `CancellationException` thrown by a provider; unreachable with today's
   synchronous read, but rethrow `CancellationException` if a provider ever
   suspends.
-- **N4 (carried).** `init.sh --check` banner text is stale (spec mandates no
-  `init.sh` change).
+- **N4 (carried).** `scripts/init.sh --check` banner text is stale (spec mandates no
+  `scripts/init.sh` change).
 - **N5 (carried `chat_question_submission` F1).** `/ask` is still unrouted
   (`backend/app/main.py` exposes only `/health`) and no persistent E2E harness
   exists, so the transport-level encoded-body capture is the honest automated
@@ -116,7 +116,7 @@ comparison.
 
 - `git status --porcelain` matched the spec's expected file set exactly.
   `contracts/`, `backend/`, `knowledge/`, `lands/`, `theme/`, `strings.xml`,
-  platform entry points, all Gradle files, and `init.sh` are untouched;
+  platform entry points, all Gradle files, and `scripts/init.sh` are untouched;
   `AnswerService.kt` is unmodified (DTOs, `answerJson`, `generalAskRequest`
   behaviorally and byte-for-byte unchanged).
 - Policy is a pure, Compose-free builder in `commonMain` with an explicit lands

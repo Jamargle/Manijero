@@ -87,7 +87,7 @@ Inspected:
 - `shared/build.gradle.kts` / `gradle/libs.versions.toml`: shared module has Compose,
   lifecycle, and kotlin-test only; it has no HTTP, serialization, coroutine, or mock
   HTTP dependencies yet.
-- `init.sh`: available checks are shared JVM/Android host tests and Android/Desktop
+- `scripts/init.sh`: available checks are shared JVM/Android host tests and Android/Desktop
   builds; there is no persistent end-to-end test runner.
 
 Relevant constraints come from `CONTEXT.md`, `docs/build-brief.md`,
@@ -188,7 +188,7 @@ python3 contracts/validate_examples.py
 ./gradlew :shared:testAndroidHostTest
 ./gradlew :desktopApp:build
 ./gradlew :androidApp:assembleDebug
-./init.sh --verify
+./scripts/init.sh --verify
 ```
 
 The last two Android-inclusive checks may be environment-blocked if this worktree has
@@ -276,9 +276,9 @@ one working state, one reply, disabled duplicate submit, and a new question afte
 
 ## Focused verification
 
-`./init.sh --feature <feature-id>` runs exactly the block below. It is the feature-scoped
-tier of `./init.sh --fast`, and the cheapest check that still touches what this feature
-changed; `./init.sh --verify` remains the full gate.
+`./scripts/init.sh --feature <feature-id>` runs exactly the block below. It is the feature-scoped
+tier of `./scripts/init.sh --fast`, and the cheapest check that still touches what this feature
+changed; `./scripts/init.sh --verify` remains the full gate.
 
 <!-- verify:start -->
 ```sh
@@ -299,8 +299,8 @@ for the independent acceptance record.
 - KtorAnswerService posts the contract AskRequest to <baseUrl>/ask with JSON ContentNegotiation (explicitNulls = false); no production base URL is hard-coded and no logging was added.
 - python3 contracts/validate_examples.py -> "Validated 2 request and 3 response examples against answer_api_contract".
 - ./gradlew :shared:jvmTest -> BUILD SUCCESSFUL, 24 tests 0 failures (ChatHomeStateTest 13, ChatConversationTest 3, KtorAnswerServiceTest 2, LandRepositoryTest 4, 2 scaffold). KtorAnswerServiceTest asserts POST /ask, the exact question "  ¿Puedo regar hoy?  ", land_context exactly {"mode":"general","lands":[]}, and decodes contracts/examples/response-answered.json from the repo.
-- ./gradlew :shared:testAndroidHostTest -> BUILD SUCCESSFUL, 22 tests 0 failures; ./gradlew :desktopApp:build and ./gradlew :androidApp:assembleDebug -> BUILD SUCCESSFUL (debug APK produced); ./init.sh --verify -> BUILD SUCCESSFUL. Android checks ran because this worktree has local.properties sdk.dir.
+- ./gradlew :shared:testAndroidHostTest -> BUILD SUCCESSFUL, 22 tests 0 failures; ./gradlew :desktopApp:build and ./gradlew :androidApp:assembleDebug -> BUILD SUCCESSFUL (debug APK produced); ./scripts/init.sh --verify -> BUILD SUCCESSFUL. Android checks ran because this worktree has local.properties sdk.dir.
 - Runtime smoke: ./gradlew :desktopApp:run opened the Desktop window with no exception in the run log. No scripted click-through or screenshot (interactive GUI) and no live answer, because the backend still exposes only /health; the working-state/one-reply behavior is proven by ChatConversationTest.
-- Independent validator accepted (2026-10-12), docs/validations/chat_question_submission.md: re-ran the contract validator, :shared:jvmTest --rerun (24 tests), :shared:testAndroidHostTest --rerun (22 tests), a full :androidApp:assembleDebug :desktopApp:build --rerun-tasks, :shared:compileKotlinIosSimulatorArm64, and ./init.sh --verify (all BUILD SUCCESSFUL) plus a 50s :desktopApp:run launch with no exceptions.
+- Independent validator accepted (2026-10-12), docs/validations/chat_question_submission.md: re-ran the contract validator, :shared:jvmTest --rerun (24 tests), :shared:testAndroidHostTest --rerun (22 tests), a full :androidApp:assembleDebug :desktopApp:build --rerun-tasks, :shared:compileKotlinIosSimulatorArm64, and ./scripts/init.sh --verify (all BUILD SUCCESSFUL) plus a 50s :desktopApp:run launch with no exceptions.
 - Independent validator confirmed all four acceptance scenarios hold and decoded all three contract fixtures (answered/abstained/needs_land_clarification) with the shipped DTO, beyond the implementer's answered-only transport test; no raw question/land logging, no hard-coded production URL, no /health misuse, and contracts/ plus backend/ untouched.
 - Validator findings F1-F3 are non-blocking and carried forward: F1 platform engine/endpoint wiring + Android/Desktop manual smoke (owner: the /ask wiring slice), F2 bounded HttpTimeout (owner: network_error_recovery), F3 small/wide-window + text-scale/keyboard evidence and transcript auto-scroll (owner: chat_accessibility).

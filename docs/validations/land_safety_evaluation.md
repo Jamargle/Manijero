@@ -43,7 +43,7 @@
 
 `git status --porcelain` shows only the expected new/updated paths. `contracts/`,
 `knowledge/source_catalog.json`, `knowledge/passages.schema.json`, `backend/requirements.txt`,
-`init.sh`, `backend/app/{generation,retrieval,source_catalog,abstention,clarification}.py`,
+`scripts/init.sh`, `backend/app/{generation,retrieval,source_catalog,abstention,clarification}.py`,
 `backend/app/main.py`, the per-feature `scripts/evaluate_*.py` and `tests/test_*.py`, and all
 `shared/`/`androidApp/`/`desktopApp/` code are unmodified. Fixtures are synthetic and labelled
 (`fixture`, `no es una norma real`, `Sintético`, `cifra inventada`); the only numeric material is
@@ -81,7 +81,7 @@ no secret/PII handling, no new route, no dependency, and diagnostics avoid conte
   with the implemented behavior.
 - `PROGRESS.md` / `feature_list.json` record only the commands actually run and label the baseline
   synthetic and not a gate; the recorded numbers match the reproduced run.
-- `init.sh` correctly unchanged (KMP-only; no backend command).
+- `scripts/init.sh` correctly unchanged (KMP-only; no backend command).
 
 ## Verdict
 

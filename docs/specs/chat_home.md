@@ -40,9 +40,9 @@ Backend calls, answer rendering, suggested questions, land storage, navigation d
 
 ## Focused verification
 
-`./init.sh --feature <feature-id>` runs exactly the block below. It is the feature-scoped
-tier of `./init.sh --fast`, and the cheapest check that still touches what this feature
-changed; `./init.sh --verify` remains the full gate.
+`./scripts/init.sh --feature <feature-id>` runs exactly the block below. It is the feature-scoped
+tier of `./scripts/init.sh --fast`, and the cheapest check that still touches what this feature
+changed; `./scripts/init.sh --verify` remains the full gate.
 
 <!-- verify:start -->
 ```sh
@@ -58,8 +58,8 @@ for status and dependencies, and `docs/validations/<feature-id>.md` remains auth
 for the independent acceptance record.
 
 - Spec: docs/specs/chat_home.md.
-- Reproducible project wrapper restored from the project setup (Gradle 9.8.0); ./init.sh completes successfully.
+- Reproducible project wrapper restored from the project setup (Gradle 9.8.0); ./scripts/init.sh completes successfully.
 - ./gradlew :shared:jvmTest passes; ./gradlew :desktopApp:build passes and compiles the shared Compose screen.
-- ./init.sh --verify, ./gradlew :shared:testAndroidHostTest, and ./init.sh --android are blocked before compilation because this worktree has no ANDROID_HOME or local.properties sdk.dir.
+- ./scripts/init.sh --verify, ./gradlew :shared:testAndroidHostTest, and ./scripts/init.sh --android are blocked before compilation because this worktree has no ANDROID_HOME or local.properties sdk.dir.
 - Self-verification passes for the implemented shared/Desktop scope; Android verification remains environment-blocked and is not claimed.
 - Independent validator accepted commit 47e80c8 after confirming scope, accessibility labels, wrapper reproducibility, and all feasible checks. Record: docs/validations/chat_home.md.

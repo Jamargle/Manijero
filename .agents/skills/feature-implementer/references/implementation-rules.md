@@ -29,9 +29,9 @@ Feature status convention:
 
 Do not use `passing` to mean final approval. Final approval is a validator verdict persisted by the main orchestrator as `accepted` in `feature_list.json`, with the verification in the `Feature evidence` section of `../../../../docs/specs/<feature-id>.md`, the acceptance record `../../../../docs/validations/<feature-id>.md`, and one pointer line in `../../../../docs/progress/session-log.md`.
 
-## `init.sh` Rule
+## `scripts/init.sh` Rule
 
-Once a repository has a runnable baseline, `init.sh` should be an executable non-blocking gate, not a help screen.
+Once a repository has a runnable baseline, `scripts/init.sh` should be an executable non-blocking gate, not a help screen.
 
 Default behavior:
 
@@ -49,7 +49,7 @@ pnpm test
 pnpm build
 ```
 
-Only allow an informational-only `init.sh` during an explicitly pre-bootstrap phase.
+Only allow an informational-only `scripts/init.sh` during an explicitly pre-bootstrap phase.
 
 Use the strongest applicable available checks:
 

@@ -31,7 +31,7 @@ Untouched, as the spec's "do not modify" list requires: `AddLandState.kt`, `Edit
 `Land.kt`, `LandDraft.kt`, `LandRepository.kt`, the storage adapters/format, `LandListScreen.kt`,
 `RemoveLandScreen.kt`, `PrivacyScreen.kt`, `App.kt`, `ChatHomeState.kt`, `ChatConversation.kt`,
 `chat/`, `privacy/`, `theme/`, `androidApp/`, `desktopApp/`, `shared/src/iosMain/`, `contracts/`,
-`backend/`, `knowledge/`, every Gradle file and the version catalog, and `init.sh`. No test file was
+`backend/`, `knowledge/`, every Gradle file and the version catalog, and `scripts/init.sh`. No test file was
 added or modified (the repo refuses test-only dependencies), so the test surface is byte-identical to
 the accepted baseline. `git diff --check` clean. No new module, dependency, ViewModel, coroutine,
 navigation, dialog, permission, endpoint, Compose UI-test artifact, or logging.
@@ -52,7 +52,7 @@ Re-run by the validator with `--rerun-tasks` where relevant, so results are real
 - `./gradlew :shared:compileKotlinIosSimulatorArm64` → BUILD SUCCESSFUL.
 - `./gradlew :desktopApp:build :androidApp:assembleDebug --rerun-tasks` → BUILD SUCCESSFUL, 72
   actionable tasks executed; fresh `androidApp-debug.apk` (36,014,513 bytes).
-- `./init.sh --verify` → **exit 0**, BUILD SUCCESSFUL (91 actionable tasks).
+- `./scripts/init.sh --verify` → **exit 0**, BUILD SUCCESSFUL (91 actionable tasks).
 - `git diff --numstat -- shared/src/commonMain/composeResources/values/strings.xml` → `1 0`. The
   single added line is `<string name="add_land_choice_description">%1$s: %2$s</string>`, byte-identical
   to the spec's copy contract; `add_land_choice_description` appears exactly once and is referenced only

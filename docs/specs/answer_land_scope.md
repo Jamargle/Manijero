@@ -45,7 +45,7 @@ names a land from it, and never suggests that the land details justify or prove 
 **Non-goals**
 
 - Any change to `contracts/`, `backend/`, `knowledge/`, `theme/`, `lands/`, the platform entry
-  points, Gradle, or `init.sh`. `AskResponse.land_scope` already exists and is already decoded.
+  points, Gradle, or `scripts/init.sh`. `AskResponse.land_scope` already exists and is already decoded.
 - Naming the selected lands, showing a land id, a land detail, or a per-land breakdown: the wire
   carries only the mode, so the caption stays generic.
 - The land-data disclosure notice, what is stored locally, or what leaves the device:
@@ -242,7 +242,7 @@ not change or delete any existing string.
 - **Update** `CONSTRAINTS.md` during implementation with one short client MUST rule (see durable
   docs).
 - **Do not modify**: `contracts/`, `backend/`, `knowledge/`, `theme/`, `lands/`, `androidApp/`,
-  `desktopApp/`, `shared/src/iosMain/`, any Gradle file or version catalog, `init.sh`, and
+  `desktopApp/`, `shared/src/iosMain/`, any Gradle file or version catalog, `scripts/init.sh`, and
   `feature_list.json`/`PROGRESS.md` while implementing.
 
 ## Visual design impact
@@ -291,7 +291,7 @@ python3 contracts/validate_examples.py
 ./gradlew :shared:testAndroidHostTest --rerun-tasks
 ./gradlew :shared:compileKotlinIosSimulatorArm64
 ./gradlew :desktopApp:build :androidApp:assembleDebug --rerun-tasks
-./init.sh --verify
+./scripts/init.sh --verify
 grep -rn "Color(0x" shared/src/commonMain/kotlin/com/jamarglex/manijero --include=*.kt   # matches only under theme/
 grep -rn "println\|Log\.\|Logger\|printStackTrace\|NSLog" shared/src androidApp/src desktopApp/src   # no matches
 git diff --check
@@ -313,9 +313,9 @@ Also:
 
 Capture: focused and full test counts/names (no test removed); the byte-for-byte string comparison;
 the per-entry scope assertions; a written record (or preview screenshots) of a general, all-lands, and
-selected reply plus the abstention with a scope; the greps; `./init.sh --verify` output (or the exact
+selected reply plus the abstention with a scope; the greps; `./scripts/init.sh --verify` output (or the exact
 blocker); and confirmation that `contracts/`, `backend/`, `knowledge/`, `theme/`, `lands/`, the entry
-points, Gradle, and `init.sh` are untouched.
+points, Gradle, and `scripts/init.sh` are untouched.
 
 ## Durable documentation impact
 
@@ -326,7 +326,7 @@ points, Gradle, and `init.sh` are untouched.
 | `docs/specs/minimal_land_context.md`, `docs/specs/land_clarification.md`, `docs/specs/answer_source_cards.md`, `docs/specs/response_states.md` | Not needed | Their `land_scope`-rendering handoff is executed here, not revised; the accepted behavior is unchanged. |
 | `AGENTS.md`, `CONTEXT.md`, `docs/build-brief.md`, `docs/domain-model.md`, `docs/risks-and-open-questions.md`, `MasterPlanV3.md` | Not needed | No product, glossary, or domain change; the operating rules (plain Spanish, no invented legal facts, commonMain UI) already govern. |
 | `ARCHITECTURE.md` | Not needed | It does not exist; no module, boundary, or dependency is added. |
-| `init.sh` | Not needed | No new mode; it must not start a service. |
+| `scripts/init.sh` | Not needed | No new mode; it must not start a service. |
 | `feature_list.json`, `PROGRESS.md` | After verified implementation only | Record evidence, status, and the `/ask`/UI-harness limitation then; planning does not touch them. |
 
 ## Risks and open decisions
@@ -366,20 +366,20 @@ points, Gradle, and `init.sh` are untouched.
       without clipping at `widthDp = 320`/`fontScale = 2f`; the answered card stays neutral.
 - [ ] Product behavior and UI stay in `commonMain`; no new module, dependency, ViewModel, control,
       endpoint, or logging; `contracts/`, `backend/`, `knowledge/`, `theme/`, `lands/`, the platform
-      roots, Gradle, and `init.sh` are untouched.
+      roots, Gradle, and `scripts/init.sh` are untouched.
 - [ ] No `Color(0x` outside `theme/`, and no logging/printing of a question, answer, payload, or
       exception text (grep evidence).
 - [ ] `:shared:jvmTest`, `:shared:testAndroidHostTest`, the iOS compile, the Android/Desktop builds,
-      `./init.sh --verify`, and the contract validator pass (or the exact environment blocker is
+      `./scripts/init.sh --verify`, and the contract validator pass (or the exact environment blocker is
       reported) with no previously passing test regressing; no E2E/UI-test coverage is claimed.
 - [ ] `feature_list.json`/`PROGRESS.md` were not modified by planning; the final diff matches this
       spec's file list; the `/ask`/UI-harness limitation is recorded rather than worked around.
 
 ## Focused verification
 
-`./init.sh --feature <feature-id>` runs exactly the block below. It is the feature-scoped
-tier of `./init.sh --fast`, and the cheapest check that still touches what this feature
-changed; `./init.sh --verify` remains the full gate.
+`./scripts/init.sh --feature <feature-id>` runs exactly the block below. It is the feature-scoped
+tier of `./scripts/init.sh --fast`, and the cheapest check that still touches what this feature
+changed; `./scripts/init.sh --verify` remains the full gate.
 
 <!-- verify:start -->
 ```sh
@@ -399,8 +399,8 @@ for the independent acceptance record.
 - Copy (composeResources/values/strings.xml): three new keys shipped byte-for-byte equal to the spec — `chat_land_scope_general` = `No tiene en cuenta tus terrenos.`, `chat_land_scope_all_active` = `Tiene en cuenta todos tus terrenos.`, `chat_land_scope_selected` = `Tiene en cuenta los terrenos que elegiste.` A Python UTF-8 byte comparison matched all three exactly and each key appears once; `strings.xml` numstat is +3/-0, so no existing string was changed or deleted.
 - New/changed previews: a general reply (the existing answered previews now default to `general`), an all-lands reply, a selected-lands reply, an abstention with an all-lands scope, and a `widthDp = 320`/`fontScale = 2f` narrow/large-text variant, all inside `ManijeroTheme`, with no control added or resized.
 - Tests: `ChatHomeStateTest.response` helper gained a `landScope` parameter; new cases assert the default is `general`, each of the three decoded scopes is copied onto exactly one assistant entry, a user entry never carries a scope, an earlier entry keeps its own scope after a later reply (selected then general), an abstained entry carries its decoded scope and stays `abstained`, and a clarification still appends no assistant entry. `ChatConversationTest.response` gained a `landScope` parameter and a new case drives a fake `AnswerService` returning a `selected` scope and asserts the one assistant entry carries it. No test removed.
-- Commands actually run (repository root, all pass): `python3 contracts/validate_examples.py` -> 'Validated 2 request and 3 response examples against answer_api_contract' (exit 0); focused `./gradlew :shared:jvmTest --tests ChatHomeStateTest --tests ChatConversationTest` -> BUILD SUCCESSFUL; `./gradlew :shared:jvmTest --rerun-tasks` -> 181 tests / 0 failures (`ChatHomeStateTest` 44, `ChatConversationTest` 16; was 174, +7 new, no test removed); `./gradlew :shared:testAndroidHostTest --rerun-tasks` -> 167 tests / 0 failures (was 160, +7); `./gradlew :shared:compileKotlinIosSimulatorArm64` -> BUILD SUCCESSFUL; `./gradlew :desktopApp:build :androidApp:assembleDebug --rerun-tasks` -> 72 tasks, BUILD SUCCESSFUL (debug APK); `./init.sh --verify` -> BUILD SUCCESSFUL (91 tasks, exit 0); `grep -rn 'Color(0x' ... | grep -v /theme/` -> no matches (all matches are in theme/ManijeroColors.kt); `grep -rn 'println|Log\.|Logger|printStackTrace|NSLog' shared/src androidApp/src desktopApp/src` -> no matches; `git diff --check` -> clean.
+- Commands actually run (repository root, all pass): `python3 contracts/validate_examples.py` -> 'Validated 2 request and 3 response examples against answer_api_contract' (exit 0); focused `./gradlew :shared:jvmTest --tests ChatHomeStateTest --tests ChatConversationTest` -> BUILD SUCCESSFUL; `./gradlew :shared:jvmTest --rerun-tasks` -> 181 tests / 0 failures (`ChatHomeStateTest` 44, `ChatConversationTest` 16; was 174, +7 new, no test removed); `./gradlew :shared:testAndroidHostTest --rerun-tasks` -> 167 tests / 0 failures (was 160, +7); `./gradlew :shared:compileKotlinIosSimulatorArm64` -> BUILD SUCCESSFUL; `./gradlew :desktopApp:build :androidApp:assembleDebug --rerun-tasks` -> 72 tasks, BUILD SUCCESSFUL (debug APK); `./scripts/init.sh --verify` -> BUILD SUCCESSFUL (91 tasks, exit 0); `grep -rn 'Color(0x' ... | grep -v /theme/` -> no matches (all matches are in theme/ManijeroColors.kt); `grep -rn 'println|Log\.|Logger|printStackTrace|NSLog' shared/src androidApp/src desktopApp/src` -> no matches; `git diff --check` -> clean.
 - Literal feature-list verification: the three decoded `land_scope` values each produce one assistant entry carrying that scope (reducer test) and the previews render the three captions under `Asistente`; because there is no platform `/ask` (carried `chat_question_submission` F1), an empty corpus, and no Compose UI-test harness, the on-device view would need a temporary non-committed fake `AnswerService` and no on-device screenshot was captured, so no automated UI or E2E result is claimed.
-- Scope: only `CONSTRAINTS.md`, `feature_list.json`, `PROGRESS.md`, `strings.xml`, `App.kt`, `ChatHomeState.kt`, `ChatHomeStateTest.kt`, and `ChatConversationTest.kt` changed (git status --porcelain); `contracts/`, `backend/`, `knowledge/`, `theme/`, `lands/`, the platform entry points, all Gradle files, and `init.sh` are untouched. `./init.sh` created the worktree `local.properties` (sdk.dir) so the Android checks ran. No new module, dependency, ViewModel, navigation, control, endpoint, or logging.
+- Scope: only `CONSTRAINTS.md`, `feature_list.json`, `PROGRESS.md`, `strings.xml`, `App.kt`, `ChatHomeState.kt`, `ChatHomeStateTest.kt`, and `ChatConversationTest.kt` changed (git status --porcelain); `contracts/`, `backend/`, `knowledge/`, `theme/`, `lands/`, the platform entry points, all Gradle files, and `scripts/init.sh` are untouched. `./scripts/init.sh` created the worktree `local.properties` (sdk.dir) so the Android checks ran. No new module, dependency, ViewModel, navigation, control, endpoint, or logging.
 - `CONSTRAINTS.md` gained the 'Client land scope' client MUST rule. Honest gaps: the caption text is verified by the byte-for-byte string comparison plus the reducer scope assertions and the previews, not by a UI test; the scope is derived only from the decoded response (the wire carries only the mode, so a `selected` caption names no land or id); greyscale and `widthDp = 320`/`fontScale = 2f` no-clipping are structural/compile-based, not an inspected render (owner `chat_accessibility`). Self-verified; awaiting independent validation.
-- Independent validator ACCEPTED this feature (2026-10-13). It did not trust the implementer report and independently re-ran: `python3 contracts/validate_examples.py` (exit 0), focused `:shared:jvmTest --tests ChatHomeStateTest --tests ChatConversationTest`, `:shared:jvmTest --rerun-tasks` (181 tests / 0 failures; ChatHomeStateTest 44, ChatConversationTest 16; 174 -> 181, no test removed), `:shared:testAndroidHostTest --rerun-tasks` (167 / 0), `:shared:compileKotlinIosSimulatorArm64`, `:desktopApp:build :androidApp:assembleDebug --rerun-tasks` (debug APK), `./init.sh --verify` (exit 0, 91 tasks), and `git diff --check` (clean). It byte-for-byte confirmed the three strings (`chat_land_scope_general`/`all_active`/`selected`, numstat +3/-0, no existing string changed) and re-ran the logging and raw-`Color(0x)` greps (matches only in theme/). With its own temporary probe test it reproduced the per-entry behavior (each `LandContextMode` value copied onto exactly one assistant entry, an earlier `selected` entry surviving a later `general` turn while `lastResponseStatus` is the latest, clarification appending no entry, `general` default). It confirmed the exhaustive `else`-free `landScopeCaption` over the three-value enum, the neutral `labelLarge`/`onSurfaceVariant` caption inside the existing merged-semantics node on answered and abstained entries only (no badge/checkmark/success colour, no land name/id, no eligibility claim), the abstention keeping its `cautionSurface`/`caution` treatment, and clean scope discipline (only the intended 8 files plus the spec; contracts/, backend/, knowledge/, theme/, lands/, platform entry points, Gradle, init.sh untouched; no new module/dependency/logging). A scoped security review found no blocking issue. Non-blocking findings: N1 (implementer updated feature_list/PROGRESS before validation, matching the established workflow), N2 (no preview explicitly named 'general'; covered by the default-scope answered previews), N3 (greyscale/320dp/2f no-clipping structural, owner chat_accessibility), N4 (carried no-on-device/E2E and generic `selected` caption limits). Verdict: accept. No repair brief required.
+- Independent validator ACCEPTED this feature (2026-10-13). It did not trust the implementer report and independently re-ran: `python3 contracts/validate_examples.py` (exit 0), focused `:shared:jvmTest --tests ChatHomeStateTest --tests ChatConversationTest`, `:shared:jvmTest --rerun-tasks` (181 tests / 0 failures; ChatHomeStateTest 44, ChatConversationTest 16; 174 -> 181, no test removed), `:shared:testAndroidHostTest --rerun-tasks` (167 / 0), `:shared:compileKotlinIosSimulatorArm64`, `:desktopApp:build :androidApp:assembleDebug --rerun-tasks` (debug APK), `./scripts/init.sh --verify` (exit 0, 91 tasks), and `git diff --check` (clean). It byte-for-byte confirmed the three strings (`chat_land_scope_general`/`all_active`/`selected`, numstat +3/-0, no existing string changed) and re-ran the logging and raw-`Color(0x)` greps (matches only in theme/). With its own temporary probe test it reproduced the per-entry behavior (each `LandContextMode` value copied onto exactly one assistant entry, an earlier `selected` entry surviving a later `general` turn while `lastResponseStatus` is the latest, clarification appending no entry, `general` default). It confirmed the exhaustive `else`-free `landScopeCaption` over the three-value enum, the neutral `labelLarge`/`onSurfaceVariant` caption inside the existing merged-semantics node on answered and abstained entries only (no badge/checkmark/success colour, no land name/id, no eligibility claim), the abstention keeping its `cautionSurface`/`caution` treatment, and clean scope discipline (only the intended 8 files plus the spec; contracts/, backend/, knowledge/, theme/, lands/, platform entry points, Gradle, scripts/init.sh untouched; no new module/dependency/logging). A scoped security review found no blocking issue. Non-blocking findings: N1 (implementer updated feature_list/PROGRESS before validation, matching the established workflow), N2 (no preview explicitly named 'general'; covered by the default-scope answered previews), N3 (greyscale/320dp/2f no-clipping structural, owner chat_accessibility), N4 (carried no-on-device/E2E and generic `selected` caption limits). Verdict: accept. No repair brief required.

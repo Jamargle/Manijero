@@ -19,7 +19,7 @@
 | `./gradlew :desktopApp:build` | BUILD SUCCESSFUL |
 | `./gradlew :androidApp:assembleDebug` | BUILD SUCCESSFUL; `androidApp/build/outputs/apk/debug/androidApp-debug.apk` produced |
 | `./gradlew :androidApp:assembleDebug :desktopApp:build --rerun-tasks` | BUILD SUCCESSFUL — full independent recompilation of shared + both apps (APK rebuilt) |
-| `./init.sh --verify` | BUILD SUCCESSFUL (runs `:shared:jvmTest`, `:shared:testAndroidHostTest`, `:androidApp:assembleDebug`, `:desktopApp:build`) |
+| `./scripts/init.sh --verify` | BUILD SUCCESSFUL (runs `:shared:jvmTest`, `:shared:testAndroidHostTest`, `:androidApp:assembleDebug`, `:desktopApp:build`) |
 | `./gradlew :shared:compileKotlinIosSimulatorArm64` | BUILD SUCCESSFUL — the new `commonMain` Ktor/serialization dependencies do not break the pre-existing iOS target |
 | `./gradlew :desktopApp:run` (50 s, then killed) | Desktop window opened; no exception, error, or warning in the run log |
 | `git diff --check` | Clean |

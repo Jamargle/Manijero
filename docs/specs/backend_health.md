@@ -40,14 +40,14 @@ change is required.
 
 ## Focused verification
 
-`./init.sh --feature <feature-id>` runs exactly the block below. It is the feature-scoped
-tier of `./init.sh --fast`, and the cheapest check that still touches what this feature
-changed; `./init.sh --verify` remains the full gate.
+`./scripts/init.sh --feature <feature-id>` runs exactly the block below. It is the feature-scoped
+tier of `./scripts/init.sh --fast`, and the cheapest check that still touches what this feature
+changed; `./scripts/init.sh --verify` remains the full gate.
 
 <!-- verify:start -->
 ```sh
-# The health test needs pytest; ./init.sh --fast prints the virtualenv recipe when it is missing.
-./init.sh --backend-tests tests/test_health.py
+# The health test needs pytest; ./scripts/init.sh --fast prints the virtualenv recipe when it is missing.
+./scripts/init.sh --backend-tests tests/test_health.py
 ```
 <!-- verify:end -->
 

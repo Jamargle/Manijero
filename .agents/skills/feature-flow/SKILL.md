@@ -23,7 +23,7 @@ The main agent is the orchestrator. It chooses the next role, launches the right
 - Do not treat `passing` as accepted. `passing` means implementer self-verification passed; validator `accept` is independent.
 - After validation returns `accept`, persist acceptance by changing the selected feature status in `feature_list.json` from `passing` to `accepted`. `feature_list.json` is a lean index, so never add an `evidence` array: the feature's evidence belongs in that feature's spec (`docs/specs/<feature-id>.md`, section `Feature evidence`) and its acceptance record in `docs/validations/<feature-id>.md` — the two canonical stores; `docs/progress/session-log.md` gets one pointer line per accepted feature and never restates evidence.
 - If validation returns `revise`, route the repair brief back to `implementer` for the same feature.
-- Verification is tiered, and each tier must be reachable: a spec that publishes no focused command block is incomplete, and implementer/validator runs use `./init.sh --feature <feature-id>` and `./init.sh --fast` before paying for `./init.sh --verify`.
+- Verification is tiered, and each tier must be reachable: a spec that publishes no focused command block is incomplete, and implementer/validator runs use `./scripts/init.sh --feature <feature-id>` and `./scripts/init.sh --fast` before paying for `./scripts/init.sh --verify`.
 - After a `revise` repair, route the same feature back to `validator`; do not stop after the repair unless the user explicitly asked for a single role step.
 - If validation returns `block`, stop and report the blocker.
 - After validation returns `accept`, stage only the accepted feature's changes and create a Conventional Commit before selecting or reporting the next feature.
@@ -115,7 +115,7 @@ The handoff headings below are intentionally in Spanish: the skill is written in
 Include:
 
 - `Qué se ha hecho`: 2-5 bullets summarizing the accepted behavior, not internal noise.
-- `Cómo probarlo`: the automatic command, usually `CI=true ./init.sh`, plus concrete manual/local steps when the feature has observable behavior. Prefer commands the user can run directly. If manual testing needs env vars, database, a dev server, or a port, state that explicitly.
+- `Cómo probarlo`: the automatic command, usually `CI=true ./scripts/init.sh`, plus concrete manual/local steps when the feature has observable behavior. Prefer commands the user can run directly. If manual testing needs env vars, database, a dev server, or a port, state that explicitly.
 - `Validación`: validator verdict and the most relevant checks/smokes that actually ran.
 - `Commit`: hash and Conventional Commit message.
 - `Siguiente`: next feature id and next required role/action.

@@ -32,7 +32,7 @@ behavior.
 
 Untouched: `contracts/`, `backend/`, `knowledge/`, `androidApp/`, `desktopApp/`,
 `shared/src/iosMain/`, `theme/`, every Gradle file and the version catalog,
-`init.sh`. `git diff --check` clean. No new module, dependency, engine wiring,
+`scripts/init.sh`. `git diff --check` clean. No new module, dependency, engine wiring,
 base URL, navigation, ViewModel, DI, or coroutine scope.
 
 Validated product artifact hashes (sha256):
@@ -62,7 +62,7 @@ cached `UP-TO-DATE` output:
 - `./gradlew :desktopApp:build` → **BUILD SUCCESSFUL**.
 - `./gradlew :androidApp:assembleDebug` → **BUILD SUCCESSFUL**;
   `androidApp/build/outputs/apk/debug/androidApp-debug.apk` produced.
-- `./init.sh --verify` → **BUILD SUCCESSFUL, exit 0** (the standard gate really
+- `./scripts/init.sh --verify` → **BUILD SUCCESSFUL, exit 0** (the standard gate really
   runs `:shared:jvmTest :shared:testAndroidHostTest :androidApp:assembleDebug
   :desktopApp:build`, it is not print-only).
 - `./gradlew :shared:compileKotlinIosSimulatorArm64` → **BUILD SUCCESSFUL**, so
@@ -154,7 +154,7 @@ records carried finding F2 (timeout) as closed from this side with F1 (platform
 `/ask` wiring) still owned elsewhere. `PROGRESS.md` and `feature_list.json`
 record the feature as `passing` with detailed evidence. `DESIGN.md`,
 `docs/risks-and-open-questions.md`, `ARCHITECTURE.md`, `AGENTS.md`, and
-`init.sh` were correctly left unchanged (spec's durable-doc decisions).
+`scripts/init.sh` were correctly left unchanged (spec's durable-doc decisions).
 
 ## Non-blocking findings
 

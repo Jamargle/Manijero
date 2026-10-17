@@ -54,7 +54,7 @@ Inspected:
 - `MasterPlanV3.md` §§3, 6.1–6.3, 7.4–7.6, and 11.3: catalog decisions live in Git; intended offline flow preserves URL/hash/download date, uses current/validity metadata, and whitelists `boe.es`, `juntadeandalucia.es`, `fega.gob.es`, and `mapa.gob.es`.
 - `contracts/openapi.yaml` and `docs/specs/answer_api_contract.md`: future answer sources expose provenance fields, but no retrieval or corpus implementation exists.
 - `backend/app/main.py`, `backend/tests/test_health.py`, and `backend/README.md`: FastAPI currently has only `/health`; pytest is the existing backend test convention.
-- `init.sh`: verifies KMP targets only; it has no backend/catalog command.
+- `scripts/init.sh`: verifies KMP targets only; it has no backend/catalog command.
 
 No `knowledge/` directory, catalog, ingestion code, retrieval code, source artifact store, or persistent E2E command exists today. `ARCHITECTURE.md`, `CONSTRAINTS.md`, `docs/technical-discovery.md`, `docs/mvp-scope.md`, and the skill template file are absent.
 
@@ -144,14 +144,14 @@ The validator proves catalog-policy conformance, not that a remote document is a
 
 ## Focused verification
 
-`./init.sh --feature <feature-id>` runs exactly the block below. It is the feature-scoped
-tier of `./init.sh --fast`, and the cheapest check that still touches what this feature
-changed; `./init.sh --verify` remains the full gate.
+`./scripts/init.sh --feature <feature-id>` runs exactly the block below. It is the feature-scoped
+tier of `./scripts/init.sh --fast`, and the cheapest check that still touches what this feature
+changed; `./scripts/init.sh --verify` remains the full gate.
 
 <!-- verify:start -->
 ```sh
 python3 backend/scripts/validate_source_catalog.py knowledge/source_catalog.json --as-of 2026-10-13
-./init.sh --backend-tests tests/test_source_catalog.py
+./scripts/init.sh --backend-tests tests/test_source_catalog.py
 ```
 <!-- verify:end -->
 

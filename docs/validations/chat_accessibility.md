@@ -29,7 +29,7 @@ app through the macOS accessibility tree, and applied the rubric/security criter
 Untouched, as the spec's "do not modify" list requires: `ChatHomeState.kt`, `ChatConversation.kt`,
 `chat/`, `lands/`, `privacy/`, `theme/`, `strings.xml`, `contracts/`, `backend/`, `knowledge/`,
 `androidApp/`, `desktopApp/`, `shared/src/iosMain/`, every Gradle file and the version catalog, and
-`init.sh`. No test file was modified (only the new one added), so no previously passing test changed.
+`scripts/init.sh`. No test file was modified (only the new one added), so no previously passing test changed.
 `git diff --check` clean. No new module, dependency, ViewModel, navigation, permission, endpoint, or
 logging.
 
@@ -49,7 +49,7 @@ Re-run by the validator with `--rerun-tasks` where relevant, so results are real
 - `:shared:testAndroidHostTest --rerun-tasks` → **178 tests / 0 failures** (17 suites; was 170).
 - `:desktopApp:build :androidApp:assembleDebug --rerun-tasks` → BUILD SUCCESSFUL, 72 actionable
   tasks executed, fresh `androidApp-debug.apk`.
-- `./init.sh --verify` → **exit 0**, BUILD SUCCESSFUL (91 actionable tasks).
+- `./scripts/init.sh --verify` → **exit 0**, BUILD SUCCESSFUL (91 actionable tasks).
 - `grep -rn "Color(0x" shared/src/commonMain/kotlin/com/jamarglex/manijero --include="*.kt" | grep -v /theme/`
   → no matches (every hex stays in `theme/ManijeroColors.kt`).
 - `grep -rn "LocalMinimumInteractiveComponentSize\|minimumInteractiveComponentSize" shared/src`

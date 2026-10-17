@@ -64,7 +64,7 @@ Inspected:
 - `contracts/openapi.yaml` (`AnswerSource`: `title`, `issuing_body`, `url`, `location`, `published_or_updated_on`, `verified_on`, `excerpt`) and `docs/specs/answer_api_contract.md`: the existing source shape to reuse.
 - `backend/app/main.py`, `backend/README.md`, `backend/requirements.txt`: only `/health` exists; pytest is the backend convention; no retrieval, corpus, embedding, or vector dependency is present.
 - `MasterPlanV3.md` §§6.1–6.3, 9.1–9.2, 11.3: planned legal-structure chunking, mandatory chunk metadata, hybrid search with metadata filters, and retrieval `hit@k` / MRR evaluation on a golden set with thresholds calibrated against a measured baseline.
-- `init.sh`: verifies KMP targets only; it has no backend/retrieval command.
+- `scripts/init.sh`: verifies KMP targets only; it has no backend/retrieval command.
 
 No ingestion, passage/chunk model, retrieval code, embedding client, vector store, golden dataset, or persistent E2E command exists today. `knowledge/source_catalog.json` is valid and intentionally empty (0 sources). `ARCHITECTURE.md`, `CONSTRAINTS.md`, `docs/technical-discovery.md`, `docs/mvp-scope.md`, and the skill's template file are absent.
 
@@ -137,7 +137,7 @@ It prints, per question, the expected-passage rank(s), then aggregate `hit@k`, `
 - Update `backend/README.md` — note the offline retrieval module and baseline script (keep `/health` as the only route).
 - Update `feature_list.json` and `PROGRESS.md` after implementation/validation with actual status, commands, and the measured baseline numbers. This planning pass records the spec link only.
 
-`init.sh`: no change. It checks and verifies KMP targets only, so this backend/knowledge feature is verified with the documented Python commands instead of adding a long-running or KMP-coupled step to the wrapper.
+`scripts/init.sh`: no change. It checks and verifies KMP targets only, so this backend/knowledge feature is verified with the documented Python commands instead of adding a long-running or KMP-coupled step to the wrapper.
 
 No changes to `knowledge/source_catalog.json`, `backend/app/source_catalog.py`, `contracts/`, `backend/app/main.py`, or any client/shared code.
 
@@ -200,14 +200,14 @@ The baseline measures lexical ranking quality on a tiny synthetic fixture set; i
 
 ## Focused verification
 
-`./init.sh --feature <feature-id>` runs exactly the block below. It is the feature-scoped
-tier of `./init.sh --fast`, and the cheapest check that still touches what this feature
-changed; `./init.sh --verify` remains the full gate.
+`./scripts/init.sh --feature <feature-id>` runs exactly the block below. It is the feature-scoped
+tier of `./scripts/init.sh --fast`, and the cheapest check that still touches what this feature
+changed; `./scripts/init.sh --verify` remains the full gate.
 
 <!-- verify:start -->
 ```sh
 python3 backend/scripts/evaluate_retrieval.py --catalog backend/tests/fixtures/retrieval/catalog.json --passages backend/tests/fixtures/retrieval/passages.json --eval backend/tests/fixtures/retrieval/eval_questions.jsonl --as-of 2026-10-13 --k 5
-./init.sh --backend-tests tests/test_retrieval.py
+./scripts/init.sh --backend-tests tests/test_retrieval.py
 ```
 <!-- verify:end -->
 
@@ -228,4 +228,4 @@ for the independent acceptance record.
 - Commands actually run: cd backend && python -m pytest tests/test_retrieval.py -> 76 passed; cd backend && python -m pytest -> 121 passed (76 new + 45 existing); python3 -m py_compile on the three new Python files; git diff --check clean. The worktree has no `python` on PATH and no pytest in the system interpreter, so pytest ran via a temporary venv (`python -m pytest` with the venv interpreter); no dependency was added to the repo.
 - Not run: Android/Desktop/Gradle checks (not applicable to this backend/knowledge feature), and no browser/API/E2E test (no user-facing or API flow, and no persistent E2E framework exists).
 - Synthetic-only and report-only: no canonical passages.json was created, no real legal document or deadline/amount/article claim was added, thresholds are not enforced (--fail-on-miss is off by default), and contracts/, knowledge/source_catalog.json, backend/app/source_catalog.py, backend/app/main.py and all client code are unchanged. Ready for independent validation.
-- Independent validator ACCEPTED this feature (2026-10-13, record: docs/validations/source_retrieval.md). It independently reproduced the fixture catalog gate (exit 0, 3 sources), the measured baseline hit@5 = 0.857 (6/7) / recall@5 = 0.857 / MRR = 0.857, the per-question ranks including the disclosed synonym miss, determinism (byte-identical --json runs, hash-seed and corpus-order independence), hand-recomputed metrics, k-window semantics, the empty-corpus zero-candidate case, and fail-closed exits 2 with located paths for expired/non-approved/non-current catalogs and unknown source_id/keys. It confirmed no-network behavior with a stricter independent socket/DNS/TLS guard and a blocked-socket CLI subprocess, verified the schema/validator sync, the synthetic-only fixtures with no real legal facts, and that pytest ran (76 focused, 121 full) in a venv outside the repo with no dependency added. Scope confirmed: contracts/, catalog validator, /health-only service, client code, and init.sh untouched; non-blocking findings F1-F4 recorded.
+- Independent validator ACCEPTED this feature (2026-10-13, record: docs/validations/source_retrieval.md). It independently reproduced the fixture catalog gate (exit 0, 3 sources), the measured baseline hit@5 = 0.857 (6/7) / recall@5 = 0.857 / MRR = 0.857, the per-question ranks including the disclosed synonym miss, determinism (byte-identical --json runs, hash-seed and corpus-order independence), hand-recomputed metrics, k-window semantics, the empty-corpus zero-candidate case, and fail-closed exits 2 with located paths for expired/non-approved/non-current catalogs and unknown source_id/keys. It confirmed no-network behavior with a stricter independent socket/DNS/TLS guard and a blocked-socket CLI subprocess, verified the schema/validator sync, the synthetic-only fixtures with no real legal facts, and that pytest ran (76 focused, 121 full) in a venv outside the repo with no dependency added. Scope confirmed: contracts/, catalog validator, /health-only service, client code, and scripts/init.sh untouched; non-blocking findings F1-F4 recorded.

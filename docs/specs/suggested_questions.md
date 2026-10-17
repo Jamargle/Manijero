@@ -59,7 +59,7 @@ Inspected:
 - `DESIGN.md`: Home/ask explicitly calls for a small set of example questions; it requires plain Spanish, large controls, shared `commonMain`, keyboard access, and text scaling.
 - `MasterPlanV3.md` §17.3 lists **hypotheses to validate with family**, not an approved prompt catalog; its §11 seed corpus/source entries and `docs/risks-and-open-questions.md` both show first-pilot corpus coverage remains unresolved. The three example strings for this feature were approved separately (see Content decision) without establishing corpus coverage.
 
-There is no navigation framework, Compose UI-test dependency/convention, persistent E2E command, or `ARCHITECTURE.md`/`CONSTRAINTS.md` in the repository. `./init.sh --verify` runs shared host tests plus Android/Desktop builds and does not start a long-running service.
+There is no navigation framework, Compose UI-test dependency/convention, persistent E2E command, or `ARCHITECTURE.md`/`CONSTRAINTS.md` in the repository. `./scripts/init.sh --verify` runs shared host tests plus Android/Desktop builds and does not start a long-running service.
 
 ## Content decision (resolved)
 
@@ -89,7 +89,7 @@ This approval covers only these three example strings as seed wording for this f
 - **Update** `shared/src/commonMain/kotlin/com/jamarglex/manijero/App.kt`: shared suggestion section, click wiring, and targeted previews.
 - **Update** `shared/src/commonMain/composeResources/values/strings.xml`: approved heading/instruction and example text resources.
 - **Update** `shared/src/commonTest/kotlin/com/jamarglex/manijero/ChatHomeStateTest.kt`: focused reducer coverage.
-- **Do not change** Android/Desktop entry points, Gradle dependencies, backend/contracts, land storage, or `init.sh`.
+- **Do not change** Android/Desktop entry points, Gradle dependencies, backend/contracts, land storage, or `scripts/init.sh`.
 
 ## Visual design impact
 
@@ -110,7 +110,7 @@ Run:
 
 ```sh
 ./gradlew :shared:jvmTest
-./init.sh --verify
+./scripts/init.sh --verify
 ```
 
 `jvmTest` must cover reducer behavior without I/O. There is no persistent E2E test command or configured Compose UI-test framework, so focused pure tests plus platform manual smoke are sufficient for this state-only UI slice; do not claim E2E coverage.
@@ -127,7 +127,7 @@ Android verification is currently environment-blocked when `ANDROID_HOME`/`local
 ## Evidence to capture
 
 - Passing `:shared:jvmTest` output, including the new selection tests.
-- `./init.sh --verify` output, or the exact Android SDK blocker while retaining any completed checks.
+- `./scripts/init.sh --verify` output, or the exact Android SDK blocker while retaining any completed checks.
 - Android and Desktop screenshots or a concise manual-check record showing examples, selected composer text, and enlarged/wrapped text.
 - The recorded approval in the Content decision section of this spec, matched byte-for-byte against the shipped Compose string resources (no separate owner approval remains outstanding).
 
@@ -151,9 +151,9 @@ Android verification is currently environment-blocked when `ANDROID_HOME`/`local
 
 ## Focused verification
 
-`./init.sh --feature <feature-id>` runs exactly the block below. It is the feature-scoped
-tier of `./init.sh --fast`, and the cheapest check that still touches what this feature
-changed; `./init.sh --verify` remains the full gate.
+`./scripts/init.sh --feature <feature-id>` runs exactly the block below. It is the feature-scoped
+tier of `./scripts/init.sh --fast`, and the cheapest check that still touches what this feature
+changed; `./scripts/init.sh --verify` remains the full gate.
 
 <!-- verify:start -->
 ```sh
@@ -172,7 +172,7 @@ for the independent acceptance record.
 - Added ChatHomeAction.SuggestedQuestionSelected(String) and a pure reducer case that sets question to the supplied text and clears submittedQuestion; no API/navigation/dependency added.
 - The three approved example strings are shipped verbatim as shared Compose string resources (chat_home_suggestion_solicitud_unica, chat_home_suggestion_sigpac, chat_home_suggestion_condicionalidad); a byte-for-byte comparison against the spec Content decision passed, and the unapproved deadline wording is absent.
 - ./gradlew :shared:jvmTest passes; ChatHomeStateTest 7/7, including 4 new tests (example replaces existing text, clears stale submitted state, submits verbatim then keeps edits, Spanish/Unicode punctuation intact).
-- ./init.sh --verify BUILD SUCCESSFUL: :shared:jvmTest, :shared:testAndroidHostTest (ChatHomeStateTest 7/7), :androidApp:assembleDebug (androidApp-debug.apk built), :desktopApp:build.
+- ./scripts/init.sh --verify BUILD SUCCESSFUL: :shared:jvmTest, :shared:testAndroidHostTest (ChatHomeStateTest 7/7), :androidApp:assembleDebug (androidApp-debug.apk built), :desktopApp:build.
 - Android emulator smoke (Medium_Phone_API_35, 1080x2400, debug APK): all three examples visible without sideways scrolling; tapping each fills the composer with the exact question and enables Preguntar with no answer/network state; submit shows only 'Tu pregunta está lista para continuar.'; re-selecting an example clears the stale submitted message; at font_scale 2.0 the labels wrap to two lines with no horizontal overflow (max right edge 954 of 1080).
 - Desktop: :desktopApp:run launched the shared App() and stayed alive ~50s with no runtime exception; interactive visual/click smoke was not captured in this non-interactive session.
 - Ready for independent validation; no Android SDK blocker remains in this worktree.

@@ -10,7 +10,7 @@ restate evidence here.
 |---|---|---|
 | 2026-10-05 | Build brief initiated from the user's olive-grove-manager description. | `docs/build-brief.md` |
 | 2026-10-05 | Discovery documents created. | `CONTEXT.md`, `docs/domain-model.md`, `docs/risks-and-open-questions.md` |
-| 2026-10-07 | Harness starter created, then completed. | `AGENTS.md`, `init.sh`, `feature_list.json` |
+| 2026-10-07 | Harness starter created, then completed. | `AGENTS.md`, `scripts/init.sh`, `feature_list.json` |
 | 2026-10-08 | Startup harness refreshed; MVP work split into session-sized features. | `AGENTS.md`, `feature_list.json` |
 | 2026-10-09 | Product discovery and harness pass; conflicts resolved, extra skills added. | `docs/`, `.agents/skills/` |
 | 2026-10-11 | Subagent workflow agents added. | `.opencode/agents/` |
@@ -45,7 +45,7 @@ restate evidence here.
 | 2026-10-16 | `desktop_mvp_build` accepted. | `docs/specs/desktop_mvp_build.md` · `docs/validations/desktop_mvp_build.md` |
 | 2026-10-17 | Harness: split `PROGRESS.md` into a status board plus on-demand detail. | `PROGRESS.md`, `docs/progress/current-state.md` |
 | 2026-10-17 | Harness: reduced `feature_list.json` to a lean index and moved its evidence into each spec's "Feature evidence" section. | `feature_list.json`, `docs/specs/<feature-id>.md` |
-| 2026-10-17 | Harness: split verification into tiers (`--fast`/`--feature`/`--backend-tests`) and put the backend in the gate. | `init.sh` |
+| 2026-10-17 | Harness: split verification into tiers (`--fast`/`--feature`/`--backend-tests`) and put the backend in the gate. | `scripts/init.sh` |
 | 2026-10-17 | Harness: split the CI gate by change type and cached pip. | `.github/workflows/gate.yml` |
 | 2026-10-17 | Harness: moved the session log out of `PROGRESS.md`. | `docs/progress/session-log.md` |
 | 2026-10-17 | Harness: collapsed the four overlapping copies of feature evidence. | deleted `docs/progress/feature-evidence.md`; this log is now a one-line pointer index; canonical stores are `docs/validations/<feature-id>.md` (acceptance) and the spec's "Feature evidence" (raw verification) |

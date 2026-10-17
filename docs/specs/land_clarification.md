@@ -43,7 +43,7 @@ lands (names from the local list only), and resubmits the **same original questi
 - Rendering the answer's `land_scope` (`answer_land_scope`), a land-data disclosure notice
   (`land_data_disclosure`), or an unknown-attribute follow-up beyond the chooser.
 - Changing any accepted module: `backend/app/{generation,retrieval,source_catalog,abstention}.py`,
-  `contracts/`, `knowledge/`, `theme/`, `lands/`, platform entry points, Gradle, or `init.sh`.
+  `contracts/`, `knowledge/`, `theme/`, `lands/`, platform entry points, Gradle, or `scripts/init.sh`.
 - Re-clarifying a `selected` request (loop protection) or asking the person to choose when no stored
   land or only one land exists.
 - Semantic/embeddings applicability, a calibrated score threshold, or any legal conclusion: detection
@@ -267,7 +267,7 @@ does not differ.
 - **Update** `CONSTRAINTS.md` (one rule) and record the follow-up note in
   `docs/specs/minimal_land_context.md` (its "no land selection" non-goal is now owned here).
 - **Do not change** `contracts/`, `knowledge/`, `backend/app/{generation,retrieval,source_catalog,abstention}.py`,
-  `backend/app/main.py`, `theme/`, `lands/`, platform entry points, Gradle files, or `init.sh`.
+  `backend/app/main.py`, `theme/`, `lands/`, platform entry points, Gradle files, or `scripts/init.sh`.
 
 ## Visual design impact
 
@@ -324,7 +324,7 @@ python3 -m py_compile backend/app/clarification.py backend/scripts/evaluate_clar
 ./gradlew :shared:testAndroidHostTest --rerun-tasks
 ./gradlew :shared:compileKotlinIosSimulatorArm64
 ./gradlew :desktopApp:build :androidApp:assembleDebug --rerun-tasks
-./init.sh --verify
+./scripts/init.sh --verify
 git diff --check
 ```
 
@@ -341,7 +341,7 @@ Also:
 - Honest limit: there is no `/ask` route (carried F1) and no Compose UI-test harness, so the backend
   decision is observed through the CLI/tests and the client flow through a fake `AnswerService` plus
   previews; do not claim a live end-to-end answer or automated UI coverage.
-- `init.sh` is **not** changed: `--verify` already runs the shared tests and Android/Desktop builds.
+- `scripts/init.sh` is **not** changed: `--verify` already runs the shared tests and Android/Desktop builds.
   The backend slice is verified with the documented Python commands (pytest from an out-of-repo venv).
 
 ## Durable documentation impact
@@ -391,7 +391,7 @@ Also:
 - [ ] Every clarification payload matches `AskResponse` exactly and `contracts/validate_examples.py`
       passes with `contracts/` untouched.
 - [ ] `backend/app/{generation,retrieval,source_catalog,abstention}.py`, `main.py`, `knowledge/`,
-      `theme/`, `lands/`, platform roots, Gradle, and `init.sh` are unchanged; fixtures are synthetic
+      `theme/`, `lands/`, platform roots, Gradle, and `scripts/init.sh` are unchanged; fixtures are synthetic
       and labelled with no real legal fact.
 - [ ] Product behavior and UI stay in `commonMain`; no new module, dependency, ViewModel, endpoint, or
       logging; the new strings match this spec verbatim and replace the acknowledgement cleanly.
@@ -409,14 +409,14 @@ Also:
 
 ## Focused verification
 
-`./init.sh --feature <feature-id>` runs exactly the block below. It is the feature-scoped
-tier of `./init.sh --fast`, and the cheapest check that still touches what this feature
-changed; `./init.sh --verify` remains the full gate.
+`./scripts/init.sh --feature <feature-id>` runs exactly the block below. It is the feature-scoped
+tier of `./scripts/init.sh --fast`, and the cheapest check that still touches what this feature
+changed; `./scripts/init.sh --verify` remains the full gate.
 
 <!-- verify:start -->
 ```sh
 python3 backend/scripts/evaluate_clarification.py --catalog backend/tests/fixtures/clarification/catalog.json --passages backend/tests/fixtures/clarification/passages.json --eval backend/tests/fixtures/clarification/eval_questions.jsonl --as-of 2026-10-13 --k 5
-./init.sh --backend-tests tests/test_clarification.py
+./scripts/init.sh --backend-tests tests/test_clarification.py
 ./gradlew :shared:jvmTest --tests LandContextBuilderTest --tests ChatHomeStateTest --tests ChatConversationTest
 ```
 <!-- verify:end -->
@@ -430,8 +430,8 @@ for the independent acceptance record.
 
 - Implemented (self-verified; awaiting independent validation). Backend: offline, standard-library `backend/app/clarification.py` composes the accepted retrieval/abstention/generation modules unchanged, compares each supplied land's known `water_regime`/`production_method` with the citation-window candidates' `applicability`, and returns `needs_land_clarification` with the differing lands' opaque ids only for `mode: all_active` with >= 2 lands; `general`, a single land, a `selected` request, a stale corpus, and an empty candidate set delegate to the accepted `answer_or_abstain`. `unknown`/omitted attributes never filter a candidate and `crop`-only applicability never discriminates. `to_clarification_response` emits exactly `{status, answer: "", sources: [], land_scope: "selected", land_ids_to_choose}`. `backend/scripts/evaluate_clarification.py` reports it offline with the clarification invariants enforced (exit 0/1/2). Synthetic `backend/tests/fixtures/clarification/*` carry no real legal fact.
 - Client (commonMain): `chat/LandContextBuilder.selectedAskRequest` (exact wording, `mode: selected`, need-only attributes, ids verbatim, non-empty required); `ChatHomeState` `clarificationQuestion` (retains the exact original wording across the empty-answer clarification, cleared by `AskClicked`), `LandChoiceSubmitted` (idle + pending clarification + retained wording + >= 1 land), `SubmitSelected`, and `ChatEffect.request(lands)` (chosen stored lands in repository order; unknown ids ignored; none left -> accepted `general`); `ChatConversation` handles both effects; `App.kt` multi-select chooser from a one-shot guarded local read (no-lands fallback, never a fabricated land) with saved names and known attributes; four plain-Spanish chooser strings replace `chat_home_needs_land_clarification`; three previews.
-- Verification commands actually run: `python3 contracts/validate_examples.py` -> exit 0; the clarification CLI (catalog/passages/eval, --as-of 2026-10-13 --k 5) -> exit 0, `corpus: current`, 5 answered, 1 clarification with both `land-A, land-B`, invariants hold, 0 expect-mismatches; `python3 -m py_compile` on the three new files -> clean; `cd backend && python -m pytest tests/test_clarification.py` -> 70 passed and `python -m pytest` -> 469 passed (399 existing + 70 new), run from the out-of-repo venv (Python 3.9.6), no repo dependency added; `:shared:jvmTest --rerun-tasks` -> 174/0 (was 162; 12 new: `LandContextBuilderTest` +3, `ChatHomeStateTest` +7, `ChatConversationTest` +2, no test removed); `:shared:testAndroidHostTest --rerun-tasks` -> 0 failures; `:shared:compileKotlinIosSimulatorArm64` -> BUILD SUCCESSFUL; `:desktopApp:build :androidApp:assembleDebug --rerun-tasks` -> BUILD SUCCESSFUL (72 tasks); `./init.sh --verify` -> exit 0; `git diff --check` clean.
+- Verification commands actually run: `python3 contracts/validate_examples.py` -> exit 0; the clarification CLI (catalog/passages/eval, --as-of 2026-10-13 --k 5) -> exit 0, `corpus: current`, 5 answered, 1 clarification with both `land-A, land-B`, invariants hold, 0 expect-mismatches; `python3 -m py_compile` on the three new files -> clean; `cd backend && python -m pytest tests/test_clarification.py` -> 70 passed and `python -m pytest` -> 469 passed (399 existing + 70 new), run from the out-of-repo venv (Python 3.9.6), no repo dependency added; `:shared:jvmTest --rerun-tasks` -> 174/0 (was 162; 12 new: `LandContextBuilderTest` +3, `ChatHomeStateTest` +7, `ChatConversationTest` +2, no test removed); `:shared:testAndroidHostTest --rerun-tasks` -> 0 failures; `:shared:compileKotlinIosSimulatorArm64` -> BUILD SUCCESSFUL; `:desktopApp:build :androidApp:assembleDebug --rerun-tasks` -> BUILD SUCCESSFUL (72 tasks); `./scripts/init.sh --verify` -> exit 0; `git diff --check` clean.
 - Literal feature-list verification: the fixture CLI's differentiating case returns `needs_land_clarification` with both land ids instead of picking one, and `ChatConversationTest` drives a fake `AnswerService` returning that payload -> choose a land -> the resubmission is a `selected` request with the exact original wording and only the chosen land (no second user message); `LandContextBuilderTest`/`ChatHomeStateTest` assert the byte-for-byte `selected` body, the chosen-only/repository-order filter, the removed-land -> `general` degrade, and the unknown-id ignore, plus `unknown` never filtering (backend tests) and `crop`-only applicability never discriminating.
-- Scope/privacy: `contracts/`, `backend/app/{generation,retrieval,source_catalog,abstention}.py`, `backend/app/main.py`, `knowledge/`, `theme/`, `lands/`, the platform entry points, all Gradle files, and `init.sh` are untouched; no new module, dependency, route, ViewModel, or logging; the logging and raw-`Color(0x)` greps have no matches and `MinimalLandContext` still has exactly the four contract properties. `CONSTRAINTS.md` gained the land-clarification MUST rule; `backend/README.md` and `docs/specs/minimal_land_context.md` were updated.
+- Scope/privacy: `contracts/`, `backend/app/{generation,retrieval,source_catalog,abstention}.py`, `backend/app/main.py`, `knowledge/`, `theme/`, `lands/`, the platform entry points, all Gradle files, and `scripts/init.sh` are untouched; no new module, dependency, route, ViewModel, or logging; the logging and raw-`Color(0x)` greps have no matches and `MinimalLandContext` still has exactly the four contract properties. `CONSTRAINTS.md` gained the land-clarification MUST rule; `backend/README.md` and `docs/specs/minimal_land_context.md` were updated.
 - Honest limits: there is no `/ask` route (carried `chat_question_submission` F1) and no Compose UI-test harness, so the backend decision is observed through the CLI/tests and the client flow through a fake `AnswerService` plus previews; no live end-to-end answer and no automated UI coverage is claimed. Detection is lexical and conservative (can over-ask, never guesses); `land_safety_evaluation` owns measurement and `answer_land_scope` owns rendering the scope. Self-verified; not accepted.
-- Independent validator ACCEPTED this feature (2026-10-13, record: docs/validations/land_clarification.md). It did not trust the implementer report and independently re-ran `python3 contracts/validate_examples.py` (exit 0, `contracts/` byte-unchanged), `pytest tests/test_clarification.py` (70 passed) and `pytest` (469 passed) from a temp out-of-repo venv with no repo dependency, `py_compile`, and `git diff --check`; re-ran the clarification CLI (exit 0; corpus current, 5 answered, 1 clarification with both ids `land-A, land-B`, invariants hold, 0 expect-mismatches; byte-identical `--json`; `--fail-on-miss` 0->1; empty eval and `--k 0` exit 2; expired catalog -> `stale_evidence` with 0 clarifications); re-ran `:shared:jvmTest --rerun-tasks` (174/0), `:shared:testAndroidHostTest --rerun-tasks` (160/0), `:shared:compileKotlinIosSimulatorArm64`, `:desktopApp:build :androidApp:assembleDebug --rerun-tasks` (72 tasks, APK) and `./init.sh --verify` (exit 0). With its own synthetic corpus it independently reproduced the differing pair -> both ids and the exact 5-key payload (validated against the dereferenced `AskResponse` via jsonschema), equal lands/no-restriction -> delegate, `unknown`/omitted never filtering, `crop`-only never discriminating, `general`/one-land/`selected` never clarifying, order+dedup, and the `max_claims` window. It confirmed all do-not-touch paths (`contracts/`, `knowledge/`, `generation/retrieval/source_catalog/abstention`, `main.py`, `theme/`, `lands/`, platform roots, Gradle, `init.sh`, `requirements.txt`) unchanged, `MinimalLandContext` still 4 properties, no logging/`Color(0x)` outside `theme/`, no new module/dependency/route/ViewModel, and synthetic/labelled fixtures with no real legal fact. Non-blocking findings N1-N4 recorded: N1 (evidence baseline/count corrected to 162/12 at acceptance), N2 (chooser briefly shows the no-lands fallback before the guarded read resolves; owner `chat_accessibility`), N3 (a >128-char land id would raise an uncaught `ValueError` in the CLI; contract already bounds `land.id` to 128; defensive note), N4 (carried honest limits: no `/ask` route, no UI-test harness, lexical/conservative detection).
+- Independent validator ACCEPTED this feature (2026-10-13, record: docs/validations/land_clarification.md). It did not trust the implementer report and independently re-ran `python3 contracts/validate_examples.py` (exit 0, `contracts/` byte-unchanged), `pytest tests/test_clarification.py` (70 passed) and `pytest` (469 passed) from a temp out-of-repo venv with no repo dependency, `py_compile`, and `git diff --check`; re-ran the clarification CLI (exit 0; corpus current, 5 answered, 1 clarification with both ids `land-A, land-B`, invariants hold, 0 expect-mismatches; byte-identical `--json`; `--fail-on-miss` 0->1; empty eval and `--k 0` exit 2; expired catalog -> `stale_evidence` with 0 clarifications); re-ran `:shared:jvmTest --rerun-tasks` (174/0), `:shared:testAndroidHostTest --rerun-tasks` (160/0), `:shared:compileKotlinIosSimulatorArm64`, `:desktopApp:build :androidApp:assembleDebug --rerun-tasks` (72 tasks, APK) and `./scripts/init.sh --verify` (exit 0). With its own synthetic corpus it independently reproduced the differing pair -> both ids and the exact 5-key payload (validated against the dereferenced `AskResponse` via jsonschema), equal lands/no-restriction -> delegate, `unknown`/omitted never filtering, `crop`-only never discriminating, `general`/one-land/`selected` never clarifying, order+dedup, and the `max_claims` window. It confirmed all do-not-touch paths (`contracts/`, `knowledge/`, `generation/retrieval/source_catalog/abstention`, `main.py`, `theme/`, `lands/`, platform roots, Gradle, `scripts/init.sh`, `requirements.txt`) unchanged, `MinimalLandContext` still 4 properties, no logging/`Color(0x)` outside `theme/`, no new module/dependency/route/ViewModel, and synthetic/labelled fixtures with no real legal fact. Non-blocking findings N1-N4 recorded: N1 (evidence baseline/count corrected to 162/12 at acceptance), N2 (chooser briefly shows the no-lands fallback before the guarded read resolves; owner `chat_accessibility`), N3 (a >128-char land id would raise an uncaught `ValueError` in the CLI; contract already bounds `land.id` to 128; defensive note), N4 (carried honest limits: no `/ask` route, no UI-test harness, lexical/conservative detection).

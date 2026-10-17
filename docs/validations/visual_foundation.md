@@ -23,12 +23,12 @@
   review-only token board exposes the caution and danger pairs.
 - No layout, copy, spacing, or behavior changed, and `MainActivity.kt`, desktop `main.kt`,
   `MainViewController.kt`, `strings.xml`, Gradle files/version catalog, `backend/`, `contracts/`,
-  land storage, and `init.sh` are untouched.
+  land storage, and `scripts/init.sh` are untouched.
 - No logging was introduced in `shared/src` (no `println`/`Log`/`Logger`/`printStackTrace`/`NSLog`).
 
 ## Commands that ran
 
-- `./init.sh --verify` → **BUILD SUCCESSFUL**.
+- `./scripts/init.sh --verify` → **BUILD SUCCESSFUL**.
 - `./gradlew :shared:jvmTest :shared:testAndroidHostTest --rerun-tasks` → **BUILD SUCCESSFUL**:
   - `:shared:jvmTest`: **54 tests, 0 failures** (`ManijeroColorsTest` 10, `ManijeroTypographyTest` 4
     new).

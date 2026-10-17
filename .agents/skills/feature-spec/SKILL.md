@@ -82,7 +82,7 @@ The spec must include:
 - implementation plan,
 - implementation tasks,
 - verification plan,
-- a focused verification block the harness can run: the exact shell commands for this feature, wrapped in `<!-- verify:start -->` and `<!-- verify:end -->` markers so `./init.sh --feature <feature-id>` executes them unchanged (see an accepted spec for the shape),
+- a focused verification block the harness can run: the exact shell commands for this feature, wrapped in `<!-- verify:start -->` and `<!-- verify:end -->` markers so `./scripts/init.sh --feature <feature-id>` executes them unchanged (see an accepted spec for the shape),
 - evidence to capture,
 - validator checklist.
 
@@ -97,9 +97,9 @@ Before finishing, check:
 - The plan names concrete files or directories where possible.
 - The tasks are ordered and executable.
 - Verification includes commands or manual checks available in the repo's current state.
-- The focused verification block is executable as published: `./init.sh --feature <feature-id>` must run it without edits, and it must be the cheapest check that still touches what the feature changes.
+- The focused verification block is executable as published: `./scripts/init.sh --feature <feature-id>` must run it without edits, and it must be the cheapest check that still touches what the feature changes.
 - If a persistent E2E command exists and the feature changes user-visible behavior, authentication, authorization, routing, or API flows, the verification plan should include adding/updating focused E2E coverage or explicitly justify why unit/integration coverage is enough.
-- For shell scripts such as `init.sh`, the spec states whether the script must execute checks, print guidance, start services, or provide modes. The default harness rule is: `init.sh` executes non-blocking startup/verification checks and must not start long-running dev servers. A script that only prints the checks is not enough unless the repo is still pre-bootstrap.
+- For shell scripts such as `scripts/init.sh`, the spec states whether the script must execute checks, print guidance, start services, or provide modes. The default harness rule is: `scripts/init.sh` executes non-blocking startup/verification checks and must not start long-running dev servers. A script that only prints the checks is not enough unless the repo is still pre-bootstrap.
 - Durable documentation impact is explicit: `../../../ARCHITECTURE.md`, `../../../CONSTRAINTS.md`, `../../../AGENTS.md`, and other durable docs are each marked create/update/not needed with a reason.
 - Non-goals prevent scope creep.
 - Unknowns are explicit and do not hide blocking ambiguity.

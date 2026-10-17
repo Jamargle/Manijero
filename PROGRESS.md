@@ -33,15 +33,15 @@ Last updated: 2026-10-17.
 
 ## Start and verify
 
-Tiers, cheapest first; `./init.sh` holds the exact commands.
+Tiers, cheapest first; `./scripts/init.sh` holds the exact commands.
 
-- Toolchain check: `./init.sh` (default; prints the same commands).
+- Toolchain check: `./scripts/init.sh` (default; prints the same commands).
 - Next feature: `./scripts/select-feature --next` — the next dependency-ready feature id and its next role; `./scripts/select-feature --status` prints the board and unfinished-feature readiness. Use these instead of reading `feature_list.json` by hand.
-- Focused feature check: `./init.sh --feature <feature-id>` — runs the command block the feature spec publishes between its `<!-- verify:start -->` and `<!-- verify:end -->` markers.
-- No-device tier: `./init.sh --fast` — `:shared:jvmTest`, `contracts/validate_examples.py`, the backend pytest suite, the `source-catalog-v1` validation of `knowledge/source_catalog.json`, and the five offline evaluators over `backend/tests/fixtures/`.
-- Full gate: `./init.sh --verify` (`--full`) — `--fast` plus `:shared:testAndroidHostTest`, `:androidApp:assembleDebug`, and `:desktopApp:build`.
-- Backend unit tests alone: `./init.sh --backend-tests [targets]` — needs pytest; with none available, `--fast` prints the virtualenv recipe, skips the suite locally, and fails under `CI`.
-- Android build: `./init.sh --android`. Launch Desktop: `./init.sh --desktop`.
+- Focused feature check: `./scripts/init.sh --feature <feature-id>` — runs the command block the feature spec publishes between its `<!-- verify:start -->` and `<!-- verify:end -->` markers.
+- No-device tier: `./scripts/init.sh --fast` — `:shared:jvmTest`, `contracts/validate_examples.py`, the backend pytest suite, the `source-catalog-v1` validation of `knowledge/source_catalog.json`, and the five offline evaluators over `backend/tests/fixtures/`.
+- Full gate: `./scripts/init.sh --verify` (`--full`) — `--fast` plus `:shared:testAndroidHostTest`, `:androidApp:assembleDebug`, and `:desktopApp:build`.
+- Backend unit tests alone: `./scripts/init.sh --backend-tests [targets]` — needs pytest; with none available, `--fast` prints the virtualenv recipe, skips the suite locally, and fails under `CI`.
+- Android build: `./scripts/init.sh --android`. Launch Desktop: `./scripts/init.sh --desktop`.
 - The offline checks pin `--as-of 2026-10-13` so runs are deterministic; override with `MANIJERO_AS_OF=YYYY-MM-DD`.
 
 Evaluator flags, report-only caveats, and a feature's own commands live in its spec; the metrics stay report-only (see the limitations above).

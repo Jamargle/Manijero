@@ -185,7 +185,7 @@ Plain Spanish, established tú voice, no digit and no date in any client-authore
 - **Update** `shared/src/commonTest/kotlin/com/jamarglex/manijero/ChatHomeStateTest.kt`: an answered response appends one assistant entry carrying the decoded sources in order; a later turn does not change the earlier entry's sources; an abstained entry carries none; clarification still appends no entry.
 - **Update** `shared/src/commonTest/kotlin/com/jamarglex/manijero/ChatConversationTest.kt`: a fake `AnswerService` returning an answered response with a source yields one assistant entry whose `sources` equal the payload.
 - **Update** `CONSTRAINTS.md` during implementation with one short client MUST rule (see durable docs).
-- **Do not modify**: `contracts/`, `backend/`, `knowledge/`, `theme/`, `lands/`, `androidApp/`, `desktopApp/`, `shared/src/iosMain/`, any Gradle file or version catalog, `init.sh`, and `feature_list.json`/`PROGRESS.md` while implementing.
+- **Do not modify**: `contracts/`, `backend/`, `knowledge/`, `theme/`, `lands/`, `androidApp/`, `desktopApp/`, `shared/src/iosMain/`, any Gradle file or version catalog, `scripts/init.sh`, and `feature_list.json`/`PROGRESS.md` while implementing.
 
 ## Visual design and accessibility impact
 
@@ -212,7 +212,7 @@ python3 contracts/validate_examples.py
 ./gradlew :shared:testAndroidHostTest
 ./gradlew :desktopApp:build
 ./gradlew :androidApp:assembleDebug
-./init.sh --verify
+./scripts/init.sh --verify
 grep -rn "Color(0x" shared/src/commonMain/kotlin/com/jamarglex/manijero --include=*.kt   # matches only under theme/
 grep -rn "println\|Log\.\|Logger\|printStackTrace\|NSLog" shared/src androidApp/src desktopApp/src   # no matches
 ```
@@ -227,7 +227,7 @@ Manual / preview evidence (record what actually happened):
 4. Greyscale check: with colour removed, the card is still identifiable by its `Fuente n`/heading text and the reference numeral is still distinguishable by position.
 5. Honest limitations to state: the canonical corpus is empty and there is still no `/ask` route (carried F1 from `chat_question_submission`), so no *real* cited document can be produced in the running app — the opened URL is the accepted fixture's official URL; Desktop link opening depends on `java.awt.Desktop` BROWSE support and may fail on a Linux host (reported, not hidden); interactive Desktop click-through may be preview-based in a non-interactive session.
 
-Capture: focused and full test counts/names; the nine strings compared byte-for-byte with this spec; the text-fidelity and non-conforming-degradation assertions; the F1 reproduction case as a test (a non-prefix payload yields no numbered card and unmodified text); the URL-guard and date-format tests; the greps; and `./init.sh --verify` output (or the exact blocker).
+Capture: focused and full test counts/names; the nine strings compared byte-for-byte with this spec; the text-fidelity and non-conforming-degradation assertions; the F1 reproduction case as a test (a non-prefix payload yields no numbered card and unmodified text); the URL-guard and date-format tests; the greps; and `./scripts/init.sh --verify` output (or the exact blocker).
 
 ## Durable documentation impact
 
@@ -240,7 +240,7 @@ Capture: focused and full test counts/names; the nine strings compared byte-for-
 | `AGENTS.md`, `CONTEXT.md`, `docs/build-brief.md`, `docs/domain-model.md` | Not needed | No product, glossary, or domain change; the operating rules (plain Spanish, accessibility, commonMain UI, minimize land context, no invented legal facts) are already authoritative. |
 | `docs/risks-and-open-questions.md` | Not needed | The "unsupported or outdated legal answer" mitigation already names visible citations and verification dates; this implements it and opens no new question that needs the register. |
 | `ARCHITECTURE.md` | Not needed | It does not exist; no module, boundary, or dependency is added. |
-| `init.sh` | Not needed | No new mode; it must not start a service. |
+| `scripts/init.sh` | Not needed | No new mode; it must not start a service. |
 | `feature_list.json`, `PROGRESS.md` | After verified implementation only | Record evidence, status, and the F1/link-evidence limitations then; planning does not touch them. |
 
 ## Risks and open decisions
@@ -266,16 +266,16 @@ Capture: focused and full test counts/names; the nine strings compared byte-for-
 - [ ] An abstention renders no card, reference, figure, date, or link even when a malformed payload carries a `sources` entry, and its pinned message is verbatim; the clarification and failure paths are unchanged.
 - [ ] The nine strings match this spec verbatim; no existing string was changed or deleted (including the unused `chat_home_submitted`); the code-owned notice is not duplicated.
 - [ ] Cards stay inside the existing content width, the excerpt block uses theme roles only, nothing is clipped at `widthDp = 320`/`fontScale = 2f`, and the citation cue is not colour-only.
-- [ ] Product behavior and UI stay in `commonMain`; no new module, dependency, Gradle change, permission, endpoint, engine, or shipped fake; `contracts/`, `backend/`, `knowledge/`, `theme/`, land code, platform roots, and `init.sh` are untouched.
+- [ ] Product behavior and UI stay in `commonMain`; no new module, dependency, Gradle change, permission, endpoint, engine, or shipped fake; `contracts/`, `backend/`, `knowledge/`, `theme/`, land code, platform roots, and `scripts/init.sh` are untouched.
 - [ ] No `Color(0x` outside `theme/`; no logging/printing of URLs, excerpts, questions, payloads, or exception text (grep evidence); no URL or question is sent anywhere new.
-- [ ] `:shared:jvmTest`, `:shared:testAndroidHostTest`, `./init.sh --verify`, and the contract validator pass (or the exact environment blocker is reported) with no previously passing test regressing; no E2E/UI-test coverage is claimed.
+- [ ] `:shared:jvmTest`, `:shared:testAndroidHostTest`, `./scripts/init.sh --verify`, and the contract validator pass (or the exact environment blocker is reported) with no previously passing test regressing; no E2E/UI-test coverage is claimed.
 - [ ] `feature_list.json`/`PROGRESS.md` were not modified by planning; the final diff matches this spec's file list; the F1 client-side handling is recorded and the backend F1 hardening plus the `knowledge/README.md` sentence are handed back as follow-ups rather than silently "fixed" here.
 
 ## Focused verification
 
-`./init.sh --feature <feature-id>` runs exactly the block below. It is the feature-scoped
-tier of `./init.sh --fast`, and the cheapest check that still touches what this feature
-changed; `./init.sh --verify` remains the full gate.
+`./scripts/init.sh --feature <feature-id>` runs exactly the block below. It is the feature-scoped
+tier of `./scripts/init.sh --fast`, and the cheapest check that still touches what this feature
+changed; `./scripts/init.sh --verify` remains the full gate.
 
 <!-- verify:start -->
 ```sh
@@ -294,6 +294,6 @@ for the independent acceptance record.
 - Spec: docs/specs/answer_source_cards.md.
 - Implemented in shared commonMain: new pure, Compose-free chat/CitationPresentation.kt (AnswerSegment/Reference/SourceCard/AnswerSourcePresentation, answerSourcePresentation, openableOfficialUrl, formatVerificationDate); ChatMessage gains assistant-only sources: List<AnswerSource> copied only in ResponseReceived; App.kt gains ChatBubble.annotatedText, the answered-branch source-card section (numbered Fuente n cards with title/issuing body/location/verification date and an always-visible excerpt in one merged semantics node) and one Abrir documento oficial Button with a source-naming contentDescription via LocalUriHandler; nine pinned Spanish strings; four new/refreshed previews; one CONSTRAINTS.md client MUST rule; a one-line R5-closed note in docs/specs/response_states.md.
 - Fail-closed marker/card gate (carried grounded_answer_generation F1 handled from the client side): references and card numbers appear only when the distinct [n] markers are exactly 1..sources.size; a non-conforming payload (absent, sparse, out-of-range, non-numeric, leading-zero) rewrites nothing and numbers no card, so the client can never point at the wrong document. The URL guard accepts only https with a dotted host and refuses http/javascript:/mailto:/blank/hostless. A non-answered status renders no card, reference, figure, or date even with a malformed payload.
-- Commands actually run (repository root): python3 contracts/validate_examples.py -> 'Validated 2 request and 3 response examples against answer_api_contract'; ./gradlew :shared:jvmTest --rerun-tasks -> 129 tests / 0 failures (CitationPresentationTest 23, ChatHomeStateTest 31, ChatConversationTest 9); ./gradlew :shared:testAndroidHostTest --rerun-tasks -> 118 tests / 0 failures; ./gradlew :desktopApp:build :androidApp:assembleDebug --rerun-tasks -> BUILD SUCCESSFUL (debug APK); ./init.sh --verify -> exit 0; ./gradlew :shared:compileKotlinIosSimulatorArm64 -> BUILD SUCCESSFUL; greps: Color(0x only under theme/, no println/Log/Logger/printStackTrace/NSLog; no raw marker in shipped copy; nine strings byte-for-byte vs the spec; git diff --check clean. No test removed (HEAD 104 -> 129).
+- Commands actually run (repository root): python3 contracts/validate_examples.py -> 'Validated 2 request and 3 response examples against answer_api_contract'; ./gradlew :shared:jvmTest --rerun-tasks -> 129 tests / 0 failures (CitationPresentationTest 23, ChatHomeStateTest 31, ChatConversationTest 9); ./gradlew :shared:testAndroidHostTest --rerun-tasks -> 118 tests / 0 failures; ./gradlew :desktopApp:build :androidApp:assembleDebug --rerun-tasks -> BUILD SUCCESSFUL (debug APK); ./scripts/init.sh --verify -> exit 0; ./gradlew :shared:compileKotlinIosSimulatorArm64 -> BUILD SUCCESSFUL; greps: Color(0x only under theme/, no println/Log/Logger/printStackTrace/NSLog; no raw marker in shipped copy; nine strings byte-for-byte vs the spec; git diff --check clean. No test removed (HEAD 104 -> 129).
 - Honest gaps: the feature-list link-reachability smoke (open each card's URL on Android/Desktop) was NOT run and would only be reachable through a temporary non-committed fake because the shipped default is UnavailableAnswerService, there is no /ask route, and the corpus is empty; greyscale and widthDp=320/fontScale=2f rendered review are structural/compile-based, not an inspected render (owner chat_accessibility). No E2E or automated UI coverage is claimed. Documented deviation: leading-zero markers ([01]) are treated as non-conforming so the byte-for-byte text-fidelity invariant holds. Backend F1 hardening and the unconditional [n] == sources[n-1] sentence in knowledge/README.md were left untouched (backend-owned) and are handed back as follow-ups; the client is safe either way.
-- Independent validator ACCEPTED this feature (2026-10-13, record: docs/validations/answer_source_cards.md). It re-ran the contract validator, the focused three-class run, :shared:jvmTest --rerun-tasks (129/0), :shared:testAndroidHostTest --rerun-tasks (118/0), :desktopApp:build :androidApp:assembleDebug --rerun-tasks (72 tasks, exit 0), ./init.sh --verify (exit 0), :shared:compileKotlinIosSimulatorArm64, and the iosSimulatorArm64 test run (129 tests / 0 failures incl. CitationPresentationTest 23/0 on Kotlin/Native, via a temporary clean-up of two pre-existing comma-in-test-name files that it then reverted); it reproduced byte-for-byte text fidelity, the non-conforming/abstention fail-closed paths, the F1 non-prefix case, the URL/date matrices and per-entry sources with its own 11-test probe, byte-for-byte checked the nine strings (strings.xml numstat 9/0, chat_home_submitted intact), and confirmed no rendering from lastResponseStatus, clean scope (contracts/, backend/, knowledge/, theme/, lands/, platform roots, Gradle, init.sh untouched), no logging, and no Color(0x) outside theme/. Non-blocking findings N1-N7 recorded; N1 (record harness evidence) closed by this acceptance commit and N7 (backend F1 handoff) escalated.
+- Independent validator ACCEPTED this feature (2026-10-13, record: docs/validations/answer_source_cards.md). It re-ran the contract validator, the focused three-class run, :shared:jvmTest --rerun-tasks (129/0), :shared:testAndroidHostTest --rerun-tasks (118/0), :desktopApp:build :androidApp:assembleDebug --rerun-tasks (72 tasks, exit 0), ./scripts/init.sh --verify (exit 0), :shared:compileKotlinIosSimulatorArm64, and the iosSimulatorArm64 test run (129 tests / 0 failures incl. CitationPresentationTest 23/0 on Kotlin/Native, via a temporary clean-up of two pre-existing comma-in-test-name files that it then reverted); it reproduced byte-for-byte text fidelity, the non-conforming/abstention fail-closed paths, the F1 non-prefix case, the URL/date matrices and per-entry sources with its own 11-test probe, byte-for-byte checked the nine strings (strings.xml numstat 9/0, chat_home_submitted intact), and confirmed no rendering from lastResponseStatus, clean scope (contracts/, backend/, knowledge/, theme/, lands/, platform roots, Gradle, scripts/init.sh untouched), no logging, and no Color(0x) outside theme/. Non-blocking findings N1-N7 recorded; N1 (record harness evidence) closed by this acceptance commit and N7 (backend F1 handoff) escalated.

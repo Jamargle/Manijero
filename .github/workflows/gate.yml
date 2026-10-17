@@ -78,7 +78,7 @@ jobs:
       - name: Verify shared tests, contract examples, and the backend checks
         env:
           CI: "true"
-        run: ./init.sh --fast
+        run: ./scripts/init.sh --fast
 
   full:
     needs: changes
@@ -93,7 +93,7 @@ jobs:
           distribution: temurin
           java-version: "21"
 
-      # The shared suite is not the only surface: ./init.sh --verify also runs the
+      # The shared suite is not the only surface: ./scripts/init.sh --verify also runs the
       # backend pytest suite and the offline evaluators, so the gate needs Python.
       - name: Set up Python
         uses: actions/setup-python@v5
@@ -117,4 +117,4 @@ jobs:
       - name: Verify shared tests, backend checks, and the Android/Desktop builds
         env:
           CI: "true"
-        run: ./init.sh --verify
+        run: ./scripts/init.sh --verify

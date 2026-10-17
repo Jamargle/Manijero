@@ -22,8 +22,8 @@
 | `:shared:testAndroidHostTest` | **178 tests / 0 failures / 0 errors** (17 suites) |
 | `:androidApp:assembleDebug` | `androidApp/build/outputs/apk/debug/androidApp-debug.apk` 36,014,513 bytes, sha256 `4b4ab9d6cc50e026436116defdf3ffb79023dc84b7c715c6ce9b2c8e874ed538` (byte-identical to the recorded claim) |
 | `:desktopApp:build` | runs; produces the JVM run target (`desktopApp/build/classes/kotlin/main/com/jamarglex/manijero/MainKt.class`) |
-| `./init.sh --desktop` (launch 1 and 2) | `:desktopApp:run`; window "Manijero" opened; run log has no exception/stack trace/error; clean `BUILD SUCCESSFUL` / exit `0` on close (both runs) |
-| `init.sh` byte-unchanged | `git diff --exit-code -- init.sh` → no output (exit 0) |
+| `./scripts/init.sh --desktop` (launch 1 and 2) | `:desktopApp:run`; window "Manijero" opened; run log has no exception/stack trace/error; clean `BUILD SUCCESSFUL` / exit `0` on close (both runs) |
+| `scripts/init.sh` byte-unchanged | `git diff --exit-code -- scripts/init.sh` → no output (exit 0) |
 | Scope | `git status --porcelain` = `M PROGRESS.md`, `M README.md`, `M feature_list.json`, `?? docs/specs/desktop_mvp_build.md`; `git diff --check` clean |
 | Logging grep | `println|Log.|Logger|printStackTrace|System.out|NSLog` over `shared/src androidApp/src desktopApp/src` → **no matches** |
 | No `/ask`/grounded path | `backend/app/main.py` exposes only `@app.get("/health")`; `App(answerService = UnavailableAnswerService)` default; `UnavailableAnswerService.ask` throws |
@@ -93,7 +93,7 @@ The security checklist found no blocking issue. This slice changes no product, b
 ## Documentation / harness state
 
 - `README.md` "Running the MVP targets" now names the Desktop land store `~/.manijero/lands-v1.txt` (the shared `land-store-v1` format, remove to start empty) next to the existing `--verify`/`--android`/`--desktop` commands, the Android debug APK path, the no-`/ask` limitation, and the iOS-out-of-scope statement. Truthful and verified.
-- `init.sh` is byte-unchanged and its `--check` banner remains Desktop-truthful.
+- `scripts/init.sh` is byte-unchanged and its `--check` banner remains Desktop-truthful.
 - The durable wide-window claim is **not** yet truthful for the land surfaces (H1) and must be corrected before acceptance.
 - `PROGRESS.md` / `feature_list.json` honestly leave the slice at `passing` with the GUI smoke flagged as not driven; the evidence text understates what can be verified here (L1).
 
@@ -101,7 +101,7 @@ The security checklist found no blocking issue. This slice changes no product, b
 
 > Superseded by **accept** in “Second pass — repair re-validation” below.
 
-**revise.** The core verification is fully reproduced independently: `./init.sh --verify` succeeds (91 tasks, all executed; `:shared:jvmTest` 192/0, `:shared:testAndroidHostTest` 178/0; byte-identical APK), `./init.sh --desktop` opens the "Manijero" window with no exception and closes cleanly, the chat home with its honest failure notice + `Reintentar` (question only ever a `Tú` entry), the privacy notice, the full land journey (add name-only, add full, list, edit exactly one, remove exactly one, relaunch persistence matching the store), and keyboard reach/activation all work on Desktop. Scope is clean and `init.sh` is byte-unchanged.
+**revise.** The core verification is fully reproduced independently: `./scripts/init.sh --verify` succeeds (91 tasks, all executed; `:shared:jvmTest` 192/0, `:shared:testAndroidHostTest` 178/0; byte-identical APK), `./scripts/init.sh --desktop` opens the "Manijero" window with no exception and closes cleanly, the chat home with its honest failure notice + `Reintentar` (question only ever a `Tú` entry), the privacy notice, the full land journey (add name-only, add full, list, edit exactly one, remove exactly one, relaunch persistence matching the store), and keyboard reach/activation all work on Desktop. Scope is clean and `scripts/init.sh` is byte-unchanged.
 
 The single blocker is H1: the spec's wide-window acceptance scenario and the validator checklist assert a capped, centred column for the lands list and a form, and independent measurement shows those surfaces (and the privacy notice) stretch edge-to-edge while only the chat home is capped/centred. Because this feature exists to make the repository's Desktop story truthful, the spec/checklist/record wording must be corrected (and the land-screen stretch recorded as a finding/open item) before acceptance. No product code should change in this slice.
 
@@ -110,13 +110,13 @@ Recommended state update: keep `desktop_mvp_build` at `passing` (do not set `acc
 
 ## Second pass — repair re-validation (2026-10-16)
 
-Re-validated after the implementer's documentation-only repair. **No product/Gradle/contracts/backend/knowledge/`init.sh` change was made by the repair** — the product code is byte-identical to the code fully reproduced in the first pass.
+Re-validated after the implementer's documentation-only repair. **No product/Gradle/contracts/backend/knowledge/`scripts/init.sh` change was made by the repair** — the product code is byte-identical to the code fully reproduced in the first pass.
 
 ### Repair scope confirmed
 
 - `git status --porcelain` → `M DESIGN.md`, `M PROGRESS.md`, `M README.md`, `M docs/risks-and-open-questions.md`, `M feature_list.json`, `?? docs/specs/desktop_mvp_build.md`, `?? docs/validations/desktop_mvp_build.md`. **No `shared/`, `androidApp/`, `desktopApp/`, `contracts/`, `backend/`, `knowledge/`, Gradle, or version-catalog path appears.**
 - `git diff --stat` → only `DESIGN.md`, `PROGRESS.md`, `README.md`, `docs/risks-and-open-questions.md`, `feature_list.json` (+27/-3).
-- `git diff --check` → clean (exit 0); `git diff --exit-code -- init.sh` → no output (exit 0), `init.sh` byte-unchanged.
+- `git diff --check` → clean (exit 0); `git diff --exit-code -- scripts/init.sh` → no output (exit 0), `scripts/init.sh` byte-unchanged.
 - Logging grep (`println|Log.|Logger|printStackTrace|System.out|NSLog` over `shared/src androidApp/src desktopApp/src`) → **no matches**.
 
 ### H1 (previously blocking) — RESOLVED
@@ -131,8 +131,8 @@ The over-broad wide-window claim is gone from every durable surface:
 
 ### Core verification re-confirmed
 
-- `./init.sh --verify` → **BUILD SUCCESSFUL** (91 actionable tasks; 3 executed / 88 up-to-date — nothing changed since the first-pass `--rerun-tasks` rebuild). Because no product file changed, the first-pass results still hold byte-for-byte: `:shared:jvmTest` 192/0 (21 suites), `:shared:testAndroidHostTest` 178/0 (17 suites), byte-identical debug APK 36,014,513 bytes / sha256 `4b4ab9d6…ed538`.
-- Quick Desktop launch re-run: `./init.sh --desktop` reached `> Task :desktopApp:run`; the OS/System Events AX query in this session reported a window titled **"Manijero"**, **800×600**, `AXTitle` = `Manijero`, then closed cleanly. (This session still holds the AX permission, unlike the implementer's.)
+- `./scripts/init.sh --verify` → **BUILD SUCCESSFUL** (91 actionable tasks; 3 executed / 88 up-to-date — nothing changed since the first-pass `--rerun-tasks` rebuild). Because no product file changed, the first-pass results still hold byte-for-byte: `:shared:jvmTest` 192/0 (21 suites), `:shared:testAndroidHostTest` 178/0 (17 suites), byte-identical debug APK 36,014,513 bytes / sha256 `4b4ab9d6…ed538`.
+- Quick Desktop launch re-run: `./scripts/init.sh --desktop` reached `> Task :desktopApp:run`; the OS/System Events AX query in this session reported a window titled **"Manijero"**, **800×600**, `AXTitle` = `Manijero`, then closed cleanly. (This session still holds the AX permission, unlike the implementer's.)
 - No grounded-answer / packaged-installer / other-OS / speech claim appears in the spec, `DESIGN.md`, `docs/risks-and-open-questions.md`, `feature_list.json`, or `PROGRESS.md`; all four are explicitly disclaimed.
 
 ### Remaining minor observation (non-blocking)
@@ -141,4 +141,4 @@ The over-broad wide-window claim is gone from every durable surface:
 
 ### Second-pass verdict
 
-**accept.** H1 is fully resolved: the spec and validator checklist now claim the capped/centred 720dp column for the chat home only and record the land/privacidad full-width behavior as a finding; `DESIGN.md` and `docs/risks-and-open-questions.md` carry the finding; and `feature_list.json`/`PROGRESS.md` no longer rest the wide-window claim on the land surfaces and re-word L1 as environment-specific. The repair is documentation-only — the product code is byte-identical to the first-pass-verified build (`./init.sh --verify` still succeeds; the "Manijero" window re-opened 800×600). Scope is clean, `init.sh` is byte-unchanged, and no forbidden claim is made. Recommended state update: `desktop_mvp_build` may be persisted as `accepted` by the orchestrator. **Do not** treat the record as accepted until the orchestrator writes that status.
+**accept.** H1 is fully resolved: the spec and validator checklist now claim the capped/centred 720dp column for the chat home only and record the land/privacidad full-width behavior as a finding; `DESIGN.md` and `docs/risks-and-open-questions.md` carry the finding; and `feature_list.json`/`PROGRESS.md` no longer rest the wide-window claim on the land surfaces and re-word L1 as environment-specific. The repair is documentation-only — the product code is byte-identical to the first-pass-verified build (`./scripts/init.sh --verify` still succeeds; the "Manijero" window re-opened 800×600). Scope is clean, `scripts/init.sh` is byte-unchanged, and no forbidden claim is made. Recommended state update: `desktop_mvp_build` may be persisted as `accepted` by the orchestrator. **Do not** treat the record as accepted until the orchestrator writes that status.
