@@ -1,10 +1,88 @@
 name: gate
 
+# A pull request runs exactly one verification tier:
+#   - `fast` for documentation/harness-only changes: shared host tests, contract
+#     examples, backend pytest, and the offline evaluators, with no Android SDK or
+#     Desktop build to pay for.
+#   - `full` for any product, contract, backend, knowledge, or build change.
+# The `changes` job classifies the diff. A skipped tier reports as successful, so
+# require both `fast` and `full` in branch protection.
 on:
   pull_request:
 
 jobs:
-  gate:
+  changes:
+    runs-on: ubuntu-latest
+    outputs:
+      docs_only: ${{ steps.classify.outputs.docs_only }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          # Full history so the pull request diff can be taken against its merge base.
+          fetch-depth: 0
+
+      - name: Classify changed paths
+        id: classify
+        env:
+          BASE_SHA: ${{ github.event.pull_request.base.sha }}
+        run: |
+          set -euo pipefail
+          # If the base commit is unknown, run the full gate rather than guess.
+          if [ -z "${BASE_SHA:-}" ]; then
+            echo "docs_only=false" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+          docs_only=true
+          changed="$(git diff --name-only "${BASE_SHA}...HEAD")"
+          while IFS= read -r path; do
+            [ -n "$path" ] || continue
+            case "$path" in
+              docs/*|.github/*|*.md|feature_list.json) ;;
+              *) docs_only=false; break ;;
+            esac
+          done <<< "$changed"
+          echo "docs_only=$docs_only" >> "$GITHUB_OUTPUT"
+
+  fast:
+    needs: changes
+    if: needs.changes.outputs.docs_only == 'true'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up JDK 21
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "21"
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+          cache-dependency-path: backend/requirements.txt
+
+      - name: Install backend test dependencies
+        run: python -m pip install -r backend/requirements.txt pytest
+
+      - name: Cache Gradle
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.gradle/caches
+            ~/.gradle/wrapper
+          key: gradle-${{ runner.os }}-${{ hashFiles('**/*.gradle.kts', 'gradle/wrapper/gradle-wrapper.properties', 'gradle/libs.versions.toml') }}
+          restore-keys: gradle-${{ runner.os }}-
+
+      - name: Verify shared tests, contract examples, and the backend checks
+        env:
+          CI: "true"
+        run: ./init.sh --fast
+
+  full:
+    needs: changes
+    if: needs.changes.outputs.docs_only != 'true'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -21,6 +99,8 @@ jobs:
         uses: actions/setup-python@v5
         with:
           python-version: "3.12"
+          cache: pip
+          cache-dependency-path: backend/requirements.txt
 
       - name: Install backend test dependencies
         run: python -m pip install -r backend/requirements.txt pytest
