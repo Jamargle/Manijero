@@ -58,6 +58,20 @@ Included:
 - The existing Master Plan proposes a Python/FastAPI RAG service and official-document corpus. Treat model/provider and hosting choices as replaceable and validate them before release; land data must be minimized and protected in transit and in logs.
 - The existing “approximately zero budget” assumption is a constraint to validate, not a promise that third-party free tiers are safe or permanent.
 
+## Backend MVP completion slice
+
+The backend is a separate FastAPI service for the same olive growers described above. Complete its local, contract-shaped answer path before public deployment: a request reaches `POST /ask`, uses a small reviewed corpus for Andalusia's PAC single application, and returns a grounded answer, a safe abstention, or a land clarification in the existing `AskResponse` shape. Current official sources map candidate coverage to the submission route, 2026 filing deadline, and 2026 modification deadline; an independent reviewer must approve the exact passages and published coverage statement before they become answer evidence. See [backend technical discovery](technical-discovery.md) and the [PAC corpus spec](specs/backend_pac_corpus.md). `/health` remains a liveness check.
+
+The slice composes the accepted offline catalog validation, retrieval, generation, abstention, and land-clarification rules into the HTTP path. It adds canonical reviewed source/passages and source-anchored evaluation cases; synthetic fixtures remain engineering tests, not evidence of legal coverage. Land scope and minimal-context rules stay aligned with the existing API contract and client constraints. Any generated draft must pass the code-owned grounding verifier before response assembly.
+
+The first local route uses the existing extractive generator, with no hosted LLM. Reconsider a provider only after corpus coverage and the first measured baseline are reviewed; any later hosted model remains subject to provider terms, cost, data handling, and the code verifier. Keep current BM25 retrieval as the measurable baseline; add vector search or reranking only if reviewed evaluation shows a useful improvement.
+
+**Included:** local `POST /ask`, contract and pipeline tests, a manually curated/reviewed initial corpus slice, report-only evaluation on source-anchored cases, and all three response states. **Deferred:** public hosting and deployment, Android/Desktop production wiring, `/feedback`, hosted-provider selection, automated knowledge scouts/ingestion, scheduled jobs, tracing infrastructure, nightly quality gates, and the optional reranker. See [backend technical discovery](technical-discovery.md) for the current baseline and unresolved choices.
+
+Completion evidence is contract tests for all three response states, a reviewed corpus and critical passages, and a source-anchored evaluation report that states its coverage and gaps. No numeric quality gate is set before the first measured baseline is reviewed.
+
+Visual design impact: none; this backend slice adds no user interface.
+
 ## MVP validation and success
 
 Validate both usefulness and usability with realistic questions and people who have low digital confidence. Track:
@@ -76,7 +90,9 @@ Keep numerical thresholds in the evaluation plan and set them after the first me
 - The exact land fields and whether area belongs in the first release should be validated against real questions and user comfort.
 - Define behavior for an empty land list, unknown land attributes, conflicting land contexts, and an ambiguous “my grove” reference.
 - Review the privacy, retention, and provider terms for questions sent to a hosted LLM before real-user release.
+- The backend's source catalog and canonical passage set are empty. A human other than the author must review the initial source and critical excerpts before they become answer evidence; the reviewer and exact question coverage remain to be arranged.
+- The first local `/ask` route uses extractive generation. Revisit provider selection only after reviewing corpus coverage and the first measured baseline.
 - Existing design assets: no product design source found; the app icon is not a UI design system.
 - Visual design direction: see [DESIGN.md](../DESIGN.md).
 
-Last reviewed: 2026-10-09
+Last reviewed: 2026-10-17
