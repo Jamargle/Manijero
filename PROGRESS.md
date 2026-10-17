@@ -7,13 +7,13 @@ Last updated: 2026-10-17.
 
 **Feature set**  source of truth `feature_list.json`.
 
-**Accepted features** — `chat_home`, `suggested_questions`, `visual_foundation`, `answer_api_contract`, `backend_health`, `source_catalog_validation`, `source_retrieval`, `grounded_answer_generation`, `safe_abstention`, `chat_question_submission`, `response_states`, `answer_source_cards`, `network_error_recovery`, `local_land_store`, `add_land`, `land_list`, `edit_land`, `remove_land`, `minimal_land_context`, `land_clarification`, `answer_land_scope`, `land_data_disclosure`, `chat_accessibility`, `land_form_accessibility`, `land_safety_evaluation`, `android_mvp_build`, `desktop_mvp_build`.
+**Accepted features** — `chat_home`, `suggested_questions`, `visual_foundation`, `answer_api_contract`, `backend_health`, `source_catalog_validation`, `source_retrieval`, `grounded_answer_generation`, `safe_abstention`, `chat_question_submission`, `response_states`, `answer_source_cards`, `network_error_recovery`, `local_land_store`, `add_land`, `land_list`, `edit_land`, `remove_land`, `minimal_land_context`, `land_clarification`, `answer_land_scope`, `land_data_disclosure`, `chat_accessibility`, `land_form_accessibility`, `land_safety_evaluation`, `android_mvp_build`, `desktop_mvp_build`, `backend_ask_endpoint`.
 
-**Product shape** — shared Compose chat and lands flow in `shared/src/commonMain`, rendered by Android and Desktop. The backend is FastAPI with `/health` as the only route. Lands are device-local (`~/.manijero/lands-v1.txt` on Desktop, `manijero_lands` SharedPreferences on Android, shared `land-store-v1` format). The knowledge corpus is intentionally empty.
+**Product shape** — shared Compose chat and lands flow in `shared/src/commonMain`, rendered by Android and Desktop. The backend is FastAPI with liveness-only `/health` and local `/ask` routes. Lands are device-local (`~/.manijero/lands-v1.txt` on Desktop, `manijero_lands` SharedPreferences on Android, shared `land-store-v1` format). The knowledge corpus is intentionally empty.
 
 **Known limitations (do not over-claim)**
 
-- No `/ask` route, so the shipped default `UnavailableAnswerService` renders the plain-Spanish failure notice with `Reintentar`, never a grounded answer. Any answered, abstained, or source-card render is preview/reducer-based.
+- The local backend now has `POST /ask`, but platform base-URL wiring remains open, so the shipped default `UnavailableAnswerService` still renders the plain-Spanish failure notice with `Reintentar`. Any answered, abstained, or source-card render is preview/reducer-based.
 - Retrieval, generation, abstention, clarification, and safety numbers come from synthetic, implementer-authored fixtures; no metric is a release gate and none is legal-coverage evidence.
 - Android evidence is an emulator-only debug artifact; Desktop evidence is a local run. No automated UI/E2E harness exists (the repo refuses test-only dependencies).
 

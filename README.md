@@ -41,7 +41,7 @@ Build and run:
 
 The Desktop app keeps its lands in `~/.manijero/lands-v1.txt` (the shared `land-store-v1` format); remove that file to start from an empty list.
 
-Known limitation: the backend has no `/ask` route yet, so a question in the shipped app ends in the plain-Spanish failure notice with a `Reintentar` button, not a grounded answer. iOS remains outside MVP delivery (see "MVP platforms").
+Known limitation: the backend now exposes a local `/ask` route, but the shipped app's platform base-URL wiring remains open, so questions still end in the plain-Spanish failure notice with a `Reintentar` button instead of reaching the backend. The canonical corpus is empty and safely abstains. iOS remains outside MVP delivery (see "MVP platforms").
 
 ## Product principles
 

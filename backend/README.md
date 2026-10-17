@@ -1,13 +1,15 @@
 # Manijero backend
 
-This is the initial HTTP service boundary. It currently exposes only the
-service liveness check:
+The local FastAPI service exposes `GET /health` and a source-grounded `POST /ask`:
 
 ```sh
 cd backend
 python -m pip install -r requirements.txt
 python -m uvicorn app.main:app --reload
 curl http://127.0.0.1:8000/health
+curl -X POST http://127.0.0.1:8000/ask \
+  -H 'content-type: application/json' \
+  -d '{"question":"¿Qué información hay?","land_context":{"mode":"general","lands":[]}}'
 ```
 
 Successful response:
@@ -17,16 +19,25 @@ Successful response:
 ```
 
 `/health` reports only that this process is serving HTTP requests. It does not
-claim that the retrieval corpus, model provider, or other future dependencies
-are available.
+check corpus readiness. `/ask` reads the local `knowledge/source_catalog.json`
+and `knowledge/passages.json` artifacts and uses the accepted retrieval,
+grounding, abstention, and land-clarification decisions. It does not call a
+hosted model or the network.
 
-## Offline retrieval baseline (no route yet)
+The canonical corpus is currently empty, so `/ask` safely returns the pinned
+abstention with no sources. Fixture-backed answers in tests are synthetic and
+do not establish legal coverage. Invalid or unreadable corpus files and
+campaign-tagged sources return a generic `503`; malformed JSON returns `400`,
+and valid JSON that violates the request contract returns `422`. Error responses
+do not echo question, land, file, or corpus values.
+
+## Offline retrieval baseline
 
 `app/retrieval.py` is the offline retrieval boundary over reviewed passages of
 approved catalog sources. It is standard-library only, never performs network
 access, re-validates the catalog with `app/source_catalog.py`, and refuses to
-index when that catalog is invalid. There is still **no** `/ask` route and no
-LLM call in this service.
+index when that catalog is invalid. The `/ask` route composes it with the
+accepted grounded-answer pipeline; no LLM call is configured.
 
 Run the report-only baseline against the synthetic fixtures:
 
@@ -44,7 +55,7 @@ numbers come from a small synthetic fixture corpus, not from real user questions
 or legal documents. See `knowledge/README.md` for the passage-set contract and
 the eligibility rules.
 
-## Offline grounded answer generation (no route yet)
+## Offline grounded answer generation
 
 `app/generation.py` turns retrieval candidates into a plain-Spanish answer whose
 material claims are each traceable to a reviewed passage. It imports `Retriever`
@@ -75,9 +86,9 @@ It prints each question's outcome, the produced answer, every material claim
 with its cited candidate numbers, and the per-claim grounding verdict
 (`--json` for machine-readable output). Grounding invariants are **enforced**
 (exit `1`); answer coverage is not, unless `--fail-on-miss` is passed. `/health`
-remains the only route, and no model provider is configured.
+remains liveness-only, and no model provider is configured.
 
-## Offline abstention decisions (no route yet)
+## Offline abstention decisions
 
 `app/abstention.py` turns every "no safe answer" outcome into one deterministic,
 offline, code-owned abstention. It is standard-library only, imports
@@ -129,9 +140,9 @@ a reason inside the taxonomy) are **enforced** (exit `1`); outcome coverage is n
 unless `--fail-on-miss` is passed. A catalog whose sources are all ineligible as
 of `--as-of` abstains as `stale_evidence` for every question; a malformed passage
 set, an unknown `source_id`, or an unreadable file stays a hard error (exit `2`).
-`/health` remains the only route, and no model provider is configured.
+`/health` remains liveness-only, and no model provider is configured.
 
-## Offline land clarification decisions (no route yet)
+## Offline land clarification decisions
 
 `app/clarification.py` makes the accepted `needs_land_clarification` response actually happen. It
 composes the accepted modules unchanged (`app/retrieval.py`, `app/abstention.py`,
@@ -171,10 +182,10 @@ It prints each question's outcome, the chosen land ids for a clarification, and 
 counts (`--json` for machine-readable output). Clarification invariants (empty answer, no sources, a
 non-empty list drawn from the request's own land ids) are **enforced** (exit `1`); outcome coverage is
 not unless `--fail-on-miss` is passed. A malformed passage set, an unknown `source_id`, or an
-unreadable file stays a hard error (exit `2`). `/health` remains the only route, and no model
+unreadable file stays a hard error (exit `2`). `/health` remains liveness-only, and no model
 provider is configured.
 
-## Offline land-safety evaluation (no route yet)
+## Offline land-safety evaluation
 
 `app/land_safety_eval.py` is the offline, report-only safety harness. It runs the
 accepted end-to-end decision (`app/clarification.py::answer_with_clarification`,
@@ -211,7 +222,7 @@ answer or a foreign land id; an answered payload with no source or an
 out-of-range marker) make it exit `1`. Coverage metrics are **report-only**: an
 expected-source/clarification mismatch only exits `1` with `--fail-on-miss`, and
 `--passages`/`--cases` may be omitted for a corpus summary that invents nothing.
-`/health` remains the only route, and no model provider is configured.
+`/health` remains liveness-only, and no model provider is configured.
 
 The measured fixture baseline is: `covered_source_hit_rate` `1.000 (2/2)`,
 `correct_abstention_rate` `1.000 (2/2)`, `correct_clarification_rate`
