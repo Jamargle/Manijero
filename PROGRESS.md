@@ -36,7 +36,7 @@ Last updated: 2026-10-17.
 Tiers, cheapest first; `./scripts/init.sh` holds the exact commands.
 
 - Toolchain check: `./scripts/init.sh` (default; prints the same commands).
-- Next feature: `./scripts/select-feature --next` — the next dependency-ready feature id and its next role; `./scripts/select-feature --status` prints the board and unfinished-feature readiness. Use these instead of reading `feature_list.json` by hand.
+- Next feature: `./scripts/select-feature.sh --next` — the next dependency-ready feature id and its next role; `./scripts/select-feature.sh --status` prints the board and unfinished-feature readiness. Use these instead of reading `feature_list.json` by hand.
 - Focused feature check: `./scripts/init.sh --feature <feature-id>` — runs the command block the feature spec publishes between its `<!-- verify:start -->` and `<!-- verify:end -->` markers.
 - No-device tier: `./scripts/init.sh --fast` — `:shared:jvmTest`, `contracts/validate_examples.py`, the backend pytest suite, the `source-catalog-v1` validation of `knowledge/source_catalog.json`, and the five offline evaluators over `backend/tests/fixtures/`.
 - Full gate: `./scripts/init.sh --verify` (`--full`) — `--fast` plus `:shared:testAndroidHostTest`, `:androidApp:assembleDebug`, and `:desktopApp:build`.
