@@ -7,6 +7,7 @@ Resolved product direction lives in [the build brief](build-brief.md) and [domai
 | Risk | Why it matters | Current mitigation / next action |
 |---|---|---|
 | Unsupported or outdated legal answer | A user could act on incorrect deadlines, amounts, or requirements | Use approved official sources, visible citations and verification dates, abstention, and targeted evaluation for critical claims. Assign a human owner for corpus review before real-user release. |
+| Backend has no reviewed answer corpus | A working route over synthetic fixtures could look complete while having no legal coverage | Keep the corpus explicitly empty until current official sources and critical passages are reviewed; define coverage only from accepted material and source-anchored questions. |
 | Land context is wrong or incomplete | An answer could appear personalized while applying to the wrong land | Treat unknown as unknown; use all lands by default; ask for a land choice when answers differ; show which land context was used. Never infer eligibility from stored details. |
 | Low digital confidence blocks adoption | The intended audience may abandon setup or misread a result | Keep the first journey short, explain terms in plain Spanish, allow general questions without setup, and observe low-confidence users completing key tasks. |
 | Local device loss removes land records | Local-only data has no automatic recovery | Before release, choose and clearly explain an export/backup or recovery stance; do not imply cloud backup exists. |
@@ -32,9 +33,8 @@ Resolved product direction lives in [the build brief](build-brief.md) and [domai
 |---|---|---|
 | Which exact land fields are required at first setup? Is approximate area essential to an MVP question? | Defines form length, privacy notice, storage, and chat context | Review real user questions; test a minimal land record with target users |
 | Does the first real-user MVP need land export/backup, or is device-local storage acceptable for a limited pilot? | Data loss could remove the user's records | Decide release audience and acceptable recovery behavior |
-| Who reviews official-source changes and owns the service when retrieval or hosting fails? | A legal-information product needs accountable operations | Name an owner and define a basic refresh, rollback, and outage process |
-| Which legal/operational topics are in the first pilot corpus, and what is deliberately uncovered? | Prevents an implied promise of comprehensive coverage | Agree a source list and coverage statement based on available corpus |
-| What exactly does the app send to the answer service, and which model terms permit that use? | Required for privacy and user trust | Data-flow inventory and current provider terms before real-user release |
+| Who will independently review and approve the initial official sources and critical passages? | No canonical source or passage is approved today; unreviewed text cannot support a legal answer | Name a reviewer other than the author and agree a source-review procedure before adding canonical corpus data; candidate source map is in `docs/specs/backend_pac_corpus.appendix.md` |
+| Which exact questions in the Andalusia PAC single-application slice are supported by current official sources, and what stays uncovered? | Candidate coverage has been mapped to current official materials, but exact passages and the user-facing coverage boundary are not independently approved | Reviewer confirms or narrows the three candidate topics in `knowledge/pac_coverage.md` before canonical corpus data is accepted |
 
 ### Implementation-time
 
@@ -44,7 +44,10 @@ Resolved product direction lives in [the build brief](build-brief.md) and [domai
 | Exact rule for when all-land answers are safe versus when to ask for a specific land | Before connecting land context to retrieval/generation |
 | Whether selected land context is sent as attributes, derived filters, or both | At API contract design |
 | Evaluation size, metrics, and pass thresholds | After a measured baseline; include land-aware, ambiguous, and abstention cases |
-| Exact LLM, embedding, vector-store, and hosting providers | Before deployment; verify cost, terms, limits, and operational fit |
+| Keep BM25 or add vector/RRF retrieval | After source-anchored retrieval evaluation; add complexity only for measured improvement |
+| If a hosted provider is reconsidered, what data may it process and under which current terms? | Before enabling external model requests; document the data flow, privacy, limits, and cost |
+| Who owns service operation, source refresh, rollback, and outage response? | Before public deployment or a real-user pilot |
+| Exact hosting approach | Before deployment; verify cost, terms, limits, privacy, and operational fit |
 | Retention of questions, feedback, and traces | Before enabling telemetry with real users |
 | Desktop packaging and supported operating systems | Before pilot distribution |
 | Whether the lands list/forms and the privacy notice should share the chat home's 720dp capped/centred column on a wide Desktop window (they currently render full-width — pre-existing, recorded as finding H1 in `docs/validations/desktop_mvp_build.md`) | If a wide-window land layout is wanted; a separate feature, not part of `desktop_mvp_build` |
@@ -58,5 +61,6 @@ Resolved product direction lives in [the build brief](build-brief.md) and [domai
 | Voice, document/photo interpretation, and offline assistant use | Accessibility and privacy constraints are understood and evaluated |
 | iOS release details and native integrations | Android/Desktop MVP is stable; reuse shared logic and UI |
 | Cooperative-facing review tools or content | A cooperative agrees to participate and boundaries are clear |
+| Hosted LLM for answer generation | After corpus coverage and the first measured baseline are reviewed; check current terms, privacy, limits, cost, and verifier behavior |
 
-Last reviewed: 2026-10-09
+Last reviewed: 2026-10-17
