@@ -5,7 +5,9 @@
 - Feature: `source_catalog_validation` — Approved source catalog validation
 - Area: knowledge
 - Depends on: `answer_api_contract` (accepted)
+- Feature-list behavior: only catalog entries with approved provenance and required metadata can enter the MVP corpus.
 - Feature-list verification: accept a valid official-source fixture and reject a malformed or non-approved fixture.
+- Feature-list note: keep the MVP corpus curated and manually reviewed; automated discovery is deferred. The validator proves catalog-policy conformance only, never that a document is authentic, current, or legally applicable.
 - Scope size: one versioned data contract plus one offline validation flow; correctly sized.
 
 ## Goal

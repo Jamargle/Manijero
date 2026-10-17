@@ -5,6 +5,7 @@
 - Feature: `grounded_answer_generation` — Generate an evidence-grounded answer
 - Area: backend
 - Depends on: `answer_api_contract` (accepted), `source_retrieval` (accepted)
+- Feature-list behavior: for a covered question, the assistant returns a plain-Spanish answer whose material claims are supported by retrieved approved passages.
 - Feature-list verification: evaluate a covered source-anchored question and check each material claim against its cited passage.
 - Feature-list note: never treat the language model as the source of legal facts.
 - Scope size: one internal claim/answer model plus one offline generation flow (retrieve → draft → verify → assemble); correctly sized, and it deliberately stops at the abstention boundary owned by `safe_abstention`.

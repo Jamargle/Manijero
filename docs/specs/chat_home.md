@@ -1,5 +1,12 @@
 # Feature Spec: `chat_home`
 
+## Source metadata
+
+- **Feature:** `chat_home` — Chat starting screen (`client`).
+- **Source behavior:** A person can open the app and see a clear Spanish prompt field and a simple way to begin, even before adding any lands.
+- **Source verification:** On Android and Desktop, open the app with no configured lands and find the question field without assistance.
+- **Note from the feature list:** Implement the shared Compose UI in `commonMain`; keep the first screen calm, readable, and focused on asking a question.
+
 ## Goal
 
 Replace the generated starter greeting with a calm, shared Compose starting screen where a Spanish-speaking user can immediately find a question composer without configuring a land.

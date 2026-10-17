@@ -1,5 +1,12 @@
 # Feature specification: `backend_health`
 
+## Source metadata
+
+- **Feature:** `backend_health` — Service health response (`backend`).
+- **Source behavior:** The service exposes a health response that lets the app or operator distinguish an available service from an outage.
+- **Source verification:** Request the health endpoint when running the service and confirm its documented success response.
+- **Note from the feature list:** The backend is proposed in `MasterPlanV3.md` but was not present in the repository scaffold; this feature establishes its initial service boundary.
+
 ## Goal
 
 Expose a small, stable HTTP health response so an app or operator can tell

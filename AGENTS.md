@@ -24,7 +24,7 @@ Verify in the smallest tier that covers the change, cheapest first: `./init.sh -
 
 ## Track the work
 
-- [feature_list.json](feature_list.json) is a lean index of status, dependencies, and verification. Feature detail lives in [docs/specs/](docs/specs/)/`<feature-id>.md` (section "Feature evidence") and its acceptance record in [docs/validations/](docs/validations/)/`<feature-id>.md`.
+- [feature_list.json](feature_list.json) is a lean index of `id`, `area`, `title`, `status`, `depends_on`, `spec`, and `validation`. The feature's user-visible behavior, verification, and notes live in the "Source metadata" section of [docs/specs/](docs/specs/)/`<feature-id>.md`; its verification lives in that spec's "Feature evidence" section, and its acceptance record lives in [docs/validations/](docs/validations/)/`<feature-id>.md`.
 - Record verified progress in [PROGRESS.md](PROGRESS.md) — the status board — and add one line per accepted feature to [docs/progress/session-log.md](docs/progress/session-log.md), which is a pointer index: link the spec and the acceptance record, never restate the verification.
 
 ## Project skills

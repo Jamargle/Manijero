@@ -49,3 +49,4 @@ restate evidence here.
 | 2026-10-17 | Harness: split the CI gate by change type and cached pip. | `.github/workflows/gate.yml` |
 | 2026-10-17 | Harness: moved the session log out of `PROGRESS.md`. | `docs/progress/session-log.md` |
 | 2026-10-17 | Harness: collapsed the four overlapping copies of feature evidence. | deleted `docs/progress/feature-evidence.md`; this log is now a one-line pointer index; canonical stores are `docs/validations/<feature-id>.md` (acceptance) and the spec's "Feature evidence" (raw verification) |
+| 2026-10-17 | Harness: made `feature_list.json` a true lean index — moved each feature's user-visible behavior, verification, and notes into its spec's "Source metadata" section; the index now carries only `id`, `area`, `title`, `status`, `depends_on`, `spec`, and `validation`. | `feature_list.json`, `docs/specs/<feature-id>.md` |

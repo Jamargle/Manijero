@@ -5,6 +5,9 @@
 - Feature: `answer_api_contract`
 - Title: Structured answer contract
 - Depends on: none
+- Source behavior: The app and answer service agree on a response state for answered, abstained, and needs-land-clarification outcomes, with typed sources and minimal land context.
+- Source verification: Validate representative request and response examples against the agreed contract.
+- Source note: Define the contract before implementing client/service integration; keep local land labels out of the payload unless a reviewed use case requires them.
 - Scope: API boundary only; the repository has no backend implementation yet.
 
 ## Goal

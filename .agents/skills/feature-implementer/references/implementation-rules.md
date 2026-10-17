@@ -11,7 +11,7 @@ Update docs only when the change creates or changes knowledge future agents need
 - `../../../../CONSTRAINTS.md`: create/update when a durable MUST/MUST NOT rule appears that future agents must obey.
 - `../../../../docs/specs/<feature-id>.md`: update if implementation discovers that the spec was wrong, incomplete, or materially changed by necessary findings.
 - `../../../../docs/progress/session-log.md`: the main orchestrator adds one pointer line per accepted feature; do not append verification prose here (the `../../../../PROGRESS.md` status board changes only when the accepted set, open items, or limits change).
-- `feature_list.json`: update the selected feature's status every implementation session. It is a lean index (`id`, `area`, `title`, `user_visible_behavior`, `depends_on`, `status`, `verification`, `spec`, `validation`, `notes`); do not add an `evidence` array.
+- `feature_list.json`: update the selected feature's status every implementation session. It is a lean index (`id`, `area`, `title`, `status`, `depends_on`, `spec`, `validation`); do not add an `evidence` array or duplicate the spec's prose here.
 - `docs/specs/<feature-id>.md`: append what changed, what ran, and what failed to its `Feature evidence` section (the canonical verification store).
 
 Do not create architecture or constraints docs just to look complete. Create them when they reduce future rediscovery or prevent future mistakes.

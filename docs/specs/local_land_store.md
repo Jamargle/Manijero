@@ -1,5 +1,12 @@
 # Feature spec: local_land_store
 
+## Source metadata
+
+- **Feature:** `local_land_store` — Persist multiple lands locally (`lands`).
+- **Source behavior:** The app can store zero or more distinct lands on the device and retains them after the app is closed and reopened.
+- **Source verification:** Create two distinct records through the repository boundary and confirm both remain after reopening the app.
+- **Note from the feature list:** Choose persistence technology during implementation; define migration and recovery behavior before a real-user pilot.
+
 ## Scope
 
 Provide a shared, platform-independent repository boundary for zero or more local

@@ -7,6 +7,8 @@
 - **Depends on:** `chat_home`, `answer_api_contract`, `backend_health` (all accepted)
 - **Source behavior:** A person enters a question, submits it once, sees that the
   assistant is working, and receives the service response in the conversation.
+- **Source verification:** Submit a question to a local or mocked service and confirm the response appears once in the conversation.
+- **Note from the feature list:** Preserve the user's original wording.
 
 ## Goal
 

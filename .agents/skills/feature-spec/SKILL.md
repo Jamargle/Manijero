@@ -47,7 +47,7 @@ Use a user-provided feature id when present. Otherwise, choose the first feature
 
 A dependency is satisfied when the referenced feature id exists and has status `accepted`. For legacy feature lists, a dependency with status `passing` may be treated as satisfied only when durable evidence shows independent validator acceptance. If `depends_on` is absent in an older feature list, treat it as `[]` for backward compatibility. If the first unfinished features are blocked by dependencies, skip them only when looking for a later dependency-ready feature; report the skipped blockers in the summary.
 
-Before planning, verify the feature has enough scope information: `id`, `title`, `user_visible_behavior`, `depends_on`, and `verification`. If not, improve the feature entry only if the user explicitly asked for feature-list maintenance; otherwise stop and report the missing fields.
+Before planning, verify the feature has enough scope information: `id`, `title`, and `depends_on` in `feature_list.json`, plus its user-visible behavior and verification. Read those from an existing spec's `Source metadata` section or from the discovery docs; if they are missing everywhere, improve the feature entry only if the user explicitly asked for feature-list maintenance, otherwise stop and report the missing scope. The spec the planner writes records the source behavior, verification, and notes in its own `Source metadata` section.
 
 ### 2. Research The Repository
 

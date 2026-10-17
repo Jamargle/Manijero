@@ -5,6 +5,7 @@
 - Feature: `source_retrieval` — Search reviewed source passages
 - Area: backend
 - Depends on: `source_catalog_validation` (accepted)
+- Feature-list behavior: a question retrieves relevant passages from the reviewed corpus with enough metadata to identify the source and its applicability.
 - Feature-list verification: run source-anchored questions and confirm the expected source passage appears in the returned candidates.
 - Feature-list note: start with a measured retrieval baseline before treating candidate thresholds as release gates.
 - Scope size: one passage data model plus one offline retrieval flow; correctly sized.

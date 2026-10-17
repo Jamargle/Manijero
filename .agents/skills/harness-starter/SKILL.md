@@ -51,7 +51,7 @@ Create/update the four target files using `references/artifact-templates.md`:
 - `../../../AGENTS.md`: project landing page and operating rules.
 - `init.sh`: standard startup/verification path, even if initially provisional.
 - `../../../PROGRESS.md`: current verified state and lightweight session log.
-- `feature_list.json`: machine-readable feature state with verification and evidence fields.
+- `feature_list.json`: machine-readable feature index (identity, status, dependencies, and pointers to each feature's spec and validation record). Feature prose (user-visible behavior, verification, and notes) lives in the spec's "Source metadata" section, not here.
 
 ### 3. Keep Scope Tight
 
@@ -88,7 +88,7 @@ Before finishing, verify:
 
 - `../../../AGENTS.md` answers: what is the project, how to start, how to verify.
 - `feature_list.json` is valid JSON.
-- Every feature has `id`, `area`, `title`, `user_visible_behavior`, `depends_on`, `status`, `verification`, `evidence`, and `notes`.
+- Every feature has `id`, `area`, `title`, `depends_on`, `status`, `spec`, and `validation`. Keep the index lean: put the feature's user-visible behavior, verification, and notes in its spec's "Source metadata" section, not in `feature_list.json`.
 - Every `depends_on` entry references an existing feature `id`, does not reference itself, and does not create a dependency cycle.
 - No feature is an epic/milestone such as "auth and enrollment API", "adaptive dashboard", "review flow", "content import", or "certificate generation and public verification" unless it has first been split into smaller verifiable slices.
 - For non-trivial MVPs, the feature count is not suspiciously low. If there are fewer than 10 features, run a second slicing pass before finishing.

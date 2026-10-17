@@ -6,6 +6,7 @@
 - **Status at planning:** `not_started`; depends on accepted `local_land_store`.
 - **Source behavior:** A person can add a named land and can leave attributes unknown rather than guessing.
 - **Feature verification:** Save one land with only a name and another with known water and production details.
+- **Note from the feature list:** Keep setup short; area and notes remain optional pending validation.
 
 ## Goal and boundaries
 

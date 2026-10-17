@@ -6,6 +6,7 @@
 - **Status / dependency:** `not_started`; `chat_home` is accepted.
 - **Source behavior:** A person can tap a short example question and have its Spanish text placed in the chat flow, without needing to formulate a prompt.
 - **Source verification:** Tap an example and confirm its text is submitted or ready to submit in the composer.
+- **Note from the feature list:** Use examples drawn from topics actually covered by the approved MVP corpus.
 
 ## Goal
 
