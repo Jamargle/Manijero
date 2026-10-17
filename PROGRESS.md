@@ -2,7 +2,7 @@
 
 ## Current state
 
-Routine entry point. This status board is the read budget for `PROGRESS.md`; the long-form narrative, the per-feature evidence, and the chronological change log are on demand (see "Detail on demand" below).
+Routine entry point. This status board is the read budget for `PROGRESS.md`; the long-form narrative and the chronological pointer index are on demand (see "Detail on demand" below).
 Last updated: 2026-10-17.
 
 **Feature set**  source of truth `feature_list.json`.
@@ -27,8 +27,7 @@ Last updated: 2026-10-17.
 **Detail on demand**
 
 - `docs/progress/current-state.md` — the long-form per-feature narrative.
-- `docs/progress/feature-evidence.md` — per-feature evidence sections.
-- `docs/progress/session-log.md` — the chronological change log (the former session log; newest entries last).
+- `docs/progress/session-log.md` — the chronological pointer index (newest entries last); one line per event, never restated evidence.
 - `docs/specs/<feature-id>.md` — the feature's own document: design, decisions, and its "Feature evidence" section.
 - `docs/validations/<feature-id>.md` — the authoritative acceptance record per accepted feature.
 
@@ -48,4 +47,4 @@ Evaluator flags, report-only caveats, and a feature's own commands live in its s
 
 ## Session log
 
-The chronological change log moved to [`docs/progress/session-log.md`](docs/progress/session-log.md) on 2026-10-17 to keep this file small. Append new entries there.
+The chronological change log is [`docs/progress/session-log.md`](docs/progress/session-log.md), moved out of this file on 2026-10-17 to keep this file small; since 2026-10-17 it is a one-line pointer index. Append new entries there.

@@ -10,9 +10,9 @@ Update docs only when the change creates or changes knowledge future agents need
 - `../../../../ARCHITECTURE.md`: create/update when domains, layers, runtime surfaces, dependency direction, adapters/providers, or architectural boundaries are established or changed.
 - `../../../../CONSTRAINTS.md`: create/update when a durable MUST/MUST NOT rule appears that future agents must obey.
 - `../../../../docs/specs/<feature-id>.md`: update if implementation discovers that the spec was wrong, incomplete, or materially changed by necessary findings.
-- `../../../../docs/progress/session-log.md`: append the session entry every implementation session (the `../../../../PROGRESS.md` status board changes only when the accepted set, open items, or limits change).
+- `../../../../docs/progress/session-log.md`: the main orchestrator adds one pointer line per accepted feature; do not append verification prose here (the `../../../../PROGRESS.md` status board changes only when the accepted set, open items, or limits change).
 - `feature_list.json`: update the selected feature's status every implementation session. It is a lean index (`id`, `area`, `title`, `user_visible_behavior`, `depends_on`, `status`, `verification`, `spec`, `validation`, `notes`); do not add an `evidence` array.
-- `docs/specs/<feature-id>.md`: append what changed, what ran, and what failed to its `Feature evidence` section.
+- `docs/specs/<feature-id>.md`: append what changed, what ran, and what failed to its `Feature evidence` section (the canonical verification store).
 
 Do not create architecture or constraints docs just to look complete. Create them when they reduce future rediscovery or prevent future mistakes.
 
@@ -27,7 +27,7 @@ Feature status convention:
 - `accepted`: independent validation returned `accept` and the main orchestrator persisted that result. Implementers must not set this status.
 - `blocked`: implementation cannot continue with the current spec/context.
 
-Do not use `passing` to mean final approval. Final approval is a validator verdict persisted by the main orchestrator as `accepted` in `feature_list.json`, with concise evidence in `../../../../docs/progress/session-log.md`, the `Feature evidence` section of `../../../../docs/specs/<feature-id>.md`, and the acceptance record `../../../../docs/validations/<feature-id>.md`.
+Do not use `passing` to mean final approval. Final approval is a validator verdict persisted by the main orchestrator as `accepted` in `feature_list.json`, with the verification in the `Feature evidence` section of `../../../../docs/specs/<feature-id>.md`, the acceptance record `../../../../docs/validations/<feature-id>.md`, and one pointer line in `../../../../docs/progress/session-log.md`.
 
 ## `init.sh` Rule
 
