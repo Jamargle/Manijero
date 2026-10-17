@@ -23,6 +23,7 @@ The main agent is the orchestrator. It chooses the next role, launches the right
 - Do not treat `passing` as accepted. `passing` means implementer self-verification passed; validator `accept` is independent.
 - After validation returns `accept`, persist acceptance by changing the selected feature status in `feature_list.json` from `passing` to `accepted`. `feature_list.json` is a lean index, so never add an `evidence` array: the feature's evidence belongs in that feature's spec (`docs/specs/<feature-id>.md`, section `Feature evidence`) and its acceptance record in `docs/validations/<feature-id>.md`.
 - If validation returns `revise`, route the repair brief back to `implementer` for the same feature.
+- Verification is tiered, and each tier must be reachable: a spec that publishes no focused command block is incomplete, and implementer/validator runs use `./init.sh --feature <feature-id>` and `./init.sh --fast` before paying for `./init.sh --verify`.
 - After a `revise` repair, route the same feature back to `validator`; do not stop after the repair unless the user explicitly asked for a single role step.
 - If validation returns `block`, stop and report the blocker.
 - After validation returns `accept`, stage only the accepted feature's changes and create a Conventional Commit before selecting or reporting the next feature.

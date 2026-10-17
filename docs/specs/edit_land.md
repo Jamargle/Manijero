@@ -561,6 +561,18 @@ and the no-logging grep result.
   unchanged: the new semantics/focus are verified by the dumps, the AX tree, and code inspection, not
   an automated UI test. No visible copy, layout, state, persistence, or accepted edit behavior changed.
 
+## Focused verification
+
+`./init.sh --feature <feature-id>` runs exactly the block below. It is the feature-scoped
+tier of `./init.sh --fast`, and the cheapest check that still touches what this feature
+changed; `./init.sh --verify` remains the full gate.
+
+<!-- verify:start -->
+```sh
+./gradlew :shared:jvmTest --tests EditLandStateTest --tests EditLandRepositoryTest --tests EditLandDesktopStoreTest
+```
+<!-- verify:end -->
+
 ## Feature evidence
 
 Moved verbatim from `feature_list.json` on 2026-10-17, when that file became a lean index

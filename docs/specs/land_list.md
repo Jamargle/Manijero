@@ -352,6 +352,18 @@ no-logging grep result.
 - The read is synchronous on the composition frame (like the accepted save path), which is acceptable
   for a bounded local land count; a large store and lazy loading are out of scope.
 
+## Focused verification
+
+`./init.sh --feature <feature-id>` runs exactly the block below. It is the feature-scoped
+tier of `./init.sh --fast`, and the cheapest check that still touches what this feature
+changed; `./init.sh --verify` remains the full gate.
+
+<!-- verify:start -->
+```sh
+./gradlew :shared:jvmTest --tests LandListStateTest
+```
+<!-- verify:end -->
+
 ## Feature evidence
 
 Moved verbatim from `feature_list.json` on 2026-10-17, when that file became a lean index

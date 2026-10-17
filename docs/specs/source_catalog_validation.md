@@ -140,6 +140,19 @@ Capture command output; accepted fixture name/count; each invalid fixture's non-
 
 The validator proves catalog-policy conformance, not that a remote document is authentic, current, or legally applicable. A named corpus-review owner and first-pilot topic coverage remain open product/operations questions. The implementation agent should preserve this distinction, add no real document until it has human approval, and hand the validated catalog boundary to the later `source_retrieval` feature.
 
+## Focused verification
+
+`./init.sh --feature <feature-id>` runs exactly the block below. It is the feature-scoped
+tier of `./init.sh --fast`, and the cheapest check that still touches what this feature
+changed; `./init.sh --verify` remains the full gate.
+
+<!-- verify:start -->
+```sh
+python3 backend/scripts/validate_source_catalog.py knowledge/source_catalog.json --as-of 2026-10-13
+./init.sh --backend-tests tests/test_source_catalog.py
+```
+<!-- verify:end -->
+
 ## Feature evidence
 
 Moved verbatim from `feature_list.json` on 2026-10-17, when that file became a lean index

@@ -60,6 +60,8 @@ Use the strongest applicable available checks:
 
 Record exact commands and results. If a check is impossible in the current repo state, record the reason and the next action needed to make it possible.
 
+When the repository has more than one check surface, expose tiers instead of one monolithic gate, and keep the cheapest tier runnable without platform SDKs or a device: a focused per-feature tier that runs the commands a feature spec publishes, a no-device tier covering the whole test-and-evaluator surface, and the full release-shaped gate. The full gate must still run every surface needed for release, including backend or offline checks that no narrower gate covers.
+
 ## Scope Rules
 
 - One feature per implementation session.

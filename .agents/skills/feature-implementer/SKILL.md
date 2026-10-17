@@ -80,7 +80,7 @@ Rules:
 
 ### 4. Self-Verify
 
-Run the spec's verification plan and the repo's standard gate. If a required check cannot run, document exactly why and what is missing.
+Run the spec's verification plan and the repo's standard gate, cheapest tier first: `./init.sh --feature <feature-id>` (the focused block the spec publishes), then `./init.sh --fast`, and `./init.sh --verify` when the change touches the Android/Desktop surface, packaging, or shared public behavior. If a required check cannot run, document exactly why and what is missing.
 
 If the feature creates or updates `init.sh`, make it an executable non-blocking gate: it should run the standard verification checks for the current repo state and must not start long-running dev servers. A script that only prints the checks is not enough unless the repo is still pre-bootstrap.
 

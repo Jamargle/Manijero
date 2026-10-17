@@ -31,6 +31,19 @@ with Uvicorn and request `/health` with `curl` for the operator smoke check.
 process liveness from dependency readiness. No client or global architecture
 change is required.
 
+## Focused verification
+
+`./init.sh --feature <feature-id>` runs exactly the block below. It is the feature-scoped
+tier of `./init.sh --fast`, and the cheapest check that still touches what this feature
+changed; `./init.sh --verify` remains the full gate.
+
+<!-- verify:start -->
+```sh
+# The health test needs pytest; ./init.sh --fast prints the virtualenv recipe when it is missing.
+./init.sh --backend-tests tests/test_health.py
+```
+<!-- verify:end -->
+
 ## Feature evidence
 
 Moved verbatim from `feature_list.json` on 2026-10-17, when that file became a lean index

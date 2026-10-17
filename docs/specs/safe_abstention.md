@@ -221,6 +221,19 @@ The false-premise and conflict checks are lexical and conservative: a retrieval 
 
 Handoffs: `response_states` owns how an abstention is presented and must not add a legal fact or contradict the pinned message; `network_error_recovery` owns retry/offline copy for `generation_error`; `land_clarification`/`minimal_land_context` own `land_scope`; `land_safety_evaluation` owns trap-question measurement and any threshold. No feature currently owns wiring `POST /ask` in FastAPI or the client's production `AnswerService`, so the abstention reason stays observable only through this CLI and the tests until that route exists; recommend the route slice after this feature, when one route can serve `answered`, `abstained`, and `needs_land_clarification`. Carried-forward accepted finding F2 (non-iterable `source_markers` in the generator seam) is unchanged here and still owed to the hosted-model path.
 
+## Focused verification
+
+`./init.sh --feature <feature-id>` runs exactly the block below. It is the feature-scoped
+tier of `./init.sh --fast`, and the cheapest check that still touches what this feature
+changed; `./init.sh --verify` remains the full gate.
+
+<!-- verify:start -->
+```sh
+python3 backend/scripts/evaluate_abstention.py --catalog backend/tests/fixtures/abstention/catalog.json --passages backend/tests/fixtures/abstention/passages.json --eval backend/tests/fixtures/abstention/eval_questions.jsonl --as-of 2026-10-13 --k 5
+./init.sh --backend-tests tests/test_abstention.py
+```
+<!-- verify:end -->
+
 ## Feature evidence
 
 Moved verbatim from `feature_list.json` on 2026-10-17, when that file became a lean index

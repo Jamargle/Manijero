@@ -197,6 +197,19 @@ Capture: the fixture catalog validating (exit 0); per-question expected-passage 
 
 The baseline measures lexical ranking quality on a tiny synthetic fixture set; it is not evidence about legal coverage, correctness, or real Spanish user questions. Missing ingestion means the passage model is exercised only by fixtures, so the schema may need review when a real parser/chunker lands. Lexical-only retrieval may underperform on synonyms and acronyms; the `Retriever` boundary is intentionally narrow so a later hybrid (vector + BM25 + RRF) implementation can replace `search` without changing consumers. Hand off the ranked `RetrievedPassage` shape and eligibility rules to `grounded_answer_generation`, and keep applicability filtering deferred to `minimal_land_context` / `land_clarification`.
 
+## Focused verification
+
+`./init.sh --feature <feature-id>` runs exactly the block below. It is the feature-scoped
+tier of `./init.sh --fast`, and the cheapest check that still touches what this feature
+changed; `./init.sh --verify` remains the full gate.
+
+<!-- verify:start -->
+```sh
+python3 backend/scripts/evaluate_retrieval.py --catalog backend/tests/fixtures/retrieval/catalog.json --passages backend/tests/fixtures/retrieval/passages.json --eval backend/tests/fixtures/retrieval/eval_questions.jsonl --as-of 2026-10-13 --k 5
+./init.sh --backend-tests tests/test_retrieval.py
+```
+<!-- verify:end -->
+
 ## Feature evidence
 
 Moved verbatim from `feature_list.json` on 2026-10-17, when that file became a lean index

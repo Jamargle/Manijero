@@ -442,6 +442,18 @@ notice; the narrow/large-text notice); the reviewer's answers (or the recorded g
 - [ ] `feature_list.json`/`PROGRESS.md` were not modified by planning beyond the `in_progress`
       status; the final diff matches this spec's file list.
 
+## Focused verification
+
+`./init.sh --feature <feature-id>` runs exactly the block below. It is the feature-scoped
+tier of `./init.sh --fast`, and the cheapest check that still touches what this feature
+changed; `./init.sh --verify` remains the full gate.
+
+<!-- verify:start -->
+```sh
+./gradlew :shared:jvmTest --tests LandDataDisclosureTest
+```
+<!-- verify:end -->
+
 ## Feature evidence
 
 Moved verbatim from `feature_list.json` on 2026-10-17, when that file became a lean index

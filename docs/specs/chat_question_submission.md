@@ -272,6 +272,19 @@ one working state, one reply, disabled duplicate submit, and a new question afte
 - [ ] No backend, contract, unrelated feature, or planning-progress status is changed
   without implementation evidence.
 
+## Focused verification
+
+`./init.sh --feature <feature-id>` runs exactly the block below. It is the feature-scoped
+tier of `./init.sh --fast`, and the cheapest check that still touches what this feature
+changed; `./init.sh --verify` remains the full gate.
+
+<!-- verify:start -->
+```sh
+python3 contracts/validate_examples.py
+./gradlew :shared:jvmTest --tests ChatHomeStateTest --tests ChatConversationTest --tests KtorAnswerServiceTest
+```
+<!-- verify:end -->
+
 ## Feature evidence
 
 Moved verbatim from `feature_list.json` on 2026-10-17, when that file became a lean index

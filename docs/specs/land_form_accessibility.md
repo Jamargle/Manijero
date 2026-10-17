@@ -244,6 +244,20 @@ UI-test harness exist, so no automated UI/E2E result is claimed.
 - [ ] `:shared:jvmTest --rerun-tasks` (previous 192 tests, none removed), `:shared:testAndroidHostTest`, the iOS compile, the Android/Desktop builds, `./init.sh --verify`, and `git diff --check` pass, or the exact blocker is reported.
 - [ ] Only the two form screens, `strings.xml`, `CONSTRAINTS.md`, `DESIGN.md`, the two spec notes and the new spec changed; the reducers, repository, `App()`, the list/removal/privacy/chat surfaces, `theme/`, entry points, `contracts/`, `backend/`, `knowledge/`, Gradle and `init.sh` are untouched; the low-digital-confidence check is recorded as run or outstanding; `feature_list.json`/`PROGRESS.md` changed only after independent validation.
 
+## Focused verification
+
+`./init.sh --feature <feature-id>` runs exactly the block below. It is the feature-scoped
+tier of `./init.sh --fast`, and the cheapest check that still touches what this feature
+changed; `./init.sh --verify` remains the full gate.
+
+<!-- verify:start -->
+```sh
+# No new test class: this feature is verified through the forms' existing reducers plus the
+# manual screen-reader and keyboard checks recorded in the evidence below.
+./gradlew :shared:jvmTest --tests AddLandStateTest --tests EditLandStateTest
+```
+<!-- verify:end -->
+
 ## Feature evidence
 
 Moved verbatim from `feature_list.json` on 2026-10-17, when that file became a lean index

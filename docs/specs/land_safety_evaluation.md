@@ -212,6 +212,19 @@ The case set and its baseline are synthetic and implementer-authored: they exerc
 
 Handoffs: `answer_land_scope`, `android_mvp_build`, and `desktop_mvp_build` depend on this feature; when a real corpus and a `POST /ask` route land, extend the case set from real, source-anchored questions and only then agree which metrics become hard gates. Carried-forward accepted findings (backend F1 marker/sources hardening, F2 non-iterable `source_markers`, the `land_clarification` >128-char id defensive note) are unchanged and stay with their owners.
 
+## Focused verification
+
+`./init.sh --feature <feature-id>` runs exactly the block below. It is the feature-scoped
+tier of `./init.sh --fast`, and the cheapest check that still touches what this feature
+changed; `./init.sh --verify` remains the full gate.
+
+<!-- verify:start -->
+```sh
+python3 backend/scripts/evaluate_land_safety.py --catalog backend/tests/fixtures/land_safety/catalog.json --passages backend/tests/fixtures/land_safety/passages.json --cases backend/tests/fixtures/land_safety/cases.json --as-of 2026-10-13 --k 5
+./init.sh --backend-tests tests/test_land_safety_eval.py
+```
+<!-- verify:end -->
+
 ## Feature evidence
 
 Moved verbatim from `feature_list.json` on 2026-10-17, when that file became a lean index

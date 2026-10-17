@@ -283,6 +283,18 @@ Evidence to capture: the two test-task outputs with new test names and counts, `
 - [ ] Android and Desktop manual evidence (screenshots or a written record) shows canvas background, olive primary, surface cards/inputs, and caution/danger pairs, and the greyscale check is recorded.
 - [ ] `feature_list.json`/`PROGRESS.md` were not modified by planning; the spec's file list matches the actual diff.
 
+## Focused verification
+
+`./init.sh --feature <feature-id>` runs exactly the block below. It is the feature-scoped
+tier of `./init.sh --fast`, and the cheapest check that still touches what this feature
+changed; `./init.sh --verify` remains the full gate.
+
+<!-- verify:start -->
+```sh
+./gradlew :shared:jvmTest --tests ManijeroColorsTest --tests ManijeroTypographyTest
+```
+<!-- verify:end -->
+
 ## Feature evidence
 
 Moved verbatim from `feature_list.json` on 2026-10-17, when that file became a lean index

@@ -271,6 +271,19 @@ Capture: focused and full test counts/names; the nine strings compared byte-for-
 - [ ] `:shared:jvmTest`, `:shared:testAndroidHostTest`, `./init.sh --verify`, and the contract validator pass (or the exact environment blocker is reported) with no previously passing test regressing; no E2E/UI-test coverage is claimed.
 - [ ] `feature_list.json`/`PROGRESS.md` were not modified by planning; the final diff matches this spec's file list; the F1 client-side handling is recorded and the backend F1 hardening plus the `knowledge/README.md` sentence are handed back as follow-ups rather than silently "fixed" here.
 
+## Focused verification
+
+`./init.sh --feature <feature-id>` runs exactly the block below. It is the feature-scoped
+tier of `./init.sh --fast`, and the cheapest check that still touches what this feature
+changed; `./init.sh --verify` remains the full gate.
+
+<!-- verify:start -->
+```sh
+python3 contracts/validate_examples.py
+./gradlew :shared:jvmTest --tests CitationPresentationTest --tests ChatHomeStateTest --tests ChatConversationTest
+```
+<!-- verify:end -->
+
 ## Feature evidence
 
 Moved verbatim from `feature_list.json` on 2026-10-17, when that file became a lean index

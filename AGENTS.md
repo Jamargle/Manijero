@@ -7,7 +7,7 @@ Manijero is a Kotlin Multiplatform olive-grove assistant for people with little 
 - Read [PROGRESS.md](PROGRESS.md) status board ("Current state") and the spec for the selected feature. Long-form history is on demand in [docs/progress/current-state.md](docs/progress/current-state.md) and [docs/progress/feature-evidence.md](docs/progress/feature-evidence.md); do not read them for routine work.
 - Read [CONTEXT.md](CONTEXT.md), [the build brief](docs/build-brief.md), [the domain model](docs/domain-model.md), and [the design direction](DESIGN.md) before product, domain, or UI work.
 - Read [risks and open questions](docs/risks-and-open-questions.md) and the relevant section of [MasterPlanV3.md](MasterPlanV3.md) for unresolved constraints and technical context.
-- Run `./init.sh` to check the local toolchain and show standard commands. Run `./init.sh --verify` for the documented Android, Desktop, and shared test/build checks.
+- Verify in the smallest tier that covers the change, cheapest first: `./init.sh --feature <feature-id>` runs the focused command block the feature spec publishes, `./init.sh --fast` runs the shared host tests, the contract examples, the backend tests, and the offline evaluators without any Android SDK or Desktop build, and `./init.sh --verify` is the full gate. `./init.sh` alone only checks the toolchain and prints those commands.
 - Track user-visible work in [feature_list.json](feature_list.json) — a lean index of status, dependencies, and verification. Each feature's own document is [docs/specs/](docs/specs/) (`docs/specs/<feature-id>.md`, section "Feature evidence"); record verified progress in [PROGRESS.md](PROGRESS.md) (status board and session log).
 
 ## Project skills

@@ -31,6 +31,18 @@ Backend calls, answer rendering, suggested questions, land storage, navigation d
 - `./gradlew :shared:testAndroidHostTest :androidApp:assembleDebug :desktopApp:build`
 - Manual smoke: open Android/Desktop, locate the Spanish field without adding a land, type a question, and confirm the action becomes available.
 
+## Focused verification
+
+`./init.sh --feature <feature-id>` runs exactly the block below. It is the feature-scoped
+tier of `./init.sh --fast`, and the cheapest check that still touches what this feature
+changed; `./init.sh --verify` remains the full gate.
+
+<!-- verify:start -->
+```sh
+./gradlew :shared:jvmTest --tests ChatHomeStateTest
+```
+<!-- verify:end -->
+
 ## Feature evidence
 
 Moved verbatim from `feature_list.json` on 2026-10-17, when that file became a lean index

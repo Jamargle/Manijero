@@ -81,3 +81,8 @@ Pods/
 # Carthage/Checkouts
 
 Carthage/Build/
+
+# Python (backend pytest suite and the offline evaluators)
+__pycache__/
+*.py[cod]
+.pytest_cache/

@@ -235,6 +235,18 @@ Capture: test counts/names; the `uiautomator` dump excerpts; screenshots; the gr
 - [ ] Every carried gap named in "Source metadata" is either closed with recorded evidence or explicitly recorded as still open with a reason; no structural-only claim is presented as an inspected render.
 - [ ] `feature_list.json`/`PROGRESS.md` were not modified by planning; the final diff matches this spec's file list; `CONSTRAINTS.md` and `DESIGN.md` were updated as described.
 
+## Focused verification
+
+`./init.sh --feature <feature-id>` runs exactly the block below. It is the feature-scoped
+tier of `./init.sh --fast`, and the cheapest check that still touches what this feature
+changed; `./init.sh --verify` remains the full gate.
+
+<!-- verify:start -->
+```sh
+./gradlew :shared:jvmTest --tests TranscriptScrollTest
+```
+<!-- verify:end -->
+
 ## Feature evidence
 
 Moved verbatim from `feature_list.json` on 2026-10-17, when that file became a lean index

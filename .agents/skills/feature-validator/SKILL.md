@@ -74,6 +74,8 @@ Run the repo standard gate and focused checks when practical. If checks are expe
 
 If `init.sh` exists after a runnable baseline has been created, treat it as the standard non-blocking startup/verification gate. It should execute the relevant checks and fail on errors. If it only prints commands while the repo is already bootstrapped, raise a `revise` finding with a concrete repair brief. It must not start long-running processes such as a dev server.
 
+Spend the cheapest useful tier first: `./init.sh --feature <feature-id>` runs the focused block the spec publishes, `./init.sh --fast` covers the no-device surface, and `./init.sh --verify` is the full gate. Confirm independently that the feature's published focused block is accurate and still runs; a stale or wrong block is a `revise` finding.
+
 Use this hierarchy:
 
 1. static/syntax checks,

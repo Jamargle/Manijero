@@ -204,6 +204,18 @@ Capture: the `./init.sh --verify` exit code and task summary; the APK path/size/
 - **U1** Whether `docs/risks-and-open-questions.md` gains the "no answer endpoint at MVP debug release" row (optional).
 - **U2** Whether `desktop_mvp_build` later reuses this slice's banner wording (its spec decides).
 
+## Focused verification
+
+`./init.sh --feature <feature-id>` runs exactly the block below. It is the feature-scoped
+tier of `./init.sh --fast`, and the cheapest check that still touches what this feature
+changed; `./init.sh --verify` remains the full gate.
+
+<!-- verify:start -->
+```sh
+./gradlew :shared:testAndroidHostTest :androidApp:assembleDebug
+```
+<!-- verify:end -->
+
 ## Feature evidence
 
 Moved verbatim from `feature_list.json` on 2026-10-17, when that file became a lean index
