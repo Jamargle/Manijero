@@ -29,6 +29,8 @@ paths:
           description: Malformed request.
         '422':
           description: Request shape or enum validation failed.
+        '503':
+          description: The local answer corpus is unavailable or contains unsupported policy metadata. The response is generic and contains no corpus details.
 components:
   schemas:
     AskRequest:

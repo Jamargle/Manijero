@@ -43,6 +43,12 @@
 
 <!-- Implementer: append verified implementation and command evidence below. -->
 
+- 2026-10-17 — Implemented `POST /ask` with strict closed request/response models, generic non-reflective 400/422/503 handling, local UTC-date corpus loading, campaign-tagged corpus rejection, and composition through the accepted retrieval/grounding/abstention/clarification functions. Added a valid empty canonical passage set and updated API, backend, knowledge, architecture, project overview, and current limitation docs. Fixture-backed answered/clarification tests use explicitly synthetic material only.
+- `env MANIJERO_PYTHON=/tmp/manijero-backend-ask-endpoint-venv/bin/python PYTEST_ADDOPTS='-p no:cacheprovider' PYTHONDONTWRITEBYTECODE=1 ./scripts/init.sh --feature backend_ask_endpoint` — passed: 2 request and 3 response contract examples validated; 25 endpoint tests passed. Coverage includes all three outcomes, selected-mode behavior, empty and expired corpus abstention, malformed JSON, strict input bounds/keys/enums/land invariants, invalid/unreadable/campaign corpus failures, generic error non-disclosure, generated OpenAPI, and liveness-only health.
+- `env MANIJERO_PYTHON=/tmp/manijero-backend-ask-endpoint-venv/bin/python PYTEST_ADDOPTS='-p no:cacheprovider' PYTHONDONTWRITEBYTECODE=1 ./scripts/init.sh --fast` — passed: shared JVM host tests, contract examples, all 585 backend tests, source-catalog validation, and all five report-only offline evaluators (all 9 fast-tier jobs passed). One upstream Starlette deprecation warning notes that `httpx` with `TestClient` is deprecated; it does not fail the checks.
+- The worktree needed its generated `local.properties` and access to the existing Gradle wrapper lock under `~/.gradle`; the focused check and full fast tier completed after those environment permissions were granted. No Android/Desktop surface or shared client code changed, so `--verify` was not applicable.
+- Independent validation accepted on 2026-10-17. The validator reran the focused command: contract examples passed and all 25 endpoint tests passed; `git diff --check` passed. Scoped review found no security/privacy issues; the validator confirmed `/health` remains liveness-only and the application still needs platform base-URL wiring before it calls this endpoint.
+
 ## Validator checklist
 
 - [ ] `POST /ask` accepts only the contract request keys and enforces bounds, enums, unique IDs, and mode/lands invariants.

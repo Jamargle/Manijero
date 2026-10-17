@@ -27,6 +27,7 @@ measurement, not evidence about legal coverage or real user questions.
 | File | Purpose |
 |---|---|
 | `source_catalog.json` | The canonical, Git-tracked catalog. Currently empty on purpose. |
+| `passages.json` | The canonical, Git-tracked passage set. Currently valid and empty; it contains no answer coverage. |
 | `source_catalog.schema.json` | The readable versioned field contract (`source-catalog-v1`). |
 | `passages.schema.json` | The readable versioned passage contract (`passage-set-v1`). |
 | `land_safety_eval.schema.json` | The readable versioned safety-evaluation case contract (`land-safety-eval-v1`). |
@@ -43,11 +44,12 @@ measurement, not evidence about legal coverage or real user questions.
 valid: the repository has no separately reviewed documents yet. It does not mean
 the corpus is broad, current, or ready to answer legal questions.
 
-There is deliberately **no canonical `passages.json` yet**. This repository has
-no reviewed ingestion/chunking pipeline, so the passage format is exercised only
-by synthetic fixtures under `backend/tests/fixtures/retrieval/`. A later reviewed
-ingestion feature produces the canonical file. Until then, retrieval over the
-canonical catalog returns no candidates.
+`passages.json` is currently the valid empty `passage-set-v1` artifact. This
+repository has no reviewed ingestion/chunking pipeline, so the passage format is
+also exercised by synthetic fixtures under `backend/tests/fixtures/`. The empty
+canonical passage set carries no answer coverage; requests to the local `/ask`
+route therefore follow the ordinary safe abstention path. A later reviewed
+corpus feature may add passages only after the required human review.
 
 ## Approved issuers and hosts
 

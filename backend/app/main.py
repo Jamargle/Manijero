@@ -6,7 +6,10 @@ providers or the knowledge corpus are available.
 """
 
 from fastapi import FastAPI
+from fastapi.exceptions import RequestValidationError
 from pydantic import BaseModel
+
+from app.ask_api import router as ask_router, sanitize_request_validation
 
 
 class HealthResponse(BaseModel):
@@ -21,6 +24,8 @@ app = FastAPI(
     description="Backend service for the Manijero olive-grove assistant.",
     version="0.1.0",
 )
+app.include_router(ask_router)
+app.add_exception_handler(RequestValidationError, sanitize_request_validation)
 
 
 @app.get("/health", response_model=HealthResponse, summary="Check service health")
