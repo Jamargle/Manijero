@@ -53,3 +53,4 @@ restate evidence here.
 | 2026-10-17 | Harness: split every accepted spec into a bounded contract (`docs/specs/<id>.md`) plus a verbatim appendix (`docs/specs/<id>.appendix.md`) holding repository research, implementation plan, verification plan, validator checklist, and "Feature evidence"; evidence now records to the appendix. | `docs/specs/`, `feature_list.json`, `AGENTS.md`, `PROGRESS.md`, `.agents/skills/feature-{spec,implementer,flow,validator}/` |
 | 2026-10-17 | Harness: trimmed `docs/progress/current-state.md` from a per-feature narrative to a short product/architecture snapshot that points at the per-feature records. | `docs/progress/current-state.md`, `PROGRESS.md`, `AGENTS.md` |
 | 2026-10-17 | `backend_ask_endpoint` accepted. | `docs/specs/backend_ask_endpoint.md` · `docs/validations/backend_ask_endpoint.md` |
+| 2026-10-17 | `backend_pac_corpus` accepted. | `docs/specs/backend_pac_corpus.md` · `knowledge/pac_coverage.md` |

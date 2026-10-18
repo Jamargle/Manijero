@@ -49,6 +49,7 @@ REPO_ROOT = Path(__file__).resolve().parents[2]
 CLI = BACKEND_ROOT / "scripts" / "evaluate_retrieval.py"
 FIXTURES = Path(__file__).resolve().parent / "fixtures" / "retrieval"
 CANONICAL_CATALOG = REPO_ROOT / "knowledge" / "source_catalog.json"
+EMPTY_CATALOG = Path(__file__).resolve().parent / "fixtures" / "empty_catalog.json"
 CATALOG_SCHEMA_FILE = REPO_ROOT / "knowledge" / "source_catalog.schema.json"
 SCHEMA_FILE = REPO_ROOT / "knowledge" / "passages.schema.json"
 
@@ -606,9 +607,9 @@ def test_expired_source_stops_being_indexed_when_the_date_advances() -> None:
 # --- empty corpus -----------------------------------------------------------
 
 
-def test_canonical_empty_catalog_and_empty_passage_set_return_no_candidates() -> None:
+def test_empty_catalog_and_empty_passage_set_return_no_candidates() -> None:
     retriever = Retriever.from_documents(
-        load_catalog(CANONICAL_CATALOG),
+        load_catalog(EMPTY_CATALOG),
         {"schema_version": PASSAGE_SET_SCHEMA_VERSION, "passages": []},
         date.fromisoformat(AS_OF),
     )
@@ -698,8 +699,8 @@ def test_cli_fail_on_miss_is_off_by_default_and_opt_in_is_exit_one() -> None:
     assert strict.stdout == default.stdout
 
 
-def test_cli_canonical_empty_corpus_reports_zero_candidates() -> None:
-    result = run_cli("--catalog", str(CANONICAL_CATALOG), "--as-of", AS_OF, "--k", "5")
+def test_cli_empty_corpus_reports_zero_candidates() -> None:
+    result = run_cli("--catalog", str(EMPTY_CATALOG), "--as-of", AS_OF, "--k", "5")
 
     assert result.returncode == 0, result.stderr
     assert "eligible sources: 0" in result.stdout
@@ -838,8 +839,9 @@ def test_fixtures_are_labelled_synthetic_and_contain_no_real_legal_claim() -> No
         assert not any(character.isdigit() for character in passage["text"])
 
 
-def test_canonical_source_catalog_is_unchanged_and_empty() -> None:
+def test_canonical_source_catalog_is_unchanged_and_reviewed() -> None:
     document = load_catalog(CANONICAL_CATALOG)
 
-    assert document == {"schema_version": "source-catalog-v1", "sources": []}
+    assert len(document["sources"]) == 4
+    assert all(source["review_status"] == "approved" for source in document["sources"])
     assert CATALOG_SCHEMA_FILE.exists()

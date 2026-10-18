@@ -18,6 +18,9 @@ EOF
   echo "Created local.properties with SDK path: $ANDROID_HOME"
 fi
 
+# Avoid conflicting AGP location environment variables
+unset ANDROID_PREFS_ROOT
+
 # Export environment variables for Gradle
 export ANDROID_HOME
 export ANDROID_SDK_ROOT
@@ -89,12 +92,13 @@ run_python() {
 # Prints the first interpreter that has pytest installed, if any.
 pytest_python() {
   local candidate
-  for candidate in "${MANIJERO_PYTHON:-}" python3 python; do
+  for candidate in "${MANIJERO_PYTHON:-}" "$REPO_ROOT/.venv/bin/python" "$REPO_ROOT/backend/.venv/bin/python" python3 python; do
     [[ -n "$candidate" ]] || continue
-    command -v "$candidate" >/dev/null 2>&1 || continue
-    if "$candidate" -c 'import pytest' >/dev/null 2>&1; then
-      printf '%s\n' "$candidate"
-      return 0
+    if [[ -x "$candidate" ]] || command -v "$candidate" >/dev/null 2>&1; then
+      if "$candidate" -c 'import pytest' >/dev/null 2>&1; then
+        printf '%s\n' "$candidate"
+        return 0
+      fi
     fi
   done
   return 1

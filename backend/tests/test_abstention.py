@@ -76,6 +76,7 @@ FIXTURES = Path(__file__).resolve().parent / "fixtures" / "abstention"
 RETRIEVAL_FIXTURES = Path(__file__).resolve().parent / "fixtures" / "retrieval"
 GENERATION_FIXTURES = Path(__file__).resolve().parent / "fixtures" / "generation"
 CANONICAL_CATALOG = REPO_ROOT / "knowledge" / "source_catalog.json"
+EMPTY_CATALOG = Path(__file__).resolve().parent / "fixtures" / "empty_catalog.json"
 CONTRACT_EXAMPLE = REPO_ROOT / "contracts" / "examples" / "response-abstained.json"
 CONTRACT_OPENAPI = REPO_ROOT / "contracts" / "openapi.yaml"
 
@@ -485,9 +486,9 @@ def test_prepare_corpus_abstains_stale_for_an_ineligible_catalog(catalog_name: s
     assert payload["sources"] == []
 
 
-def test_prepare_corpus_allows_the_canonical_empty_catalog() -> None:
+def test_prepare_corpus_allows_an_empty_catalog() -> None:
     corpus = prepare_corpus(
-        load_catalog(CANONICAL_CATALOG),
+        load_catalog(EMPTY_CATALOG),
         {"schema_version": PASSAGE_SET_SCHEMA_VERSION, "passages": []},
         as_of_date(),
     )

@@ -55,7 +55,7 @@ def test_ask_returns_verified_source_backed_answer_from_synthetic_fixture(client
     assert set(body) == {"status", "answer", "sources", "land_scope", "land_ids_to_choose"}
 
 
-def test_ask_abstains_on_empty_canonical_corpus(client) -> None:
+def test_ask_abstains_on_an_empty_injected_corpus(client) -> None:
     app.dependency_overrides[get_corpus_documents] = lambda: CorpusDocuments(
         catalog={"schema_version": "source-catalog-v1", "sources": []},
         passages={"schema_version": "passage-set-v1", "passages": []},
@@ -250,14 +250,13 @@ def test_openapi_documents_ask_operation_and_error_statuses(client) -> None:
     assert document["paths"]["/health"]["get"]["operationId"] == "health_health_get"
 
 
-def test_local_empty_canonical_files_use_safe_abstention(client) -> None:
+def test_local_canonical_pac_corpus_fails_closed_until_campaign_filtering(client) -> None:
     app.dependency_overrides.clear()
 
     response = client.post("/ask", json=payload("¿Qué ayuda me corresponde?"))
 
-    assert response.status_code == 200
-    assert response.json()["status"] == "abstained"
-    assert response.json()["sources"] == []
+    assert response.status_code == 503
+    assert response.json() == {"detail": "Answer service is temporarily unavailable."}
 
 
 def test_unreadable_canonical_artifact_returns_generic_503(client, monkeypatch) -> None:

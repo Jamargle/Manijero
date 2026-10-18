@@ -61,6 +61,7 @@ REPO_ROOT = Path(__file__).resolve().parents[2]
 CLI = BACKEND_ROOT / "scripts" / "evaluate_generation.py"
 FIXTURES = Path(__file__).resolve().parent / "fixtures" / "generation"
 CANONICAL_CATALOG = REPO_ROOT / "knowledge" / "source_catalog.json"
+EMPTY_CATALOG = Path(__file__).resolve().parent / "fixtures" / "empty_catalog.json"
 CONTRACT_EXAMPLE = REPO_ROOT / "contracts" / "examples" / "response-answered.json"
 CONTRACT_OPENAPI = REPO_ROOT / "contracts" / "openapi.yaml"
 
@@ -103,9 +104,9 @@ def build_retriever(as_of: str = AS_OF) -> Retriever:
     )
 
 
-def empty_canonical_retriever(as_of: str = AS_OF) -> Retriever:
+def empty_catalog_retriever(as_of: str = AS_OF) -> Retriever:
     return Retriever.from_documents(
-        load_catalog(CANONICAL_CATALOG),
+        load_catalog(EMPTY_CATALOG),
         {"schema_version": PASSAGE_SET_SCHEMA_VERSION, "passages": []},
         date.fromisoformat(as_of),
     )
@@ -591,9 +592,9 @@ def test_no_candidates_for_an_out_of_vocabulary_question() -> None:
     assert not hasattr(result, "answer")
 
 
-def test_no_candidates_for_the_canonical_empty_catalog() -> None:
+def test_no_candidates_for_an_empty_catalog() -> None:
     result = generate_grounded_answer(
-        SOLICITUD_QUESTION, empty_canonical_retriever(), k=5, as_of=as_of_date()
+        SOLICITUD_QUESTION, empty_catalog_retriever(), k=5, as_of=as_of_date()
     )
 
     assert result == NotAnswered("no_candidates")
@@ -924,9 +925,9 @@ def test_cli_run_is_deterministic() -> None:
     assert first.returncode == second.returncode == 0
 
 
-def test_cli_canonical_empty_corpus_reports_no_answers() -> None:
+def test_cli_empty_corpus_reports_no_answers() -> None:
     result = run_cli(
-        "--catalog", str(CANONICAL_CATALOG), "--as-of", AS_OF, "--k", "5"
+        "--catalog", str(EMPTY_CATALOG), "--as-of", AS_OF, "--k", "5"
     )
 
     assert result.returncode == 0, result.stderr
