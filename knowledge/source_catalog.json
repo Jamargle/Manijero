@@ -1,4 +1,71 @@
 {
   "schema_version": "source-catalog-v1",
-  "sources": []
+  "sources": [
+    {
+      "id": "res_20260121",
+      "title": "Resolución de 21 de enero de 2026, de la Dirección General de Ayudas Directas y de Mercados, por la que se convocan para el año 2026 las ayudas fijadas en la Solicitud Única en Andalucía",
+      "issuing_body": "Junta de Andalucía",
+      "original_url": "https://www.juntadeandalucia.es/boja/2026/20/2",
+      "published_on": "2026-01-30",
+      "downloaded_on": "2026-10-17",
+      "verified_on": "2026-10-17",
+      "content_sha256": "e8481e7e40a0006d2d7c378ddc35d70117268b33052630dc82c486d9de14d378",
+      "review_status": "approved",
+      "reviewed_by": "Diego",
+      "reviewed_on": "2026-10-17",
+      "lifecycle_status": "current",
+      "valid_until": "2026-12-31",
+      "campaign": "2026",
+      "critical": true
+    },
+    {
+      "id": "dl_1_2026",
+      "title": "Decreto-ley 1/2026, de 23 de febrero, por el que se adoptan medidas urgentes en materia de agricultura, pesca y desarrollo rural (Artículo 14)",
+      "issuing_body": "Junta de Andalucía",
+      "original_url": "https://www.juntadeandalucia.es/boja/2026/38/c02/1",
+      "published_on": "2026-02-24",
+      "downloaded_on": "2026-10-17",
+      "verified_on": "2026-10-17",
+      "content_sha256": "87fd8bac440e8117be0eaf8aa566dc335797f72baee6b25992220add6a8a583f",
+      "review_status": "approved",
+      "reviewed_by": "Diego",
+      "reviewed_on": "2026-10-17",
+      "lifecycle_status": "current",
+      "valid_until": "2026-12-31",
+      "campaign": "2026",
+      "critical": true
+    },
+    {
+      "id": "rd_1048_2022",
+      "title": "Real Decreto 1048/2022, de 27 de diciembre, sobre la aplicación, a partir de 2023, de las intervenciones en forma de pagos directos y el establecimiento de requisitos comunes en el marco del Plan Estratégico de la PAC",
+      "issuing_body": "BOE",
+      "original_url": "https://www.boe.es/buscar/doc.php?id=BOE-A-2022-23048",
+      "consolidated_url": "https://www.boe.es/buscar/act.php?id=BOE-A-2022-23048",
+      "published_on": "2022-12-29",
+      "downloaded_on": "2026-10-17",
+      "verified_on": "2026-10-17",
+      "content_sha256": "88c08a2c42c9a4f48c35b5c1b0b33efa88cabfebd713579489610e58a95d3274",
+      "review_status": "approved",
+      "reviewed_by": "Diego",
+      "reviewed_on": "2026-10-17",
+      "lifecycle_status": "current"
+    },
+    {
+      "id": "rd_537_2026",
+      "title": "Real Decreto 537/2026, de 20 de mayo, por el que se modifican diversos reales decretos en materia de ayudas de la Política Agraria Común",
+      "issuing_body": "BOE",
+      "original_url": "https://www.boe.es/buscar/doc.php?id=BOE-A-2026-14763",
+      "published_on": "2026-05-21",
+      "downloaded_on": "2026-10-17",
+      "verified_on": "2026-10-17",
+      "content_sha256": "24d9f7410a0eb939452037a36ef5ce8debf73100e9f672188384eb75f884f698",
+      "review_status": "approved",
+      "reviewed_by": "Diego",
+      "reviewed_on": "2026-10-17",
+      "lifecycle_status": "current",
+      "valid_until": "2026-12-31",
+      "campaign": "2026",
+      "critical": true
+    }
+  ]
 }
