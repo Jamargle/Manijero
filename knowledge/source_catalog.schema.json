@@ -28,6 +28,7 @@
     "source": {
       "type": "object",
       "additionalProperties": false,
+      "dependentRequired": {"campaign": ["valid_until"]},
       "required": [
         "id",
         "title",
@@ -106,8 +107,8 @@
         },
         "campaign": {
           "type": "string",
-          "minLength": 1,
-          "description": "Optional campaign label when the document is campaign-specific (for example '2026'). Leave it absent when unknown."
+          "pattern": "^\\d{4}$",
+          "description": "Optional four-digit campaign year when the document is campaign-specific. Leave it absent when unknown; campaign-specific entries require valid_until."
         },
         "critical": {
           "type": "boolean",

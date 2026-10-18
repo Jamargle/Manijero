@@ -22,12 +22,16 @@ Successful response:
 check corpus readiness. `/ask` reads the local `knowledge/source_catalog.json`
 and `knowledge/passages.json` artifacts and uses the accepted retrieval,
 grounding, abstention, and land-clarification decisions. It does not call a
-hosted model or the network.
+hosted model or the network. Every `/ask` request requires `MANIJERO_ACTIVE_CAMPAIGN`
+to be explicitly set to a four-digit year (for example `2026`); it is never inferred
+from today's date or the question. Campaign-neutral and matching campaign sources
+may be used. Rotate expired campaign sources and their passages out of the active
+artifacts in a reviewed update.
 
 The canonical corpus is currently empty, so `/ask` safely returns the pinned
 abstention with no sources. Fixture-backed answers in tests are synthetic and
 do not establish legal coverage. Invalid or unreadable corpus files and
-campaign-tagged sources return a generic `503`; malformed JSON returns `400`,
+missing/invalid campaign configuration or unsafe corpus data returns a generic `503`; malformed JSON returns `400`,
 and valid JSON that violates the request contract returns `422`. Error responses
 do not echo question, land, file, or corpus values.
 

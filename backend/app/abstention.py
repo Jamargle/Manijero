@@ -231,6 +231,7 @@ def prepare_corpus(
     catalog_document: Any,
     passage_document: Any,
     as_of: date,
+    active_campaign: Optional[str] = None,
 ) -> Union[Retriever, Abstention]:
     """Return a retriever, or a corpus-level ``stale_evidence`` abstention.
 
@@ -256,7 +257,7 @@ def prepare_corpus(
                 ),
             ),
         )
-    return Retriever.from_documents(catalog_document, passage_document, as_of)
+    return Retriever.from_documents(catalog_document, passage_document, as_of, active_campaign)
 
 
 def answer_or_abstain(

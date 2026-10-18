@@ -395,6 +395,7 @@ class Retriever:
         catalog_document: Any,
         passage_document: Any,
         as_of: date,
+        active_campaign: Optional[str] = None,
     ) -> "Retriever":
         """Build a retriever from a catalog document, a passage set, and ``as_of``.
 
@@ -428,7 +429,9 @@ class Retriever:
                         join_path("$.passages[{}]".format(position), "source_id")
                     )
                 )
-            if source_id not in eligible_ids:
+            if source_id not in eligible_ids or (
+                source.get("campaign") is not None and source.get("campaign") != active_campaign
+            ):
                 # Defense in depth: the accepted gate already rejects catalogs
                 # containing ineligible sources, so this normally excludes none.
                 excluded += 1
