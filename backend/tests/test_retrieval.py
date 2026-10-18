@@ -84,6 +84,7 @@ def build_retriever(
         catalog_document(catalog_name),
         passage_document(passages_name),
         date.fromisoformat(as_of),
+        active_campaign="2026",
     )
 
 
@@ -106,6 +107,8 @@ def baseline_cli(*extra: str) -> subprocess.CompletedProcess:
         str(fixture(EVAL_FIXTURE)),
         "--as-of",
         AS_OF,
+        "--active-campaign",
+        "2026",
         "--k",
         "5",
         *extra,
@@ -716,6 +719,8 @@ def test_cli_without_passages_returns_no_candidates_for_questions() -> None:
         str(fixture(EVAL_FIXTURE)),
         "--as-of",
         AS_OF,
+        "--active-campaign",
+        "2026",
         "--k",
         "5",
         "--json",

@@ -96,7 +96,9 @@ def passage_document():
 
 
 def current_corpus(as_of: str = AS_OF):
-    corpus = prepare_corpus(catalog_document(), passage_document(), as_of_date(as_of))
+    corpus = prepare_corpus(
+        catalog_document(), passage_document(), as_of_date(as_of), "2026"
+    )
     assert not isinstance(corpus, Abstention)
     return corpus
 
@@ -157,6 +159,8 @@ def baseline_cli(*extra: str) -> subprocess.CompletedProcess:
         str(fixture("cases.json")),
         "--as-of",
         AS_OF,
+        "--active-campaign",
+        "2026",
         "--k",
         "5",
         *extra,

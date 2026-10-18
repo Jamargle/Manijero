@@ -36,7 +36,8 @@
       "reviewed_on": "2026-10-03",
       "lifecycle_status": "current",
       "critical": false,
-      "campaign": "2026"
+      "campaign": "2026",
+      "valid_until": "2026-12-31"
     },
     {
       "id": "res_fega_20260520",

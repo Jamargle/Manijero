@@ -170,11 +170,11 @@ run_offline_checks() {
   fast_job "$workdir" contract-examples run_python contracts/validate_examples.py
   fast_job "$workdir" backend-tests run_backend_tests 0
   fast_job "$workdir" source-catalog run_python backend/scripts/validate_source_catalog.py knowledge/source_catalog.json --as-of "$AS_OF"
-  fast_job "$workdir" retrieval run_python backend/scripts/evaluate_retrieval.py --catalog backend/tests/fixtures/retrieval/catalog.json --passages backend/tests/fixtures/retrieval/passages.json --eval backend/tests/fixtures/retrieval/eval_questions.jsonl --as-of "$AS_OF" --k 5
-  fast_job "$workdir" generation run_python backend/scripts/evaluate_generation.py --catalog backend/tests/fixtures/generation/catalog.json --passages backend/tests/fixtures/generation/passages.json --eval backend/tests/fixtures/generation/eval_questions.jsonl --as-of "$AS_OF" --k 5
-  fast_job "$workdir" abstention run_python backend/scripts/evaluate_abstention.py --catalog backend/tests/fixtures/abstention/catalog.json --passages backend/tests/fixtures/abstention/passages.json --eval backend/tests/fixtures/abstention/eval_questions.jsonl --as-of "$AS_OF" --k 5
+  fast_job "$workdir" retrieval run_python backend/scripts/evaluate_retrieval.py --catalog backend/tests/fixtures/retrieval/catalog.json --passages backend/tests/fixtures/retrieval/passages.json --eval backend/tests/fixtures/retrieval/eval_questions.jsonl --as-of "$AS_OF" --active-campaign 2026 --k 5
+  fast_job "$workdir" generation run_python backend/scripts/evaluate_generation.py --catalog backend/tests/fixtures/generation/catalog.json --passages backend/tests/fixtures/generation/passages.json --eval backend/tests/fixtures/generation/eval_questions.jsonl --as-of "$AS_OF" --active-campaign 2026 --k 5
+  fast_job "$workdir" abstention run_python backend/scripts/evaluate_abstention.py --catalog backend/tests/fixtures/abstention/catalog.json --passages backend/tests/fixtures/abstention/passages.json --eval backend/tests/fixtures/abstention/eval_questions.jsonl --as-of "$AS_OF" --active-campaign 2026 --k 5
   fast_job "$workdir" clarification run_python backend/scripts/evaluate_clarification.py --catalog backend/tests/fixtures/clarification/catalog.json --passages backend/tests/fixtures/clarification/passages.json --eval backend/tests/fixtures/clarification/eval_questions.jsonl --as-of "$AS_OF" --k 5
-  fast_job "$workdir" land-safety run_python backend/scripts/evaluate_land_safety.py --catalog backend/tests/fixtures/land_safety/catalog.json --passages backend/tests/fixtures/land_safety/passages.json --cases backend/tests/fixtures/land_safety/cases.json --as-of "$AS_OF" --k 5
+  fast_job "$workdir" land-safety run_python backend/scripts/evaluate_land_safety.py --catalog backend/tests/fixtures/land_safety/catalog.json --passages backend/tests/fixtures/land_safety/passages.json --cases backend/tests/fixtures/land_safety/cases.json --as-of "$AS_OF" --active-campaign 2026 --k 5
 
   printf '\nRunning %d independent offline checks concurrently...\n' "${#FAST_JOB_PIDS[@]}"
 

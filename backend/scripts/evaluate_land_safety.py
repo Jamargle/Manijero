@@ -274,6 +274,11 @@ def build_parser() -> argparse.ArgumentParser:
         help="evaluation date used for catalog currency (defaults to the current UTC date)",
     )
     parser.add_argument(
+        "--active-campaign",
+        default=None,
+        help="campaign used to scope campaign-specific sources (default: no campaign)",
+    )
+    parser.add_argument(
         "--k",
         type=int,
         default=DEFAULT_K,
@@ -327,7 +332,9 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
         return EXIT_UNREADABLE
 
     try:
-        corpus = prepare_corpus(catalog_document, passage_document, as_of)
+        corpus = prepare_corpus(
+            catalog_document, passage_document, as_of, args.active_campaign
+        )
     except (PassageSetError, CatalogRejectedError) as error:
         print("error: land-safety input was rejected", file=sys.stderr)
         for line in str(error).splitlines():
