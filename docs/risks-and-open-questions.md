@@ -7,7 +7,7 @@ Resolved product direction lives in [the build brief](build-brief.md) and [domai
 | Risk | Why it matters | Current mitigation / next action |
 |---|---|---|
 | Unsupported or outdated legal answer | A user could act on incorrect deadlines, amounts, or requirements | Use approved official sources, visible citations and verification dates, abstention, and targeted evaluation for critical claims. Assign a human owner for corpus review before real-user release. |
-| Backend has no reviewed answer corpus | A working route over synthetic fixtures could look complete while having no legal coverage | Keep the corpus explicitly empty until current official sources and critical passages are reviewed; define coverage only from accepted material and source-anchored questions. |
+| Backend legal coverage is bounded | A working route could be mistaken for broad legal coverage | Publish the approved corpus boundary, cite only reviewed source passages, and abstain outside the three-topic Andalusia PAC 2026 slice. |
 | Land context is wrong or incomplete | An answer could appear personalized while applying to the wrong land | Treat unknown as unknown; use all lands by default; ask for a land choice when answers differ; show which land context was used. Never infer eligibility from stored details. |
 | Low digital confidence blocks adoption | The intended audience may abandon setup or misread a result | Keep the first journey short, explain terms in plain Spanish, allow general questions without setup, and observe low-confidence users completing key tasks. |
 | Local device loss removes land records | Local-only data has no automatic recovery | Before release, choose and clearly explain an export/backup or recovery stance; do not imply cloud backup exists. |
@@ -33,8 +33,8 @@ Resolved product direction lives in [the build brief](build-brief.md) and [domai
 |---|---|---|
 | Which exact land fields are required at first setup? Is approximate area essential to an MVP question? | Defines form length, privacy notice, storage, and chat context | Review real user questions; test a minimal land record with target users |
 | Does the first real-user MVP need land export/backup, or is device-local storage acceptable for a limited pilot? | Data loss could remove the user's records | Decide release audience and acceptable recovery behavior |
-| Who will independently review and approve the initial official sources and critical passages? | No canonical source or passage is approved today; unreviewed text cannot support a legal answer | Resolved on 2026-10-17: Diego reviewed and approved the 4 official sources and 4 literal passages in `knowledge/source_catalog.json` and `knowledge/passages.json`. |
-| Which exact questions in the Andalusia PAC single-application slice are supported by current official sources, and what stays uncovered? | Candidate coverage has been mapped to current official materials, but exact passages and the user-facing coverage boundary are not independently approved | Resolved on 2026-10-17: Diego approved the 3 supported procedural topics and explicit exclusions recorded in `knowledge/pac_coverage.md`. |
+| Who will independently review and approve the initial official sources and critical passages? | Unreviewed text cannot support a legal answer | Resolved on 2026-10-17: Diego independently reviewed and approved the 4 official sources and 4 literal passages in `knowledge/source_catalog.json` and `knowledge/passages.json`. |
+| Which exact questions in the Andalusia PAC single-application slice are supported by current official sources, and what stays uncovered? | Coverage must remain explicit and narrow to avoid implying unsupported answers | Resolved on 2026-10-17: Diego approved the 3 supported procedural topics and explicit exclusions recorded in `knowledge/pac_coverage.md`. |
 
 ### Implementation-time
 
@@ -63,4 +63,4 @@ Resolved product direction lives in [the build brief](build-brief.md) and [domai
 | Cooperative-facing review tools or content | A cooperative agrees to participate and boundaries are clear |
 | Hosted LLM for answer generation | After corpus coverage and the first measured baseline are reviewed; check current terms, privacy, limits, cost, and verifier behavior |
 
-Last reviewed: 2026-10-17
+Last reviewed: 2026-10-18

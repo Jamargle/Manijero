@@ -26,8 +26,8 @@ measurement, not evidence about legal coverage or real user questions.
 
 | File | Purpose |
 |---|---|
-| `source_catalog.json` | The canonical, Git-tracked catalog. Currently empty on purpose. |
-| `passages.json` | The canonical, Git-tracked passage set. Currently valid and empty; it contains no answer coverage. |
+| `source_catalog.json` | The canonical, Git-tracked catalog. Contains four reviewed official sources for the bounded 2026 PAC slice. |
+| `passages.json` | The canonical, Git-tracked passage set. Contains four approved literal passages; see `pac_coverage.md` for its boundary. |
 | `source_catalog.schema.json` | The readable versioned field contract (`source-catalog-v1`). |
 | `passages.schema.json` | The readable versioned passage contract (`passage-set-v1`). |
 | `land_safety_eval.schema.json` | The readable versioned safety-evaluation case contract (`land-safety-eval-v1`). |
@@ -40,28 +40,24 @@ measurement, not evidence about legal coverage or real user questions.
 | `../backend/scripts/evaluate_generation.py` | The offline grounded-generation report command-line wrapper. |
 | `../backend/scripts/evaluate_land_safety.py` | The offline land-safety report command-line wrapper. |
 
-`source_catalog.json` starts with `"sources": []`. That is intentional and
-valid: the repository has no separately reviewed documents yet. It does not mean
-the corpus is broad, current, or ready to answer legal questions.
+`source_catalog.json` contains the four independently reviewed official sources
+for the bounded Andalusia PAC 2026 slice. It does not mean the corpus is broad
+or supports questions outside the published coverage.
 
-`passages.json` is currently the valid empty `passage-set-v1` artifact. This
-repository has no reviewed ingestion/chunking pipeline, so the passage format is
-also exercised by synthetic fixtures under `backend/tests/fixtures/`. The empty
-canonical passage set carries no answer coverage; requests to the local `/ask`
-route therefore follow the ordinary safe abstention path. A later reviewed
-corpus feature may add passages only after the required human review.
+`passages.json` contains four manually curated literal passages approved by
+Diego. There is no automatic ingestion or chunking pipeline; the passage format
+is also exercised by synthetic fixtures under `backend/tests/fixtures/`. The
+canonical passages support only the questions listed in `pac_coverage.md`.
 
-## Andalusia PAC 2026 candidate slice
+## Andalusia PAC 2026 reviewed slice
 
-`pac_coverage.md` records three candidate procedural topics and explicit gaps.
-Diego approved the candidate sources, topics, and exclusions on 2026-10-17, but
-the exact literal passages and original-copy verification are not recorded.
-They are therefore **not supported answers**: the canonical catalog and passage
-set remain empty until those source and passage checks are completed. An empty
-valid corpus means no PAC answer coverage; candidate facts must not be used in
-runtime artifacts. Research candidates and chronology are in
-`docs/specs/backend_pac_corpus.appendix.md`; never invent quotations or passage
-locations to fill the evidence gap.
+`pac_coverage.md` records the three independently reviewed procedural topics,
+approved source and passage references, and explicit gaps. Diego verified the
+downloaded official copies and approved the literal passages and coverage on
+2026-10-17. This bounded slice does not establish individual eligibility or aid
+amounts. Do not answer outside its published coverage; the ordinary safe
+abstention behavior applies to uncovered questions. Research and chronology are
+documented in `docs/specs/backend_pac_corpus.appendix.md`.
 
 ## Approved issuers and hosts
 
@@ -206,8 +202,7 @@ Retrieval is a consumer of the catalog gate, not a bypass around it:
 
 ## Running the retrieval baseline
 
-The baseline runs against synthetic fixtures, because the canonical catalog is
-still empty:
+The baseline runs against synthetic fixtures, not the canonical PAC corpus:
 
 ```sh
 python3 backend/scripts/evaluate_retrieval.py \
@@ -220,8 +215,8 @@ python3 backend/scripts/evaluate_retrieval.py \
 It prints each question's expected-passage rank and the aggregate `hit@k`,
 `recall@k`, and MRR. `--json` emits the same report as JSON, and `--fail-on-miss`
 opts into a non-zero exit on a miss (off by default: thresholds are **not**
-release gates). `--passages` and `--eval` are optional; with the canonical empty
-catalog and no passages, the command reports zero candidates.
+release gates). `--passages` and `--eval` are optional; with an empty catalog
+and no passages, the command reports zero candidates.
 
 Exit codes: `0` report produced, `1` only with `--fail-on-miss` and a miss,
 `2` an input file was unreadable or invalid. No command here performs network
@@ -280,8 +275,8 @@ Exit codes: `0` report produced with every grounding invariant holding, `1` a
 grounding invariant failed (ungrounded claim, unknown or undeclared marker, a
 non-literal critical claim, or an eligibility claim) or, only with
 `--fail-on-miss`, a question whose outcome differed from its `expect` value,
-`2` an unreadable or invalid input. With the canonical empty catalog and no
-passages the command reports zero candidates and zero answers.
+`2` an unreadable or invalid input. With an empty catalog and no passages the
+command reports zero candidates and zero answers.
 
 **Reviewer guidance.** A passage's `text` is what a user reads: the extractive
 generator quotes the reviewed excerpt verbatim as the answer claim, so keep

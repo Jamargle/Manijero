@@ -6,7 +6,7 @@
 - **Depends on:** `source_catalog_validation` and `source_retrieval` (accepted).
 - **Source behavior:** A small, explicitly bounded set of 2026 Andalusian PAC single-application questions can be answered only from independently reviewed official sources and literal, source-located passages.
 - **Source verification:** Validate canonical catalog and passages with the existing strict validators; verify each passage against its original official source and its independent approval record.
-- **Source note:** Candidate coverage and source chronology are mapped in the appendix. The canonical corpus must remain empty until a reviewer other than the corpus author is named and approves the exact source copies, passages, and coverage statement.
+- **Source note:** The approved coverage and source chronology are recorded in the appendix. The canonical source catalog and passages contain only the exact official source copies and passages approved by independent reviewer Diego; the coverage boundary and exclusions are published alongside them.
 
 ## Goal
 
@@ -79,11 +79,11 @@ None. This knowledge feature adds no UI or Spanish app copy.
 
 ## Focused verification
 
-`./scripts/init.sh --feature backend_pac_corpus` runs the exact checks below after implementation. An empty corpus is a valid outcome while reviewer approval is unresolved, but it does not satisfy feature acceptance.
+`./scripts/init.sh --feature backend_pac_corpus` runs the exact checks below. The source validator's fixed as-of date is aligned with the recorded approval and source verification date; run the backend pytest target in an environment with the backend test dependencies installed.
 
 <!-- verify:start -->
 ```sh
-python3 backend/scripts/validate_source_catalog.py knowledge/source_catalog.json --as-of 2026-10-17
+python3 backend/scripts/validate_source_catalog.py knowledge/source_catalog.json --as-of 2026-10-18
 ./scripts/init.sh --backend-tests tests/test_pac_corpus.py
 ```
 <!-- verify:end -->
