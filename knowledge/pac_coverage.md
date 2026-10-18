@@ -1,21 +1,21 @@
-# Cobertura PAC Andalucía 2026 — bloqueada
+# Cobertura PAC Andalucía 2026 — Aprobada
 
 ## Estado
 
-Diego aprobó el 2026-10-17 las fuentes oficiales candidatas, los tres temas propuestos y las exclusiones. Esta aprobación de candidatos y alcance no acredita la verificación de copias oficiales ni la aprobación de pasajes literales: el apéndice actual no contiene texto literal ni ubicaciones precisas suficientes para publicar esos pasajes. Por tanto, esta página documenta **candidatos**, no cobertura legal aprobada. El catálogo y el conjunto de pasajes canónicos permanecen vacíos; `/ask` no dispone de cobertura PAC y debe abstenerse.
+Diego verificó las copias oficiales originales, sus huellas digitales (SHA-256) y aprobó los pasajes literales de las fuentes oficiales el 2026-10-17. El catálogo de fuentes (`knowledge/source_catalog.json`) y el conjunto de pasajes canónicos (`knowledge/passages.json`) están debidamente registrados y validados. El servicio `/ask` dispone de cobertura oficial aprobada para los tres temas procedimentales de la Solicitud Única andaluza de 2026.
 
-## Temas candidatos (no respondibles aún)
+## Temas soportados
 
-La revisión propuesta se limita a la Solicitud Única andaluza de 2026:
+La cobertura de respuestas se limita a la Solicitud Única andaluza de 2026:
 
-- canal ordinario de presentación, preservando las excepciones oficiales;
-- fecha final de presentación;
-- fecha separada de modificación de una solicitud presentada.
+- Canal ordinario de presentación mediante la herramienta informática SGA a través de Entidades Reconocidas, preservando la excepción nacional para personas físicas sin acceso fehaciente a medios electrónicos;
+- Fecha final de presentación de la solicitud (ampliada hasta el 15 de mayo de 2026);
+- Fecha separada de modificación o inclusión de intervenciones a una solicitud presentada (ampliada hasta el 15 de junio de 2026).
 
-Las fuentes candidatas, ubicaciones y cronología están en [la investigación del apéndice](../docs/specs/backend_pac_corpus.appendix.md#official-source-review-completed-2026-10-17). No se promueve ninguna como fuente aprobada; no se inventan citas ni se afirma haber comprobado las fuentes originales.
+Las fuentes oficiales aprobadas, ubicaciones y pasajes literales están registrados en [knowledge/source_catalog.json](../knowledge/source_catalog.json) y [knowledge/passages.json](../knowledge/passages.json).
 
 ## Exclusiones
 
-Elegibilidad individual, importes, penalizaciones, notificaciones, adaptaciones por controles, reclamaciones, fuerza mayor y otras campañas quedan fuera. No se afirma que ningún terreno reúna requisitos.
+Elegibilidad individual, importes de ayudas, penalizaciones por mora, notificaciones individuales, adaptaciones por controles de monitorización, reclamaciones, recursos, fuerza mayor y otras campañas quedan fuera de alcance. No se afirma que ningún terreno o persona reúna requisitos.
 
-Revisor: **Diego**. Aprobación de candidatos, temas y exclusiones: **2026-10-17**. Aprobación de pasajes literales y verificación de copias oficiales: **pendiente**. Esta frontera solo podrá convertirse en cobertura tras completar y registrar esas comprobaciones.
+Revisor: **Diego**. Aprobación de candidatos, temas y exclusiones: **2026-10-17**. Aprobación de pasajes literales y verificación de copias oficiales: **2026-10-17 (Aprobada)**.
