@@ -30,9 +30,13 @@ An Andalusian news item dated 26 April 2026 reported a request to extend filing 
 
 The first corpus deliberately excludes late-submission reductions, whether a specific person qualified, payment amounts, document checklists, the status of an individual application, 31 August general adaptations, the special 15 October cotton/rice adaptation, appeals, force majeure, and other campaign years. These may require a separate reviewed feature and more case-specific official sources.
 
+### Independent review decision (2026-10-17)
+
+Diego approved the five official-source candidates, the three candidate topics, and the stated exclusions on 2026-10-17. This records approval of the candidate list and proposed scope only; it does **not** establish that downloaded originals were checked, that hashes/provenance metadata were recorded, or that literal passages were approved. This appendix contains no literal passage text and no exact passage locations sufficient to create canonical excerpts. Therefore the approval cannot be represented as approval of canonical source copies and passages, and promotion remains blocked. Do not infer quotations from the candidate-use summaries.
+
 ## Implementation plan and tasks
 
-1. Obtain the name/role of an independent reviewer before promotion. If the reviewer is not named, keep canonical data empty and leave the feature blocked; do not invent approval metadata.
+1. Independent reviewer Diego approved the candidate source list and scope on 2026-10-17. Before promotion, still obtain/record exact approved literal passages and source-copy verification; do not treat candidate approval as verified passage approval.
 2. Download or otherwise review the official original for each source candidate and any current consolidation used to interpret amendment history. Record original and consolidated URLs separately when required by the schema.
 3. Compare each copy to the official publication, calculate SHA-256, record publication/download/verification/review dates, and record campaign/validity metadata without implying that a hash proves authenticity.
 4. Prepare only the short excerpts needed for the three candidate questions. Record exact article/resolution locations. Have the independent reviewer approve or narrow the claim and its passage.
@@ -50,7 +54,8 @@ The first corpus deliberately excludes late-submission reductions, whether a spe
 
 ## Validator checklist
 
-- [ ] The independent reviewer is different from the corpus author and approves each canonical source and critical passage.
+- [x] Independent reviewer Diego approved the proposed candidate source list, topics, and exclusions on 2026-10-17.
+- [ ] Exact literal passages and source-copy verification are recorded and approved; the current appendix does not contain the passage text needed for promotion.
 - [ ] The filing-date passage uses the later binding 15 May amendment; the superseded 30 April date is not presented as final.
 - [ ] The 15 June 2026 Andalusia modification date is kept distinct from filing and post-notification adaptation.
 - [ ] The filing-route answer preserves the limited electronic-access exception and does not promise application submission through Manijero.
@@ -59,3 +64,12 @@ The first corpus deliberately excludes late-submission reductions, whether a spe
 - [ ] The coverage file lists the three approved topics and the explicit exclusions; unknown eligibility and aid amounts remain unknown.
 - [ ] No synthetic fixture is promoted as real legal evidence; no fetch, scraping, model call, or automatic document ingestion is added.
 - [ ] The canonical corpus remains empty and the feature remains blocked if reviewer approval is absent.
+
+## Feature evidence
+
+- Implementer outcome: **blocked pending exact passage/source-copy evidence**. Diego approved the candidate official sources, three candidate topics, and exclusions on 2026-10-17. The appendix has no literal quoted passages or precise locations adequate to represent the approval as passage approval, and no downloaded-original verification/hash evidence. No canonical source or passage was promoted; `knowledge/source_catalog.json` and `knowledge/passages.json` remain empty.
+- `knowledge/pac_coverage.md` records the reviewer and date while making clear this is candidate/scope approval, not canonical coverage. `knowledge/README.md` explains the approval gate and empty-corpus meaning. Offline invariants are in `backend/tests/test_pac_corpus.py`.
+- `python3 backend/scripts/validate_source_catalog.py knowledge/source_catalog.json --as-of 2026-10-17`: passed (0 sources).
+- `./scripts/init.sh --feature backend_pac_corpus`: catalog validation passed; focused pytest check could not run because pytest is not installed in any available Python interpreter (harness exit 1; recipe printed).
+- `./scripts/init.sh --fast`: passed all 9 offline checks, including shared JVM tests, contract examples and evaluators. Backend unit tests were skipped by the harness because pytest is unavailable, so this does **not** verify the new test module.
+- Canonical coverage is still absent, so this is not accepted and cannot be promoted to `passing`; status is `blocked` until a named independent reviewer approves exact sources, passages, and coverage.

@@ -51,6 +51,18 @@ canonical passage set carries no answer coverage; requests to the local `/ask`
 route therefore follow the ordinary safe abstention path. A later reviewed
 corpus feature may add passages only after the required human review.
 
+## Andalusia PAC 2026 candidate slice
+
+`pac_coverage.md` records three candidate procedural topics and explicit gaps.
+Diego approved the candidate sources, topics, and exclusions on 2026-10-17, but
+the exact literal passages and original-copy verification are not recorded.
+They are therefore **not supported answers**: the canonical catalog and passage
+set remain empty until those source and passage checks are completed. An empty
+valid corpus means no PAC answer coverage; candidate facts must not be used in
+runtime artifacts. Research candidates and chronology are in
+`docs/specs/backend_pac_corpus.appendix.md`; never invent quotations or passage
+locations to fill the evidence gap.
+
 ## Approved issuers and hosts
 
 Host matching is **exact**, including the `www.` alias of each domain. Lookalike
