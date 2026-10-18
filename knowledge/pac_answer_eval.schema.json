@@ -1,0 +1,87 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://manijero.invalid/schemas/pac-answer-eval-v1.json",
+  "title": "Reviewed PAC answer evaluation cases",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema_version", "cases"],
+  "properties": {
+    "schema_version": {"const": "pac-answer-eval-v1"},
+    "cases": {
+      "type": "array",
+      "items": {"$ref": "#/$defs/case"}
+    }
+  },
+  "$defs": {
+    "land": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id"],
+      "properties": {
+        "id": {"type": "string", "minLength": 1, "maxLength": 128},
+        "municipality": {"type": "string"},
+        "water_regime": {"enum": ["dryland", "irrigated", "mixed", "unknown"]},
+        "production_method": {"enum": ["conventional", "organic", "mixed", "unknown"]}
+      }
+    },
+    "land_context": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["mode", "lands"],
+      "properties": {
+        "mode": {"enum": ["general", "all_active", "selected"]},
+        "lands": {"type": "array", "items": {"$ref": "#/$defs/land"}}
+      }
+    },
+    "review": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["reviewed_by", "reviewed_on"],
+      "properties": {
+        "reviewed_by": {"type": "string", "minLength": 1},
+        "reviewed_on": {"type": "string", "format": "date"}
+      }
+    },
+    "case": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "question", "land_context", "expected_status", "review"],
+      "properties": {
+        "id": {"type": "string", "pattern": "^[a-z0-9]+(?:[-_][a-z0-9]+)*$"},
+        "question": {"type": "string", "minLength": 1, "maxLength": 2000},
+        "land_context": {"$ref": "#/$defs/land_context"},
+        "expected_status": {"enum": ["answered", "abstained", "needs_land_clarification"]},
+        "expected_source_ids": {"$ref": "#/$defs/non_empty_string_list"},
+        "expected_passage_ids": {"$ref": "#/$defs/non_empty_string_list"},
+        "critical_facts": {"$ref": "#/$defs/non_empty_string_list"},
+        "expected_land_ids_to_choose": {"$ref": "#/$defs/non_empty_string_list"},
+        "review": {"$ref": "#/$defs/review"}
+      },
+      "allOf": [
+        {
+          "if": {"properties": {"expected_status": {"const": "answered"}}, "required": ["expected_status"]},
+          "then": {"required": ["expected_source_ids", "expected_passage_ids"]}
+        },
+        {
+          "if": {"properties": {"expected_status": {"enum": ["abstained", "needs_land_clarification"]}}, "required": ["expected_status"]},
+          "then": {"not": {"anyOf": [
+            {"required": ["expected_source_ids"]},
+            {"required": ["expected_passage_ids"]},
+            {"required": ["critical_facts"]}
+          ]}}
+        },
+        {
+          "if": {"properties": {"expected_status": {"const": "needs_land_clarification"}}, "required": ["expected_status"]},
+          "then": {"required": ["expected_land_ids_to_choose"]},
+          "else": {"not": {"required": ["expected_land_ids_to_choose"]}}
+        }
+      ]
+    },
+    "non_empty_string_list": {
+      "type": "array",
+      "minItems": 1,
+      "uniqueItems": true,
+      "items": {"type": "string", "minLength": 1}
+    }
+  }
+}

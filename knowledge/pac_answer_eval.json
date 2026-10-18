@@ -1,0 +1,11 @@
+{
+  "schema_version": "pac-answer-eval-v1",
+  "cases": [
+    {"id":"canal-sga-2026","question":"¿Cómo presento la solicitud única en Andalucía?","land_context":{"mode":"general","lands":[]},"expected_status":"answered","expected_source_ids":["res_20260121"],"expected_passage_ids":["pasaje-canal-presentacion-andalucia"],"review":{"reviewed_by":"Diego","reviewed_on":"2026-10-17"}},
+    {"id":"fecha-presentacion-2026","question":"¿Cuál es la fecha final para presentar la solicitud única de 2026?","land_context":{"mode":"general","lands":[]},"expected_status":"answered","expected_source_ids":["dl_1_2026"],"expected_passage_ids":["pasaje-plazo-presentacion-2026-andalucia"],"critical_facts":["15 de mayo de 2026"],"review":{"reviewed_by":"Diego","reviewed_on":"2026-10-17"}},
+    {"id":"fecha-modificacion-2026","question":"¿Hasta cuándo puedo modificar la solicitud única de 2026?","land_context":{"mode":"general","lands":[]},"expected_status":"answered","expected_source_ids":["rd_537_2026"],"expected_passage_ids":["pasaje-plazo-modificacion-2026-andalucia"],"critical_facts":["15 de junio"],"review":{"reviewed_by":"Diego","reviewed_on":"2026-10-17"}},
+    {"id":"distingue-fechas-2026","question":"¿La fecha límite de presentación es el 15 de junio?","land_context":{"mode":"general","lands":[]},"expected_status":"answered","expected_source_ids":["dl_1_2026"],"expected_passage_ids":["pasaje-plazo-presentacion-2026-andalucia"],"critical_facts":["15 de mayo de 2026"],"review":{"reviewed_by":"Diego","reviewed_on":"2026-10-17"}},
+    {"id":"campana-no-soportada","question":"¿Cuál es el plazo de la campaña 2025?","land_context":{"mode":"general","lands":[]},"expected_status":"abstained","review":{"reviewed_by":"Diego","reviewed_on":"2026-10-17"}},
+    {"id":"tema-no-cubierto","question":"¿Qué importe de ayuda me corresponde por hectárea?","land_context":{"mode":"general","lands":[]},"expected_status":"abstained","review":{"reviewed_by":"Diego","reviewed_on":"2026-10-17"}}
+  ]
+}
