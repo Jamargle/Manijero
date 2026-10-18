@@ -64,6 +64,7 @@ from app.source_catalog import load_catalog  # noqa: E402
 REPO_ROOT = Path(__file__).resolve().parents[2]
 CLI = BACKEND_ROOT / "scripts" / "evaluate_land_safety.py"
 FIXTURES = Path(__file__).resolve().parent / "fixtures" / "land_safety"
+EMPTY_CATALOG = Path(__file__).resolve().parent / "fixtures" / "empty_catalog.json"
 EDGE = FIXTURES / "edge"
 SCHEMA_PATH = REPO_ROOT / "knowledge" / "land_safety_eval.schema.json"
 
@@ -934,7 +935,7 @@ def test_cli_exits_two_for_a_missing_catalog() -> None:
 
 def test_cli_empty_catalog_reports_zero_candidates_and_no_metrics() -> None:
     result = run_cli(
-        "--catalog", str(REPO_ROOT / "knowledge" / "source_catalog.json"),
+        "--catalog", str(EMPTY_CATALOG),
         "--as-of", AS_OF, "--k", "5",
     )
 

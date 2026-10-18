@@ -32,6 +32,7 @@ REPO_ROOT = Path(__file__).resolve().parents[2]
 CLI = BACKEND_ROOT / "scripts" / "validate_source_catalog.py"
 FIXTURES = Path(__file__).resolve().parent / "fixtures" / "source_catalog"
 CANONICAL_CATALOG = REPO_ROOT / "knowledge" / "source_catalog.json"
+EMPTY_CATALOG = Path(__file__).resolve().parent / "fixtures" / "empty_catalog.json"
 SCHEMA_FILE = REPO_ROOT / "knowledge" / "source_catalog.schema.json"
 
 AS_OF = "2026-10-12"
@@ -152,17 +153,18 @@ def test_valid_fixture_uses_approved_https_provenance() -> None:
     assert "www.boe.es" in hosts
 
 
-def test_canonical_catalog_is_a_valid_empty_catalog() -> None:
-    result = run_cli(CANONICAL_CATALOG)
+def test_empty_catalog_fixture_is_valid() -> None:
+    result = run_cli(EMPTY_CATALOG)
 
     assert result.returncode == 0, result.stderr
     assert "0 source(s) checked" in result.stdout
 
 
-def test_canonical_catalog_does_not_claim_corpus_coverage() -> None:
+def test_canonical_catalog_contains_reviewed_sources() -> None:
     document = load_catalog(CANONICAL_CATALOG)
 
-    assert document == {"schema_version": SCHEMA_VERSION, "sources": []}
+    assert len(document["sources"]) == 4
+    assert all(source["review_status"] == "approved" for source in document["sources"])
     report = validate_catalog(document, as_of=date.fromisoformat(AS_OF))
     assert report.ok
 
@@ -325,7 +327,7 @@ def test_cli_without_as_of_still_validates() -> None:
     )
 
     assert result.returncode == 0, result.stderr
-    assert "0 source(s) checked" in result.stdout
+    assert "4 source(s) checked" in result.stdout
 
 
 # --- schema / validator contract sync ---------------------------------------
