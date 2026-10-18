@@ -12,6 +12,17 @@ curl -X POST http://127.0.0.1:8000/ask \
   -d '{"question":"¿Qué información hay?","land_context":{"mode":"general","lands":[]}}'
 ```
 
+For backend tests and artifact validation, install the development dependencies
+in a virtual environment instead:
+
+```sh
+python -m pip install -r requirements-dev.txt
+```
+
+The runtime requirements intentionally do not include `pytest` or `jsonschema`;
+the latter is used by the focused PAC answer-evaluation test tier to validate
+Draft 2020-12 schemas and artifacts.
+
 Successful response:
 
 ```json
@@ -237,6 +248,28 @@ legal coverage or real user questions, and it is not legal-coverage evidence.
 The `MasterPlanV3` §9.2 numbers (`hit@5 85%`, correct abstention `100%`, invented
 numbers/dates `0`) are **inherited proposals, not enforced release gates**;
 enforcement is a later, separately agreed change.
+
+## Offline PAC answer evaluation
+
+`app/answer_eval.py` validates `knowledge/pac_answer_eval.json` and calculates a
+deterministic, report-only comparison of reviewed cases through the local
+`/ask` route. From the repository root:
+
+```sh
+backend/.venv/bin/python backend/scripts/evaluate_pac_answers.py \
+  --catalog knowledge/source_catalog.json \
+  --passages knowledge/passages.json \
+  --cases knowledge/pac_answer_eval.json \
+  --active-campaign 2026 --as-of 2026-10-17 --k 5
+```
+
+The report includes per-case expected/actual state, source and passage matches,
+critical literal checks, clarification IDs, and aggregate counts. Citation
+matching uses exactly the catalog and passages supplied to the command. Repeat
+identical inputs for deterministic output. Integrity/input/runtime errors exit
+nonzero; outcome mismatches and coverage metrics do not. The sample is limited
+to the explicitly reviewed Andalusia PAC 2026 questions and does not establish
+answer quality, legal correctness, or coverage beyond those cases.
 
 Tests:
 

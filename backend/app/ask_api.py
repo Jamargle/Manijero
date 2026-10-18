@@ -106,6 +106,10 @@ def get_active_campaign() -> str:
     return value
 
 
+def get_retrieval_k() -> int:
+    return 5
+
+
 def load_corpus_documents() -> CorpusDocuments:
     """Read canonical repository artifacts; failures are translated by the route."""
 
@@ -142,6 +146,7 @@ def ask_question(
     corpus_documents: CorpusDocuments = Depends(get_corpus_documents),
     as_of: date = Depends(get_as_of_date),
     active_campaign: str = Depends(get_active_campaign),
+    retrieval_k: int = Depends(get_retrieval_k),
 ) -> Dict[str, Any]:
     """Run accepted corpus and answer decisions without exposing internal errors."""
 
@@ -158,6 +163,7 @@ def ask_question(
         request.land_context.model_dump(exclude_none=True),
         corpus,
         as_of=as_of,
+        k=retrieval_k,
     )
     if isinstance(result, NeedsLandClarification):
         return to_clarification_response(result)

@@ -119,12 +119,17 @@ def passage_document(name: str = "passages.json"):
 
 def build_retriever(as_of: str = AS_OF) -> Retriever:
     return Retriever.from_documents(
-        catalog_document(), passage_document(), as_of_date(as_of)
+        catalog_document(),
+        passage_document(),
+        as_of_date(as_of),
+        active_campaign="2026",
     )
 
 
 def current_corpus(as_of: str = AS_OF) -> Retriever:
-    corpus = prepare_corpus(catalog_document(), passage_document(), as_of_date(as_of))
+    corpus = prepare_corpus(
+        catalog_document(), passage_document(), as_of_date(as_of), "2026"
+    )
     assert isinstance(corpus, Retriever)
     return corpus
 
@@ -134,6 +139,7 @@ def generation_retriever() -> Retriever:
         load_catalog(GENERATION_FIXTURES / "catalog.json"),
         load_passage_set(GENERATION_FIXTURES / "passages.json"),
         as_of_date(),
+        active_campaign="2026",
     )
 
 
@@ -214,6 +220,8 @@ def baseline_cli(*extra: str) -> subprocess.CompletedProcess:
         str(fixture("eval_questions.jsonl")),
         "--as-of",
         AS_OF,
+        "--active-campaign",
+        "2026",
         "--k",
         "5",
         *extra,
@@ -462,7 +470,7 @@ def test_no_abstention_payload_carries_sources_ids_or_figures(reason: str) -> No
 
 
 def test_prepare_corpus_returns_a_retriever_for_the_current_fixture() -> None:
-    corpus = prepare_corpus(catalog_document(), passage_document(), as_of_date())
+    corpus = prepare_corpus(catalog_document(), passage_document(), as_of_date(), "2026")
 
     assert isinstance(corpus, Retriever)
     assert corpus.eligible_source_count == 2
@@ -532,7 +540,7 @@ def test_prepare_corpus_never_opens_a_network_connection(
 
     monkeypatch.setattr(socket, "socket", _forbid)
 
-    corpus = prepare_corpus(catalog_document(), passage_document(), as_of_date())
+    corpus = prepare_corpus(catalog_document(), passage_document(), as_of_date(), "2026")
 
     assert isinstance(corpus, Retriever)
 

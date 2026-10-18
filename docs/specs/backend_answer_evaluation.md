@@ -86,8 +86,8 @@ None. The evaluation harness is offline and adds no UI or user-facing copy.
 
 <!-- verify:start -->
 ```sh
-python3 backend/scripts/evaluate_pac_answers.py --catalog knowledge/source_catalog.json --passages knowledge/passages.json --cases knowledge/pac_answer_eval.json --active-campaign 2026 --as-of 2026-10-17 --k 5
-./scripts/init.sh --backend-tests tests/test_pac_answer_eval.py
+MANIJERO_PYTHON=backend/.venv/bin/python ./scripts/init.sh --backend-tests tests/test_pac_answer_eval.py
+backend/.venv/bin/python backend/scripts/evaluate_pac_answers.py --catalog knowledge/source_catalog.json --passages knowledge/passages.json --cases knowledge/pac_answer_eval.json --active-campaign 2026 --as-of 2026-10-17 --k 5
 ```
 <!-- verify:end -->
 

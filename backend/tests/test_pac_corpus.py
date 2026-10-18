@@ -26,7 +26,9 @@ def test_canonical_artifacts_are_valid_and_have_approved_coverage():
     assert "Diego" in coverage
     assert "2026-10-17" in coverage
     assert "Aprobada" in coverage
-    retriever = Retriever.from_documents(catalog, passages, date(2026, 10, 17))
+    retriever = Retriever.from_documents(
+        catalog, passages, date(2026, 10, 17), active_campaign="2026"
+    )
     assert retriever.indexed_passage_count == 4
     results = retriever.search("¿Cuál es el plazo de presentación?")
     assert len(results) > 0

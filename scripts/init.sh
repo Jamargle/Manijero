@@ -107,7 +107,7 @@ pytest_python() {
 backend_pytest_hint() {
   printf 'Backend unit tests need pytest. Install it in a local virtualenv and point the harness at it:\n\n'
   printf '  python3 -m venv "${TMPDIR:-/tmp}/manijero-venv"\n'
-  printf '  "${TMPDIR:-/tmp}/manijero-venv/bin/pip" install -r backend/requirements.txt pytest\n'
+  printf '  "${TMPDIR:-/tmp}/manijero-venv/bin/pip" install -r backend/requirements-dev.txt\n'
   printf '  MANIJERO_PYTHON="${TMPDIR:-/tmp}/manijero-venv/bin/python" ./scripts/init.sh --verify\n'
 }
 
@@ -117,6 +117,9 @@ run_backend_tests() {
   shift
   local py
   if py="$(pytest_python)"; then
+    if [[ "$py" != /* ]] && [[ "$py" == */* ]]; then
+      py="$REPO_ROOT/$py"
+    fi
     ( cd "$REPO_ROOT/backend" && "$py" -m pytest "$@" )
     return 0
   fi
@@ -167,11 +170,11 @@ run_offline_checks() {
   fast_job "$workdir" contract-examples run_python contracts/validate_examples.py
   fast_job "$workdir" backend-tests run_backend_tests 0
   fast_job "$workdir" source-catalog run_python backend/scripts/validate_source_catalog.py knowledge/source_catalog.json --as-of "$AS_OF"
-  fast_job "$workdir" retrieval run_python backend/scripts/evaluate_retrieval.py --catalog backend/tests/fixtures/retrieval/catalog.json --passages backend/tests/fixtures/retrieval/passages.json --eval backend/tests/fixtures/retrieval/eval_questions.jsonl --as-of "$AS_OF" --k 5
-  fast_job "$workdir" generation run_python backend/scripts/evaluate_generation.py --catalog backend/tests/fixtures/generation/catalog.json --passages backend/tests/fixtures/generation/passages.json --eval backend/tests/fixtures/generation/eval_questions.jsonl --as-of "$AS_OF" --k 5
-  fast_job "$workdir" abstention run_python backend/scripts/evaluate_abstention.py --catalog backend/tests/fixtures/abstention/catalog.json --passages backend/tests/fixtures/abstention/passages.json --eval backend/tests/fixtures/abstention/eval_questions.jsonl --as-of "$AS_OF" --k 5
+  fast_job "$workdir" retrieval run_python backend/scripts/evaluate_retrieval.py --catalog backend/tests/fixtures/retrieval/catalog.json --passages backend/tests/fixtures/retrieval/passages.json --eval backend/tests/fixtures/retrieval/eval_questions.jsonl --as-of "$AS_OF" --active-campaign 2026 --k 5
+  fast_job "$workdir" generation run_python backend/scripts/evaluate_generation.py --catalog backend/tests/fixtures/generation/catalog.json --passages backend/tests/fixtures/generation/passages.json --eval backend/tests/fixtures/generation/eval_questions.jsonl --as-of "$AS_OF" --active-campaign 2026 --k 5
+  fast_job "$workdir" abstention run_python backend/scripts/evaluate_abstention.py --catalog backend/tests/fixtures/abstention/catalog.json --passages backend/tests/fixtures/abstention/passages.json --eval backend/tests/fixtures/abstention/eval_questions.jsonl --as-of "$AS_OF" --active-campaign 2026 --k 5
   fast_job "$workdir" clarification run_python backend/scripts/evaluate_clarification.py --catalog backend/tests/fixtures/clarification/catalog.json --passages backend/tests/fixtures/clarification/passages.json --eval backend/tests/fixtures/clarification/eval_questions.jsonl --as-of "$AS_OF" --k 5
-  fast_job "$workdir" land-safety run_python backend/scripts/evaluate_land_safety.py --catalog backend/tests/fixtures/land_safety/catalog.json --passages backend/tests/fixtures/land_safety/passages.json --cases backend/tests/fixtures/land_safety/cases.json --as-of "$AS_OF" --k 5
+  fast_job "$workdir" land-safety run_python backend/scripts/evaluate_land_safety.py --catalog backend/tests/fixtures/land_safety/catalog.json --passages backend/tests/fixtures/land_safety/passages.json --cases backend/tests/fixtures/land_safety/cases.json --as-of "$AS_OF" --active-campaign 2026 --k 5
 
   printf '\nRunning %d independent offline checks concurrently...\n' "${#FAST_JOB_PIDS[@]}"
 
@@ -227,6 +230,25 @@ run_feature() {
   if [[ -z "$commands" ]]; then
     printf 'No focused verification published in %s (expected a <!-- verify:start --> ... <!-- verify:end --> block).\n' "$spec" >&2
     exit 2
+  fi
+  if [[ "$id" == "backend_answer_evaluation" ]]; then
+    local validator_python candidate
+    validator_python=""
+    for candidate in "${MANIJERO_PYTHON:-}" "$REPO_ROOT/backend/.venv/bin/python" "$REPO_ROOT/.venv/bin/python" python3 python; do
+      [[ -n "$candidate" ]] || continue
+      if { [[ -x "$candidate" ]] || command -v "$candidate" >/dev/null 2>&1; } && \
+        "$candidate" -c 'import pytest, jsonschema; from jsonschema import Draft202012Validator' >/dev/null 2>&1; then
+        validator_python="$candidate"
+        break
+      fi
+    done
+    if [[ -z "$validator_python" ]]; then
+      printf 'Focused PAC answer-evaluation checks require pytest and the Draft 2020-12 jsonschema validator in the same Python environment.\n' >&2
+      printf 'Install them with: python3 -m pip install -r backend/requirements-dev.txt\n' >&2
+      printf 'Then rerun with MANIJERO_PYTHON=/path/to/python ./scripts/init.sh --feature backend_answer_evaluation\n' >&2
+      return 1
+    fi
+    export MANIJERO_PYTHON="$validator_python"
   fi
   printf '\n== Focused tier: %s (from docs/specs/%s.md) ==\n\n%s\n\n' "$id" "$id" "$commands"
   local script status=0 tmpdir="${TMPDIR:-/tmp}"

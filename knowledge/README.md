@@ -31,10 +31,12 @@ measurement, not evidence about legal coverage or real user questions.
 | `source_catalog.schema.json` | The readable versioned field contract (`source-catalog-v1`). |
 | `passages.schema.json` | The readable versioned passage contract (`passage-set-v1`). |
 | `land_safety_eval.schema.json` | The readable versioned safety-evaluation case contract (`land-safety-eval-v1`). |
+| `pac_answer_eval.schema.json` | The readable versioned reviewed PAC answer-evaluation case contract (`pac-answer-eval-v1`). |
 | `../backend/app/source_catalog.py` | The executable catalog validator. Must stay in sync with the schema. |
 | `../backend/app/retrieval.py` | The executable passage-set validator and offline BM25 retriever. |
 | `../backend/app/generation.py` | The executable grounding verifier, extractive generator, and answer assembler. |
 | `../backend/app/land_safety_eval.py` | The executable safety-evaluation case-set validator and offline harness. |
+| `../backend/app/answer_eval.py` | The executable PAC answer-evaluation validator and report calculation. |
 | `../backend/scripts/validate_source_catalog.py` | The offline catalog command-line wrapper. |
 | `../backend/scripts/evaluate_retrieval.py` | The offline retrieval baseline command-line wrapper. |
 | `../backend/scripts/evaluate_generation.py` | The offline grounded-generation report command-line wrapper. |
@@ -58,6 +60,14 @@ downloaded official copies and approved the literal passages and coverage on
 amounts. Do not answer outside its published coverage; the ordinary safe
 abstention behavior applies to uncovered questions. Research and chronology are
 documented in `docs/specs/backend_pac_corpus.appendix.md`.
+
+`pac_answer_eval.json` is a separate, reviewed sample of end-to-end `/ask`
+questions for that bounded slice. It reports state, citation/passage matching,
+literal critical-fact checks, and clarification outcomes. Its case coverage and
+all metrics are report-only: they are not a legal correctness certificate,
+quality guarantee, or evidence about questions outside the listed cases. The
+CLI receives explicit catalog and passage files, and citation matching uses
+those same supplied artifacts.
 
 ## Approved issuers and hosts
 

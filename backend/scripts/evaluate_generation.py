@@ -448,6 +448,11 @@ def build_parser() -> argparse.ArgumentParser:
         help="generation date used for catalog expiry (defaults to the current UTC date)",
     )
     parser.add_argument(
+        "--active-campaign",
+        default=None,
+        help="campaign used to scope campaign-specific sources (default: no campaign)",
+    )
+    parser.add_argument(
         "--k",
         type=int,
         default=DEFAULT_K,
@@ -484,7 +489,9 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
         passage_document = (
             empty_passage_set() if args.passages is None else load_passage_set(args.passages)
         )
-        retriever = Retriever.from_documents(catalog_document, passage_document, as_of)
+        retriever = Retriever.from_documents(
+            catalog_document, passage_document, as_of, args.active_campaign
+        )
     except (PassageSetError, CatalogRejectedError) as error:
         print("error: generation input was rejected", file=sys.stderr)
         for line in str(error).splitlines():

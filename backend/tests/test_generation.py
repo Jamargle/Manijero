@@ -100,7 +100,10 @@ def passage_document(name: str = "passages.json"):
 
 def build_retriever(as_of: str = AS_OF) -> Retriever:
     return Retriever.from_documents(
-        catalog_document(), passage_document(), date.fromisoformat(as_of)
+        catalog_document(),
+        passage_document(),
+        date.fromisoformat(as_of),
+        active_campaign="2026",
     )
 
 
@@ -171,6 +174,8 @@ def baseline_cli(*extra: str) -> subprocess.CompletedProcess:
         str(fixture("eval_questions.jsonl")),
         "--as-of",
         AS_OF,
+        "--active-campaign",
+        "2026",
         "--k",
         "5",
         *extra,
@@ -1004,6 +1009,8 @@ def test_cli_exits_one_when_a_grounding_invariant_fails(tmp_path: Path) -> None:
         str(evaluation),
         "--as-of",
         AS_OF,
+        "--active-campaign",
+        "2026",
         "--k",
         "5",
     )
