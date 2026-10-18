@@ -2,6 +2,8 @@
 
 from datetime import date, datetime, timezone
 import json
+import os
+import re
 from pathlib import Path
 from typing import Annotated, Any, Dict, Literal
 
@@ -21,8 +23,8 @@ from app.clarification import (
     to_clarification_response,
 )
 from app.generation import Answered, to_answer_response
-from app.retrieval import CatalogRejectedError, PassageSetError, Retriever
-from app.source_catalog import CatalogReadError, load_catalog
+from app.retrieval import CatalogRejectedError, PassageSetError, Retriever, validate_passage_set
+from app.source_catalog import CatalogReadError, load_catalog, validate_catalog
 
 REPOSITORY_ROOT = Path(__file__).resolve().parents[2]
 CATALOG_PATH = REPOSITORY_ROOT / "knowledge" / "source_catalog.json"
@@ -97,6 +99,13 @@ def get_as_of_date() -> date:
     return datetime.now(timezone.utc).date()
 
 
+def get_active_campaign() -> str:
+    value = os.environ.get("MANIJERO_ACTIVE_CAMPAIGN", "")
+    if not re.fullmatch(r"\d{4}", value):
+        raise _unavailable_corpus_error()
+    return value
+
+
 def load_corpus_documents() -> CorpusDocuments:
     """Read canonical repository artifacts; failures are translated by the route."""
 
@@ -132,11 +141,15 @@ def ask_question(
     request: AskRequest,
     corpus_documents: CorpusDocuments = Depends(get_corpus_documents),
     as_of: date = Depends(get_as_of_date),
+    active_campaign: str = Depends(get_active_campaign),
 ) -> Dict[str, Any]:
     """Run accepted corpus and answer decisions without exposing internal errors."""
 
     try:
-        corpus = _prepare_runtime_corpus(corpus_documents, as_of)
+        years = set(re.findall(r"(?<!\d)\d{4}(?!\d)", request.question))
+        if len(years) > 1 or (years and years != {active_campaign}):
+            return to_abstention_response(Abstention(reason="no_evidence", issues=()), land_scope=request.land_context.mode)
+        corpus = _prepare_runtime_corpus(corpus_documents, as_of, active_campaign)
     except (CatalogReadError, CatalogRejectedError, PassageSetError, RuntimeError, ValueError):
         raise _unavailable_corpus_error()
 
@@ -155,15 +168,41 @@ def ask_question(
     raise _unavailable_corpus_error()
 
 
-def _prepare_runtime_corpus(documents: CorpusDocuments, as_of: date) -> Retriever | Abstention:
+def _prepare_runtime_corpus(documents: CorpusDocuments, as_of: date, active_campaign: str) -> Retriever | Abstention:
     if documents.load_error:
         raise ValueError("corpus unavailable")
     catalog = documents.catalog
     if not isinstance(catalog, dict) or not isinstance(catalog.get("sources"), list):
         raise ValueError("invalid corpus")
-    if any(isinstance(source, dict) and "campaign" in source for source in catalog["sources"]):
-        raise ValueError("campaign filtering is not available")
-    return prepare_corpus(catalog, documents.passages, as_of)
+    passages = documents.passages
+    if not isinstance(passages, dict) or not isinstance(passages.get("passages"), list):
+        raise ValueError("invalid corpus")
+    # Validate the complete artifacts before campaign selection. In particular,
+    # off-campaign metadata and dangling references must not be hidden by scope.
+    catalog_report = validate_catalog(catalog, as_of)
+    if not catalog_report.ok:
+        expired_only = all(issue.location.endswith(".valid_until") and "expired and ineligible" in issue.rule for issue in catalog_report.issues)
+        declared = catalog.get("sources", [])
+        every_source_expired = bool(declared) and all(
+            isinstance(source, dict) and isinstance(source.get("valid_until"), str)
+            and source["valid_until"] < as_of.isoformat()
+            for source in declared
+        )
+        if expired_only and every_source_expired:
+            return prepare_corpus(catalog, passages, as_of, active_campaign)
+        raise CatalogRejectedError(catalog_report.format_issues())
+    passage_report = validate_passage_set(passages)
+    if not passage_report.ok:
+        raise PassageSetError(passage_report.format_issues())
+    all_ids = {source.get("id") for source in catalog["sources"] if isinstance(source, dict)}
+    if any(passage["source_id"] not in all_ids for passage in passages["passages"]):
+        raise PassageSetError("passage source reference is invalid")
+    source_ids = {source.get("id") for source in catalog["sources"] if isinstance(source, dict) and source.get("campaign") in (None, active_campaign)}
+    if any(not isinstance(source, dict) for source in catalog["sources"]):
+        raise ValueError("invalid corpus")
+    filtered_catalog = dict(catalog, sources=[source for source in catalog["sources"] if source.get("id") in source_ids])
+    filtered_passages = dict(passages, passages=[p for p in passages["passages"] if isinstance(p, dict) and p.get("source_id") in source_ids])
+    return prepare_corpus(filtered_catalog, filtered_passages, as_of, active_campaign)
 
 
 def _unavailable_corpus_error() -> HTTPException:

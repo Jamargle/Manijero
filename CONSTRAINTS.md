@@ -193,3 +193,11 @@ Operational MUST/MUST NOT rules that future features have to respect on top of
   enforcement is agreed separately. Reason: `land_safety_evaluation` established the reproducible
   synthetic baseline; a gate whose numbers came from synthetic fixtures, or a case whose critical
   fact nobody checked, would turn an unverified expectation into a false safety guarantee.
+
+## Campaign scope
+
+- **MUST**: `/ask` requires an explicitly configured four-digit active campaign, independent of
+  the UTC source-validity date. Never infer the campaign from the date, question, land, or evidence;
+  only neutral and exact-active-campaign sources may reach generation, and malformed scope fails
+  closed. Expired campaign records must be rotated out of active artifacts with their passages.
+  Reason: `backend_campaign_validity` prevents evidence for one PAC campaign being mistaken for another.

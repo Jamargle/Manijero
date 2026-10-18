@@ -108,7 +108,7 @@ a shortcut to make a fixture pass.
    | `reviewed_on` | `YYYY-MM-DD`, on or after `downloaded_on`. |
    | `lifecycle_status` | Must be `current`. |
    | `valid_until` | Optional `YYYY-MM-DD` for calls, deadlines, or extensions; must be on or after the validation date. |
-   | `campaign` | Optional non-blank label when the document is campaign-specific. |
+   | `campaign` | Optional four-digit campaign year. Campaign-tagged entries require `valid_until`; expired entries and linked passages must be removed from active artifacts during reviewed campaign rotation. |
    | `critical` | Optional boolean for deadlines, amounts, and thresholds. |
    | `applicability` | Optional; record only known values. Unknown values stay absent; never write `"unknown"`. |
 

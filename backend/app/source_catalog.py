@@ -75,6 +75,7 @@ APPROVED_HOSTS = frozenset(host for hosts in ISSUER_ALLOWED_HOSTS.values() for h
 ID_PATTERN = re.compile(r"^[a-z0-9]+(?:[-_][a-z0-9]+)*$")
 SHA256_PATTERN = re.compile(r"^[0-9a-f]{64}$")
 ISO_DATE_PATTERN = re.compile(r"^\d{4}-\d{2}-\d{2}$")
+CAMPAIGN_PATTERN = re.compile(r"^\d{4}$")
 ROOT_PATHS = ("", "/")
 
 
@@ -334,8 +335,12 @@ class _SourceValidator:
             self._fail("lifecycle_status", "must be 'current'; non-current documents are ineligible")
 
     def _check_retrieval_metadata(self, source: Dict[str, Any]) -> None:
-        if "campaign" in source and not is_non_blank_string(source["campaign"]):
-            self._fail("campaign", "must be a non-blank string when known")
+        if "campaign" in source and (
+            not isinstance(source["campaign"], str) or not CAMPAIGN_PATTERN.fullmatch(source["campaign"])
+        ):
+            self._fail("campaign", "must be a four-digit year")
+        if "campaign" in source and "valid_until" not in source:
+            self._fail("valid_until", "is required for campaign-specific sources")
         if "critical" in source and not isinstance(source["critical"], bool):
             self._fail("critical", "must be true or false")
         self._check_applicability(source)

@@ -13,7 +13,7 @@ import pytest
 from fastapi.testclient import TestClient
 
 import app.ask_api as ask_api
-from app.ask_api import CorpusDocuments, get_as_of_date, get_corpus_documents
+from app.ask_api import CorpusDocuments, get_active_campaign, get_as_of_date, get_corpus_documents
 from app.main import app
 from app.retrieval import load_passage_set
 from app.source_catalog import load_catalog
@@ -33,6 +33,7 @@ def fixture_documents() -> CorpusDocuments:
 def client():
     app.dependency_overrides[get_corpus_documents] = fixture_documents
     app.dependency_overrides[get_as_of_date] = lambda: date(2026, 10, 13)
+    app.dependency_overrides[get_active_campaign] = lambda: "2026"
     with TestClient(app) as test_client:
         yield test_client
     app.dependency_overrides.clear()
@@ -186,18 +187,18 @@ def test_invalid_runtime_corpus_returns_generic_503(client, documents) -> None:
     assert "knowledge/" not in response.text
 
 
-def test_campaign_tagged_runtime_source_fails_closed(client) -> None:
+def test_campaign_tagged_runtime_source_is_scoped(client) -> None:
     documents = fixture_documents()
     catalog = deepcopy(documents.catalog)
-    catalog["sources"][0]["campaign"] = "synthetic"
+    catalog["sources"][0]["campaign"] = "2026"
+    catalog["sources"][0]["valid_until"] = "2026-12-31"
     app.dependency_overrides[get_corpus_documents] = lambda: CorpusDocuments(
         catalog=catalog, passages=documents.passages
     )
 
     response = client.post("/ask", json=payload())
 
-    assert response.status_code == 503
-    assert response.json() == {"detail": "Answer service is temporarily unavailable."}
+    assert response.status_code == 200
 
 
 def test_expired_runtime_corpus_abstains_without_sources(client) -> None:

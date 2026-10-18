@@ -36,6 +36,16 @@
 - Verify `valid_until == as_of` is eligible and `valid_until < as_of` is not; use explicit `as_of` dates and no real clock.
 - Run contract examples and the focused campaign/endpoint test target. A test pass confirms implementation behavior only; it does not prove the source's legal interpretation.
 
+### Feature evidence
+
+- Added strict campaign metadata and finite `valid_until` validation, explicit runtime campaign dependency, year-mismatch abstention, and scoped passage preparation. Added `backend/tests/test_campaign_validity.py` for metadata, date boundaries, configuration errors, and query-year behavior.
+- `python3 -m compileall -q backend/app backend/tests` — passed.
+- `python3 contracts/validate_examples.py` — passed (2 request and 3 response examples).
+- Initial isolated-environment run found test setup errors (positional Pydantic model construction, empty-string assertion) and an unsuitable synthetic question. Corrected these tests; no product dependency or tracked dependency file was changed.
+- Installed `backend/requirements.txt` plus pytest 9.1.1 into an isolated virtual environment outside the repository, then ran `MANIJERO_PYTHON=<isolated-venv>/bin/python ./scripts/init.sh --feature backend_campaign_validity` — passed; contract examples validated (2 requests, 3 responses), and 40 focused campaign/endpoint tests passed. Pytest emitted one upstream Starlette/httpx deprecation warning.
+- Added regression coverage proving malformed off-campaign catalog metadata returns generic 503 instead of being hidden by campaign filtering. Full-corpus catalog and passage validation/reference checks now precede selection; the existing all-expired corpus behavior remains stale-evidence abstention.
+- Independent validator accepted the feature after rerunning the focused command: contract examples passed and all 40 campaign/endpoint tests passed; no blocking issues found.
+
 ## Validator checklist
 
 - [ ] Campaign labels are strict four-digit years, and campaign-specific sources have a reviewed finite validity date.
