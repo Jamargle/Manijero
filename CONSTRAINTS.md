@@ -201,3 +201,13 @@ Operational MUST/MUST NOT rules that future features have to respect on top of
   only neutral and exact-active-campaign sources may reach generation, and malformed scope fails
   closed. Expired campaign records must be rotated out of active artifacts with their passages.
   Reason: `backend_campaign_validity` prevents evidence for one PAC campaign being mistaken for another.
+
+## Coverage disclosure
+
+- **MUST**: the pinned coverage disclosure MUST name only topic areas represented by the reviewed
+  corpus, MUST state the enforced limits (cooperative-specific practices, personalized amounts or
+  eligibility, out-of-corpus topics), MUST NOT contain a deadline, amount, threshold, article number,
+  eligibility claim, or invented contact detail, and MUST be updated in the same change that widens
+  or narrows corpus scope. Reason: `coverage_and_help` establishes that people must not infer broad
+  coverage from the assistant; stale or overconfident disclosure could prompt reliance outside the
+  evidence actually reviewed.

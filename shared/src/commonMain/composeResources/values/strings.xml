@@ -100,4 +100,22 @@
     <string name="privacy_help_title">Dónde pedir ayuda</string>
     <string name="privacy_help_body">Para dudas sobre ayudas o trámites que la app no pueda responder, habla con tu oficina comarcal agraria o con tu cooperativa.</string>
     <string name="privacy_back">Volver</string>
+    <string name="coverage_open">Qué cubre la app</string>
+    <string name="coverage_title">Qué puedes preguntar</string>
+    <string name="coverage_intro">La app está preparada para responder sobre algunos trámites y ayudas del olivar, según los documentos oficiales revisados. No siempre tendrá una respuesta.</string>
+    <string name="coverage_section_topics">Temas de los documentos revisados</string>
+    <string name="coverage_topic_application">La solicitud única y sus plazos de presentación y modificación.</string>
+    <string name="coverage_topic_sigpac">Qué es el SIGPAC y sus conceptos básicos.</string>
+    <string name="coverage_topic_olive_aid">Requisitos generales de ayudas del olivar, agricultor activo y superficies.</string>
+    <string name="coverage_topic_procedure">El procedimiento andaluz de solicitud de ayudas.</string>
+    <string name="coverage_topic_notifications">Notificaciones y rectificaciones básicas.</string>
+    <string name="coverage_section_limits">Lo que no responde</string>
+    <string name="coverage_no_coop">Prácticas concretas de tu cooperativa, como horarios, citas o precios. Cada cooperativa tiene su propia información.</string>
+    <string name="coverage_no_personal">Cuánto cobrarías o si te corresponde una ayuda. Eso depende de tu expediente y necesita una revisión personal.</string>
+    <string name="coverage_no_outside">Temas que todavía no están en sus documentos oficiales. No quiero inventar una respuesta.</string>
+    <string name="coverage_no_unrelated">Temas que no son trámites del olivar. La app no está preparada para responderlos.</string>
+    <string name="coverage_not_yet_topics">Todavía no cubre producción ecológica, riego y agua, condicionalidad en detalle, cuaderno digital, seguros agrarios ni quema de restos de poda.</string>
+    <string name="coverage_section_help">Dónde pedir ayuda</string>
+    <string name="coverage_help_body">Para plazos internos de tu cooperativa o dudas personales sobre tu expediente, habla con tu oficina comarcal agraria o con tu cooperativa.</string>
+    <string name="coverage_privacy_link">Ver privacidad y ayuda</string>
 </resources>
