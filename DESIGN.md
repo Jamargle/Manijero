@@ -87,6 +87,12 @@ Typography uses the platform system sans-serif, generous line height, and a base
 6. **Choose land clarification:** list named lands with simple attributes when an answer differs by land; let the user select one or more and continue.
 7. **Privacy/help:** explain what land information is saved on device and what information may be sent with a question. Link to human help for questions the app cannot answer.
 
+The coverage disclosure is part of surface 7: it is reachable from chat without a question and
+states the pinned reviewed-topic scope, limitations, and named human referral paths. Runtime
+inspection covered Android navigation and large text, plus Desktop navigation and narrow/wide
+layout. Keyboard focus and spoken screen-reader announcements remain unverified under the
+product-owner disposition recorded in the feature appendix and validation record.
+
 ## Accessibility and validation
 
 - Validate contrast against WCAG AA as a baseline, text resizing, screen-reader labels, focus order, keyboard access, and non-color status cues.

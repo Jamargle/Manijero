@@ -261,6 +261,11 @@ used: this is neutral information, not a warning. No illustration, badge, or con
 
 ## Verification plan and evidence
 
+<!-- verify:start -->
+./gradlew :shared:jvmTest
+python3 scripts/validate_coverage_copy.py
+<!-- verify:end -->
+
 - `./gradlew :shared:jvmTest` and `./gradlew :shared:testAndroidHostTest :androidApp:assembleDebug :desktopApp:build`,
   plus `./scripts/init.sh --verify` → green; no previously passing test regresses. (If the Android SDK is
   unavailable, record the exact blocker — repo convention.)

@@ -84,6 +84,7 @@ import com.jamarglex.manijero.lands.toDraftOrNull
 import com.jamarglex.manijero.lands.toEditLandState
 import com.jamarglex.manijero.lands.toRemoveLandState
 import com.jamarglex.manijero.privacy.PrivacyScreen
+import com.jamarglex.manijero.coverage.CoverageScreen
 import com.jamarglex.manijero.theme.LocalManijeroSemanticColors
 import com.jamarglex.manijero.theme.ManijeroTheme
 import org.jetbrains.compose.resources.StringResource
@@ -101,6 +102,7 @@ import manijero.shared.generated.resources.chat_home_failure_unreachable
 import manijero.shared.generated.resources.chat_home_lands
 import manijero.shared.generated.resources.chat_home_privacy
 import manijero.shared.generated.resources.chat_home_privacy_summary
+import manijero.shared.generated.resources.coverage_open
 import manijero.shared.generated.resources.chat_home_question_hint
 import manijero.shared.generated.resources.chat_home_question_label
 import manijero.shared.generated.resources.chat_home_question_too_long
@@ -169,7 +171,7 @@ private const val ABSTAINED_SAMPLE_FALSE_PREMISE =
  * The shared destinations: the lands list is now the parent surface of the add, edit, and remove
  * forms.
  */
-private enum class AppDestination { Chat, LandList, AddLand, EditLand, RemoveLand, Privacy }
+private enum class AppDestination { Chat, LandList, AddLand, EditLand, RemoveLand, Privacy, Coverage }
 
 /**
  * Composition root. The answer service is injected so transport and endpoint decisions
@@ -197,6 +199,7 @@ fun App(
         )
     }
     var destination by remember { mutableStateOf(AppDestination.Chat) }
+    var previousDestination by remember { mutableStateOf(AppDestination.Chat) }
     var addLandState by remember { mutableStateOf(AddLandState()) }
     var landListState by remember { mutableStateOf(LandListState()) }
     var editLandState by remember { mutableStateOf<EditLandState?>(null) }
@@ -253,12 +256,18 @@ fun App(
                     }
                 },
                 onPrivacyClick = { destination = AppDestination.Privacy },
+                onCoverageClick = { previousDestination = AppDestination.Chat; destination = AppDestination.Coverage },
             )
 
             // The notice needs no repository, so this destination is always reachable on Android and
             // Desktop; it reads no land and writes nothing.
             AppDestination.Privacy -> PrivacyScreen(
-                onBack = { destination = AppDestination.Chat },
+                onBack = { destination = previousDestination },
+                onCoverageClick = { previousDestination = AppDestination.Privacy; destination = AppDestination.Coverage },
+            )
+            AppDestination.Coverage -> CoverageScreen(
+                onBack = { destination = previousDestination },
+                onPrivacyClick = { previousDestination = AppDestination.Coverage; destination = AppDestination.Privacy },
             )
 
             AppDestination.LandList -> LandListScreen(
@@ -404,6 +413,7 @@ internal fun ChatHomeScreen(
     onAction: (ChatHomeAction) -> Unit,
     onLandsClick: (() -> Unit)?,
     onPrivacyClick: (() -> Unit)? = null,
+    onCoverageClick: (() -> Unit)? = null,
     clarificationLands: List<Land>? = null,
     modifier: Modifier = Modifier,
 ) {
@@ -597,6 +607,11 @@ internal fun ChatHomeScreen(
                         modifier = Modifier.fillMaxWidth(),
                     ) {
                         Text(stringResource(Res.string.chat_home_privacy))
+                    }
+                }
+                if (onCoverageClick != null) {
+                    TextButton(onClick = onCoverageClick, modifier = Modifier.fillMaxWidth()) {
+                        Text(stringResource(Res.string.coverage_open))
                     }
                 }
             }

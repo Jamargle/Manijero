@@ -8,6 +8,7 @@ restate evidence here.
 
 | Date | Event | Record |
 |---|---|---|
+| 2026-10-19 | `coverage_and_help` accepted with owner-approved keyboard-focus and screen-reader checks remaining unverified. | `docs/specs/coverage_and_help.md` · `docs/validations/coverage_and_help.md` |
 | 2026-10-05 | Build brief initiated from the user's olive-grove-manager description. | `docs/build-brief.md` |
 | 2026-10-05 | Discovery documents created. | `CONTEXT.md`, `docs/domain-model.md`, `docs/risks-and-open-questions.md` |
 | 2026-10-07 | Harness starter created, then completed. | `AGENTS.md`, `scripts/init.sh`, `feature_list.json` |

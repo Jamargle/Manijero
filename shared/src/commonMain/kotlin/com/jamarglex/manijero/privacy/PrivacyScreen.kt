@@ -40,6 +40,7 @@ import manijero.shared.generated.resources.privacy_sent_not_sent
 import manijero.shared.generated.resources.privacy_sent_title
 import manijero.shared.generated.resources.privacy_sent_unknown
 import manijero.shared.generated.resources.privacy_title
+import manijero.shared.generated.resources.coverage_privacy_link
 
 private val ContentMaxWidth = 720.dp
 
@@ -52,6 +53,7 @@ private val ContentMaxWidth = 720.dp
 @Composable
 fun PrivacyScreen(
     onBack: () -> Unit,
+    onCoverageClick: () -> Unit = {},
     modifier: Modifier = Modifier,
 ) {
     Surface(
@@ -106,6 +108,9 @@ fun PrivacyScreen(
 
             PrivacySection(title = Res.string.privacy_help_title) {
                 PrivacyBody(Res.string.privacy_help_body)
+                TextButton(onClick = onCoverageClick) {
+                    Text(stringResource(Res.string.coverage_privacy_link))
+                }
             }
 
             TextButton(
