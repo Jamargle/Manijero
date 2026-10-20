@@ -27,7 +27,7 @@ knowledge/*.schema.json ──defines──> knowledge artifact formats
 
 `shared/src/commonMain/kotlin/com/jamarglex/manijero/chat/AnswerService.kt` defines the narrow `AnswerService` interface and shared request/response DTOs. `KtorAnswerService` sends the contract-shaped request and maps transport failures to payload-free app errors. The shared presentation layer depends on `AnswerService`, not Ktor engine or platform URL configuration. HTTP engine creation and base-URL configuration belong at the platform composition root. The request contains only the question and minimal land context; local land names and notes remain on-device.
 
-The client contract and backend route now exist, but platform base-URL wiring remains an open item. Until that wiring is completed, the shipped app still presents its unavailable-service failure state rather than using this endpoint.
+Android injects a Ktor Android-engine service configured by `manijeroAskBaseUrl` (default `http://10.0.2.2:8000`, the emulator host bridge); Desktop injects Ktor CIO configured by `manijero.ask.baseUrl` JVM property, then `MANIJERO_ASK_BASE_URL` environment variable (default `http://127.0.0.1:8000`). The Android debug manifest permits cleartext HTTP for local development; release does not. These development endpoints are not production transport. Android INTERNET permission is declared. Clients are closed with their host lifecycle. iOS engine/endpoint wiring remains out of scope, and physical-device use requires an explicitly reachable host override.
 
 ## Offline boundaries
 

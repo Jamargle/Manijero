@@ -57,3 +57,4 @@ restate evidence here.
 | 2026-10-17 | `backend_pac_corpus` accepted. | `docs/specs/backend_pac_corpus.md` · `knowledge/pac_coverage.md` |
 | 2026-10-18 | `backend_campaign_validity` accepted. | `docs/specs/backend_campaign_validity.md` · `docs/validations/backend_campaign_validity.md` |
 | 2026-10-18 | `backend_answer_evaluation` accepted. | `docs/specs/backend_answer_evaluation.md` · `docs/validations/backend_answer_evaluation.md` |
+| 2026-10-20 | `platform_ask_wiring` accepted. | `docs/specs/platform_ask_wiring.md` · `docs/validations/platform_ask_wiring.md` |

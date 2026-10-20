@@ -11,17 +11,19 @@ points at the per-feature records.
   the shared Spanish chat flow and the `Chat` / `Mis terrenos` lands destinations; both platforms
   reuse it.
 - **Chat boundary.** A pure `ChatHomeState` reducer plus `ChatConversation` over an injected
-  `AnswerService`. `KtorAnswerService` targets `<baseUrl>/ask`; the shipped default is
-  `UnavailableAnswerService` because the backend exposes no `/ask`, so the honest plain-Spanish
-  failure notice with `Reintentar` is the real behavior and every answered, abstained, or
-  source-card render is preview/reducer-based.
+  `AnswerService`. `KtorAnswerService` targets `<baseUrl>/ask`; Android and Desktop inject a
+  platform Ktor engine and local development base URL, so the launched apps use the running local
+  service. Without a reachable backend they show the existing plain-Spanish failure notice with
+  `Reintentar`.
 - **Lands.** Device-local and versioned (`land-store-v1`): `~/.manijero/lands-v1.txt` on Desktop,
   `manijero_lands` SharedPreferences on Android. Add, list, edit, and remove all go through the
   shared repository; unknown attributes stay `UNKNOWN`; only the attributes a question needs may
   leave the device (`chat/LandContextBuilder.kt`, pinned by `privacy/LandDataDisclosure.kt`).
-- **Backend.** FastAPI with `/health` as the only route: no `/ask`, no model provider configured.
-- **Knowledge and offline boundaries.** `knowledge/source_catalog.json` (`source-catalog-v1`) is a
-  valid but intentionally empty catalog that retrieval re-validates and fails closed on. The
+- **Backend.** FastAPI exposes liveness-only `/health` and a local, campaign-scoped `/ask`; no
+  model provider is configured.
+- **Knowledge and offline boundaries.** `knowledge/source_catalog.json` (`source-catalog-v1`)
+  contains the reviewed 2026 Andalusia PAC sources, with literal passages in
+  `knowledge/passages.json`; retrieval re-validates both and fails closed. The
   standard-library offline chain is `backend/app/{retrieval,generation,abstention,clarification,
   land_safety_eval}.py`, each with a matching `backend/scripts/evaluate_*.py` CLI, a schema under
   `knowledge/`, and synthetic implementer-authored fixtures under `backend/tests/fixtures/`. Their
