@@ -46,6 +46,7 @@ from app.generation import (  # noqa: E402  (path setup must run first)
     split_sentences,
     strip_markers,
     to_answer_response,
+    answer_source,
     verify_draft,
 )
 from app.retrieval import (  # noqa: E402
@@ -221,6 +222,14 @@ class ForbiddenRetriever:
 
     def search(self, question: str, k: int = DEFAULT_K):
         raise AssertionError("retrieval must not run")
+
+
+@dataclass(frozen=True)
+class StaticRetriever:
+    candidates: Tuple[RetrievedPassage, ...]
+
+    def search(self, question: str, k: int = DEFAULT_K):
+        return self.candidates[:k]
 
 
 # --- text helpers -----------------------------------------------------------
@@ -540,6 +549,49 @@ def test_cited_sources_follow_ascending_candidate_order() -> None:
     assert [passage.passage_id for passage in result.sources] == [
         candidates_by_rank[1].passage_id,
         candidates_by_rank[2].passage_id,
+    ]
+
+
+def test_sparse_candidate_citation_is_renumbered_in_answer_and_payload() -> None:
+    rank_two = make_passage(passage_id="rank-two", rank=2)
+    retriever = StaticRetriever((rank_two,))
+    draft = DraftAnswer("answered", "Claim grounded in candidate [2]", (2,))
+
+    result = generate_grounded_answer(
+        "pregunta", retriever, as_of=as_of_date(), generator=RecordedGenerator(draft)
+    )
+
+    assert isinstance(result, Answered)
+    assert result.answer.endswith("Claim grounded in candidate [1] " + NOTICE)
+    assert result.sources == (rank_two,)
+    assert result.cited_markers == (2,)  # Internal retrieval-rank semantics remain intact.
+    payload = to_answer_response(result)
+    assert payload["answer"] == result.answer
+    assert payload["sources"] == [answer_source(rank_two)]
+
+
+def test_sparse_multiple_candidate_markers_are_dense_stable_and_repeatable() -> None:
+    rank_two = make_passage(passage_id="rank-two", rank=2)
+    rank_four = make_passage(passage_id="rank-four", rank=4)
+    retriever = StaticRetriever((rank_two, rank_four))
+    prose_two = "First prose"
+    prose_four = "Second prose"
+    draft = DraftAnswer(
+        "answered",
+        "{}. [4] {}. [2][4]".format(prose_four, prose_two),
+        (4, 2),
+    )
+
+    result = generate_grounded_answer(
+        "pregunta", retriever, as_of=as_of_date(), generator=RecordedGenerator(draft)
+    )
+
+    assert isinstance(result, Answered)
+    assert "Second prose. [2] First prose. [1][2]" in result.answer
+    assert result.sources == (rank_two, rank_four)
+    assert result.cited_markers == (2, 4)
+    assert [claim.text for claim in result.claims] == [
+        "Second prose.", "First prose."
     ]
 
 

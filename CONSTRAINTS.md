@@ -15,9 +15,11 @@ Operational MUST/MUST NOT rules that future features have to respect on top of
   would come from.
 - **MUST**: a user-visible answer's citation markers, its `sources` array, and
   the orientative notice are owned by code (`generate_grounded_answer` /
-  `to_answer_response`), never by a generator. Reason: marker `[n]` must keep
-  meaning `sources[n-1]`, and the notice is a fixed orientative line, not
-  generated prose.
+  `to_answer_response`), never by a generator. Draft markers are verified as
+  original retrieval candidate ranks; emitted markers MUST be dense response-
+  local positions, so `[n]` selects `sources[n-1]`. Reason: sparse retrieval
+  ranks cannot be exposed as response indexes, and the notice is a fixed
+  orientative line, not generated prose.
 
 ## Client request failure
 
