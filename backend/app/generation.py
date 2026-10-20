@@ -15,10 +15,9 @@ then returns a machine-readable :class:`NotAnswered` reason code, and
 
 Durable rules:
 
-* A citation marker ``[n]`` means candidate number ``n``, i.e.
-  ``RetrievedPassage.rank``. The response ``sources`` array contains exactly the
-  cited candidates, deduplicated and in ascending candidate order, so marker
-  ``[n]`` always means ``sources[n - 1]``.
+* Draft citation markers mean candidate number ``n``, i.e.
+  ``RetrievedPassage.rank``. After verification, emitted markers are dense
+  response-local positions in the cited-source array.
 * Every sentence of an ``answered`` draft must carry at least one marker.
 * Every figure or date in a sentence must also appear in the text of the
   passage(s) that sentence cites.
@@ -660,6 +659,13 @@ def generate_grounded_answer(
     )
     passages_by_rank = {rank: passage for rank, passage in numbered_candidates}
     sources = tuple(passages_by_rank[marker] for marker in cited_markers)
+    response_marker_by_rank = {
+        rank: ordinal for ordinal, rank in enumerate(cited_markers, start=1)
+    }
+    answer = _MARKER.sub(
+        lambda match: "[{}]".format(response_marker_by_rank[int(match.group(1))]),
+        answer,
+    )
     return Answered(
         answer=answer,
         claims=kept_claims,

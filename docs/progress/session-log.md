@@ -58,3 +58,4 @@ restate evidence here.
 | 2026-10-18 | `backend_campaign_validity` accepted. | `docs/specs/backend_campaign_validity.md` · `docs/validations/backend_campaign_validity.md` |
 | 2026-10-18 | `backend_answer_evaluation` accepted. | `docs/specs/backend_answer_evaluation.md` · `docs/validations/backend_answer_evaluation.md` |
 | 2026-10-20 | `platform_ask_wiring` accepted. | `docs/specs/platform_ask_wiring.md` · `docs/validations/platform_ask_wiring.md` |
+| 2026-10-20 | `backend_citation_hardening` accepted. | `docs/specs/backend_citation_hardening.md` · `docs/validations/backend_citation_hardening.md` |

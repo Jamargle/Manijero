@@ -246,10 +246,12 @@ What the pipeline guarantees:
 - **Retrieval output is the only evidence.** Generation never re-reads the
   catalog or passage set, never re-implements eligibility, and never calls a
   model or the network when there are no candidates.
-- **Citations are code-owned.** A marker `[n]` means candidate number `n` (its
-  retrieval rank). The response `sources` array contains exactly the cited
-  candidates, deduplicated and in ascending order, so `[n]` always means
-  `sources[n-1]`.
+- **Citations are code-owned.** Draft markers are verified against original
+  retrieval candidate ranks. After verified claims are selected, emitted answer
+  markers are renumbered densely in ascending candidate-rank order; the response
+  `sources` array contains exactly those cited candidates once each in that same
+  order, so emitted `[n]` always means `sources[n-1]` (it need not equal the
+  candidate's retrieval rank).
 - **Figures and dates are checked, not promised.** Every figure or date in a
   claim must also appear in the text of the passage(s) that claim cites;
   otherwise the whole draft is rejected. The pipeline adds no date or amount of
