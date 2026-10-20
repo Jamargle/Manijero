@@ -59,3 +59,4 @@ restate evidence here.
 | 2026-10-18 | `backend_answer_evaluation` accepted. | `docs/specs/backend_answer_evaluation.md` · `docs/validations/backend_answer_evaluation.md` |
 | 2026-10-20 | `platform_ask_wiring` accepted. | `docs/specs/platform_ask_wiring.md` · `docs/validations/platform_ask_wiring.md` |
 | 2026-10-20 | `backend_citation_hardening` accepted. | `docs/specs/backend_citation_hardening.md` · `docs/validations/backend_citation_hardening.md` |
+| 2026-10-20 | `land_setup_fields_decision` accepted; user-validation gap remains explicit. | `docs/specs/land_setup_fields_decision.md` · `docs/validations/land_setup_fields_decision.md` |
