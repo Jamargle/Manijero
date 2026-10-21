@@ -77,11 +77,12 @@ fun AddLandScreen(
                 .verticalScroll(rememberScrollState())
                 .padding(horizontal = 24.dp, vertical = 32.dp),
             verticalArrangement = Arrangement.spacedBy(20.dp),
+            horizontalAlignment = Alignment.CenterHorizontally,
         ) {
             Column(
                 modifier = Modifier
-                    .fillMaxWidth()
-                    .widthIn(max = 720.dp),
+                    .widthIn(max = 720.dp)
+                    .fillMaxWidth(),
                 verticalArrangement = Arrangement.spacedBy(16.dp),
             ) {
                 Text(

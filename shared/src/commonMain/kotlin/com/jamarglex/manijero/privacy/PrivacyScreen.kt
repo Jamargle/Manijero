@@ -13,7 +13,9 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.jamarglex.manijero.theme.ManijeroTheme
@@ -69,14 +71,15 @@ fun PrivacyScreen(
         ) {
             Column(
                 modifier = Modifier
-                    .fillMaxWidth()
-                    .widthIn(max = ContentMaxWidth),
+                    .widthIn(max = ContentMaxWidth)
+                    .fillMaxWidth(),
                 verticalArrangement = Arrangement.spacedBy(12.dp),
             ) {
                 Text(
                     text = stringResource(Res.string.privacy_title),
                     style = MaterialTheme.typography.headlineMedium,
                     color = MaterialTheme.colorScheme.onBackground,
+                    textAlign = TextAlign.Start,
                 )
                 Text(
                     text = stringResource(Res.string.privacy_intro),
@@ -116,8 +119,8 @@ fun PrivacyScreen(
             TextButton(
                 onClick = onBack,
                 modifier = Modifier
-                    .fillMaxWidth()
-                    .widthIn(max = ContentMaxWidth),
+                    .widthIn(max = ContentMaxWidth)
+                    .fillMaxWidth(),
             ) {
                 Text(stringResource(Res.string.privacy_back))
             }

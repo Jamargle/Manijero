@@ -52,7 +52,7 @@ Resolved product direction lives in [the build brief](build-brief.md) and [domai
 | Exact hosting approach | Before deployment; verify cost, terms, limits, privacy, and operational fit |
 | Retention of questions, feedback, and traces | Before enabling telemetry with real users |
 | Desktop packaging and supported operating systems | Before pilot distribution |
-| Whether the lands list/forms and the privacy notice should share the chat home's 720dp capped/centred column on a wide Desktop window (they currently render full-width — pre-existing, recorded as finding H1 in `docs/validations/desktop_mvp_build.md`) | If a wide-window land layout is wanted; a separate feature, not part of `desktop_mvp_build` |
+| H1 (implementation verified): Do the land list/forms and privacy notice use the chat home's centred 720dp column on wide Desktop windows and available width on narrow windows without clipping? The user reports checking all five routes at both sizes, including centring/cap, overflow, scrolling, and controls, and reports them looking good. Exact host, viewport, scale, and numeric bounds were not provided; see the user-reported evidence in the feature appendix. Further visual refinement is deferred. | Closed for the MVP layout implementation; revisit visual polish later if needed. |
 
 ### Later
 
