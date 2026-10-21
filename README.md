@@ -2,15 +2,15 @@
 
 Manijero is a Kotlin Multiplatform app for people who own or manage one or more olive lands and want straightforward, source-backed help with agricultural questions. The MVP centers on an AI chat assistant and basic local management of multiple lands.
 
-## MVP platforms
+## Available platforms
 
 - **Android**
 - **Desktop (JVM)**
-- **iOS:** outside MVP delivery. Keep shared domain logic and reusable Compose UI suitable for a future iOS target; do not treat the existing iOS scaffold as an MVP release commitment.
+- **iOS:** (coming soon).
 
 The intended user has little experience with computers or apps. The interface and assistant should use plain Spanish, clear next steps, readable text, and source links. Land information is local by default; only the minimum context needed for a question should be sent to the answer service.
 
-See [the build brief](docs/build-brief.md), [domain model](docs/domain-model.md), [risks and open questions](docs/risks-and-open-questions.md), and [design direction](DESIGN.md) before changing product behavior. [MasterPlanV3.md](MasterPlanV3.md) contains the broader technical and delivery plan; its prior schedule was retired pending a new estimate.
+See [the build brief](docs/build-brief.md), [domain model](docs/domain-model.md), [risks and open questions](docs/risks-and-open-questions.md), and [design direction](DESIGN.md) before changing any product behavior. [MasterPlanV3.md](MasterPlanV3.md) contains the broader technical and delivery plan.
 
 ## Project structure
 
@@ -22,26 +22,37 @@ See [the build brief](docs/build-brief.md), [domain model](docs/domain-model.md)
 
 Implement product behavior and Compose UI in shared `commonMain`. Keep platform integrations and app entry points in platform-specific source sets so a later iOS target can reuse the same UI and business logic.
 
-## Running the MVP targets
+## Using Manijero
 
-The shared Kotlin Multiplatform UI and behavior live in `shared/src/commonMain` and are rendered by both MVP targets.
+### Start the backend
+
+The client app needs the local FastAPI service running to send questions. From the repository root, start it with:
+
+```sh
+./scripts/init.sh --backend
+```
+
+On first run, the script creates `backend/.venv` and installs the backend requirements; later runs reuse that environment and check/install requirements. It starts the API with campaign `2026` unless `MANIJERO_ACTIVE_CAMPAIGN` is already set. Leave that terminal open, then run `./scripts/init.sh --android` or `./scripts/init.sh --desktop` in another terminal. Android Emulator reaches the backend through `http://10.0.2.2:8000`; Desktop uses `http://127.0.0.1:8000`. Check the service at `http://127.0.0.1:8000/health`. Stop the backend with `Ctrl+C` when finished.
+
+
+### Running the client apps
+
+Building and running:
+
+```sh
+./scripts/init.sh --android-run # builds, boots an emulator if needed, installs, and launches the app
+./scripts/init.sh --desktop    # launches the Desktop app
+```
+When the service is running and reachable, the Android app is wired to the local service in `http://10.0.2.2:8000`; otherwise questions show the plain-Spanish failure notice with a `Reintentar` button.
+The Desktop app is wired to the local service in `http://127.0.0.1:8000`. Besides that, the Desktop app keeps its lands in `~/.manijero/lands-v1.txt` (the shared `land-store-v1` format); remove that file to start from an empty list.
+
+### Build and verification
 
 Standard verification (shared host tests + Android debug APK + Desktop build):
 
 ```sh
 ./scripts/init.sh --verify
 ```
-
-Build and run:
-
-```sh
-./scripts/init.sh --android    # builds androidApp/build/outputs/apk/debug/androidApp-debug.apk
-./scripts/init.sh --desktop    # launches the Desktop app
-```
-
-The Desktop app keeps its lands in `~/.manijero/lands-v1.txt` (the shared `land-store-v1` format); remove that file to start from an empty list.
-
-Known limitation: the backend now exposes a local `/ask` route, but the shipped app's platform base-URL wiring remains open, so questions still end in the plain-Spanish failure notice with a `Reintentar` button instead of reaching the backend. The canonical corpus is empty and safely abstains. iOS remains outside MVP delivery (see "MVP platforms").
 
 ## Product principles
 

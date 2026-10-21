@@ -1,6 +1,33 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
+# The backend is independent of the Android/Gradle toolchain. Handle it before
+# the Android SDK and Java setup below, so it can be started on its own.
+if [[ "${1:-}" == "--backend" ]]; then
+  REPO_ROOT="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")/.." && pwd)"
+  BACKEND_DIR="$REPO_ROOT/backend"
+  PYTHON="${MANIJERO_PYTHON:-}"
+  if [[ -z "$PYTHON" ]]; then
+    if command -v python3 >/dev/null 2>&1; then
+      PYTHON="$(command -v python3)"
+    elif command -v python >/dev/null 2>&1; then
+      PYTHON="$(command -v python)"
+    else
+      printf 'Python 3 is required to run the backend. Install Python 3 and rerun ./scripts/init.sh --backend.\n' >&2
+      exit 1
+    fi
+  fi
+
+  VENV="$BACKEND_DIR/.venv"
+  if [[ ! -x "$VENV/bin/python" ]]; then
+    "$PYTHON" -m venv "$VENV"
+  fi
+  "$VENV/bin/python" -m pip install -r "$BACKEND_DIR/requirements.txt"
+  cd "$BACKEND_DIR"
+  export MANIJERO_ACTIVE_CAMPAIGN="${MANIJERO_ACTIVE_CAMPAIGN:-2026}"
+  exec "$VENV/bin/python" -m uvicorn app.main:app --reload
+fi
+
 # Auto-detect ANDROID_HOME and local.properties if not already set
 # Works from any subdirectory (including git worktrees)
 if [[ -z "${ANDROID_HOME:-}" && -z "${ANDROID_SDK_ROOT:-}" ]]; then
@@ -8,6 +35,8 @@ if [[ -z "${ANDROID_HOME:-}" && -z "${ANDROID_SDK_ROOT:-}" ]]; then
   ANDROID_HOME="$HOME/Library/Android/sdk"
   ANDROID_SDK_ROOT="$ANDROID_HOME"
 fi
+ANDROID_HOME="${ANDROID_HOME:-${ANDROID_SDK_ROOT:-}}"
+ANDROID_SDK_ROOT="${ANDROID_SDK_ROOT:-$ANDROID_HOME}"
 
 # Ensure local.properties exists in current directory with SDK path
 # This handles git worktrees correctly - each worktree gets its own file
@@ -34,7 +63,7 @@ AS_OF="${MANIJERO_AS_OF:-2026-10-13}"
 
 usage() {
   cat <<'EOF'
-Usage: ./scripts/init.sh [--check|--fast|--verify|--feature <id>|--backend-tests [targets]|--android|--desktop|--help]
+Usage: ./scripts/init.sh [--check|--fast|--verify|--feature <id>|--backend-tests [targets]|--backend|--android|--android-run|--desktop|--help]
 
   --check                   Check Java and the Gradle wrapper, then print standard commands (default)
   --fast                    Shared host tests, contract examples, backend unit tests, and the five
@@ -44,13 +73,63 @@ Usage: ./scripts/init.sh [--check|--fast|--verify|--feature <id>|--backend-tests
                             builds (--full is an alias)
   --feature <id>            Run the focused verification published in docs/specs/<id>.md
   --backend-tests [target]  Run the backend pytest suite, or only the given targets, from backend/
+  --backend                 Create/update the backend virtualenv and launch the local API
   --android                 Build the Android debug APK
+  --android-run             Build, start an emulator if needed, install, and launch the app
   --desktop                 Launch the Desktop app
   --help                    Show this help
 
 Tiers keep a small change cheap to check: --feature for one feature, --fast for the
 whole no-device surface, --verify for the release-shaped gate.
 EOF
+}
+
+run_android_on_emulator() {
+  local sdk_root="${ANDROID_HOME:-${ANDROID_SDK_ROOT:-}}"
+  local adb emulator apk="$REPO_ROOT/androidApp/build/outputs/apk/debug/androidApp-debug.apk"
+  local serial avd booted=0 attempt
+  adb="$sdk_root/platform-tools/adb"
+  emulator="$sdk_root/emulator/emulator"
+
+  if [[ -z "$sdk_root" || ! -x "$adb" ]]; then
+    printf 'Android SDK adb not found. Set ANDROID_HOME (or ANDROID_SDK_ROOT) to your SDK path.\n' >&2
+    return 1
+  fi
+
+  ./gradlew :androidApp:assembleDebug
+
+  serial="$("$adb" devices | awk '$1 ~ /^emulator-/ && $2 == "device" { print $1; exit }')"
+  if [[ -z "$serial" ]]; then
+    if [[ ! -x "$emulator" ]]; then
+      printf 'Android emulator executable not found at %s. Install the Android Emulator SDK package.\n' "$emulator" >&2
+      return 1
+    fi
+    avd="$("$emulator" -list-avds | sed -n '1p')"
+    if [[ -z "$avd" ]]; then
+      printf 'No Android Virtual Device (AVD) is configured. Create one in Android Studio Device Manager, then rerun --android-run.\n' >&2
+      return 1
+    fi
+    printf 'Starting emulator AVD: %s\n' "$avd"
+    "$emulator" -avd "$avd" >/dev/null 2>&1 &
+
+  fi
+
+  for ((attempt = 0; attempt < 240; attempt++)); do
+    serial="$("$adb" devices | awk '$1 ~ /^emulator-/ && $2 == "device" { print $1; exit }')"
+    if [[ -n "$serial" ]] && [[ "$("$adb" -s "$serial" shell getprop sys.boot_completed 2>/dev/null | tr -d '\r')" == "1" ]]; then
+      booted=1
+      break
+    fi
+    sleep 1
+  done
+  if (( booted == 0 )); then
+    printf 'Timed out waiting for the Android emulator to finish booting. Check the emulator window and try again.\n' >&2
+    return 1
+  fi
+
+  printf 'Installing app on %s\n' "$serial"
+  "$adb" -s "$serial" install -r "$apk"
+  "$adb" -s "$serial" shell monkey -p com.jamarglex.manijero 1
 }
 
 if [[ ! -x "$REPO_ROOT/gradlew" ]]; then
@@ -274,10 +353,12 @@ Verification tiers:
   ./scripts/init.sh --verify        # --fast + Android host tests + Android debug APK + Desktop build
 
 Build and run:
+  ./scripts/init.sh --backend    # start the local API (Ctrl+C to stop)
   ./scripts/init.sh --android    # androidApp/build/outputs/apk/debug/androidApp-debug.apk
+  ./scripts/init.sh --android-run # build and launch on an Android emulator
   ./scripts/init.sh --desktop    # launch the Desktop app
 
-Known limitation: the backend has no /ask route yet, so the shipped app answers a question with the plain-Spanish failure notice and a Reintentar button, not a grounded answer.
+The Android and Desktop apps use the local /ask service. Keep --backend running in a separate terminal while trying either app.
 EOF
     ;;
   --fast)
@@ -295,8 +376,16 @@ EOF
     shift
     run_backend_tests 1 "$@"
     ;;
+  --backend)
+    # Normally handled above, but retain a clear fallback if dispatch is changed.
+    printf 'Backend startup dispatch failed unexpectedly.\n' >&2
+    exit 1
+    ;;
   --android)
     ./gradlew :androidApp:assembleDebug
+    ;;
+  --android-run)
+    run_android_on_emulator
     ;;
   --desktop)
     ./gradlew :desktopApp:run

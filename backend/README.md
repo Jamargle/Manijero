@@ -1,11 +1,23 @@
 # Manijero backend
 
-The local FastAPI service exposes `GET /health` and a source-grounded `POST /ask`:
+The local FastAPI service exposes `GET /health` and a source-grounded `POST /ask`.
+From the repository root, start it with the shared startup script:
+
+```sh
+./scripts/init.sh --backend
+```
+
+The script creates `backend/.venv` when needed, installs/updates the runtime
+requirements, sets `MANIJERO_ACTIVE_CAMPAIGN=2026` unless already configured,
+and launches Uvicorn with reload enabled. Stop it with `Ctrl+C`. To start it
+manually instead, run:
 
 ```sh
 cd backend
+python3 -m venv .venv
+. .venv/bin/activate
 python -m pip install -r requirements.txt
-python -m uvicorn app.main:app --reload
+MANIJERO_ACTIVE_CAMPAIGN=2026 python -m uvicorn app.main:app --reload
 curl http://127.0.0.1:8000/health
 curl -X POST http://127.0.0.1:8000/ask \
   -H 'content-type: application/json' \
