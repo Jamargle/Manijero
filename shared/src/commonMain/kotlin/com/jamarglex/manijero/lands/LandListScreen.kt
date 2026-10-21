@@ -16,6 +16,7 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.semantics.LiveRegionMode
 import androidx.compose.ui.semantics.contentDescription
@@ -87,11 +88,12 @@ fun LandListScreen(
                 .verticalScroll(rememberScrollState())
                 .padding(horizontal = 24.dp, vertical = 32.dp),
             verticalArrangement = Arrangement.spacedBy(20.dp),
+            horizontalAlignment = Alignment.CenterHorizontally,
         ) {
             Column(
                 modifier = Modifier
-                    .fillMaxWidth()
-                    .widthIn(max = ContentMaxWidth),
+                    .widthIn(max = ContentMaxWidth)
+                    .fillMaxWidth(),
                 verticalArrangement = Arrangement.spacedBy(16.dp),
             ) {
                 Text(
