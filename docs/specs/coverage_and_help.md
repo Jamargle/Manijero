@@ -217,7 +217,7 @@ features), the iOS target files (untouched), and any localization beyond `values
 | `shared/src/commonMain/composeResources/values/strings.xml` | **Update** | New keys only (screen title/intro/sections, chat-home control label, cross-link, `Volver` reuse). |
 | `shared/src/commonTest/kotlin/com/jamarglex/manijero/coverage/CoverageContentTest.kt` | **Create** | Pure tests pinning structure, no-legal-fact guard, and corpus-scope correspondence. |
 | `CONSTRAINTS.md` | **Update** | One "Coverage disclosure" MUST rule (below). |
-| `DESIGN.md` | **Update** | Note the coverage surface under MVP surface 7 and any accessibility evidence recorded. |
+| `DESIGN.md` | **Update** | Keep a concise coverage/help surface summary and link to this spec; place inspection evidence in the validation record, not the design guide. |
 | `PROGRESS.md` | **Update** | Evidence (after implementation verification only). |
 
 Not touched: `contracts/`, `backend/`, `knowledge/`, `init.sh`, Gradle, platform entry points,
@@ -287,7 +287,7 @@ python3 scripts/validate_coverage_copy.py
 | Document | Action | Reason |
 |---|---|---|
 | `CONSTRAINTS.md` | **Update** | One "Coverage disclosure" MUST rule: the coverage copy MUST name only topic areas the reviewed corpus covers, MUST state the not-answered classes (cooperative practices, personalized amounts/eligibility, out-of-corpus topics), MUST NOT contain a deadline, amount, threshold, article number, eligibility claim, or invented contact detail, and MUST be updated in the same change that widens or narrows corpus scope. |
-| `DESIGN.md` | **Update** | Register the coverage surface under MVP surface 7 and record any accessibility evidence performed (and the remaining gaps). |
+| `DESIGN.md` | **Update** | Retain the concise coverage/help surface summary and spec link; do not duplicate feature-specific accessibility evidence or limitations. |
 | `PROGRESS.md` | **Update** | Evidence (after verification only). |
 | `AGENTS.md` | **Not needed** | Plain-Spanish and no-invented-legal-facts rules already exist. |
 | `ARCHITECTURE.md` | **Not needed** | Does not exist; no architectural boundary changes. |

@@ -28,7 +28,7 @@ Make the shared chat surface (`ChatHomeScreen` and everything it renders) verifi
 - Enlarged-text and narrow/wide-window verification on Android and Desktop, plus the centering of the capped content column on wide windows.
 - One heading semantic on the screen title; confirm every control/entry exposes a text name.
 - The clarification chooser's loading state (no misleading fallback before the local read resolves).
-- Recorded evidence for the carried items above, and the accessibility baseline written into `DESIGN.md`.
+- Recorded evidence for the carried items above in the feature appendix and validation record; keep `DESIGN.md` to concise, durable accessibility guidance.
 
 **Non-goals**
 
@@ -136,7 +136,7 @@ No token, copy, or state change: the same `surface`/`surfaceVariant`/`outlineVar
 | Document | Action | Reason |
 |---|---|---|
 | `CONSTRAINTS.md` | **Update during implementation** | One "Chat accessibility" MUST rule: the chat surface MUST keep a text name on every control and transcript entry, one merged text-labelled node per entry, a polite announcement for every newly appended assistant reply, no colour-only state, Material's minimum interactive size, a visible focus indication, newest content brought into view without moving the composer, and no chooser fallback before the local read resolves. Reason: this is the first accessibility baseline for the surface and every later feature can silently regress it. |
-| `DESIGN.md` | **Update during implementation** | Record the verified chat accessibility baseline (Android/Desktop checks actually performed, and the remaining gaps) in the "Accessibility and validation" section, which currently forbids claiming accessibility until these checks are done. |
+| `DESIGN.md` | **Update during implementation** | Keep durable accessibility guidance concise and link to the validation record for inspected evidence and remaining gaps; do not duplicate feature evidence here. |
 | `docs/specs/response_states.md`, `docs/specs/land_clarification.md` | **Append one short note each after implementation** | `response_states` U2 (the answered entry is announced) and `land_clarification` N2 (the fallback flash) are decided/closed from this side; the accepted behavior is not revised (precedent: the `answer_source_cards` R5 note). |
 | `docs/risks-and-open-questions.md` | Optional | One row for the missing automated accessibility/UI-test coverage, if the orchestrator wants it tracked there rather than only in this spec's risks. |
 | `AGENTS.md`, `CONTEXT.md`, `docs/build-brief.md`, `docs/domain-model.md` | Not needed | The plain-Spanish, accessibility, and shared-`commonMain` rules already govern; no product or domain change. |

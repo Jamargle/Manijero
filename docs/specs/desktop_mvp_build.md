@@ -99,7 +99,7 @@ If the smoke finds a build/launch/window blocker (target missing, window never o
 - **Modify** `README.md`: add the Desktop land store path (`~/.manijero/lands-v1.txt`) to "Running the MVP targets" (one–two lines). Keep `--verify`/`--android`/`--desktop` and the iOS-out-of-scope statement unchanged.
 - **Create** `docs/validations/desktop_mvp_build.md` (validator record: verdict, commands, AX evidence, honest limits) — written at validation time, not by planning.
 - **Update** `PROGRESS.md` and `feature_list.json` **after** verification with the real status and only the commands actually run (spec currently links only).
-- **Do not modify**: any `shared/`, `androidApp/`, or `desktopApp/` source file; `gradle/*.toml`; any `build.gradle.kts` (no packaging change); `settings.gradle.kts`; `scripts/init.sh` (already Desktop-truthful); `contracts/`; `backend/`; `knowledge/`; `AGENTS.md`; `CONTEXT.md`; `CONSTRAINTS.md` (no new product invariant). `DESIGN.md` is not a baseline change: the smoke's finding that the land/privacy surfaces render full-width is recorded there as a pre-existing finding (H1), with no new baseline.
+- **Do not modify**: any `shared/`, `androidApp/`, or `desktopApp/` source file; `gradle/*.toml`; any `build.gradle.kts` (no packaging change); `settings.gradle.kts`; `scripts/init.sh` (already Desktop-truthful); `contracts/`; `backend/`; `knowledge/`; `AGENTS.md`; `CONTEXT.md`; `CONSTRAINTS.md` (no new product invariant). `DESIGN.md` carries durable design direction, not this smoke's measured layout finding; keep the finding in the validation record and risks register.
 
 ## Visual design impact
 
@@ -113,7 +113,7 @@ None. No token, layout, copy, or screen change. The smoke inspects the **already
 | `docs/validations/desktop_mvp_build.md` | **Create at validation** | The accepted convention for a reproducible acceptance record. |
 | `PROGRESS.md`, `feature_list.json` | **Update after verification** | Record status, the Desktop launch/journey evidence, and the honest limitation; planning does not touch them. |
 | `scripts/init.sh` (banner text) | **Not needed** | Already corrected by `android_mvp_build`: it names `--desktop`, the real verification command, and the no-`/ask` limitation, and points at the living documents. Verified in this worktree; no change. |
-| `DESIGN.md` | **Update (finding only)** | The Desktop wide-window, keyboard, and form baselines are already recorded by `chat_accessibility`/`land_form_accessibility`; the smoke measured that only the chat home is capped/centred while the land/privacy surfaces render full-width, so H1 is recorded there as a pre-existing finding (no new baseline). |
+| `DESIGN.md` | **No update** | Keep measured implementation state and feature-specific evidence in the validation record, progress board, and risks register; this guide carries durable design direction, not runtime findings. |
 | `docs/risks-and-open-questions.md` | **Optional** | The "no answer endpoint at MVP debug release" / Desktop-packaging notes are already implied by F1 and the "Desktop packaging" open question; add a row only if the orchestrator wants it tracked. |
 | `AGENTS.md`, `CONTEXT.md`, `docs/build-brief.md`, `docs/domain-model.md`, `CONSTRAINTS.md` | **Not needed** | Start/verify rules, product scope, and the shared-`commonMain` rule already govern; this slice adds no product invariant. |
 | `ARCHITECTURE.md` | **Not needed** | It does not exist; no module, boundary, or dependency is added. |

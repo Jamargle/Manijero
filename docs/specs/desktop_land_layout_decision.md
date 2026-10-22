@@ -59,7 +59,7 @@ No rendered change in this feature. The approved future result is a single centr
 | Document | Action | Reason |
 |---|---|---|
 | `docs/specs/desktop_land_layout_decision.md` and appendix | **Create** | Record the decision, rationale, research, and handoff boundary. |
-| `DESIGN.md` | **Not needed now** | It already records the chat cap and H1 finding; the decision does not alter the shipped baseline. Revisit when the approved layout is implemented. |
+| `DESIGN.md` | **Not needed now** | It states the durable requirement to adapt shared layouts to Desktop; measured current behavior and this decision's evidence belong in the feature record and validation, not the design guide. Revisit only if the approved design direction changes. |
 | `docs/risks-and-open-questions.md` | **Not needed** | Its implementation-time question is answered here; retain the historical/current record unless the project owner wants a separate register cleanup. |
 | `ARCHITECTURE.md`, `CONSTRAINTS.md`, `AGENTS.md` | **Not needed** | No module boundary, durable invariant, or workflow changes. |
 | `PROGRESS.md`, `feature_list.json` | **Not needed in planning** | Status is updated only after implementation/validation workflow; the feature-list entry already exists. |

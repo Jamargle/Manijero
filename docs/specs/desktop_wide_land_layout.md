@@ -59,7 +59,7 @@ Wide Desktop content becomes a centred, max-720dp readable column. At narrow siz
 
 | Document | Action | Reason |
 |---|---|---|
-| `DESIGN.md` | **Update** | Remove/resolve the statement that land/forms/privacy remain uncapped and record the implemented shared 720dp policy plus honest verification limits. |
+| `DESIGN.md` | **No evidence update** | Keep durable layout intent here; record implementation measurements and verification limits in this feature's validation record and the risks register. |
 | `docs/risks-and-open-questions.md` | **Update** | Mark the H1 implementation question resolved, retaining evidence limits if appropriate. |
 | `ARCHITECTURE.md` | **Not needed** | No module or ownership boundary changes. |
 | `CONSTRAINTS.md` | **Not needed** | No durable MUST/MUST NOT rule changes. |
