@@ -4,23 +4,24 @@
 
 Use this guide for shared UI design and Spanish user-facing copy. Feature behavior belongs in its
 spec; architecture and source-set boundaries belong in `ARCHITECTURE.md`; implementation and
-verification status belong in `PROGRESS.md` and `docs/validations/`. For routine feature work, read
-this file only when the feature changes user-facing UI or copy.
+verification status belong in `PROGRESS.md` and `docs/validations/`.
 
-Stitch mockups reference archive is indexed in [`design-references/README.md`](design-references/README.md). The user has selected its light/dark design-system files as the baseline for a shared design-system feature; this is a target direction, not a claim that the app already implements it. The existing theme remains the shipped implementation until `shared_design_system` is implemented and validated. The launcher icon is an identity asset, not a UI reference.
+Stitch mockups reference archive is indexed in [`design-references/README.md`](design-references/README.md). The shared app implements the selected paired Stitch-derived light/dark design system. The launcher icon is an identity asset, not a UI reference.
 
 ### Reference designs and adoption rules
 
 - Treat screen PNGs and HTML under `design-references/stitch/` as visual inspiration, not production-ready Compose or a source of truth for product behavior.
-- The selected target palettes and typography are recorded in `stitch/manijero_design_system/DESIGN.md` and `stitch/manijero_design_system_dark_mode/DESIGN.md`. Their adoption is owned by [`shared_design_system`](docs/specs/shared_design_system.md); palette pairs may be adjusted only when documented contrast verification requires it. Until that feature is accepted, do not imply that the shipped app supports dark mode.
+- The selected baseline palettes and typography are recorded in `stitch/manijero_design_system/DESIGN.md` and `stitch/manijero_design_system_dark_mode/DESIGN.md`. The implemented values below are authoritative; contrast-driven adjustments are noted.
 - Stitch PRD/masterplan text is historical design input. Where it proposes behavior outside the current MVP (for example navigation or content not in the accepted contracts), existing product scope and approved feature specs take precedence.
 - Screen references map to existing feature contracts rather than creating duplicate feature entries. See the archive index for the mapping and known gaps.
 
-### Shared design-system target (planned)
+### Shared design system (implemented; owner-approved font gate deferred)
 
-`shared_design_system` will define the app-wide Compose Multiplatform design language in `shared/src/commonMain`: Stitch light/dark semantic color roles, system-following theme selection, the Stitch typography scale, shared shape/spacing values, and a preview/review surface. Target detailed values are in the two Stitch design-system files linked above; verify every foreground/background and non-text pair for WCAG AA and document any necessary adjustment in the feature spec/evidence. Keep token declarations centralized; screen code consumes `MaterialTheme` roles or named semantic tokens, never raw colors. Use system appearance by default; this feature does not add an appearance preference UI or persisted override.
+`shared_design_system` defines paired roles in `shared/src/commonMain`, selected automatically with the common Compose system appearance signal. No appearance setting or platform theme fork exists. The constructors explicitly map every applicable Material 3 role and semantic caution colors; source values are in `ManijeroColors.kt`. Common previews cover light, dark, and enlarged text. Shape and spacing scales live in `ManijeroTokens.kt`.
 
-This target replaces the original single light-only token direction once implementation is independently accepted. It does not itself restyle every existing screen or make each Stitch mockup a pixel-perfect contract; screen-level adoption remains with each owning feature.
+**Font gate — deferred by owner decision:** do not download, add, or bundle font binaries, and do not substitute another bundled family. Preserve the platform default font family exactly as before; existing scalable Material typography roles remain. The Stitch Source Serif 4 / Source Sans 3 direction cannot be adopted until provenance and redistribution terms are approved.
+
+The paired scheme extends the original light-only foundation without changing screen layouts or behavior. Screen-level changes remain with each owning feature. The ten base light tokens in the table below remain the accepted warm olive palette (including their original hex values); derived Material roles and a dark counterpart are added.
 
 ## Design intent
 
@@ -37,7 +38,7 @@ roles or semantic colors. Its derived role values and contrast mapping are docum
 [`ManijeroColors.kt`](shared/src/commonMain/kotlin/com/jamarglex/manijero/theme/ManijeroColors.kt)
 and the [`visual_foundation` spec](docs/specs/visual_foundation.md).
 
-| Token | Initial value | Intent |
+| Light base token | Value | Intent |
 |---|---|---|
 | `olive-800` | `#354B32` | Primary actions, navigation, selected states |
 | `olive-900` | `#263724` | Pressed state and strong emphasis |
@@ -50,7 +51,7 @@ and the [`visual_foundation` spec](docs/specs/visual_foundation.md).
 | `caution-surface` | `#FFF2D4` | Caution callout background |
 | `danger` | `#A12622` | Errors and destructive actions, paired with text/icon |
 
-The ten tokens above are shipped verbatim by the shared theme in
+The ten tokens above remain implemented verbatim by the shared theme in
 `shared/src/commonMain/kotlin/com/jamarglex/manijero/theme/ManijeroColors.kt`, which is also the only
 place in the repository allowed to declare a hex colour. Screens read Material 3 roles or the
 `LocalManijeroSemanticColors` values instead of raw hex. The launcher artwork is still the stock
@@ -58,7 +59,7 @@ Android Studio template, so no token was changed on that basis.
 
 ### Derived tokens
 
-`DESIGN.md` names only the ten tokens above. Material 3 needs a value for every other colour role it
+The original light foundation names only the ten tokens above. Material 3 needs a value for every other colour role it
 exposes, and leaving a role unset would leak the default purple/teal palette. The following derived
 values fill those roles. They stay in the same warm-neutral/olive families (no new hue) and are
 documented where they are declared in `ManijeroColors.kt`.
@@ -69,7 +70,7 @@ documented where they are declared in `ManijeroColors.kt`.
 | `surfaceContainerLow` / `surfaceContainer` / `surfaceContainerHigh` | `#FCFBF6` / `#F2F0E9` / `#EDEBE3` | Warm lift family for cards, menus, and sheets |
 | `surfaceContainerLowest` / `surfaceBright` | `#FFFFFF` / `#FFFFFC` | Surface extremes |
 | `surfaceDim` | `#DFDDD4` | Recessed surface |
-| `outlineVariant` | `#7E8479` | Softer separator/bubble border; still clears 3:1 against canvas, surface, and `surfaceVariant` |
+| `outlineVariant` | `#7E8479` | Softer separator/bubble border; 3.05:1 against `surfaceVariant` |
 | `primaryContainer` / `onPrimaryContainer` | `#D9E2D2` / `#263724` | Light olive fill for selected/tonal containers |
 | `secondaryContainer` / `onSecondaryContainer` | `#DFE4D8` / `#263724` | Second tonal fill in the same family |
 | `tertiary` / `onTertiary` | `#40573C` / `#FFFFFF` | Third olive emphasis step (no brown, which would read as caution) |
@@ -81,7 +82,40 @@ documented where they are declared in `ManijeroColors.kt`.
 provided through `LocalManijeroSemanticColors`. `danger` is `colorScheme.error` and `border` is
 `colorScheme.outline`, so each value keeps a single source.
 
-The currently shipped app still uses the warm light palette, including when the device is in dark mode. Dark-theme support is a planned target of `shared_design_system`; do not imply it has been implemented or verified before that feature is accepted.
+### Implemented dark palette
+
+Dark values follow the Stitch dark reference; its contrast-failing outline-variant `#424942` is
+corrected to `#646B64`. Below is the complete paired Material role mapping, in role order; all values
+are explicit in the common theme (the expressive `*Fixed` extension roles are not applicable to this
+Material version and are not claimed as mapped).
+
+| Material roles | Light | Dark |
+|---|---|---|
+| primary / onPrimary | `#354B32` / `#FFFFFF` | `#85A886` / `#0D1B0E` |
+| primaryContainer / onPrimaryContainer / inversePrimary | `#D9E2D2` / `#263724` / `#B6C4AC` | `#283C29` / `#CFE8CF` / `#456648` |
+| secondary / onSecondary / secondaryContainer / onSecondaryContainer | `#4B5149` / `#FFFFFF` / `#DFE4D8` / `#263724` | `#D4C5A9` / `#382E1C` / `#4F422E` / `#F1E5CC` |
+| tertiary / onTertiary / tertiaryContainer / onTertiaryContainer | `#40573C` / `#FFFFFF` / `#E9EDE2` / `#263724` | `#B8C5D6` / `#222D3B` / `#93A0B0` / `#2B3745` |
+| background / onBackground; surface / onSurface | `#F7F6F0` / `#1D221B`; `#FFFFFF` / `#1D221B` | `#121612` / `#E1E3DF`; `#121612` / `#E1E3DF` |
+| surfaceVariant / onSurfaceVariant / surfaceTint | `#E7E5DD` / `#4B5149` / `#354B32` | `#333532` / `#C2C8BF` / `#ABD0AC` |
+| inverseSurface / inverseOnSurface | `#2E332C` / `#F1F2EC` | `#E3E3DE` / `#2F312E` |
+| error / onError / errorContainer / onErrorContainer | `#A12622` / `#FFFFFF` / `#F9DEDA` / `#6E1714` | `#FFB4AB` / `#690005` / `#93000A` / `#FFDAD6` |
+| outline / outlineVariant / scrim | `#777D73` / `#7E8479` / `#000000` | `#8C948C` / `#646B64` / `#000000` |
+| surfaceBright / surfaceDim | `#FFFFFC` / `#DFDDD4` | `#242C24` / `#1A201B` |
+| surfaceContainerLowest / Low / Container / High / Highest | `#FFFFFF` / `#FCFBF6` / `#F2F0E9` / `#EDEBE3` / `#E7E5DD` | `#0D100D` / `#181E18` / `#202820` / `#2C362C` / `#384438` |
+
+### Contrast contract
+
+Common tests enumerate the intended readable text pairs (on-colour for primary, secondary,
+tertiary, background, surface, surface-variant, tonal containers, inverse surface, error and error
+container) at >=4.5:1, and non-text boundaries/icons (error against background, outline against
+surface/background/surface-variant, outline-variant against base surface and low container,
+primary against surface) at >=3:1. Semantic tests also check caution on light canvas, white surface,
+and caution surface, and onCaution on its filled caution color. Representative calculated ratios:
+light onSurface/surface 16.19:1; primary/surface 9.53:1; danger/surface 7.46:1; outlineVariant/
+surfaceVariant 3.05:1; caution/cautionSurface 7.37:1; caution/canvas 7.56:1; dark onSurface/surface
+14.14:1; primary/surface 6.91:1; error/surface 10.76:1; outline/surface 5.86:1; corrected
+outlineVariant/surface 3.33:1. Checks test the full listed pair set, not every mathematically possible
+combination of roles.
 
 ## Layout and interaction
 

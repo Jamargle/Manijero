@@ -72,16 +72,57 @@ There is no persistent Compose UI/E2E or screenshot test harness in this reposit
 
 <!-- Implementer: append verified implementation and test evidence here. -->
 
+### Implementer evidence (2026-10-24)
+
+- Added an explicit paired Material 3 light/dark scheme, dark semantic caution colors, system-driven common `isSystemInDarkTheme()` selection with test/preview override, common shapes/spacing, and light/dark/enlarged-text review previews. No screen layouts, platform entry points, dependencies, or appearance settings changed.
+- Owner decision: **FONT GATE DEFERRED**. No font binaries were downloaded or bundled. Platform default font family remains exactly the existing `Typography()` default; Source Serif 4 / Source Sans 3 are not substituted.
+- Common test `ManijeroDesignSystemTest` now enumerates all 36 applicable Material roles in both schemes against their intended values and computes each documented normal-text (>=4.5:1) and boundary/icon (>=3:1) pair, plus semantic caution checks including the light canvas/surface pairs. This describes only the listed intended-use pairs, not every possible role combination. The dark outline-variant was raised from Stitch `#424942` to `#646B64` (3.33:1 against the dark base surface); full declarations are in `ManijeroColors.kt`.
+- `./scripts/init.sh --feature shared_design_system` — PASS; focused `:shared:jvmTest --tests ManijeroDesignSystemTest`, `BUILD SUCCESSFUL`.
+- `./scripts/init.sh --fast` — PASS; all 9 offline checks passed. Backend unit tests explicitly skipped because pytest is not installed.
+- `./scripts/init.sh --verify` — PASS; fast tier's 9 checks passed (backend pytest skipped for missing pytest), then Android host tests, Android debug build and Desktop build completed, `BUILD SUCCESSFUL`.
+- At the time this initial evidence was written (before the later capture review), manual Android/Desktop appearance and enlarged-text visual review had not yet been performed. This is a historical pre-capture limitation, superseded by the visual review below. No screenshot/E2E harness exists. iOS compile was not run; no iOS release claim.
+- Status set to `passing` for independent validation; this is not acceptance.
+
+### Repair iteration (2026-10-24)
+
+- Documentation-only correction in `ManijeroTheme.kt`: its KDoc now describes shared system-selected light/dark palettes and the default appearance signal. Runtime behavior was not changed.
+- Focused verification, exact result: `./scripts/init.sh --feature shared_design_system` — PASS. Ran `./gradlew :shared:jvmTest --tests ManijeroDesignSystemTest`; output ended `BUILD SUCCESSFUL in 53s`, `18 actionable tasks: 6 executed, 12 up-to-date`, `Configuration cache entry reused.`
+- At the time of this repair entry, no manual Android/Desktop review was claimed; the orchestrator reported `adb: command not found` and the prior android-run failed with `error: closed`. This predates and is superseded by the user-supplied host screenshot review below.
+
+### Test-gap repair (2026-10-24)
+
+- Added pure `selectManijeroColorScheme(darkTheme)` used by `ManijeroTheme`; common test explicitly asserts `false` selects the light scheme and `true` selects the dark scheme. The theme's system-signal default remains `darkTheme: Boolean = isSystemInDarkTheme()`.
+- Expanded typography assertions across all 15 documented Material roles, comparing each role's size, weight, and font family against `Typography()` and asserting line height likewise, except the documented `bodySmall` 18sp override. This verifies deferred fonts by comparing against platform-default `Typography()` rather than pinning a platform-specific font implementation.
+- `./scripts/init.sh --feature shared_design_system` — PASS; `:shared:jvmTest --tests ManijeroDesignSystemTest`, `BUILD SUCCESSFUL in 5s`, `18 actionable tasks: 7 executed, 11 up-to-date`.
+- `./gradlew :shared:jvmTest --tests ManijeroTypographyTest` — PASS; `BUILD SUCCESSFUL in 1s`, `18 actionable tasks: 4 executed, 14 up-to-date`.
+- No UI/layout/behavior changes, dependencies, acceptance record, or progress-board update.
+
+### Host screenshot visual review (2026-10-24)
+
+- Reviewed the user-supplied Android and Desktop host PNG captures; all PNGs are verification artifacts stored outside the repository and must not be committed.
+- Android `Pixel_10a` light home shows the warm light palette and no theme control. Android dark home shows a dark green-black canvas, light text, olive accents, and no visible light-mode leftovers. The Android dark lands capture shows the lands empty state.
+- Android `android-dark-error3.png` shows the submitted question and a deep-red connection-error notice with a readable Spanish explanation and pale `Reintentar` button. Failure is conveyed in text, not color alone. Important capture distinction: `android-dark-error.png` and `android-dark-error2.png` are focused question-input states with the keyboard open; they are not error-state captures.
+- Android `font_scale=1.5` capture shows wrapping in headings, chips, and label/body text without clipping or overlap among visible controls. The capture ends before the complete screen content, so this is not evidence that the full flow fits at enlarged text.
+- Desktop light home shows the warm palette. Desktop dark home changed live after the authorized brief macOS appearance toggle, without an app restart; the environment was restored afterward and no setting was added. Desktop dark lands shows the existing land record with dark surfaces/text and olive actions.
+- No visual focus/error issue was evident in the relevant captures. This was not a keyboard-navigation or focus-order audit. No app relaunch was performed.
+
+### Independent acceptance (2026-10-24)
+
+- Validator verdict: **accept**. All feature checklist items were reviewed against the implementation, tests, docs, command results, and supplied host captures.
+- Latest focused check: `./scripts/init.sh --feature shared_design_system` — PASS (`BUILD SUCCESSFUL`).
+- Latest full gate: `./scripts/init.sh --verify` — PASS; all 9 offline checks passed, then Android host tests, Android debug build, and Desktop build completed (`BUILD SUCCESSFUL`). Backend pytest was explicitly skipped because pytest is not installed. iOS simulator compilation was not run.
+- The PNG review copies in `.review-temp/` were temporary and are excluded from the accepted change; source screenshots remain outside the repository.
+
 ## Validator checklist
 
-- [ ] Both Stitch system files informed the paired light/dark role mappings; failing contrast pairs were corrected and documented rather than omitted.
-- [ ] System appearance selects the correct scheme, and a parameter/override makes both modes explicitly testable; there is no preference setting or platform theme fork.
-- [ ] The one shared theme remains applied once at `App()`; Android, Desktop, previews and shared iOS scaffold consume it.
-- [ ] Semantic caution/error roles are meaningful in both modes and UI status remains understandable without color alone.
-- [ ] Typography uses the selected families/scales; any font assets have verified source/redistribution terms and license notice. If this was blocked, implementation did not silently substitute fonts.
-- [ ] Shape and spacing values are named and shared, not raw copied literals spread among screens.
-- [ ] All documented text pairs meet 4.5:1 and meaningful non-text pairs meet 3:1 in both themes; tests independently compute ratios.
-- [ ] Existing feature behavior, Spanish copy, accessibility semantics, and screen structure remain unchanged; no new module/dependency/framework was added.
-- [ ] Focused tests, host tests and Android/Desktop builds pass; iOS compatibility status is accurately recorded without overclaiming release validation.
-- [ ] Previews cover both themes and enlarged text; manual Android/Desktop appearance/focus checks are recorded.
-- [ ] `DESIGN.md` documents the final accepted values and `feature_list.json`/`PROGRESS.md` status reflects independent validation only.
+- [x] Both Stitch system files informed the paired light/dark role mappings; failing contrast pairs were corrected and documented rather than omitted.
+- [x] System appearance selects the correct scheme, and a parameter/override makes both modes explicitly testable; there is no preference setting or platform theme fork.
+- [x] The one shared theme remains applied once at `App()`; Android, Desktop, previews and shared iOS scaffold consume it.
+- [x] Semantic caution/error roles are meaningful in both modes and UI status remains understandable without color alone.
+- [x] Typography preserves platform-default roles per the owner-approved font deferral; no font assets were added or substituted.
+- [x] Shape and spacing values are named and shared, not raw copied literals spread among screens.
+- [x] All documented text pairs meet 4.5:1 and meaningful non-text pairs meet 3:1 in both themes; tests independently compute ratios.
+- [x] Existing feature behavior, Spanish copy, accessibility semantics, and screen structure remain unchanged; no new module/dependency/framework was added.
+- [x] Focused tests, host tests and Android/Desktop builds pass; iOS compatibility status is accurately recorded without overclaiming release validation.
+- [x] Previews cover both themes and enlarged text; Android/Desktop appearance and visual checks are recorded with the large-text and keyboard-audit limits stated.
+- [x] `DESIGN.md` documents the final values and `feature_list.json`/`PROGRESS.md` reflect independent acceptance.

@@ -12,6 +12,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.RadioButton
@@ -35,25 +36,30 @@ import org.jetbrains.compose.resources.stringResource
  * Apply it **once**, inside [com.jamarglex.manijero.App], so Android, Desktop, the iOS scaffold, and
  * every preview inherit one palette. Platform entry points must not wrap it again.
  *
- * Light-only by decision: no dark tokens exist, and `DESIGN.md` defines one warm palette for the MVP.
- * The theme deliberately does not call `isSystemInDarkTheme()`, so a person whose system is in dark
- * mode still sees the light warm theme instead of an unverified dark palette.
+ * The system appearance selects the matching shared light or dark palette. The [darkTheme] parameter
+ * defaults to [isSystemInDarkTheme] and can be set explicitly by previews and tests.
  *
  * Shapes stay at the Material 3 baseline, which already provides the simple rounded cards and
  * buttons `DESIGN.md` asks for.
  */
 @Composable
-internal fun ManijeroTheme(content: @Composable () -> Unit) {
+internal fun ManijeroTheme(darkTheme: Boolean = isSystemInDarkTheme(), content: @Composable () -> Unit) {
+    val scheme = selectManijeroColorScheme(darkTheme)
     CompositionLocalProvider(
-        LocalManijeroSemanticColors provides ManijeroLightSemanticColors,
+        LocalManijeroSemanticColors provides if (darkTheme) ManijeroDarkSemanticColors else ManijeroLightSemanticColors,
     ) {
         MaterialTheme(
-            colorScheme = ManijeroLightColorScheme,
+            colorScheme = scheme,
             typography = ManijeroTypography,
+            shapes = ManijeroShapes.Material,
             content = content,
         )
     }
 }
+
+/** Pure appearance mapping shared by the theme and common unit tests. */
+internal fun selectManijeroColorScheme(darkTheme: Boolean) =
+    if (darkTheme) ManijeroDarkColorScheme else ManijeroLightColorScheme
 
 private data class TokenSwatch(
     val name: String,
@@ -181,11 +187,17 @@ private fun ManijeroTokenBoard() {
 @Preview(name = "Manijero tokens — board", widthDp = 420)
 @Composable
 private fun ManijeroTokenBoardPreview() {
-    ManijeroTheme { ManijeroTokenBoard() }
+    ManijeroTheme(darkTheme = false) { ManijeroTokenBoard() }
+}
+
+@Preview(name = "Manijero tokens — dark", widthDp = 420)
+@Composable
+private fun ManijeroTokenBoardDarkPreview() {
+    ManijeroTheme(darkTheme = true) { ManijeroTokenBoard() }
 }
 
 @Preview(name = "Manijero tokens — large text", widthDp = 420, fontScale = 2f)
 @Composable
 private fun ManijeroTokenBoardLargeTextPreview() {
-    ManijeroTheme { ManijeroTokenBoard() }
+    ManijeroTheme(darkTheme = false) { ManijeroTokenBoard() }
 }

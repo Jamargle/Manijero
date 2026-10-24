@@ -65,3 +65,4 @@ restate evidence here.
 | 2026-10-20 | `land_backup_decision` accepted; pilot acceptability remains unresolved pending evidence. | `docs/specs/land_backup_decision.md` · `docs/validations/land_backup_decision.md` |
 | 2026-10-21 | `desktop_land_layout_decision` accepted. | `docs/specs/desktop_land_layout_decision.md` · `docs/validations/desktop_land_layout_decision.md` |
 | 2026-10-21 | `desktop_wide_land_layout` accepted. | `docs/specs/desktop_wide_land_layout.md` · `docs/validations/desktop_wide_land_layout.md` |
+| 2026-10-24 | `shared_design_system` accepted with owner-approved font deferral documented. | `docs/specs/shared_design_system.md` · `docs/validations/shared_design_system.md` |
