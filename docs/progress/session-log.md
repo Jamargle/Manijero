@@ -8,6 +8,8 @@ restate evidence here.
 
 | Date | Event | Record |
 |---|---|---|
+| 2026-10-24 | Planned `shared_design_system` from the user-selected Stitch light/dark tokens and typography; feature is not_started pending implementation and font provenance verification. | `docs/specs/shared_design_system.md`, `docs/specs/shared_design_system.appendix.md`, `DESIGN.md` |
+| 2026-10-22 | Imported user-provided Stitch screen/design references and indexed their relationship to existing feature contracts; no feature status or shipped tokens changed. | `design-references/README.md`, `DESIGN.md`, `ARCHITECTURE.md` |
 | 2026-10-19 | `coverage_and_help` accepted with owner-approved keyboard-focus and screen-reader checks remaining unverified. | `docs/specs/coverage_and_help.md` · `docs/validations/coverage_and_help.md` |
 | 2026-10-05 | Build brief initiated from the user's olive-grove-manager description. | `docs/build-brief.md` |
 | 2026-10-05 | Discovery documents created. | `CONTEXT.md`, `docs/domain-model.md`, `docs/risks-and-open-questions.md` |

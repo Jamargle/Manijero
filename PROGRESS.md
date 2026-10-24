@@ -3,7 +3,7 @@
 ## Current state
 
 Routine entry point. This status board is the read budget for `PROGRESS.md`; the long-form narrative and the chronological pointer index are on demand (see "Detail on demand" below).
-Last updated: 2026-10-20.
+Last updated: 2026-10-24.
 
 **Feature set**  source of truth `feature_list.json`.
 
@@ -22,6 +22,7 @@ Last updated: 2026-10-20.
 
 - The remaining backend citation hardening F1 and stale `knowledge/README.md` citation wording are resolved by `backend_citation_hardening`.
 - Outstanding manual check: the low-digital-confidence comprehension check (owner `chat_accessibility`).
+- `shared_design_system` is planned from the Stitch references (both themes, follow-system selection); implementation is not started. The archive has no font binaries/license documents, so Source Serif 4 / Source Sans 3 provenance must be verified before bundling.
 
 **Detail on demand**
 

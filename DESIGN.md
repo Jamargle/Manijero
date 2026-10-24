@@ -7,8 +7,20 @@ spec; architecture and source-set boundaries belong in `ARCHITECTURE.md`; implem
 verification status belong in `PROGRESS.md` and `docs/validations/`. For routine feature work, read
 this file only when the feature changes user-facing UI or copy.
 
-No authoritative mockups or verified brand palette exist. This is the initial MVP direction, not a
-pixel specification. The launcher icon is an identity asset, not a UI reference.
+Stitch mockups reference archive is indexed in [`design-references/README.md`](design-references/README.md). The user has selected its light/dark design-system files as the baseline for a shared design-system feature; this is a target direction, not a claim that the app already implements it. The existing theme remains the shipped implementation until `shared_design_system` is implemented and validated. The launcher icon is an identity asset, not a UI reference.
+
+### Reference designs and adoption rules
+
+- Treat screen PNGs and HTML under `design-references/stitch/` as visual inspiration, not production-ready Compose or a source of truth for product behavior.
+- The selected target palettes and typography are recorded in `stitch/manijero_design_system/DESIGN.md` and `stitch/manijero_design_system_dark_mode/DESIGN.md`. Their adoption is owned by [`shared_design_system`](docs/specs/shared_design_system.md); palette pairs may be adjusted only when documented contrast verification requires it. Until that feature is accepted, do not imply that the shipped app supports dark mode.
+- Stitch PRD/masterplan text is historical design input. Where it proposes behavior outside the current MVP (for example navigation or content not in the accepted contracts), existing product scope and approved feature specs take precedence.
+- Screen references map to existing feature contracts rather than creating duplicate feature entries. See the archive index for the mapping and known gaps.
+
+### Shared design-system target (planned)
+
+`shared_design_system` will define the app-wide Compose Multiplatform design language in `shared/src/commonMain`: Stitch light/dark semantic color roles, system-following theme selection, the Stitch typography scale, shared shape/spacing values, and a preview/review surface. Target detailed values are in the two Stitch design-system files linked above; verify every foreground/background and non-text pair for WCAG AA and document any necessary adjustment in the feature spec/evidence. Keep token declarations centralized; screen code consumes `MaterialTheme` roles or named semantic tokens, never raw colors. Use system appearance by default; this feature does not add an appearance preference UI or persisted override.
+
+This target replaces the original single light-only token direction once implementation is independently accepted. It does not itself restyle every existing screen or make each Stitch mockup a pixel-perfect contract; screen-level adoption remains with each owning feature.
 
 ## Design intent
 
@@ -69,8 +81,7 @@ documented where they are declared in `ManijeroColors.kt`.
 provided through `LocalManijeroSemanticColors`. `danger` is `colorScheme.error` and `border` is
 `colorScheme.outline`, so each value keeps a single source.
 
-The MVP uses the verified warm light palette, including when the device is in dark mode. Dark-theme
-support is not specified; do not imply that a dark palette has been verified.
+The currently shipped app still uses the warm light palette, including when the device is in dark mode. Dark-theme support is a planned target of `shared_design_system`; do not imply it has been implemented or verified before that feature is accepted.
 
 ## Layout and interaction
 
