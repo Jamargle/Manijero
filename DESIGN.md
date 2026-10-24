@@ -11,15 +11,15 @@ Stitch mockups reference archive is indexed in [`design-references/README.md`](d
 ### Reference designs and adoption rules
 
 - Treat screen PNGs and HTML under `design-references/stitch/` as visual inspiration, not production-ready Compose or a source of truth for product behavior.
-- The selected baseline palettes and typography are recorded in `stitch/manijero_design_system/DESIGN.md` and `stitch/manijero_design_system_dark_mode/DESIGN.md`. The implemented values below are authoritative; contrast-driven adjustments are noted.
+- The selected baseline palettes are recorded in `stitch/manijero_design_system/DESIGN.md` and `stitch/manijero_design_system_dark_mode/DESIGN.md`. The implemented values below are authoritative; contrast-driven adjustments are noted.
 - Stitch PRD/masterplan text is historical design input. Where it proposes behavior outside the current MVP (for example navigation or content not in the accepted contracts), existing product scope and approved feature specs take precedence.
 - Screen references map to existing feature contracts rather than creating duplicate feature entries. See the archive index for the mapping and known gaps.
 
-### Shared design system (implemented; owner-approved font gate deferred)
+### Shared design system (implemented)
 
 `shared_design_system` defines paired roles in `shared/src/commonMain`, selected automatically with the common Compose system appearance signal. No appearance setting or platform theme fork exists. The constructors explicitly map every applicable Material 3 role and semantic caution colors; source values are in `ManijeroColors.kt`. Common previews cover light, dark, and enlarged text. Shape and spacing scales live in `ManijeroTokens.kt`.
 
-**Font gate — deferred by owner decision:** do not download, add, or bundle font binaries, and do not substitute another bundled family. Preserve the platform default font family exactly as before; existing scalable Material typography roles remain. The Stitch Source Serif 4 / Source Sans 3 direction cannot be adopted until provenance and redistribution terms are approved.
+**Typography:** the app uses the Material 3 default typography, which resolves to the platform font. No custom family, scale, or bundled font asset is part of the design system.
 
 The paired scheme extends the original light-only foundation without changing screen layouts or behavior. Screen-level changes remain with each owning feature. The ten base light tokens in the table below remain the accepted warm olive palette (including their original hex values); derived Material roles and a dark counterpart are added.
 

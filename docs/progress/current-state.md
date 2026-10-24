@@ -28,10 +28,10 @@ points at the per-feature records.
   land_safety_eval}.py`, each with a matching `backend/scripts/evaluate_*.py` CLI, a schema under
   `knowledge/`, and synthetic implementer-authored fixtures under `backend/tests/fixtures/`. Their
   numbers are report-only and none is legal-coverage evidence.
-- **Theme and accessibility.** `visual_foundation`'s olive theme (`theme/ManijeroColors.kt`,
-  `ManijeroTheme.kt`, `ManijeroTypography.kt`) is applied once in `App()`; chat, the land forms,
-  and the privacy notice carry the accepted accessibility treatment (merged semantics, polite live
-  regions, never colour alone).
+- **Theme and accessibility.** The shared design system's themed palette (`theme/ManijeroColors.kt`,
+  `ManijeroTheme.kt`) is applied once in `App()`. Chat, the
+  land forms, and the privacy notice carry the accepted accessibility treatment (merged semantics,
+  polite live regions, never colour alone).
 - **Verification and evidence.** The `./scripts/init.sh` tiers (`--feature`, `--fast`, `--verify`,
   `--backend-tests`, `--android`, `--desktop`) are the gate. No automated UI/E2E harness exists:
   Android evidence is an emulator-only debug artifact and Desktop evidence is a local run.

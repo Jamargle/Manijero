@@ -25,12 +25,11 @@ The feature is correctly sized: one cross-cutting presentation layer, no data mo
 ## Implementation plan and tasks
 
 1. Write `ManijeroColorsTest` expectations first (exact hex values, role mapping, contrast thresholds), then implement `ManijeroColors.kt` until the test passes. Keep the WCAG helper in the palette file and free of I/O.
-2. Add `ManijeroTypography.kt` with the single override and its test.
-3. Add `ManijeroTheme.kt` (theme + semantic local + token-board previews); confirm the preview renders olive/canvas values, not purple.
-4. Apply `ManijeroTheme` once inside `App()`; repoint all fifteen existing previews; run the existing suites to confirm no behavior regression.
-5. Re-run the contrast table against the shipped values and correct any value that misses its threshold by adjusting the derived value (never by lowering the threshold or dropping a pair).
-6. Run the full command set below, capture output, then perform the Android and Desktop manual checks and the greyscale non-color cue check.
-7. After implementation and independent validation only: update `feature_list.json`/`PROGRESS.md`, refresh the `scripts/init.sh` banner text, and make the `DESIGN.md` documentation update.
+2. Add `ManijeroTheme.kt` (theme + semantic local + token-board previews); confirm the preview renders olive/canvas values, not purple. Typography keeps the Material 3 default.
+3. Apply `ManijeroTheme` once inside `App()`; repoint all fifteen existing previews; run the existing suites to confirm no behavior regression.
+4. Re-run the contrast table against the shipped values and correct any value that misses its threshold by adjusting the derived value (never by lowering the threshold or dropping a pair).
+5. Run the full command set below, capture output, then perform the Android and Desktop manual checks and the greyscale non-color cue check.
+6. After implementation and independent validation only: update `feature_list.json`/`PROGRESS.md`, refresh the `scripts/init.sh` banner text, and make the `DESIGN.md` documentation update.
 
 ## Verification plan and evidence
 
@@ -86,9 +85,9 @@ for status and dependencies, and `docs/validations/<feature-id>.md` remains auth
 for the independent acceptance record.
 
 - Spec: docs/specs/visual_foundation.md.
-- New shared theme package in commonMain (shared/src/commonMain/kotlin/com/jamarglex/manijero/theme/): ManijeroColors.kt (DESIGN.md tokens + derived values, a fully specified lightColorScheme, ManijeroSemanticColors/LocalManijeroSemanticColors, dependency-free WCAG helpers), ManijeroTypography.kt (single documented bodySmall 16sp->18sp line-height override), and ManijeroTheme.kt (theme + semantic local + review-only token-board previews).
+- New shared theme package in commonMain (shared/src/commonMain/kotlin/com/jamarglex/manijero/theme/): ManijeroColors.kt (DESIGN.md tokens + derived values, a fully specified lightColorScheme, ManijeroSemanticColors/LocalManijeroSemanticColors, dependency-free WCAG helpers) and ManijeroTheme.kt (theme + semantic local + review-only token-board previews). Typography is the Material 3 default; no typography file is needed.
 - ManijeroTheme is applied once inside App() (the shared composition root) and all fifteen existing previews (seven in App.kt, eight in AddLandScreen.kt) use it; the Android, Desktop and iOS hosts stay theme-free and inherit one shared theme. No layout, copy, spacing, or behavior changed; no new module, framework, or dependency.
-- ./scripts/init.sh --verify -> BUILD SUCCESSFUL. ./gradlew :shared:jvmTest :shared:testAndroidHostTest --rerun-tasks -> BUILD SUCCESSFUL: 54 JVM tests / 0 failures (ManijeroColorsTest 10, ManijeroTypographyTest 4 new) and 51 Android host tests / 0 failures; :androidApp:assembleDebug and :desktopApp:build pass.
+- ./scripts/init.sh --verify -> BUILD SUCCESSFUL. ./gradlew :shared:jvmTest :shared:testAndroidHostTest --rerun-tasks -> BUILD SUCCESSFUL: 54 JVM tests / 0 failures (ManijeroColorsTest 10 at acceptance time) and 51 Android host tests / 0 failures; :androidApp:assembleDebug and :desktopApp:build pass.
 - Centralization greps: no Color(0x outside theme/; no argument-less MaterialTheme {; MaterialTheme( only in theme/ManijeroTheme.kt; no LocalMinimumInteractiveComponentSize/minimumInteractiveComponentSize override.
 - DESIGN.md updated with the derived-token table and the light-only decision. Self-verified; awaiting independent validation.
 - Independent validator ACCEPTED (record: docs/validations/visual_foundation.md) after re-running ./scripts/init.sh --verify and :shared:jvmTest :shared:testAndroidHostTest --rerun-tasks (54 JVM / 51 Android host tests, 0 failures), reproducing the WCAG pairs with an independent computation, and confirming scope discipline (commonMain-only theme, no new module/dependency, hosts/strings/Gradle untouched, no logging).

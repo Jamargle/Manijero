@@ -30,8 +30,8 @@ import manijero.shared.generated.resources.add_land_save_failed
 import org.jetbrains.compose.resources.stringResource
 
 /**
- * The single shared theme: [ManijeroLightColorScheme] roles, [ManijeroTypography], and the
- * [LocalManijeroSemanticColors] values Material 3 cannot express.
+ * The single shared theme: the paired light/dark Manijero color schemes, the shared shape scale, and
+ * the [LocalManijeroSemanticColors] values Material 3 cannot express.
  *
  * Apply it **once**, inside [com.jamarglex.manijero.App], so Android, Desktop, the iOS scaffold, and
  * every preview inherit one palette. Platform entry points must not wrap it again.
@@ -39,8 +39,8 @@ import org.jetbrains.compose.resources.stringResource
  * The system appearance selects the matching shared light or dark palette. The [darkTheme] parameter
  * defaults to [isSystemInDarkTheme] and can be set explicitly by previews and tests.
  *
- * Shapes stay at the Material 3 baseline, which already provides the simple rounded cards and
- * buttons `DESIGN.md` asks for.
+ * Typography stays at the Material 3 default, which resolves to the platform font, so no type
+ * family, size, weight, or font asset is owned here.
  */
 @Composable
 internal fun ManijeroTheme(darkTheme: Boolean = isSystemInDarkTheme(), content: @Composable () -> Unit) {
@@ -50,7 +50,6 @@ internal fun ManijeroTheme(darkTheme: Boolean = isSystemInDarkTheme(), content: 
     ) {
         MaterialTheme(
             colorScheme = scheme,
-            typography = ManijeroTypography,
             shapes = ManijeroShapes.Material,
             content = content,
         )

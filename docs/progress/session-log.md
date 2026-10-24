@@ -8,7 +8,7 @@ restate evidence here.
 
 | Date | Event | Record |
 |---|---|---|
-| 2026-10-24 | Planned `shared_design_system` from the user-selected Stitch light/dark tokens and typography; feature is not_started pending implementation and font provenance verification. | `docs/specs/shared_design_system.md`, `docs/specs/shared_design_system.appendix.md`, `DESIGN.md` |
+| 2026-10-24 | Planned `shared_design_system` from the user-selected Stitch light/dark tokens; feature is not_started pending implementation. | `docs/specs/shared_design_system.md`, `docs/specs/shared_design_system.appendix.md`, `DESIGN.md` |
 | 2026-10-22 | Imported user-provided Stitch screen/design references and indexed their relationship to existing feature contracts; no feature status or shipped tokens changed. | `design-references/README.md`, `DESIGN.md`, `ARCHITECTURE.md` |
 | 2026-10-19 | `coverage_and_help` accepted with owner-approved keyboard-focus and screen-reader checks remaining unverified. | `docs/specs/coverage_and_help.md` · `docs/validations/coverage_and_help.md` |
 | 2026-10-05 | Build brief initiated from the user's olive-grove-manager description. | `docs/build-brief.md` |
@@ -65,4 +65,5 @@ restate evidence here.
 | 2026-10-20 | `land_backup_decision` accepted; pilot acceptability remains unresolved pending evidence. | `docs/specs/land_backup_decision.md` · `docs/validations/land_backup_decision.md` |
 | 2026-10-21 | `desktop_land_layout_decision` accepted. | `docs/specs/desktop_land_layout_decision.md` · `docs/validations/desktop_land_layout_decision.md` |
 | 2026-10-21 | `desktop_wide_land_layout` accepted. | `docs/specs/desktop_wide_land_layout.md` · `docs/validations/desktop_wide_land_layout.md` |
-| 2026-10-24 | `shared_design_system` accepted with owner-approved font deferral documented. | `docs/specs/shared_design_system.md` · `docs/validations/shared_design_system.md` |
+| 2026-10-24 | `shared_design_system` accepted; typography is the Material 3 default. | `docs/specs/shared_design_system.md` · `docs/validations/shared_design_system.md` |
+| 2026-10-25 | Removed the custom typography file, its test, and the `bodySmall` override; the app now uses Material 3 default typography. | `docs/validations/shared_design_system.md` · `DESIGN.md` |

@@ -68,10 +68,9 @@ class ManijeroDesignSystemTest {
     }
 
     @Test
-    fun semanticColorsAndSharedTypeAndGeometryAreAvailable() {
+    fun semanticColorsAndSharedGeometryAreAvailable() {
         assertTrue(contrastRatio(ManijeroLightSemanticColors.caution, ManijeroLightSemanticColors.cautionSurface) >= 4.5)
         assertTrue(contrastRatio(ManijeroDarkSemanticColors.caution, ManijeroDarkSemanticColors.cautionSurface) >= 4.5)
-        assertEquals(18, ManijeroTypography.bodySmall.lineHeight.value.toInt())
         assertEquals(24, ManijeroSpacing.Medium.value.toInt())
         assertTrue(ManijeroShapes.Small != ManijeroShapes.Large)
     }

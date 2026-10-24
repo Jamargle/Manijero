@@ -15,7 +15,7 @@ Create one shared Material 3 theme in `commonMain` from the `DESIGN.md` "Visual 
 **In scope**
 
 - A centralized token layer in `commonMain`: the ten `DESIGN.md` tokens plus the minimum derived values needed to replace every Material 3 default color role.
-- A complete `lightColorScheme(...)` mapping (no role left at a Material default), a `Typography` value that keeps the platform system sans and generous line height, and a small semantic-color local for the tokens Material 3 has no role for (caution, caution surface, strong olive).
+- A complete `lightColorScheme(...)` mapping (no role left at a Material default), Material 3 default typography (no custom type scale), and a small semantic-color local for the tokens Material 3 has no role for (caution, caution surface, strong olive).
 - Applying the theme once in `App()`, so `MainActivity` and desktop `main.kt` (and the iOS scaffold) inherit it without platform-specific theme code.
 - Repointing all existing `@Preview` wrappers from `MaterialTheme { }` (default purple palette) to the shared theme, plus one review-only token-board preview.
 - Pure `commonTest` coverage for token values, role mapping, "no Material default leaked", and WCAG contrast ratios, runnable on JVM and Android host.
@@ -141,11 +141,13 @@ Danger is **not** duplicated here: it is `MaterialTheme.colorScheme.error` (`#A1
 
 ### 5. Typography
 
-`ManijeroTypography` = Material 3 `Typography()` (which already resolves to the platform system sans via `FontFamily.Default`) with exactly one override: `bodySmall` line height `16.sp → 18.sp`, because `bodySmall` is the smallest text in the app (text-field labels, supporting text, and validation errors) and 12sp at a 1.33 ratio is cramped for accented Spanish. Every other role keeps the Material baseline; the rule to test is that the prose body roles (`bodyLarge`, `bodyMedium`, `bodySmall`) and `labelLarge` keep `lineHeight ≥ 1.4 × fontSize`, and no font asset or font dependency is introduced. Do not change font sizes, weights, or letter spacing.
+Typography is the Material 3 default `Typography()`, which resolves to the platform font via `FontFamily.Default`. No custom typography object, size/weight/letter-spacing change, line-height override, or bundled font asset is introduced, and text stays scalable with `sp`.
+
+> Amendment 2026-10-25: this contract originally specified a `bodySmall` line-height override (`16.sp → 18.sp`). The owner removed it in favor of pure Material defaults to reduce maintenance surface; the override and its test no longer exist.
 
 ### 6. Theme application
 
-- `internal fun ManijeroTheme(content: @Composable () -> Unit)` wraps `MaterialTheme(colorScheme = ManijeroLightColorScheme, typography = ManijeroTypography, content = ...)` inside `CompositionLocalProvider(LocalManijeroSemanticColors provides ManijeroSemanticColors)`.
+- `internal fun ManijeroTheme(content: @Composable () -> Unit)` wraps `MaterialTheme(colorScheme = ManijeroLightColorScheme, content = ...)` inside `CompositionLocalProvider(LocalManijeroSemanticColors provides ManijeroSemanticColors)`. Typography stays the Material 3 default.
 - Apply it **once, inside `App()`**, around the `when (destination)` content. `App()` is already documented as the composition root and is called by `MainActivity`, desktop `main.kt`, and `MainViewController`, so all three hosts plus every `App()` preview inherit one theme with no duplicated platform code. Platform entry points stay unchanged (and must not add a second `MaterialTheme`); if an implementer instead wraps each platform root, all three hosts and every preview must be updated — the single shared wrap is the chosen approach.
 - Light-only: pass an explicit light scheme and do not call `isSystemInDarkTheme()`. Consequence and owner are recorded in U2.
 - Shapes stay at the Material 3 baseline (`MaterialTheme` default): `DESIGN.md` asks for simple rounded cards/buttons, which the baseline already provides; introducing a custom shape scale is unverified work.
@@ -178,12 +180,11 @@ Documented non-requirements: container fills (`surface` vs `canvas` 1.08, `surfa
 ## Expected file changes
 
 - **Create** `shared/src/commonMain/kotlin/com/jamarglex/manijero/theme/ManijeroColors.kt`: `DESIGN.md` tokens and derived values as documented `internal` Compose `Color` constants, `ManijeroLightColorScheme: ColorScheme`, `ManijeroSemanticColors` + `LocalManijeroSemanticColors`, and the `internal` WCAG helpers `relativeLuminance(Color)` / `contrastRatio(Color, Color)`. No Compose UI imports beyond `androidx.compose.ui.graphics.Color` and `material3`.
-- **Create** `shared/src/commonMain/kotlin/com/jamarglex/manijero/theme/ManijeroTypography.kt`: `ManijeroTypography: Typography` with the single documented `bodySmall` line-height override.
-- **Create** `shared/src/commonMain/kotlin/com/jamarglex/manijero/theme/ManijeroTheme.kt`: `ManijeroTheme(content)`, the semantic-color provider, and the token-board previews.
+- **Create** `shared/src/commonMain/kotlin/com/jamarglex/manijero/theme/ManijeroTheme.kt`: `ManijeroTheme(content)`, the semantic-color provider, and the token-board previews. Typography keeps the Material 3 default; no typography file is created.
 - **Modify** `shared/src/commonMain/kotlin/com/jamarglex/manijero/App.kt`: wrap the destination content in `ManijeroTheme`; switch the seven previews from `MaterialTheme {` to `ManijeroTheme {`. No layout, copy, or behavior change.
 - **Modify** `shared/src/commonMain/kotlin/com/jamarglex/manijero/lands/AddLandScreen.kt`: switch the eight previews from `MaterialTheme {` to `ManijeroTheme {`. No layout, copy, or behavior change.
 - **Create** `shared/src/commonTest/kotlin/com/jamarglex/manijero/theme/ManijeroColorsTest.kt`: token values, role mapping, "no Material default leaked", and the contrast pairs.
-- **Create** `shared/src/commonTest/kotlin/com/jamarglex/manijero/theme/ManijeroTypographyTest.kt`: the line-height rule, `labelLarge` rule, and no bundled font family.
+- **Do not** add a typography test: typography is the Material 3 default with no local values to assert.
 - **Do not modify** `androidApp/src/main/kotlin/com/jamarglex/manijero/MainActivity.kt`, `desktopApp/src/main/kotlin/com/jamarglex/manijero/main.kt`, `shared/src/iosMain/.../MainViewController.kt`, `shared/src/commonMain/composeResources/values/strings.xml`, any Gradle file or version catalog, backend/contracts, land storage, or `scripts/init.sh`.
 - **Documentation (implementation phase):** update the `DESIGN.md` "Visual foundation" section with the derived token table and the light-only decision; optionally add one row to the implementation-time table in `docs/risks-and-open-questions.md` for dark mode / launcher artwork. Planning changes neither.
 
@@ -219,7 +220,7 @@ changed; `./scripts/init.sh --verify` remains the full gate.
 
 <!-- verify:start -->
 ```sh
-./gradlew :shared:jvmTest --tests ManijeroColorsTest --tests ManijeroTypographyTest
+./gradlew :shared:jvmTest --tests ManijeroColorsTest
 ```
 <!-- verify:end -->
 

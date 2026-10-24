@@ -6,7 +6,7 @@
 
 - Independently reviewed the implementation diff against [`docs/specs/shared_design_system.md`](../specs/shared_design_system.md), its appendix checklist, `DESIGN.md`, and the shared-source constraints.
 - Confirmed explicit paired Material 3 light/dark role mappings and semantic caution roles in common code; `ManijeroTheme` uses the common `isSystemInDarkTheme()` signal by default and supports explicit light/dark preview/test selection. The shared root remains the only theme application; no host theme fork or appearance preference was added.
-- Confirmed named shared shape/spacing tokens, shared typography roles, and common light/dark/enlarged-text previews. Common tests cover all 36 applicable Material roles in both schemes, documented WCAG pairs, semantic locals, explicit appearance mapping, and all 15 typography roles' size/weight/family/line-height behavior against platform-default `Typography()` (with the documented `bodySmall` 18sp line-height override).
+- Confirmed named shared shape/spacing tokens, shared typography roles, and common light/dark/enlarged-text previews. Common tests cover all 36 applicable Material roles in both schemes, documented WCAG pairs, semantic locals, explicit appearance mapping, and all 15 typography roles' size/weight/family/line-height behavior against platform-default `Typography()` (with the documented `bodySmall` 18sp line-height override). **Superseded by the 2026-10-25 typography amendment below.**
 - Confirmed the dark `outlineVariant` adjustment from Stitch `#424942` to `#646B64` is documented and contrast-tested. No screens, layouts, app behavior, navigation, platform source, dependencies, or Gradle configuration were changed for this feature.
 
 ## Verification
@@ -32,8 +32,14 @@ These captures provide visual evidence of appearance selection and review states
 
 ## Limitations and owner decision
 
-- **Font gate deferred by owner decision:** no font binary was downloaded, added, or bundled. The platform default font family is preserved exactly; Source Serif 4 / Source Sans 3 are not silently replaced by another bundled family. Adoption remains blocked pending verified provenance and redistribution terms plus a future owner decision.
+- **Font gate deferred by owner decision (superseded 2026-10-25):** at acceptance time no font binary was downloaded, added, or bundled. The owner has since decided to keep typography at the Material 3 default, so the font question no longer applies; there is no typography file, custom scale, or bundled asset.
 - Backend pytest is unavailable and was skipped. No iOS simulator compilation was run.
 - The enlarged-text capture is limited to the visible viewport; full-flow scrolling and a keyboard-navigation/focus-order audit were not evaluated. There is no automated screenshot/E2E harness.
+
+## Amendment 2026-10-25: Material default typography
+
+- The owner chose to use the Material 3 default typography to reduce complexity. `ManijeroTypography.kt` and `ManijeroTypographyTest` were deleted; `ManijeroTheme` no longer passes a `typography` argument, so the `bodySmall` 18sp line-height override is gone and every role resolves to `Typography()`.
+- `ManijeroDesignSystemTest` no longer asserts typography; its shared-value test now covers semantic colors and shape/spacing only.
+- Re-verified with `./scripts/init.sh --feature shared_design_system` and `./scripts/init.sh --verify` after the change. The earlier typography assertions and font-gate statements in this record are historical and no longer describe the code.
 
 No feature-specific security or privacy issue was found. The acceptance record and raw verification evidence are also indexed in [`docs/progress/session-log.md`](../progress/session-log.md) and the spec appendix.

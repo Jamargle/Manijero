@@ -10,8 +10,7 @@
 ## What was validated
 
 - The shared theme lives only in `shared/src/commonMain/kotlin/com/jamarglex/manijero/theme/`
-  (`ManijeroColors.kt`, `ManijeroTheme.kt`, `ManijeroTypography.kt`); no Gradle module, framework, or
-  dependency was added.
+  (`ManijeroColors.kt`, `ManijeroTheme.kt`, and `ManijeroTypography.kt` as accepted on this date); no Gradle module, framework, or dependency was added. The typography file was later removed on 2026-10-25 (see amendment).
 - The ten `DESIGN.md` tokens ship with their exact documented values, and every derived value appears
   in both the spec's table and `DESIGN.md`.
 - `lightColorScheme(...)` sets every documented Material 3 role explicitly, and the "no Material
@@ -31,7 +30,7 @@
 - `./scripts/init.sh --verify` → **BUILD SUCCESSFUL**.
 - `./gradlew :shared:jvmTest :shared:testAndroidHostTest --rerun-tasks` → **BUILD SUCCESSFUL**:
   - `:shared:jvmTest`: **54 tests, 0 failures** (`ManijeroColorsTest` 10, `ManijeroTypographyTest` 4
-    new).
+    new, at acceptance time).
   - `:shared:testAndroidHostTest`: **51 tests, 0 failures** (same 14 new theme tests).
 - `:androidApp:assembleDebug` (debug APK produced) and `:desktopApp:build` → **BUILD SUCCESSFUL** via
   `--verify`.
@@ -70,3 +69,13 @@ contrast tests are the evidence available before `response_states` ships.
   separation relies on the `outline`/`outlineVariant` boundary and text, which the spec documents.
 
 No blocking findings. Verdict: accept.
+
+## Amendment 2026-10-25: Material default typography
+
+- The owner later chose pure Material 3 default typography. `ManijeroTypography.kt` and
+  `ManijeroTypographyTest.kt` were deleted, and `ManijeroTheme` no longer passes a `typography`
+  argument, so the accepted `bodySmall` 18sp line-height override no longer applies.
+- Everything above about the theme, palette, contrast, previews, and accessibility remains as
+  accepted. The typography sentence and test-count entries above are historical and were true on
+  2026-10-13; they do not describe the current code. Current status is recorded in
+  [`docs/validations/shared_design_system.md`](shared_design_system.md).
