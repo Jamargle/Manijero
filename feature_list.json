@@ -60,6 +60,7 @@
     {"id": "land_backup_decision", "area": "privacy", "title": "Decide the local land backup and recovery stance", "status": "accepted", "depends_on": ["local_land_store", "land_data_disclosure"], "spec": "docs/specs/land_backup_decision.md", "validation": "docs/validations/land_backup_decision.md"},
     {"id": "desktop_land_layout_decision", "area": "client", "title": "Decide whether land screens need a capped wide-window layout", "status": "accepted", "depends_on": ["desktop_mvp_build", "land_list", "edit_land"], "spec": "docs/specs/desktop_land_layout_decision.md", "validation": "docs/validations/desktop_land_layout_decision.md"},
     {"id": "desktop_wide_land_layout", "area": "client", "title": "Apply the approved wide-window layout to land screens", "status": "accepted", "depends_on": ["desktop_land_layout_decision", "land_list", "edit_land", "remove_land", "land_data_disclosure"], "spec": "docs/specs/desktop_wide_land_layout.md", "validation": "docs/validations/desktop_wide_land_layout.md"},
+    {"id": "shared_design_system", "area": "client", "title": "Shared light and dark design system", "status": "not_started", "depends_on": ["visual_foundation"], "spec": "docs/specs/shared_design_system.md", "validation": "docs/validations/shared_design_system.md"},
     {"id": "coverage_and_help", "area": "client", "title": "Coverage limits and human help", "status": "accepted", "depends_on": ["land_data_disclosure", "backend_pac_corpus"], "spec": "docs/specs/coverage_and_help.md", "validation": "docs/validations/coverage_and_help.md"}
   ]
 }

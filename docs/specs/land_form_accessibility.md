@@ -120,7 +120,7 @@ No visual change: same background, Material 3 fields, radio rows, error role, bu
 - **Modify** `shared/src/commonMain/kotlin/com/jamarglex/manijero/lands/AddLandScreen.kt`: `selectableGroup()` in `ChoiceGroup`, the group-qualified option `contentDescription`, `heading()` on the title, the name-field `focusRequester`, focus-on-blank-save, the error announcement, and one combined narrow/large-font error preview.
 - **Modify** `shared/src/commonMain/kotlin/com/jamarglex/manijero/lands/EditLandScreen.kt`: the same `heading()`, focus request, focus-on-blank-save, error announcement and combined preview (the choice fixes arrive through the shared `ChoiceGroup`).
 - **Modify** `shared/src/commonMain/composeResources/values/strings.xml`: add `add_land_choice_description` only.
-- **Update** `CONSTRAINTS.md` (new "Land form accessibility" MUST rule) and `DESIGN.md` (land add/edit accessibility baseline + gaps).
+- **Update** `CONSTRAINTS.md` (new "Land form accessibility" MUST rule); keep `DESIGN.md` to concise shared accessibility guidance and link to this feature's validation record rather than copying its evidence.
 - **Append one short note each** to `docs/specs/add_land.md` and `docs/specs/edit_land.md`: the deferred accessibility checks are now done (precedent: the `response_states` U2 and `land_clarification` N2 notes).
 - **Do not modify** `AddLandState.kt`, `EditLandState.kt`, `Land.kt`, `LandDraft.kt`, `LandRepository.kt`, the storage adapters/format, `LandListScreen.kt`, `RemoveLandScreen.kt`, `PrivacyScreen.kt`, `App.kt`, `ChatHomeState.kt`, `ChatConversation.kt`, `chat/`, `privacy/`, `theme/`, `androidApp/`, `desktopApp/`, `shared/src/iosMain/`, `contracts/`, `backend/`, `knowledge/`, any Gradle file, `scripts/init.sh`, and `feature_list.json`/`PROGRESS.md` while implementing.
 
@@ -144,7 +144,7 @@ No visual change: same background, Material 3 fields, radio rows, error role, bu
 | Document | Action | Reason |
 |---|---|---|
 | `CONSTRAINTS.md` | **Update during implementation** | One "Land form accessibility" MUST rule (group-qualified option names, `selectableGroup`, heading, announced + refocused name error) so a later screen cannot silently drop it. |
-| `DESIGN.md` | **Update during implementation** | Extend "Accessibility and validation" with the land add/edit baseline actually checked and the remaining gaps; that section forbids claiming accessibility before these checks. |
+| `DESIGN.md` | **Update during implementation** | Keep shared accessibility guidance concise and link to the authoritative validation record for form-specific evidence and remaining gaps; do not duplicate the report. |
 | `docs/specs/add_land.md`, `docs/specs/edit_land.md` | **Append one short note each after implementation** | The deferred accessibility validation (and `edit_land` F3/F6) is closed or explicitly deferred from this side; accepted behavior is not revised. |
 | `feature_list.json`, `PROGRESS.md` | After verified implementation only | Record status, the checks actually run and every unperformed/manual limit; planning does not touch them. |
 | `AGENTS.md`, `CONTEXT.md`, `docs/build-brief.md`, `docs/domain-model.md`, `docs/risks-and-open-questions.md`, `ARCHITECTURE.md`, `scripts/init.sh` | Not needed | The plain-Spanish/accessibility/shared-`commonMain` rules already govern; no product, domain, module, boundary, or script-mode change is introduced. |

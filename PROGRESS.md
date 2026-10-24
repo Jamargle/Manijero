@@ -3,7 +3,7 @@
 ## Current state
 
 Routine entry point. This status board is the read budget for `PROGRESS.md`; the long-form narrative and the chronological pointer index are on demand (see "Detail on demand" below).
-Last updated: 2026-10-20.
+Last updated: 2026-10-24.
 
 **Feature set**  source of truth `feature_list.json`.
 
@@ -22,6 +22,7 @@ Last updated: 2026-10-20.
 
 - The remaining backend citation hardening F1 and stale `knowledge/README.md` citation wording are resolved by `backend_citation_hardening`.
 - Outstanding manual check: the low-digital-confidence comprehension check (owner `chat_accessibility`).
+- `shared_design_system` is planned from the Stitch references (both themes, follow-system selection); implementation is not started. The archive has no font binaries/license documents, so Source Serif 4 / Source Sans 3 provenance must be verified before bundling.
 
 **Detail on demand**
 
@@ -40,7 +41,7 @@ Tiers, cheapest first; `./scripts/init.sh` holds the exact commands.
 - No-device tier: `./scripts/init.sh --fast` — `:shared:jvmTest`, `contracts/validate_examples.py`, the backend pytest suite, the `source-catalog-v1` validation of `knowledge/source_catalog.json`, and the five offline evaluators over `backend/tests/fixtures/`.
 - Full gate: `./scripts/init.sh --verify` (`--full`) — `--fast` plus `:shared:testAndroidHostTest`, `:androidApp:assembleDebug`, and `:desktopApp:build`.
 - Backend unit tests alone: `./scripts/init.sh --backend-tests [targets]` — needs pytest; with none available, `--fast` prints the virtualenv recipe, skips the suite locally, and fails under `CI`.
-- Android build: `./scripts/init.sh --android`. Launch Desktop: `./scripts/init.sh --desktop`.
+- Start the local API: `./scripts/init.sh --backend` (creates/reuses `backend/.venv`, installs runtime requirements, and launches Uvicorn). Android build: `./scripts/init.sh --android`; build, boot an emulator if needed, install, and launch: `./scripts/init.sh --android-run` (uses the first configured AVD when none is running). Launch Desktop: `./scripts/init.sh --desktop`.
 - The offline checks pin `--as-of 2026-10-13` so runs are deterministic; override with `MANIJERO_AS_OF=YYYY-MM-DD`.
 
 Evaluator flags, report-only caveats, and a feature's own commands live in its spec; the metrics stay report-only (see the limitations above).
