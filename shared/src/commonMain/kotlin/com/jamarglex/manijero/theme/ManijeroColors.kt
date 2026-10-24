@@ -2,6 +2,7 @@ package com.jamarglex.manijero.theme
 
 import androidx.compose.material3.ColorScheme
 import androidx.compose.material3.lightColorScheme
+import androidx.compose.material3.darkColorScheme
 import androidx.compose.runtime.Immutable
 import androidx.compose.runtime.staticCompositionLocalOf
 import androidx.compose.ui.graphics.Color
@@ -145,6 +146,27 @@ internal val ManijeroLightColorScheme: ColorScheme = lightColorScheme(
     surfaceContainerHighest = ManijeroSurfaceContainerHighest,
 )
 
+/** Dark roles follow the paired Stitch dark reference; adjusted olive roles retain Manijero semantics. */
+internal val ManijeroDarkColorScheme: ColorScheme = darkColorScheme(
+    primary = Color(0xFF85A886), onPrimary = Color(0xFF0D1B0E),
+    primaryContainer = Color(0xFF283C29), onPrimaryContainer = Color(0xFFCFE8CF),
+    inversePrimary = Color(0xFF456648), secondary = Color(0xFFD4C5A9), onSecondary = Color(0xFF382E1C),
+    secondaryContainer = Color(0xFF4F422E), onSecondaryContainer = Color(0xFFF1E5CC),
+    tertiary = Color(0xFFB8C5D6), onTertiary = Color(0xFF222D3B),
+    tertiaryContainer = Color(0xFF93A0B0), onTertiaryContainer = Color(0xFF2B3745),
+    background = Color(0xFF121612), onBackground = Color(0xFFE1E3DF),
+    surface = Color(0xFF121612), onSurface = Color(0xFFE1E3DF),
+    surfaceVariant = Color(0xFF333532), onSurfaceVariant = Color(0xFFC2C8BF),
+    surfaceTint = Color(0xFFABD0AC), inverseSurface = Color(0xFFE3E3DE),
+    inverseOnSurface = Color(0xFF2F312E), error = Color(0xFFFFB4AB), onError = Color(0xFF690005),
+    errorContainer = Color(0xFF93000A), onErrorContainer = Color(0xFFFFDAD6),
+    outline = Color(0xFF8C948C), outlineVariant = Color(0xFF646B64), scrim = ManijeroScrim,
+    surfaceBright = Color(0xFF242C24), surfaceDim = Color(0xFF1A201B),
+    surfaceContainerLowest = Color(0xFF0D100D), surfaceContainerLow = Color(0xFF181E18),
+    surfaceContainer = Color(0xFF202820), surfaceContainerHigh = Color(0xFF2C362C),
+    surfaceContainerHighest = Color(0xFF384438),
+)
+
 // ---------------------------------------------------------------------------------------------
 // Semantic colours Material 3 has no role for
 // ---------------------------------------------------------------------------------------------
@@ -174,6 +196,11 @@ internal val ManijeroLightSemanticColors = ManijeroSemanticColors(
     onCaution = ManijeroSurface,
     cautionSurface = ManijeroCautionSurface,
     primaryStrong = ManijeroOlive900,
+)
+
+internal val ManijeroDarkSemanticColors = ManijeroSemanticColors(
+    caution = Color(0xFFFFD18A), onCaution = Color(0xFF3A2600),
+    cautionSurface = Color(0xFF4B350D), primaryStrong = Color(0xFFCFE8CF),
 )
 
 /**

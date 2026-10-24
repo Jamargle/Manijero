@@ -5,20 +5,19 @@
 - **Feature:** `shared_design_system` — Shared light and dark design system (`client`), `depends_on: [visual_foundation]`.
 - **Status at planning:** `not_started`; `visual_foundation` is accepted.
 - **Source behavior:** Manijero renders with one coherent, accessible Stitch-derived visual language across Android, Desktop, and the shared iOS-ready code. It follows the operating system's light/dark appearance automatically.
-- **Source verification:** Run focused shared tests for token roles, theme selection, typography/shape/spacing and contrast; build the shared JVM, Android host, Android app, and Desktop targets; inspect the theme review previews in both modes and verify system appearance on Android/Desktop.
-- **Notes carried from the feature request:** Use Stitch's light and dark design-system exports as the design baseline; adopt their palette and typography with contrast corrections as needed; follow system appearance, without a user preference setting. Keep the implementation shared in `commonMain` for future iOS reuse.
+- **Source verification:** Run focused shared tests for token roles, theme selection, shape/spacing and contrast; build the shared JVM, Android host, Android app, and Desktop targets; inspect the theme review previews in both modes and verify system appearance on Android/Desktop.
+- **Notes carried from the feature request:** Use Stitch's light and dark design-system exports as the design baseline; adopt their palette with contrast corrections as needed; follow system appearance, without a user preference setting. Typography stays at the Material 3 default. Keep the implementation shared in `commonMain` for future iOS reuse.
 
 ## Goal and boundaries
 
-Establish the reusable shared UI foundation described by the Stitch references: semantic light/dark color schemes, typography, shape and spacing scales, and one system-aware theme applied at the shared root. Make its values reviewable and machine-check the documented contrast pairs. Preserve the existing app behavior and screen layouts; screen-by-screen restyling is owned by existing screen features.
+Establish the reusable shared UI foundation described by the Stitch references: semantic light/dark color schemes, shape and spacing scales, default typography, and one system-aware theme applied at the shared root. Make its values reviewable and machine-check the documented contrast pairs. Preserve the existing app behavior and screen layouts; screen-by-screen restyling is owned by existing screen features.
 
 **In scope**
 
 - Centralize Stitch light and dark semantic color roles in the existing shared theme package; map every applicable Material 3 role explicitly and keep non-Material semantic roles available via a typed CompositionLocal.
 - Select the scheme with Compose Multiplatform's system appearance signal; all shared screens and previews use the same theme. There is no manual appearance preference, persistence, or platform-specific theme fork.
-- Implement the Stitch typography hierarchy (Source Serif 4 display/headline roles and Source Sans 3 body/label roles) through shared Compose resources when font files and redistribution terms are verified. Preserve scalable `sp` sizing and readable line heights; if a font cannot be legally bundled, stop and report the blocker rather than silently substitute a different bundled font.
 - Define named shared shape and spacing values based on Stitch's scales, suitable for use from common Compose code.
-- Provide light/dark theme previews or a review board and common tests for token-role mapping, text styles/scales, and contrast.
+- Provide light/dark theme previews or a review board and common tests for token-role mapping, shape/spacing values, and contrast.
 - Repoint existing previews to the shared theme where needed so preview colors cannot diverge from runtime.
 
 **Non-goals**
@@ -47,9 +46,9 @@ Given any shared screen or preview requests a Material 3 color role, when either
 
 Given the light and dark schemes, when common tests calculate WCAG contrast, then every documented normal-text pair is at least 4.5:1 and every documented non-text boundary/icon pair is at least 3:1. Any Stitch value that fails is adjusted and the final value, intended use, and measured ratio are documented; a failed pair is not omitted to make the test pass.
 
-### Typography, shape, and spacing are shared
+### Shape and spacing are shared
 
-Given a screen opts into a documented Material typography role or shared shape/spacing token, when it renders on any supported host, then the same shared value is used and text remains scalable. Font assets are bundled only after source and redistribution terms are recorded; otherwise implementation stops for an owner decision rather than silently changing the selected type direction.
+Given a screen opts into a documented shared shape or spacing token, when it renders on any supported host, then the same shared value is used and text remains scalable at the platform text scale. Typography stays at the Material 3 default, so there is no custom family, scale, or font asset to maintain.
 
 ### Existing behavior is unchanged
 
@@ -57,30 +56,28 @@ Given the new theme is applied, when existing chat, lands, help, and privacy wor
 
 ## Technical approach
 
-- Extend `shared/src/commonMain/kotlin/com/jamarglex/manijero/theme/` rather than adding a module. Keep colors, typography, shape/spacing tokens, semantic locals, and theme application in cohesive files consistent with the current package.
+- Extend `shared/src/commonMain/kotlin/com/jamarglex/manijero/theme/` rather than adding a module. Keep colors, shape/spacing tokens, semantic locals, and theme application in cohesive files consistent with the current package.
 - Reuse the existing `ManijeroTheme` at `App()` (the composition root). Use the common Compose system-dark appearance API; keep platform entry points free of theme duplication.
 - Source semantic roles and exact starting values from `design-references/stitch/manijero_design_system/DESIGN.md` and `.../manijero_design_system_dark_mode/DESIGN.md`. Treat these as starting values, not exemptions from contrast checks. Document adjustments in `DESIGN.md` and tests.
-- Import fonts through Compose Multiplatform resources only after checking the actual font files, license/redistribution notice, and common resource support; no network font loading. If assets or terms cannot be verified, implementation is blocked pending a user decision.
 - Keep semantic error/caution meanings stable in both modes; status is never communicated by color alone. Maintain minimum interactive target and keyboard focus behavior.
 
 ## Expected file changes
 
 - **Modify** `shared/src/commonMain/kotlin/com/jamarglex/manijero/theme/ManijeroColors.kt` and `ManijeroTheme.kt` for paired schemes and system appearance.
-- **Modify** `shared/src/commonMain/kotlin/com/jamarglex/manijero/theme/ManijeroTypography.kt`; **add** shared shape/spacing token definitions under the same package.
-- **Potentially add** verified font files and their license notice under `shared/src/commonMain/composeResources/`; only if the font terms are verified.
+- **Add** shared shape/spacing token definitions under the same package. Typography keeps the Material 3 default; no typography file or font asset is added.
 - **Modify** affected shared preview wrappers to exercise the theme; do not edit screen layouts or behavior.
-- **Add** common unit tests under `shared/src/commonTest/kotlin/com/jamarglex/manijero/theme/` for color roles, contrast, typography and scale values.
+- **Add** common unit tests under `shared/src/commonTest/kotlin/com/jamarglex/manijero/theme/` for color roles, contrast, and shape/spacing values.
 - No host source, backend, contract, data, or Gradle dependency changes are expected. If research demonstrates a required platform-specific change or dependency, stop and revise the contract before implementation.
 
 ## Visual design impact
 
-This feature changes the shared theme foundation from the currently shipped light-only palette to the user-selected Stitch light/dark design system. Light and dark mode are both first-class; system appearance selects between them. Exact palette and typography direction comes from the two bundled design-system files; the feature's final verified token table becomes authoritative. Existing screens may change appearance through role mapping but are not structurally redesigned. See [`DESIGN.md`](../../DESIGN.md) and [`design-references/README.md`](../../design-references/README.md).
+This feature changes the shared theme foundation from the currently shipped light-only palette to the user-selected Stitch light/dark design system. Light and dark mode are both first-class; system appearance selects between them. Exact palette direction comes from the two bundled design-system files; the feature's final verified token table becomes authoritative. Existing screens may change appearance through role mapping but are not structurally redesigned. See [`DESIGN.md`](../../DESIGN.md) and [`design-references/README.md`](../../design-references/README.md).
 
 ## Durable documentation impact
 
 | Document | Action | Reason |
 |---|---|---|
-| `DESIGN.md` | Update | Record final accepted light/dark tokens, typography, shape/spacing scales, system appearance behavior, and any contrast-driven changes. |
+| `DESIGN.md` | Update | Record final accepted light/dark tokens, shape/spacing scales, system appearance behavior, default typography, and any contrast-driven changes. |
 | `ARCHITECTURE.md` | Not needed unless ownership changes | Theme stays in existing shared `commonMain`; no new module or boundary. |
 | `CONSTRAINTS.md` | Not needed | Existing accessibility and shared-source constraints remain sufficient. |
 | `AGENTS.md` | Not needed | Existing shared UI and platform rules apply. |
