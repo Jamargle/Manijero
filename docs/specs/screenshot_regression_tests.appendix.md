@@ -1,6 +1,8 @@
 # Appendix — `screenshot_regression_tests`
 
-Planning and verification record for [`docs/specs/screenshot_regression_tests.md`](screenshot_regression_tests.md). The acceptance record will be `docs/validations/screenshot_regression_tests.md`.
+Planning and verification record for [`docs/specs/screenshot_regression_tests.md`](screenshot_regression_tests.md). The acceptance record is `docs/validations/screenshot_regression_tests.md`.
+
+**Scope extension (2026-10-25):** the original Desktop-only contract was extended at the owner's request to Android host rendering with Robolectric. The Desktop research and evidence below are preserved; the Android extension and its self-verification are recorded at the end under "Feature evidence".
 
 ## Repository research
 
@@ -32,7 +34,7 @@ Inspected on 2026-10-25, planning only; no source or application file was change
 - Prove verify mode does not mutate golden files (compare checksums or git diff before/after).
 - In a disposable fixture/source change, prove an intentional image difference causes a failing verify result and useful expected/actual/diff outputs; remove the probe without affecting accepted work.
 - Record through the explicit task and confirm only the intended baseline changes; inspect the resulting PNGs manually.
-- Confirm the focused run does not require Android SDK, emulator, backend, or network. If the Desktop test integration is unusable on the supported environment, stop and report the blocker rather than silently replacing pixel tests with pure unit tests.
+- Confirm the Desktop focused run needs no Android SDK; the Android host suite needs an Android SDK to build but no emulator, device, backend, or network (apart from the first Robolectric SDK download). If a platform integration is unusable on the supported environment, stop and report the blocker rather than silently replacing pixel tests with pure unit tests.
 
 ## Evidence to capture
 
@@ -40,7 +42,7 @@ Inspected on 2026-10-25, planning only; no source or application file was change
 - Focused verification output and screenshot test names/counts.
 - Proof the normal verify task leaves expected images unchanged; failure output/artifact paths from the regression probe.
 - Reviewed baseline image inventory and the human review disposition for each capture.
-- Explicit limitations: Desktop JVM host/font only; no Android layoutlib, iOS runtime, behavior, accessibility, usability, or legal correctness claim.
+- Explicit limitations: Desktop JVM host/font only; Android Robolectric host on the pinned SDK only, not a device or emulator; no iOS runtime, behavior, accessibility, usability, or legal correctness claim.
 
 ## Feature evidence
 
@@ -175,10 +177,10 @@ These images depict the current shared layout; review confirmed they are the int
 judgement that the layout is ideal. Android/iOS rendering, accessibility, usability, and product or
 legal correctness are not assessed.
 
-**Recording documentation.** `shared/src/jvmTest/screenshots/README.md` documents the verify command,
-artifact locations, the explicit `:shared:recordScreenshots` procedure, the per-image review
-checklist, the commit rule, the fixed render conditions, the threshold, and the limitations, next to
-the goldens a developer will touch.
+**Recording documentation.** `docs/screenshot-regression.md` documents the verify commands,
+artifact locations, the explicit record procedures, the per-image review checklist, the commit rule,
+the fixed render conditions, the threshold, and the limitations for both platforms; the READMEs next
+to each platform's goldens point to it.
 
 **Limitations recorded for the validator.**
 
@@ -187,15 +189,15 @@ the goldens a developer will touch.
   `:shared:jvmTest`, `./scripts/init.sh --fast`, and the existing `ubuntu-latest` CI gate, which do
   not render screenshots. Adding Linux goldens or a Linux screenshot job is a separate decision
   (CI workflow changes are out of scope for this feature).
-- Desktop JVM only: no Android layoutlib, emulator, or iOS runtime coverage, and no claim of
-  Android/iOS visual fidelity.
-- Eight captures only: the same four scenes at the desktop surface and one phone-width viewport. A
-  pass means those eight frames match within the threshold; other screens, states, text sizes,
-  locales, or window sizes are not gated.
+- Desktop JVM plus Android Robolectric host only: no emulator, device, instrumentation, other
+  Android API levels, or iOS runtime coverage, and no claim of device visual fidelity.
+- Twelve captures only: eight Desktop frames (four scenes at two widths) and four Android host
+  frames (the four scenes at 360×800 dp). A pass means those frames match within the threshold;
+  other screens, states, text sizes, locales, window sizes, or Android API levels are not gated.
 - No accessibility, usability, behaviour, or legal-correctness proof; the suite does not replace
   behaviour tests.
 - Baseline refresh is manual and human-reviewed; there is no automated guard beyond the review
-  procedure in the README.
+  procedure in `docs/screenshot-regression.md`.
 
 ### 2026-10-25 — split by screen (follow-up refactor)
 
@@ -228,14 +230,48 @@ the goldens a developer will touch.
   `landListEmptyDarkPhone`. The phone-width frames are shared-UI renders at a narrow size, not
   Android/iOS device evidence.
 
+### 2026-10-25 — Android host suite added (scope extension)
+
+- Owner request: validate the shared UI locally for **both** Desktop and Android before committing,
+  then record reviewed baselines. Android is rendered by **Robolectric 4.17** on the host JVM, so no
+  emulator, device, or instrumentation is involved.
+- Tooling: `roborazzi`/`roborazzi-compose` 1.77.0, `androidx.compose.ui:ui-test-junit4` and
+  `ui-test-manifest` 1.12.1, `androidx.test:core` 1.7.0, `androidx.test.ext:junit` 1.3.0, added to
+  `androidHostTest` only. The shared fixtures moved to `commonTest` so both platforms render the
+  same data; no production or main Android dependency changed.
+- Tasks: `verifyDesktopScreenshots`/`recordDesktopScreenshots` hold the previous Desktop suite;
+  `verifyAndroidScreenshots`/`recordAndroidScreenshots` run Robolectric with the same read-only
+  verify versus explicit record split; `verifyScreenshots`/`recordScreenshots` are the aggregate
+  entry points. `testAndroidHostTest` and `jvmTest` exclude the screenshot packages.
+- Render matrix: the four scenes at `es-rES-w360dp-h800dp-mdpi`, Robolectric SDK 35, density 1,
+  font scale 1, explicit `ManijeroTheme(darkTheme = ...)`, threshold 0.001. Goldens live in
+  `shared/src/androidHostTest/screenshots/` (4 PNGs). Desktop keeps its 8 PNGs in
+  `shared/src/jvmTest/screenshots/`; the two platforms are recorded separately because their
+  rasterisation differs.
+- Recorded with `./gradlew :shared:recordAndroidScreenshots --rerun-tasks`; all four images were
+  opened at full size and reviewed (idle chat light, answered-plus-source dark, two-land list light,
+  empty lands dark). Recording twice produced identical Android SHA-256 values.
+- Verification: `./gradlew :shared:verifyAndroidScreenshots --rerun-tasks` → 4/4 passed;
+  `./gradlew :shared:verifyScreenshots --rerun-tasks` → 8 Desktop + 4 Android passed; focused
+  `./scripts/init.sh --feature screenshot_regression_tests` → same aggregate, exit 0.
+- Regression probe: temporarily renamed one fixture land (`Los Olivos` → `Los Olivos del Sur`).
+  Android verify failed on `landListLight` with
+  `shared/build/reports/screenshot-regression-android/land_list_light_compare.png` and
+  `_actual.png`; the four Android goldens kept their SHA-256 values. The fixture was restored and
+  verify is green again. No emulator or device was started.
+- Limitations: Robolectric host rendering is not device/emulator evidence and only SDK 35 is
+  pinned; the Android suite needs an Android SDK to build and a one-time download of Robolectric's
+  `android-all` jar; it stays out of the ordinary test tiers and CI.
+
 ## Validator checklist
 
 - [ ] Scope is test-only; no production UI or feature behavior changed.
 - [ ] Roborazzi/tooling versions are pinned and compatible with the current toolchain; no unrelated upgrade or module was introduced.
-- [ ] Test captures shared UI on Desktop JVM with stable fixtures, dimensions, appearance, font scale, and locale.
-- [ ] The focused command runs screenshot verification, does not require Android SDK/emulator, and is available via the feature harness.
-- [ ] Verify mode is read-only for baselines; a changed render fails and provides reviewable diff artifacts.
-- [ ] Recording is explicit, documented, and human-reviewed; committed baselines match the reviewed output.
+- [ ] The Android suite stays on the existing Android target through Robolectric, with separate goldens and no emulator/device/instrumentation dependency.
+- [ ] Test captures shared UI on Desktop JVM and via Robolectric on the Android host, with stable fixtures, dimensions, appearance, font scale, and locale.
+- [ ] The focused command runs both screenshot suites in verify mode through the feature harness; Desktop needs no Android SDK, and Android needs an SDK but no emulator/device.
+- [ ] Verify mode is read-only for baselines on both platforms; a changed render fails and provides reviewable diff artifacts.
+- [ ] Recording is explicit per platform, documented, and human-reviewed; committed baselines match the reviewed output.
 - [ ] Threshold rationale is explicit and does not hide meaningful regressions; CI, if wired, runs verify only.
-- [ ] Coverage and limitations are reported accurately; no Android/iOS, accessibility, behavior, or usability claim is implied.
+- [ ] Coverage and limitations are reported accurately; no emulator/device, iOS, accessibility, behavior, or usability claim is implied.
 - [ ] Progress/status/session-log updates are consistent with the independent validation result.

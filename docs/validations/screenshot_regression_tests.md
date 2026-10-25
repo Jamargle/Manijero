@@ -233,3 +233,31 @@ The original `accept` verdict still applies to the verified mechanism, the four 
 the bounded claims. The four new phone-width images still need the same human owner sign-off, and
 they remain Desktop JVM renders at a narrow size: they add no Android/iOS, accessibility, usability,
 or behavior evidence.
+
+## Android host extension (2026-10-25, self-verified)
+
+A later owner request extended the suite from Desktop-only to **Desktop + Android locally**. Android
+is rendered by Robolectric 4.17 on the host JVM; no emulator, device, or instrumentation was added.
+This section records self-verification by the implementer/orchestrator; it is **not** a second
+independent validator pass.
+
+- Dependencies added to `androidHostTest` only: Roborazzi 1.77.0 (`roborazzi`,
+  `roborazzi-compose`), `androidx.compose.ui:ui-test-junit4`/`ui-test-manifest` 1.12.1,
+  `androidx.test:core` 1.7.0, `androidx.test.ext:junit` 1.3.0, Robolectric 4.17.
+- Four Android goldens added at `es-rES-w360dp-h800dp-mdpi`, Robolectric SDK 35, density 1, font
+  scale 1, threshold 0.001: `chat_home_idle_light`, `chat_answered_source_dark`, `land_list_light`,
+  `land_list_empty_dark` under `shared/src/androidHostTest/screenshots/`. The shared fixtures moved
+  to `commonTest`; Desktop captures and goldens are unchanged.
+- Tasks: `verifyDesktopScreenshots`/`recordDesktopScreenshots` keep the accepted Desktop behavior;
+  `verifyAndroidScreenshots`/`recordAndroidScreenshots` mirror it; `verifyScreenshots`/
+  `recordScreenshots` are now aggregates. `jvmTest` and `testAndroidHostTest` exclude the screenshot
+  packages.
+- Observed: `:shared:verifyScreenshots --rerun-tasks` → 8 Desktop + 4 Android passed;
+  `:shared:recordAndroidScreenshots --rerun-tasks` run twice produced identical Android SHA-256
+  values; a disposable fixture rename (`Los Olivos` → `Los Olivos del Sur`) failed
+  `landListLight` and produced `_actual`/`_compare` under
+  `shared/build/reports/screenshot-regression-android/` while all four Android goldens kept their
+  SHA-256 values; the fixture was restored and verify is green again.
+- Limitations: host/API-35 rendering only; not device or emulator evidence; the Android suite needs
+  an Android SDK to build and a one-time Robolectric `android-all` download; it stays out of
+  `--fast`, the ordinary test tiers, and CI. The four Android images still need human owner sign-off.

@@ -1,5 +1,6 @@
 import org.gradle.api.tasks.testing.Test
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
+import java.io.File
 
 plugins {
     alias(libs.plugins.kotlinMultiplatform)
@@ -75,6 +76,19 @@ kotlin {
             implementation(libs.compose.uiTestJunit4Desktop)
             implementation(libs.roborazzi.composeDesktop)
         }
+        // Android screenshot regression: Robolectric renders the Android target on the host JVM,
+        // so no emulator or device is needed. Test-only; the main Android dependency graph is
+        // unchanged.
+        getByName("androidHostTest").dependencies {
+            implementation(libs.androidx.activity.compose)
+            implementation(libs.androidx.test.core)
+            implementation(libs.androidx.test.junit)
+            implementation(libs.androidx.compose.uiTestJunit4)
+            implementation(libs.androidx.compose.uiTestManifest)
+            implementation(libs.robolectric)
+            implementation(libs.roborazzi.core)
+            implementation(libs.roborazzi.compose)
+        }
     }
 }
 
@@ -83,22 +97,30 @@ dependencies {
 }
 
 // ---------------------------------------------------------------------------------------------
-// Screenshot regression (Compose Desktop, shared UI)
+// Screenshot regression (shared UI)
 // ---------------------------------------------------------------------------------------------
-// The suite renders the shared commonMain screens on the JVM/Desktop target and compares them
-// with committed goldens. It is deliberately NOT part of :shared:jvmTest:
+// Two platform suites render the same committed fixtures:
+//   * :shared:verifyDesktopScreenshots / :shared:recordDesktopScreenshots run the Compose
+//     Desktop JVM suite (existing target, no Android SDK).
+//   * :shared:verifyAndroidScreenshots / :shared:recordAndroidScreenshots run the same states
+//     through Robolectric on the host JVM, so "Android" means Android rendering without an
+//     emulator or device.
+// :shared:verifyScreenshots and :shared:recordScreenshots are the aggregate entry points.
 //
-//  - Fonts are resolved from the host by Compose Desktop, so a golden recorded on one operating
-//    system is not a valid expectation on another. The goldens in src/jvmTest/screenshots were
-//    recorded on macOS; the existing CI gate runs on Linux, so wiring this into jvmTest/--fast
-//    would make CI render against a baseline it cannot reproduce. It stays an explicit,
-//    host-pinned task until a baseline is recorded on the CI image.
-//  - Verification must stay read-only. The verify task only reads goldens; the record task is
-//    the one explicitly documented action that rewrites them.
-val screenshotGoldenDir = layout.projectDirectory.dir("src/jvmTest/screenshots")
-val screenshotReportDir = layout.buildDirectory.dir("reports/screenshot-regression")
+// The suites are deliberately NOT part of :shared:jvmTest or :shared:testAndroidHostTest:
+//  - Fonts and rendering differ between Desktop and Android, so each platform owns its goldens
+//    and records them on the host that reviews them.
+//  - The desktop goldens are host-font-pinned (recorded on macOS), and the existing CI gate runs
+//    on Linux; keeping the screenshots out of the ordinary tiers avoids comparing against a
+//    baseline the CI image cannot reproduce.
+//  - Verification must stay read-only. The verify tasks only read goldens; the record tasks are
+//    the explicit action that rewrites them.
+val desktopScreenshotGoldenDir = layout.projectDirectory.dir("src/jvmTest/screenshots")
+val androidScreenshotGoldenDir = layout.projectDirectory.dir("src/androidHostTest/screenshots")
+val desktopScreenshotReportDir = layout.buildDirectory.dir("reports/screenshot-regression")
+val androidScreenshotReportDir = layout.buildDirectory.dir("reports/screenshot-regression-android")
 
-fun Test.configureScreenshotRun(record: Boolean) {
+fun Test.configureScreenshotRun(record: Boolean, goldenDir: File, reportDir: File) {
     group = "verification"
     useJUnit()
     filter {
@@ -109,9 +131,9 @@ fun Test.configureScreenshotRun(record: Boolean) {
     // verify run can never record and a record run never pretends to verify.
     systemProperty("roborazzi.test.record", record.toString())
     systemProperty("roborazzi.test.verify", (!record).toString())
-    systemProperty("roborazzi.output.dir", screenshotGoldenDir.asFile.absolutePath)
-    systemProperty("roborazzi.compare.output.dir", screenshotReportDir.get().asFile.absolutePath)
-    systemProperty("roborazzi.result.dir", screenshotReportDir.get().dir("results").asFile.absolutePath)
+    systemProperty("roborazzi.output.dir", goldenDir.absolutePath)
+    systemProperty("roborazzi.compare.output.dir", reportDir.absolutePath)
+    systemProperty("roborazzi.result.dir", File(reportDir, "results").absolutePath)
     systemProperty("roborazzi.record.filePathStrategy", "relativePathFromRoborazziContextOutputDirectory")
     systemProperty("roborazzi.record.image.extension", "png")
     systemProperty("java.awt.headless", "true")
@@ -130,16 +152,71 @@ val jvmTestTask = tasks.named<Test>("jvmTest") {
     }
 }
 
-tasks.register<Test>("verifyScreenshots") {
+tasks.withType<Test>().matching { it.name == "testAndroidHostTest" }.configureEach {
+    filter {
+        // Host tests stay fast and deterministic; the screenshot suite has its own explicit tasks.
+        excludeTestsMatching("com.jamarglex.manijero.screenshots.*")
+    }
+}
+
+tasks.register<Test>("verifyDesktopScreenshots") {
     description = "Verify shared Compose Desktop screenshots against committed goldens (read-only)."
     testClassesDirs = jvmTestTask.get().testClassesDirs
     classpath = jvmTestTask.get().classpath
-    configureScreenshotRun(record = false)
+    configureScreenshotRun(
+        record = false,
+        goldenDir = desktopScreenshotGoldenDir.asFile,
+        reportDir = desktopScreenshotReportDir.get().asFile,
+    )
 }
 
-tasks.register<Test>("recordScreenshots") {
+tasks.register<Test>("recordDesktopScreenshots") {
     description = "Re-record shared Compose Desktop screenshots after human review of each image."
     testClassesDirs = jvmTestTask.get().testClassesDirs
     classpath = jvmTestTask.get().classpath
-    configureScreenshotRun(record = true)
+    configureScreenshotRun(
+        record = true,
+        goldenDir = desktopScreenshotGoldenDir.asFile,
+        reportDir = desktopScreenshotReportDir.get().asFile,
+    )
+}
+
+tasks.register<Test>("verifyAndroidScreenshots") {
+    description = "Verify shared Android screenshots (Robolectric host) against committed goldens (read-only)."
+    val androidHostTest = tasks.named<Test>("testAndroidHostTest").get()
+    testClassesDirs = androidHostTest.testClassesDirs
+    classpath = androidHostTest.classpath
+    jvmArgs(*androidHostTest.jvmArgs.toTypedArray())
+    maxParallelForks = androidHostTest.maxParallelForks
+    configureScreenshotRun(
+        record = false,
+        goldenDir = androidScreenshotGoldenDir.asFile,
+        reportDir = androidScreenshotReportDir.get().asFile,
+    )
+}
+
+tasks.register<Test>("recordAndroidScreenshots") {
+    description = "Re-record shared Android screenshots (Robolectric host) after human review of each image."
+    val androidHostTest = tasks.named<Test>("testAndroidHostTest").get()
+    testClassesDirs = androidHostTest.testClassesDirs
+    classpath = androidHostTest.classpath
+    jvmArgs(*androidHostTest.jvmArgs.toTypedArray())
+    maxParallelForks = androidHostTest.maxParallelForks
+    configureScreenshotRun(
+        record = true,
+        goldenDir = androidScreenshotGoldenDir.asFile,
+        reportDir = androidScreenshotReportDir.get().asFile,
+    )
+}
+
+tasks.register("verifyScreenshots") {
+    group = "verification"
+    description = "Verify the Desktop and Android shared-UI screenshots (read-only, no emulator)."
+    dependsOn("verifyDesktopScreenshots", "verifyAndroidScreenshots")
+}
+
+tasks.register("recordScreenshots") {
+    group = "verification"
+    description = "Re-record the Desktop and Android shared-UI screenshots after human review."
+    dependsOn("recordDesktopScreenshots", "recordAndroidScreenshots")
 }
