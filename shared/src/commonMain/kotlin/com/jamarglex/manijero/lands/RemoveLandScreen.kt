@@ -84,7 +84,12 @@ fun RemoveLandScreen(
                     verticalArrangement = Arrangement.spacedBy(4.dp),
                 ) {
                     LandDetails(
+                        zone = state.zone,
                         municipality = state.municipality,
+                        variety = state.variety,
+                        varietyOther = state.varietyOther,
+                        areaHectares = state.areaHectares,
+                        treeCount = state.treeCount,
                         waterRegime = state.waterRegime,
                         productionMethod = state.productionMethod,
                     )
@@ -135,18 +140,29 @@ fun RemoveLandScreen(
     }
 }
 
+@Suppress("LongParameterList")
 private fun previewRemoveLandState(
     name: String = "Los Olivos",
+    zone: String? = "Camino de la Fuente",
     municipality: String? = null,
+    variety: LandVariety = LandVariety.UNKNOWN,
+    varietyOther: String? = null,
+    areaHectares: Double? = null,
+    treeCount: Int? = null,
     waterRegime: WaterRegime = WaterRegime.UNKNOWN,
     productionMethod: ProductionMethod = ProductionMethod.UNKNOWN,
     failure: RemoveLandFailure? = null,
 ) = RemoveLandState(
     landId = "land-1",
     name = name,
+    zone = zone,
     municipality = municipality,
     waterRegime = waterRegime,
     productionMethod = productionMethod,
+    variety = variety,
+    varietyOther = varietyOther,
+    areaHectares = areaHectares,
+    treeCount = treeCount,
     failure = failure,
 )
 
@@ -165,7 +181,11 @@ private fun RemoveLandKnownDetailsPreview() {
         RemoveLandScreen(
             state = previewRemoveLandState(
                 name = "La Loma",
+                zone = "Linde del arroyo",
                 municipality = "Martos",
+                variety = LandVariety.PICUAL,
+                areaHectares = 2.5,
+                treeCount = 85,
                 waterRegime = WaterRegime.IRRIGATED,
                 productionMethod = ProductionMethod.ORGANIC,
             ),
@@ -182,7 +202,12 @@ private fun RemoveLandLongTextPreview() {
         RemoveLandScreen(
             state = previewRemoveLandState(
                 name = "El olivar de mi abuelo junto al camino de la fuente",
+                zone = "Paraje de la Fuente del Roble, junto al cortijo viejo",
                 municipality = "Villanueva del Arzobispo (Sierra de Cazorla)",
+                variety = LandVariety.OTHER,
+                varietyOther = "Royal de Cazorla",
+                areaHectares = 12.75,
+                treeCount = 1250,
                 waterRegime = WaterRegime.MIXED,
                 productionMethod = ProductionMethod.MIXED,
             ),
@@ -255,7 +280,11 @@ private fun RemoveLandLargeFontPreview() {
         RemoveLandScreen(
             state = previewRemoveLandState(
                 name = "La Loma",
+                zone = "Linde del arroyo",
                 municipality = "Martos",
+                variety = LandVariety.ARBEQUINA,
+                areaHectares = 12.75,
+                treeCount = 1250,
                 waterRegime = WaterRegime.IRRIGATED,
                 productionMethod = ProductionMethod.ORGANIC,
             ),

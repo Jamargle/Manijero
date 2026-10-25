@@ -165,7 +165,89 @@ iOS runtime rendering, and any claim that the new fields improve answers.
 
 ## Feature evidence
 
-<!-- Implementer appends raw command output and observations here after implementation. -->
+### 2026-10-25 — implementer self-verification
+
+Environment: macOS (darwin), repository worktree `land_measurement_fields` at base `83e02ba`; JDK and
+Android SDK from `local.properties` (ignored, not committed).
+
+**Focused gate** — `./scripts/init.sh --feature land_measurement_fields` → exit `0`.
+
+```text
+BUILD SUCCESSFUL in 10s
+jvmTest suites 25 tests 245 failures 0 errors 0
+verifyDesktopScreenshots suites 5 tests 18 failures 0 errors 0
+verifyAndroidScreenshots suites 5 tests 14 failures 0 errors 0
+```
+
+The static gates in the published block all passed: v2 writer and v1 reader present, `LandVariety`
+enum, `zone`/`treeCount` in `Land.kt`, no new field name in `chat/LandContextBuilder.kt`, all fourteen
+required string keys, and both new test files present.
+
+**No-device tier** — `./scripts/init.sh --fast` exited `0`:
+
+- `:shared:jvmTest` passed (245 tests).
+- Contract examples: `Validated 2 request and 3 response examples against answer_api_contract`.
+- Backend unit tests: `[skip] Backend unit tests: pytest is not installed.` (`python3 -c 'import pytest'`
+  failed; no virtualenv was present). No backend file changed.
+- The nine offline evaluators: `All 9 offline checks passed.` (`Fast tier passed.`).
+
+**Full gate** — `./scripts/init.sh --verify` — exit `0`: fast tier passed, `:shared:testAndroidHostTest`
+reported 231 tests / 0 failures, `:androidApp:assembleDebug` produced the debug APK, and
+`:desktopApp:build` succeeded.
+
+**New and updated test counts** (JVM results XML): `LandFieldsTest` 10, `LandStoreFormatTest` 8,
+`LandRepositoryTest` 6, `AddLandStateTest` 14, `EditLandStateTest` 12, `EditLandRepositoryTest` 7,
+`RemoveLandStateTest` 8, `RemoveLandRepositoryTest` 5, `LandDataDisclosureTest` 3, plus the existing
+Desktop store tests (5). All passed.
+
+**Store fixtures used by the decoder tests**
+
+- v1 input: `land-store-v1\nland-1|Los Olivos|Martos|UNKNOWN|UNKNOWN|||1|2` loads with `zone = null`,
+  `variety = UNKNOWN`, `varietyOther = null`, `treeCount = null`, `areaHectares = 2.5`, notes and
+  timestamps intact.
+- The same record after a real repository `update` with `zone = "El Llano"` writes exactly the v2
+  header plus
+  `land-1|Los Olivos|El Llano|Martos|UNKNOWN|UNKNOWN|UNKNOWN|||||1|5` (13 fields), preserving
+  `createdAtEpochMillis = 1` and writing `updatedAtEpochMillis = 5`.
+- Mixed/corrupt files: an unknown enum, a short line, `NaN` area and a non-numeric tree count are
+  skipped whole while their valid neighbours survive; v1 and v2 headers never decode each other's
+  line shape.
+
+**Screenshots** — recorded with filtered tasks (each `BUILD SUCCESSFUL`, exit `0`):
+
+```sh
+./gradlew :shared:recordDesktopScreenshots \
+  --tests 'com.jamarglex.manijero.screenshots.LandListScreenshotsTest.landListLight' \
+  --tests 'com.jamarglex.manijero.screenshots.LandListScreenshotsTest.landListLightPhone' \
+  --tests 'com.jamarglex.manijero.screenshots.AppShellScreenshotsTest.appShellLandsRailDark'
+./gradlew :shared:recordAndroidScreenshots \
+  --tests 'com.jamarglex.manijero.screenshots.LandListAndroidScreenshotsTest.landListLight' \
+  --tests 'com.jamarglex.manijero.screenshots.AppShellScreenshotsTest.appShellLandsRailDark'
+```
+
+Only the five intended goldens changed; `git status` listed no other PNG:
+
+- Desktop `shared/src/jvmTest/screenshots/land_list_light.png`, `land_list_light_phone.png`,
+  `app_shell_lands_rail_dark.png`.
+- Android `shared/src/androidHostTest/screenshots/land_list_light.png`,
+  `app_shell_lands_rail_dark.png`.
+
+Each image was opened and reviewed: both populated rows show `Zona`, `Variedad` and the known
+`Superficie`/`Olivos` lines; `La Loma` omits the absent surface/tree lines and shows its custom
+`Royal de Cazorla` text; the shell rail keeps the same layout with the taller rows. The phone capture
+shows the second card extending past the viewport, which is expected because the list column is
+scrollable; it was already a scrolling capture and no control is clipped or disabled.
+
+**Manual/observable limits (not verified)**
+
+- No interactive Desktop or emulator walkthrough was performed in this environment; the user-flow
+  evidence is the pure state/repository tests plus the five reviewed host goldens and the Compose
+  previews (light, dark, 2×, compact, wide) added/updated with the forms.
+- No real `land-store-v1` → v2 device upgrade, no downgrade to an older build, and no backup/sync
+  restore was exercised; compatibility is proven only by decoder/encoder and repository tests.
+- No screen-reader audit or measured 2×-text verification on a device; focus order and the polite live
+  regions are code-reviewed, not observed with assistive technology.
+- No new target-user evidence exists for the required zone or the ten-option variety list.
 
 ## Validator checklist
 

@@ -62,10 +62,29 @@ Operational MUST/MUST NOT rules that future features have to respect on top of
 ## Land editing
 
 - **MUST**: editing a land MUST update exactly one stored record: it carries every attribute the
-  edit form does not collect (`areaHectares`, `notes`) through unchanged, preserves the targeted
-  `id` and `createdAtEpochMillis`, never calls `create`/`delete`, and MUST NOT report an update as
-  saved when `update` returned `null` or threw. Reason: `edit_land` established that correcting one
-  detail must never rewrite another land or silently erase stored data.
+  edit form still does not collect (`notes`) through unchanged, preserves the targeted `id` and
+  `createdAtEpochMillis`, never calls `create`/`delete`, and MUST NOT report an update as saved when
+  `update` returned `null` or threw. Reason: `edit_land` established that correcting one detail must
+  never rewrite another land or silently erase stored data.
+
+## Land fields and storage
+
+- **MUST**: every new or edited land MUST have a trimmed non-blank zone of at most 80 characters.
+  A legacy `land-store-v1` record without a zone MUST stay readable and listed, and MUST require a
+  zone only when it is edited. Reason: `land_measurement_fields` made the zone the second required
+  identity field while preserving already-saved lands.
+- **MUST**: land storage MUST read both `land-store-v1` and `land-store-v2` but write only
+  `land-store-v2`. A v1 record's missing zone, variety, custom variety and tree count MUST decode as
+  `null`/`UNKNOWN`, never as a guessed value; the Desktop file keeps its existing name. Reason: the
+  accepted field decision explicitly rejects a forced migration and invented data.
+- **MUST NOT**: infer a zone, variety, surface, or tree count from a name, municipality, question, or
+  another land. An absent optional value MUST stay absent in the store and MUST be omitted from the
+  land details rather than shown as zero. Reason: land records must not imply knowledge or
+  eligibility the person did not provide.
+- **MUST**: surface text MUST accept comma or dot, reject letters, signs, non-finite values and three
+  or more decimal digits, and store at most two decimals; tree count MUST be a whole ASCII number of
+  at least one. Raw text MUST stay on screen after an invalid save. Reason: the approved validation
+  table forbids silent truncation and guessed measurements.
 
 ## Client source cards
 
@@ -141,7 +160,8 @@ Operational MUST/MUST NOT rules that future features have to respect on top of
 - **MUST**: the on-screen data-handling notice MUST describe only the current behaviour — the lands
   are saved device-locally, and a question sends the question as written plus, for a land-aware
   answer, each land's opaque id and only the needed `municipality`/`water_regime`/`production_method`
-  (an unknown value sent as `unknown`, name/notes/area/timestamp never sent). It MUST NOT promise
+  (an unknown value sent as `unknown`; name, zone, variety, custom variety, surface, tree count,
+  notes and timestamps never sent). It MUST NOT promise
   backup, a cloud copy, or confidentiality beyond what the answer service's own terms offer, and
   MUST NOT name a land, an id, or make any eligibility or legal claim. Its sendable-attribute list
   MUST stay pinned (`privacy/LandDataDisclosure.kt`) and tied to the real encoded payload by a test,

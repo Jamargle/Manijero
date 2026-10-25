@@ -8,6 +8,7 @@ import com.jamarglex.manijero.chat.AnswerStatus
 import com.jamarglex.manijero.chat.LandContextMode
 import com.jamarglex.manijero.lands.Land
 import com.jamarglex.manijero.lands.LandListState
+import com.jamarglex.manijero.lands.LandVariety
 import com.jamarglex.manijero.lands.ProductionMethod
 import com.jamarglex.manijero.lands.WaterRegime
 
@@ -64,7 +65,11 @@ internal object ScreenshotFixtures {
             Land(
                 id = "land-1",
                 name = "Los Olivos",
+                zone = "Camino de la Fuente",
                 municipality = "Martos",
+                variety = LandVariety.PICUAL,
+                areaHectares = 1.5,
+                treeCount = 85,
                 waterRegime = WaterRegime.DRYLAND,
                 productionMethod = ProductionMethod.ORGANIC,
                 createdAtEpochMillis = 0,
@@ -73,7 +78,10 @@ internal object ScreenshotFixtures {
             Land(
                 id = "land-2",
                 name = "La Loma",
+                zone = "Linde del arroyo",
                 municipality = "Úbeda",
+                variety = LandVariety.OTHER,
+                varietyOther = "Royal de Cazorla",
                 waterRegime = WaterRegime.IRRIGATED,
                 productionMethod = ProductionMethod.UNKNOWN,
                 createdAtEpochMillis = 0,

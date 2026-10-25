@@ -17,10 +17,14 @@ class EditLandStateTest {
         val land = Land(
             id = "land-7",
             name = "La Loma",
+            zone = "Linde del arroyo",
             municipality = "Martos",
             waterRegime = WaterRegime.IRRIGATED,
             productionMethod = ProductionMethod.ORGANIC,
+            variety = LandVariety.OTHER,
+            varietyOther = "Royal de Cazorla",
             areaHectares = 2.5,
+            treeCount = 85,
             notes = "Junto al arroyo",
             createdAtEpochMillis = 1,
             updatedAtEpochMillis = 2,
@@ -30,17 +34,21 @@ class EditLandStateTest {
 
         assertEquals("land-7", state.landId)
         assertEquals("La Loma", state.name)
+        assertEquals("Linde del arroyo", state.zone)
         assertEquals("Martos", state.municipality)
         assertEquals(WaterRegime.IRRIGATED, state.waterRegime)
         assertEquals(ProductionMethod.ORGANIC, state.productionMethod)
-        assertEquals(2.5, state.preservedAreaHectares)
+        assertEquals(LandVariety.OTHER, state.variety)
+        assertEquals("Royal de Cazorla", state.varietyOther)
+        assertEquals("2,5", state.areaText)
+        assertEquals("85", state.treeCountText)
         assertEquals("Junto al arroyo", state.preservedNotes)
         assertFalse(state.showNameError)
         assertNull(state.failure)
     }
 
     @Test
-    fun absent_municipality_becomes_an_empty_field_and_unknown_values_stay_preselected() {
+    fun absent_optional_values_become_empty_fields_and_unknown_values_stay_preselected() {
         val state = Land(
             id = "land-1",
             name = "Los Olivos",
@@ -49,13 +57,37 @@ class EditLandStateTest {
             updatedAtEpochMillis = 0,
         ).toEditLandState()
 
+        assertEquals("", state.zone, "a legacy record opens with an empty required zone")
         assertEquals("", state.municipality)
         assertEquals(WaterRegime.UNKNOWN, state.waterRegime)
         assertEquals(ProductionMethod.UNKNOWN, state.productionMethod)
-        assertNull(state.preservedAreaHectares)
+        assertEquals(LandVariety.UNKNOWN, state.variety)
+        assertEquals("", state.varietyOther)
+        assertEquals("", state.areaText)
+        assertEquals("", state.treeCountText)
         assertNull(state.preservedNotes)
         assertFalse(state.showNameError)
         assertNull(state.failure)
+    }
+
+    @Test
+    fun a_legacy_land_without_zone_cannot_be_saved_until_a_zone_is_entered() {
+        val base = Land(
+            id = "land-1",
+            name = "Los Olivos",
+            municipality = "Martos",
+            createdAtEpochMillis = 0,
+            updatedAtEpochMillis = 0,
+        ).toEditLandState()
+
+        val blocked = base.reduce(EditLandAction.SaveClicked)
+        assertTrue(blocked.showZoneError)
+        assertEquals(ZoneProblem.BLANK, blocked.zoneIssue)
+        assertNull(blocked.toDraftOrNull())
+
+        val corrected = blocked.reduce(EditLandAction.ZoneChanged("El Llano"))
+        assertFalse(corrected.showZoneError)
+        assertEquals("El Llano", corrected.toDraftOrNull()?.zone)
     }
 
     @Test
@@ -63,6 +95,7 @@ class EditLandStateTest {
         val base = Land(
             id = "land-1",
             name = "Los Olivos",
+            zone = "El Llano",
             municipality = "Martos",
             waterRegime = WaterRegime.IRRIGATED,
             createdAtEpochMillis = 0,
@@ -85,10 +118,14 @@ class EditLandStateTest {
         val errored = EditLandState(
             landId = "land-1",
             name = "   ",
+            zone = "El Llano",
             municipality = "",
             waterRegime = WaterRegime.UNKNOWN,
             productionMethod = ProductionMethod.UNKNOWN,
-            preservedAreaHectares = null,
+            variety = LandVariety.UNKNOWN,
+            varietyOther = "",
+            areaText = "",
+            treeCountText = "",
             preservedNotes = null,
         ).reduce(EditLandAction.SaveClicked)
         assertTrue(errored.showNameError)
@@ -104,10 +141,13 @@ class EditLandStateTest {
         val state = Land(
             id = "land-1",
             name = "Los Olivos",
+            zone = "El Llano",
             municipality = "Martos",
             waterRegime = WaterRegime.IRRIGATED,
             productionMethod = ProductionMethod.ORGANIC,
+            variety = LandVariety.PICUAL,
             areaHectares = 2.5,
+            treeCount = 85,
             notes = "Nota privada",
             createdAtEpochMillis = 0,
             updatedAtEpochMillis = 0,
@@ -117,73 +157,70 @@ class EditLandStateTest {
 
         assertNotNull(draft)
         assertEquals("Los Olivos corregido", draft.name)
+        assertEquals("El Llano", draft.zone)
         assertEquals("Martos", draft.municipality)
         assertEquals(WaterRegime.IRRIGATED, draft.waterRegime)
         assertEquals(ProductionMethod.ORGANIC, draft.productionMethod)
+        assertEquals(LandVariety.PICUAL, draft.variety)
         assertEquals(2.5, draft.areaHectares, "an edit must not erase a stored area")
+        assertEquals(85, draft.treeCount, "an edit must not erase a stored tree count")
         assertEquals("Nota privada", draft.notes, "an edit must not erase stored notes")
     }
 
     @Test
-    fun clearing_the_municipality_drafts_an_absent_value() {
+    fun clearing_optional_values_drafts_absent_values() {
         val state = Land(
             id = "land-1",
             name = "La Loma",
+            zone = "El Llano",
             municipality = "Martos",
+            variety = LandVariety.OTHER,
+            varietyOther = "Royal de Cazorla",
+            areaHectares = 2.5,
+            treeCount = 85,
             createdAtEpochMillis = 0,
             updatedAtEpochMillis = 0,
         ).toEditLandState()
 
-        assertNull(
-            state.reduce(EditLandAction.MunicipalityChanged("")).toDraftOrNull()?.municipality,
-        )
-        assertNull(
-            state.reduce(EditLandAction.MunicipalityChanged("   ")).toDraftOrNull()?.municipality,
-        )
-        assertEquals(
-            "Úbeda",
-            state.reduce(EditLandAction.MunicipalityChanged("  Úbeda ")).toDraftOrNull()?.municipality,
-        )
+        val draft = state
+            .reduce(EditLandAction.MunicipalityChanged(""))
+            .reduce(EditLandAction.VarietySelected(LandVariety.PICUAL))
+            .reduce(EditLandAction.AreaChanged(""))
+            .reduce(EditLandAction.TreeCountChanged(""))
+            .toDraftOrNull()
+
+        assertNotNull(draft)
+        assertNull(draft.municipality)
+        assertNull(draft.varietyOther)
+        assertNull(draft.areaHectares)
+        assertNull(draft.treeCount)
     }
 
     @Test
-    fun selecting_unknown_after_a_known_value_drafts_unknown() {
-        val state = Land(
+    fun invalid_measures_block_the_draft_and_keep_the_raw_text() {
+        val base = Land(
             id = "land-1",
             name = "La Loma",
-            waterRegime = WaterRegime.IRRIGATED,
-            productionMethod = ProductionMethod.ORGANIC,
+            zone = "El Llano",
             createdAtEpochMillis = 0,
             updatedAtEpochMillis = 0,
         ).toEditLandState()
 
-        val draft = state
-            .reduce(EditLandAction.WaterRegimeSelected(WaterRegime.UNKNOWN))
-            .reduce(EditLandAction.ProductionMethodSelected(ProductionMethod.UNKNOWN))
-            .toDraftOrNull()
+        val badArea = base.copy(areaText = "1,234").reduce(EditLandAction.SaveClicked)
+        assertTrue(badArea.showAreaError)
+        assertNull(badArea.toDraftOrNull())
+        assertEquals("1,234", badArea.areaText)
 
-        assertNotNull(draft)
-        assertEquals(WaterRegime.UNKNOWN, draft.waterRegime)
-        assertEquals(ProductionMethod.UNKNOWN, draft.productionMethod)
-    }
+        val badTrees = base.copy(treeCountText = "0").reduce(EditLandAction.SaveClicked)
+        assertTrue(badTrees.showTreeCountError)
+        assertNull(badTrees.toDraftOrNull())
+        assertEquals("0", badTrees.treeCountText)
 
-    @Test
-    fun a_deliberate_mixed_value_survives_the_draft() {
-        val state = Land(
-            id = "land-1",
-            name = "Los Olivos",
-            createdAtEpochMillis = 0,
-            updatedAtEpochMillis = 0,
-        ).toEditLandState()
-
-        val draft = state
-            .reduce(EditLandAction.WaterRegimeSelected(WaterRegime.MIXED))
-            .reduce(EditLandAction.ProductionMethodSelected(ProductionMethod.MIXED))
-            .toDraftOrNull()
-
-        assertNotNull(draft)
-        assertEquals(WaterRegime.MIXED, draft.waterRegime)
-        assertEquals(ProductionMethod.MIXED, draft.productionMethod)
+        val corrected = badTrees
+            .reduce(EditLandAction.TreeCountChanged("85"))
+            .reduce(EditLandAction.SaveClicked)
+        assertFalse(corrected.showTreeCountError)
+        assertEquals(85, corrected.toDraftOrNull()?.treeCount)
     }
 
     @Test
@@ -191,10 +228,13 @@ class EditLandStateTest {
         val base = Land(
             id = "land-1",
             name = "La Loma",
+            zone = "El Llano",
             municipality = "Martos",
             waterRegime = WaterRegime.DRYLAND,
             productionMethod = ProductionMethod.ORGANIC,
+            variety = LandVariety.ARBEQUINA,
             areaHectares = 1.5,
+            treeCount = 85,
             notes = "Nota",
             createdAtEpochMillis = 0,
             updatedAtEpochMillis = 0,
@@ -209,7 +249,9 @@ class EditLandStateTest {
         assertEquals("Jaén", failed.municipality)
         assertEquals(WaterRegime.DRYLAND, failed.waterRegime)
         assertEquals(ProductionMethod.ORGANIC, failed.productionMethod)
-        assertEquals(1.5, failed.preservedAreaHectares)
+        assertEquals(LandVariety.ARBEQUINA, failed.variety)
+        assertEquals("1,5", failed.areaText)
+        assertEquals("85", failed.treeCountText)
         assertEquals("Nota", failed.preservedNotes)
         assertEquals("land-1", failed.landId)
         assertNotNull(failed.toDraftOrNull(), "a failed save must remain retryable")
@@ -218,10 +260,15 @@ class EditLandStateTest {
         assertNull(corrected.failure)
 
         assertNull(failed.reduce(EditLandAction.NameChanged("Otra")).failure)
+        assertNull(failed.reduce(EditLandAction.ZoneChanged("La Vega")).failure)
         assertNull(failed.reduce(EditLandAction.WaterRegimeSelected(WaterRegime.MIXED)).failure)
         assertNull(
             failed.reduce(EditLandAction.ProductionMethodSelected(ProductionMethod.MIXED)).failure,
         )
+        assertNull(failed.reduce(EditLandAction.VarietySelected(LandVariety.PICUAL)).failure)
+        assertNull(failed.reduce(EditLandAction.VarietyOtherChanged("Otra")).failure)
+        assertNull(failed.reduce(EditLandAction.AreaChanged("2")).failure)
+        assertNull(failed.reduce(EditLandAction.TreeCountChanged("90")).failure)
     }
 
     @Test
@@ -229,6 +276,7 @@ class EditLandStateTest {
         val base = Land(
             id = "land-1",
             name = "Los Olivos",
+            zone = "El Llano",
             createdAtEpochMillis = 0,
             updatedAtEpochMillis = 0,
         ).toEditLandState()
@@ -245,14 +293,17 @@ class EditLandStateTest {
     }
 
     @Test
-    fun field_actions_never_change_the_target_id_or_the_preserved_attributes() {
+    fun field_actions_never_change_the_target_id_or_the_preserved_notes() {
         val base = Land(
             id = "land-42",
             name = "Los Olivos",
+            zone = "El Llano",
             municipality = "Martos",
             waterRegime = WaterRegime.IRRIGATED,
             productionMethod = ProductionMethod.ORGANIC,
+            variety = LandVariety.PICUAL,
             areaHectares = 4.25,
+            treeCount = 120,
             notes = "Linde norte",
             createdAtEpochMillis = 0,
             updatedAtEpochMillis = 0,
@@ -260,9 +311,14 @@ class EditLandStateTest {
 
         val actions = listOf(
             EditLandAction.NameChanged("Otro nombre"),
+            EditLandAction.ZoneChanged("La Vega"),
             EditLandAction.MunicipalityChanged("Úbeda"),
             EditLandAction.WaterRegimeSelected(WaterRegime.DRYLAND),
             EditLandAction.ProductionMethodSelected(ProductionMethod.CONVENTIONAL),
+            EditLandAction.VarietySelected(LandVariety.MIXED),
+            EditLandAction.VarietyOtherChanged("Otra"),
+            EditLandAction.AreaChanged("2"),
+            EditLandAction.TreeCountChanged("90"),
             EditLandAction.SaveClicked,
             EditLandAction.SaveFailed(EditLandFailure.LAND_MISSING),
         )
@@ -270,7 +326,6 @@ class EditLandStateTest {
         actions.forEach { action ->
             val reduced = base.reduce(action)
             assertEquals("land-42", reduced.landId, "$action must not retarget the edit")
-            assertEquals(4.25, reduced.preservedAreaHectares, "$action must not drop the area")
             assertEquals("Linde norte", reduced.preservedNotes, "$action must not drop the notes")
         }
     }
@@ -285,18 +340,17 @@ class EditLandStateTest {
 
         names.forEach { name ->
             val typed = "  $name  "
-            val state = EditLandState(
-                landId = "land-1",
+            val state = Land(
+                id = "land-1",
                 name = typed,
-                municipality = "",
-                waterRegime = WaterRegime.UNKNOWN,
-                productionMethod = ProductionMethod.UNKNOWN,
-                preservedAreaHectares = null,
-                preservedNotes = null,
-            )
+                zone = "  Cañada de la Encina  ",
+                createdAtEpochMillis = 0,
+                updatedAtEpochMillis = 0,
+            ).toEditLandState()
 
             assertEquals(typed, state.name, "raw text must survive for correction")
             assertEquals(name, state.toDraftOrNull()?.name)
+            assertEquals("Cañada de la Encina", state.toDraftOrNull()?.zone)
         }
     }
 }

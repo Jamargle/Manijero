@@ -268,8 +268,8 @@ adopted by the screen refreshes.
 - Use a clear heading, short explanation, and predictable back/home navigation and action placement.
 - Provide large mobile touch targets, comfortable Desktop pointer targets, keyboard operation, and
   visible focus. Essential instructions must not depend on hover.
-- Pair unclear icons with text. Use progressive disclosure: ask for a land name first and collect
-  only details that help answer a real question.
+- Pair unclear icons with text. Use progressive disclosure: ask for the land name and zone first,
+  then collect only details that help answer a real question or tell similar lands apart.
 - Confirm destructive deletion in plain language and identify the land being removed.
 - Preserve entered data after validation or recoverable network failures. Show response waiting
   state and a simple retry where appropriate.
@@ -283,6 +283,12 @@ adopted by the screen refreshes.
   make sources, verification date, uncertainty, and next steps easy to find.
 - **Lands:** provide a simple named list and short add/edit forms. Mark optional details and allow
   unknown values without forcing a guess; avoid map-first or spreadsheet-style layouts.
+  The add and edit forms keep this order: name, zone (paraje), municipality, variety, custom `Otra`
+  text when chosen, surface in hectares, olive-tree count, water regime, production method, actions.
+  Name and zone say “obligatorio” in words; the rest say “opcional” and offer “No lo sé” where the
+  value is an attribute. Zone, variety, custom variety text, surface, and tree count stay on the
+  device and never enter the question payload. A saved legacy land without a zone stays readable and
+  asks for one only when edited.
 - **Land clarification:** when an answer materially differs by land, let the user choose one or more
   named lands and continue.
 - **Privacy and help:** explain what is stored on device and what may be sent with a question; make

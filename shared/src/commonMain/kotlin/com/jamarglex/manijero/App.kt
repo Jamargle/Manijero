@@ -75,6 +75,7 @@ import com.jamarglex.manijero.lands.LandListConfirmation
 import com.jamarglex.manijero.lands.LandListScreen
 import com.jamarglex.manijero.lands.LandListState
 import com.jamarglex.manijero.lands.LandRepository
+import com.jamarglex.manijero.lands.LandVariety
 import com.jamarglex.manijero.lands.ProductionMethod
 import com.jamarglex.manijero.lands.RemoveLandAction
 import com.jamarglex.manijero.lands.RemoveLandFailure
@@ -1032,7 +1033,12 @@ private fun LandClarificationChooser(
                                     color = MaterialTheme.colorScheme.onSurface,
                                 )
                                 LandDetails(
+                                    zone = land.zone,
                                     municipality = land.municipality,
+                                    variety = land.variety,
+                                    varietyOther = land.varietyOther,
+                                    areaHectares = land.areaHectares,
+                                    treeCount = land.treeCount,
                                     waterRegime = land.waterRegime,
                                     productionMethod = land.productionMethod,
                                 )
@@ -1530,16 +1536,27 @@ private fun ChatHomeFailureNarrowLargeTextPreview() {
 
 // Preview-only sample lands for the chooser: the saved-name title plus known attributes, nothing a
 // real store would not hold. The ids are opaque local ids and are never shown.
+@Suppress("LongParameterList")
 private fun clarificationLand(
     id: String,
     name: String,
+    zone: String? = null,
     municipality: String? = null,
+    variety: LandVariety = LandVariety.UNKNOWN,
+    varietyOther: String? = null,
+    areaHectares: Double? = null,
+    treeCount: Int? = null,
     waterRegime: WaterRegime = WaterRegime.UNKNOWN,
     productionMethod: ProductionMethod = ProductionMethod.UNKNOWN,
 ) = Land(
     id = id,
     name = name,
+    zone = zone,
     municipality = municipality,
+    variety = variety,
+    varietyOther = varietyOther,
+    areaHectares = areaHectares,
+    treeCount = treeCount,
     waterRegime = waterRegime,
     productionMethod = productionMethod,
     createdAtEpochMillis = 0,
@@ -1574,8 +1591,23 @@ private fun ChatHomeClarificationTwoLandsPreview() {
             ),
             onAction = {},
             clarificationLands = listOf(
-                clarificationLand("land-1", "Los Olivos", waterRegime = WaterRegime.IRRIGATED),
-                clarificationLand("land-2", "La Loma", waterRegime = WaterRegime.DRYLAND),
+                clarificationLand(
+                    id = "land-1",
+                    name = "Los Olivos",
+                    zone = "Camino de la Fuente",
+                    variety = LandVariety.PICUAL,
+                    areaHectares = 1.5,
+                    treeCount = 85,
+                    waterRegime = WaterRegime.IRRIGATED,
+                ),
+                clarificationLand(
+                    id = "land-2",
+                    name = "La Loma",
+                    zone = "Linde del arroyo",
+                    variety = LandVariety.OTHER,
+                    varietyOther = "Royal de Cazorla",
+                    waterRegime = WaterRegime.DRYLAND,
+                ),
             ),
         )
     }
@@ -1595,7 +1627,11 @@ private fun ChatHomeClarificationOneLandPreview() {
                 clarificationLand(
                     id = "land-1",
                     name = "Los Olivos",
+                    zone = "Camino de la Fuente",
                     municipality = "Martos",
+                    variety = LandVariety.ARBEQUINA,
+                    areaHectares = 2.5,
+                    treeCount = 85,
                     productionMethod = ProductionMethod.ORGANIC,
                 ),
             ),
@@ -1614,8 +1650,23 @@ private fun ChatHomeClarificationNarrowLargeTextPreview() {
             ),
             onAction = {},
             clarificationLands = listOf(
-                clarificationLand("land-1", "Los Olivos", waterRegime = WaterRegime.IRRIGATED),
-                clarificationLand("land-2", "La Loma", waterRegime = WaterRegime.DRYLAND),
+                clarificationLand(
+                    id = "land-1",
+                    name = "Los Olivos",
+                    zone = "Camino de la Fuente",
+                    variety = LandVariety.PICUAL,
+                    areaHectares = 1.5,
+                    treeCount = 85,
+                    waterRegime = WaterRegime.IRRIGATED,
+                ),
+                clarificationLand(
+                    id = "land-2",
+                    name = "La Loma",
+                    zone = "Linde del arroyo",
+                    variety = LandVariety.OTHER,
+                    varietyOther = "Royal de Cazorla",
+                    waterRegime = WaterRegime.DRYLAND,
+                ),
             ),
         )
     }

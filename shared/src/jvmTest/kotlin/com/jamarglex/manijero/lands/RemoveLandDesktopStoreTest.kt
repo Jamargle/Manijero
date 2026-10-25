@@ -17,10 +17,11 @@ class RemoveLandDesktopStoreTest {
         val path = directory.resolve("lands-v1.txt")
         try {
             val writer = LandRepository(FileLandStorage(path))
-            val removed = writer.create(LandDraft("Los Olivos"), now = 1)
+            val removed = writer.create(LandDraft("Los Olivos", "El Llano"), now = 1)
             val kept = writer.create(
                 LandDraft(
                     name = "La Loma",
+                    zone = "Linde del arroyo",
                     municipality = "Martos",
                     waterRegime = WaterRegime.IRRIGATED,
                     productionMethod = ProductionMethod.ORGANIC,
@@ -51,7 +52,7 @@ class RemoveLandDesktopStoreTest {
         val path = directory.resolve("lands-v1.txt")
         try {
             val writer = LandRepository(FileLandStorage(path))
-            val only = writer.create(LandDraft("Los Olivos"), now = 1)
+            val only = writer.create(LandDraft("Los Olivos", "El Llano"), now = 1)
 
             assertTrue(LandRepository(FileLandStorage(path)).delete(only.id))
 

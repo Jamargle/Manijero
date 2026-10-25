@@ -14,10 +14,14 @@ class AddLandDesktopStoreTest {
         val directory = Files.createTempDirectory("manijero-add-land")
         val path = directory.resolve("lands-v1.txt")
         try {
-            val nameOnly = AddLandState(name = "  Los Olivos  ")
+            val nameOnly = AddLandState(name = "  Los Olivos  ", zone = "  El Llano  ")
                 .reduce(AddLandAction.SaveClicked)
                 .toDraftOrNull()!!
-            val known = AddLandState(name = "La Loma", municipality = "Martos")
+            val known = AddLandState(
+                name = "La Loma",
+                zone = "Linde del arroyo",
+                municipality = "Martos",
+            )
                 .reduce(AddLandAction.WaterRegimeSelected(WaterRegime.IRRIGATED))
                 .reduce(AddLandAction.ProductionMethodSelected(ProductionMethod.ORGANIC))
                 .reduce(AddLandAction.SaveClicked)
@@ -28,6 +32,7 @@ class AddLandDesktopStoreTest {
 
             val reopened = LandRepository(FileLandStorage(path)).list()
             assertEquals(listOf("Los Olivos", "La Loma"), reopened.map { it.name })
+            assertEquals(listOf("El Llano", "Linde del arroyo"), reopened.map { it.zone })
             assertEquals(WaterRegime.UNKNOWN, reopened[0].waterRegime)
             assertEquals(ProductionMethod.UNKNOWN, reopened[0].productionMethod)
             assertEquals(WaterRegime.IRRIGATED, reopened[1].waterRegime)
