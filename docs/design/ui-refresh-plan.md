@@ -5,6 +5,15 @@
 **Scope:** adapt the existing shared Compose UI to the Stitch references and the shared theme, screen by screen and component by component, for Android, Desktop, and iOS-reusable `commonMain`.
 **Authority:** existing feature specs own behavior. This plan proposes visual, structural, and scoped content changes; after approval it is sliced into new feature specs with their own acceptance records.
 
+**Delivery note (2026-10-25):** The refreshed-screen work has reached the cross-surface audit
+[`ui_refresh_accessibility_audit`](../specs/ui_refresh_accessibility_audit.appendix.md). Its focused
+host screenshot/JVM gate, fast gate, full Android-host/build gate, and iOS simulator-target compile
+passed. The repository owner subsequently acted as validator, reporting an in-person accessibility
+review of the refreshed UI and accepting the feature. That review has no per-screen artifacts in the
+repository; host screenshots remain pixel regression checks, not accessibility proof. The
+low-digital-confidence review remains outstanding, and no formal certification or usability-research
+claim is made. See the audit and acceptance records for exact scope and evidence limits.
+
 ---
 
 ## 0. How to read this plan
