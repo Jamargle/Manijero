@@ -1,20 +1,13 @@
 package com.jamarglex.manijero.lands
 
-import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.widthIn
-import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Button
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
@@ -28,7 +21,10 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.jamarglex.manijero.design.ManijeroCard
 import com.jamarglex.manijero.design.ManijeroCardTone
+import com.jamarglex.manijero.design.ManijeroChipTone
 import com.jamarglex.manijero.design.ManijeroEmptyState
+import com.jamarglex.manijero.design.ManijeroScreen
+import com.jamarglex.manijero.design.ManijeroAttributeChip
 import com.jamarglex.manijero.design.ManijeroSearchField
 import com.jamarglex.manijero.design.ManijeroSectionHeader
 import com.jamarglex.manijero.design.ManijeroStatCard
@@ -89,7 +85,6 @@ import org.jetbrains.compose.resources.StringResource
 import org.jetbrains.compose.resources.pluralStringResource
 import org.jetbrains.compose.resources.stringResource
 
-private val ContentMaxWidth = 720.dp
 
 /** What the last successful write was, so the list confirms the right thing or nothing at all. */
 enum class LandListConfirmation { ADDED, UPDATED, REMOVED }
@@ -120,30 +115,9 @@ fun LandListScreen(
     modifier: Modifier = Modifier,
     confirmation: LandListConfirmation? = null,
 ) {
-    Surface(
-        modifier = modifier.fillMaxSize(),
-        color = MaterialTheme.colorScheme.background,
-    ) {
-        // The summary grid switches on the width of the window this screen receives. It must be
-        // measured here, around the padded content: the inner content column is capped at 720 dp,
-        // so a breakpoint read inside it could never reach 840 dp.
-        BoxWithConstraints(modifier = Modifier.fillMaxSize()) {
+    androidx.compose.foundation.layout.BoxWithConstraints(modifier = modifier) {
             val wideWindow = maxWidth >= WideWindowBreakpoint
-
-            Column(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .verticalScroll(rememberScrollState())
-                    .padding(horizontal = 24.dp, vertical = 32.dp),
-                verticalArrangement = Arrangement.spacedBy(20.dp),
-                horizontalAlignment = Alignment.CenterHorizontally,
-            ) {
-                Column(
-                    modifier = Modifier
-                        .widthIn(max = ContentMaxWidth)
-                        .fillMaxWidth(),
-                    verticalArrangement = Arrangement.spacedBy(16.dp),
-                ) {
+            ManijeroScreen {
                     Text(
                         text = stringResource(Res.string.chat_home_lands),
                         style = MaterialTheme.typography.headlineMedium,
@@ -209,9 +183,7 @@ fun LandListScreen(
                             onQueryChange = onQueryChange,
                         )
                     }
-                }
             }
-        }
     }
 }
 
@@ -458,14 +430,9 @@ private fun LandRow(
     onRemove: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
-    Surface(
-        modifier = modifier.fillMaxWidth(),
-        shape = RoundedCornerShape(16.dp),
-        color = MaterialTheme.colorScheme.surfaceContainerLowest,
-        border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant),
-    ) {
+    ManijeroCard(modifier = modifier, tone = ManijeroCardTone.Outlined) {
         Column(
-            modifier = Modifier.padding(horizontal = 16.dp, vertical = 12.dp),
+            modifier = Modifier.fillMaxWidth(),
             verticalArrangement = Arrangement.spacedBy(4.dp),
         ) {
             Column(
@@ -537,39 +504,33 @@ internal fun LandDetails(
         modifier = modifier,
         verticalArrangement = Arrangement.spacedBy(4.dp),
     ) {
-        if (zone.isNotBlank()) {
-            LandRowDetail(stringResource(Res.string.land_list_zone, zone))
-        }
-        municipality?.takeIf { it.isNotBlank() }?.let { value ->
-            LandRowDetail(stringResource(Res.string.land_list_municipality, value))
-        }
-        val varietyValue = when (variety) {
-            LandVariety.OTHER -> varietyOther?.takeIf { it.isNotBlank() }
-                ?: stringResource(Res.string.add_land_variety_other)
-
-            else -> stringResource(landVarietyLabel(variety))
-        }
-        LandRowDetail(stringResource(Res.string.land_list_variety, varietyValue))
-        areaHectares?.let { value ->
-            LandRowDetail(
-                stringResource(Res.string.land_list_surface, formatHectares(value)),
-            )
-        }
-        treeCount?.let { value ->
-            LandRowDetail(stringResource(Res.string.land_list_trees, formatTreeCount(value)))
-        }
-        LandRowDetail(
-            stringResource(
-                Res.string.land_list_water,
-                stringResource(waterRegimeLabel(waterRegime)),
-            ),
+        if (zone.isNotBlank()) LandRowDetail(stringResource(Res.string.land_list_zone, zone))
+        municipality?.takeIf { it.isNotBlank() }?.let { LandRowDetail(stringResource(Res.string.land_list_municipality, it)) }
+        val varietyKnown = variety != LandVariety.UNKNOWN
+        val waterKnown = waterRegime != WaterRegime.UNKNOWN
+        val productionKnown = productionMethod != ProductionMethod.UNKNOWN
+        FlowRow(horizontalArrangement = Arrangement.spacedBy(4.dp)) {
+        if (waterKnown) ManijeroAttributeChip(
+            stringResource(waterRegimeLabel(waterRegime)),
+            if (waterRegime == WaterRegime.DRYLAND) ManijeroChipTone.Dryland else ManijeroChipTone.Irrigated,
         )
-        LandRowDetail(
-            stringResource(
-                Res.string.land_list_production,
-                stringResource(productionMethodLabel(productionMethod)),
-            ),
+        if (productionKnown) ManijeroAttributeChip(
+            stringResource(productionMethodLabel(productionMethod)),
+            if (productionMethod == ProductionMethod.ORGANIC) ManijeroChipTone.Organic else ManijeroChipTone.Neutral,
         )
+            if (varietyKnown) {
+                val label = if (variety == LandVariety.OTHER) varietyOther?.takeIf { it.isNotBlank() } ?: stringResource(Res.string.add_land_variety_other) else stringResource(landVarietyLabel(variety))
+                ManijeroAttributeChip(label, ManijeroChipTone.Neutral)
+            }
+        }
+        val unknownLabels = buildList {
+            if (!waterKnown) add(stringResource(Res.string.land_list_water, stringResource(Res.string.add_land_unknown)))
+            if (!productionKnown) add(stringResource(Res.string.land_list_production, stringResource(Res.string.add_land_unknown)))
+            if (!varietyKnown) add(stringResource(Res.string.land_list_variety, stringResource(Res.string.add_land_unknown)))
+        }
+        if (unknownLabels.isNotEmpty()) LandRowDetail(unknownLabels.joinToString(" · "))
+        areaHectares?.let { LandRowDetail(stringResource(Res.string.land_list_surface, formatHectares(it))) }
+        treeCount?.let { LandRowDetail(stringResource(Res.string.land_list_trees, formatTreeCount(it))) }
     }
 }
 

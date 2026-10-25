@@ -333,7 +333,13 @@ component layer. These rules are durable:
   notes or timestamps; the summary follows the shown matches. A query with no match shows one plain
   sentence and a `Borrar la búsqueda` action, no cards, and the `Añadir terreno` action stays
   above it. An empty store is the olive-branch empty state with exactly one primary `Añadir terreno`
-  action, no summary and no search.
+   action, no summary and no search.
+  Land rows use non-clickable outlined cards: known water, production and variety values are chips;
+  unknown attributes are stated once in plain text. Edit and remove remain separate controls, each
+  with an accessible name that includes its action and the saved land name. Add/edit forms keep
+  their established field order and group required identity fields separately from optional details;
+  neither group hides a field or choice. Removal identifies the selected record in a danger card,
+  while Cancel remains an explicit safe action.
 - **Land clarification:** when an answer materially differs by land, let the user choose one or more
   named lands and continue.
 - **Privacy and help:** explain what is stored on device and what may be sent with a question; make
