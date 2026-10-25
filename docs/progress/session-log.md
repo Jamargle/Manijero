@@ -68,3 +68,4 @@ restate evidence here.
 | 2026-10-24 | `shared_design_system` accepted; typography is the Material 3 default. | `docs/specs/shared_design_system.md` · `docs/validations/shared_design_system.md` |
 | 2026-10-25 | Removed the custom typography file, its test, and the `bodySmall` override; the app now uses Material 3 default typography. | `docs/validations/shared_design_system.md` · `DESIGN.md` |
 | 2026-10-25 | `design_token_refresh` accepted; Stitch palette and token scale implemented and contrast-gated in both appearances, screens unrestyled beyond five card surfaces. | `docs/specs/design_token_refresh.md` · `docs/validations/design_token_refresh.md` |
+| 2026-10-25 | `screenshot_regression_tests` accepted; four macOS-recorded Desktop JVM goldens with read-only verify and explicit record; no CI enforcement or Android/iOS claim, baseline sign-off pending. | `docs/specs/screenshot_regression_tests.md` · `docs/validations/screenshot_regression_tests.md` |
