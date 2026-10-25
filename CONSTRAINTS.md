@@ -275,6 +275,12 @@ Operational MUST/MUST NOT rules that future features have to respect on top of
   coverage from the assistant; stale or overconfident disclosure could prompt reliance outside the
   evidence actually reviewed.
 
+- **MUST**: restyling the help and privacy surfaces MUST preserve their pinned copy, disclosure facts,
+  shared-attribute mapping and existing navigation callbacks; visual grouping MUST NOT introduce a
+  new promise, warning/status implication, route or external link. Reason: `help_privacy_refresh` is
+  visual adaptation only; changing the facts or their implied certainty during a restyle could make
+  the screens contradict the reviewed corpus or the actual local/request data boundary.
+
 ## Brand vectors
 
 - **MUST**: shipped brand vectors (the mark, sixteen `ic_*` glyphs, the olive-branch illustration)
