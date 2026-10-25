@@ -248,9 +248,10 @@ adopted by the screen refreshes.
 - **App shell (adopted 2026-10-25).** `AppShell` is the one frame around every destination: a
   `ManijeroTopAppBar` with the brand mark and the visible `Manijero` title and **no right-side
   action**, the selected screen, and `ManijeroBottomNavigation` below 840 dp or
-  `ManijeroNavigationRail` from 840 dp. Tabs are `Asistente`, `Mis terrenos` and `Ayuda`; the lands
-  tab is omitted when no local repository is injected, so no tab can be dead. Tabs are the only
-  top-level navigation: screens must not add another `Volver` or `Mis terrenos` route. The bars are
+  `ManijeroNavigationRail` from 840 dp. With a local store injected the app opens on
+  `Mis terrenos`; without one it opens on `Asistente`, so no tab can be dead. Tabs are `Asistente`,
+  `Mis terrenos` and `Ayuda`; the lands tab is omitted when no local repository is injected. Tabs
+  are the only top-level navigation: screens must not add another `Volver` or `Mis terrenos` route. The bars are
   hidden on add/edit/remove forms, which keep their own `Cancelar`; privacy stays a detail route with
   its own `Volver`. Android system back returns lands → assistant, a form → lands, `Ayuda` → the tab
   it was opened from, and privacy → the section it was opened from; it is not installed on the

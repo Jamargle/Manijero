@@ -19,11 +19,14 @@ found in the first pass and fixed before acceptance; the re-check passed.
   are gone with no dead `onLandsClick`/`onBack` parameter, string or preview; `chat_home_lands` still
   heads the list and `privacy_back` still serves the privacy screen. Forms keep `Cancelar`, hide both
   navigation bars, and leave the top app bar; privacy keeps its `Volver`.
-- **Land read and return rules.** `readLands()` remains the only reader, is still guarded, and runs on
-  entering lands from another section, on retry, and after save/edit/remove; a failed read still
-  shows `Reintentar`, never a false empty list. Privacy records both entry points and returns to the
-  section it was opened from; help never returns to itself; a form's back and `Cancelar` both abandon
-  the draft without writing.
+- **Launch route (post-acceptance change).** With a local store injected the app opens on
+  `Mis terrenos` and reads the saved lands before the first list frame; without a store it opens on
+  `Asistente`, so the omitted lands tab is never the launch screen.
+- **Land read and return rules.** Every land read stays guarded and unlogged: `readLands()` runs on
+  entering lands from another section, on retry, and after save/edit/remove, while the default
+  launch hydrates the same state once. A failed read still shows `Reintentar`, never a false empty
+  list. Privacy records both entry points and returns to the section it was opened from; help never
+  returns to itself; a form's back and `Cancelar` both abandon the draft without writing.
 - **Insets and accessibility.** The shell is the single inset owner: the bar wrappers paint behind the
   status/navigation bars, Scaffold's system-bar padding covers the content when a bar is absent, and
   ime is handled once. Tabs keep visible labels, 48 dp targets, the indicator plus heavier label, and
@@ -67,6 +70,23 @@ Low notes applied to the docs: the shell is described as owning system-bar (not 
 horizontal insets, and the privacy-to-help return note names the existing `Ver privacidad y ayuda`
 cross-link. No further code change was required.
 
+Post-acceptance change (same day): the owner asked that `Mis terrenos` be the default tab. `App` now
+derives its launch destination from the repository (`Mis terrenos` when one is injected, `Asistente`
+otherwise), starts `previousSection` on the same tab, and hydrates the initial land list with the
+same guarded fold once, so the empty state is not flashed before the store answers. `AppNavigation`
+gained `initialDestination`/`initialSection` with five new tests, and `AppLaunchTest` pins the
+hydration fold (no store, empty store, saved lands, refusing store) in four more. System back to a
+top-level tab now also updates `previousSection`, so `Ayuda` after back returns to the tab the person
+is on rather than the launch tab. Acceptance scenario 6 was clarified to name the launch tab, and the
+two MVP build specs that still claimed a chat-home launch were corrected.
+
+Re-verified after the change: focused block exit 0 (220 host tests, 18 navigation, 4 launch),
+`--verify` exit 0 (88 tasks), iOS compile `BUILD SUCCESSFUL`, host goldens unchanged. On the emulator
+the app launches on the selected `Mis terrenos` tab and shows the saved land after a force-stop and
+relaunch; back from `Mis terrenos` reaches `Asistente`; the Desktop app also opens on `Mis terrenos`.
+This changes the user-visible entry point in the contract and `DESIGN.md`; the tabs, back rules,
+forms and inset ownership are otherwise unchanged.
+
 Declared limits, accepted as scope boundaries:
 
 - At 2× text on a 360 dp compact shell the bottom-navigation labels remain visible but wrap
@@ -90,10 +110,11 @@ Declared limits, accepted as scope boundaries:
 
 ## Security
 
-No finding. No new network, storage, permission, logging or platform entry point; the land read is
-unchanged, guarded and unlogged; route and draft state stay local UI state; the single dependency
-addition is the contract-permitted first-party `ui-backhandler`; privacy remains reachable from the
-chat footer and help, with its own `Volver` returning to the recorded section.
+No finding. No new network, storage, permission, logging or platform entry point; the land read
+(including the one-time launch hydration) is guarded and unlogged; route and draft state stay local
+UI state; the single dependency addition is the contract-permitted first-party `ui-backhandler`;
+privacy remains reachable from the chat footer and help, with its own `Volver` returning to the
+recorded section.
 
 ## Handoff
 

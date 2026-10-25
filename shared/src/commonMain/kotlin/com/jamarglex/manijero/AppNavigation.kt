@@ -22,6 +22,18 @@ internal fun availableSections(landsAvailable: Boolean): List<AppSection> =
         listOf(AppSection.Assistant, AppSection.Help)
     }
 
+/**
+ * The screen shown after launch: `Mis terrenos` when a local land repository is injected, so the
+ * saved lands are the first thing the person sees; otherwise the assistant, because a lands tab
+ * without a store would be dead.
+ */
+internal fun initialDestination(landsAvailable: Boolean): AppDestination =
+    if (landsAvailable) AppDestination.LandList else AppDestination.Chat
+
+/** The tab that must read as selected on the first frame. */
+internal fun initialSection(landsAvailable: Boolean): AppSection =
+    tabForDestination(initialDestination(landsAvailable), AppSection.Assistant)
+
 /** The top-level screen a tab opens. */
 internal fun sectionDestination(section: AppSection): AppDestination = when (section) {
     AppSection.Assistant -> AppDestination.Chat
@@ -45,6 +57,19 @@ internal fun tabForDestination(destination: AppDestination, fallback: AppSection
         AppDestination.Coverage -> AppSection.Help
         AppDestination.Privacy -> fallback
     }
+
+/**
+ * The remembered section after a back press. Landing on a top-level tab makes it the tab a later
+ * `Ayuda` returns to; every other route keeps the section it was already under.
+ */
+internal fun rememberedSectionAfterBack(
+    destination: AppDestination,
+    previousSection: AppSection,
+): AppSection = when (destination) {
+    AppDestination.Chat -> AppSection.Assistant
+    AppDestination.LandList -> AppSection.Lands
+    else -> previousSection
+}
 
 /**
  * Navigation is hidden only while a land form holds unsaved input, so a stray tab tap cannot

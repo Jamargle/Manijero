@@ -27,6 +27,58 @@ class AppNavigationTest {
     }
 
     @Test
+    fun `lands is the launch destination when a store exists`() {
+        assertEquals(AppDestination.LandList, initialDestination(landsAvailable = true))
+        assertEquals(AppSection.Lands, initialSection(landsAvailable = true))
+    }
+
+    @Test
+    fun `assistant is the launch destination without a store`() {
+        assertEquals(AppDestination.Chat, initialDestination(landsAvailable = false))
+        assertEquals(AppSection.Assistant, initialSection(landsAvailable = false))
+    }
+
+    @Test
+    fun `the launch tab is always an available section`() {
+        listOf(true, false).forEach { landsAvailable ->
+            assertTrue(initialSection(landsAvailable) in availableSections(landsAvailable))
+        }
+    }
+
+    @Test
+    fun `back to a top-level tab remembers that tab`() {
+        assertEquals(
+            AppSection.Assistant,
+            rememberedSectionAfterBack(
+                destination = AppDestination.Chat,
+                previousSection = AppSection.Lands,
+            ),
+        )
+        assertEquals(
+            AppSection.Lands,
+            rememberedSectionAfterBack(
+                destination = AppDestination.LandList,
+                previousSection = AppSection.Assistant,
+            ),
+        )
+    }
+
+    @Test
+    fun `back to a detail route keeps the remembered tab`() {
+        AppSection.entries.forEach { remembered ->
+            listOf(
+                AppDestination.Coverage,
+                AppDestination.Privacy,
+                AppDestination.AddLand,
+                AppDestination.EditLand,
+                AppDestination.RemoveLand,
+            ).forEach { destination ->
+                assertEquals(remembered, rememberedSectionAfterBack(destination, remembered))
+            }
+        }
+    }
+
+    @Test
     fun `each tab opens its own top-level screen`() {
         assertEquals(AppDestination.Chat, sectionDestination(AppSection.Assistant))
         assertEquals(AppDestination.LandList, sectionDestination(AppSection.Lands))

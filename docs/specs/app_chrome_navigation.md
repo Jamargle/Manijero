@@ -58,9 +58,10 @@ destination; the screens keep their own content, copy, state and accessibility b
 
 ## Job story
 
-When I open the app on a phone or on my computer, I want the assistant, my lands and the help page to
-be visible as three equal places I can move between, with the same calm header everywhere, so I do not
-have to remember which text link opens what and I never lose a half-filled land form by accident.
+When I open the app on a phone or on my computer, I want to land on my saved lands and still see the
+assistant and the help page as equal places I can move between, with the same calm header everywhere,
+so I do not have to remember which text link opens what and I never lose a half-filled land form by
+accident.
 
 ## Acceptance scenarios
 
@@ -69,10 +70,12 @@ have to remember which text link opens what and I never lose a half-filled land 
    windows (`< 840 dp`) show a bottom bar with `Asistente`, `Mis terrenos`, `Ayuda`; windows at
    `>= 840 dp` show a labelled rail on the left and no bottom bar. Selection is the Material
    indicator plus the heavier label, never colour alone.
-2. **Tabs are the only top-level navigation.** Selecting a tab shows that section; the conversation
-   state and the loaded land snapshot survive tab switches. The chat's `Mis terrenos` button no
-   longer exists, and the lands list and help screen no longer show a `Volver`. Forms keep
-   `Cancelar`; the privacy screen keeps its `Volver`.
+2. **Tabs are the only top-level navigation.** With a local land store injected the app opens on
+   `Mis terrenos` (the saved lands are read once before the first list frame); without a store it
+   opens on `Asistente`. Selecting a tab shows that section; the conversation state and the loaded
+   land snapshot survive tab switches. The chat's `Mis terrenos` button no longer exists, and the
+   lands list and help screen no longer show a `Volver`. Forms keep `Cancelar`; the privacy screen
+   keeps its `Volver`.
 3. **Lands entry still reads safely.** Entering `Mis terrenos` from the chat tab performs the same
    guarded local read as before, so a failed read shows the existing failure notice with
    `Reintentar`, never a false empty list. After an add, edit or remove the list refreshes exactly as
@@ -84,7 +87,8 @@ have to remember which text link opens what and I never lose a half-filled land 
    remains; the form's own `Cancelar` and the Android back action return to `Mis terrenos` without
    saving. The shell does not add a second back/close control.
 6. **Back rules.** Android system back from `Mis terrenos` returns to `Asistente`; from `Ayuda`
-   returns to the tab it was entered from (default `Asistente`); from a form returns to
+   returns to the tab it was entered from (on launch that is `Mis terrenos` when a local store is
+   injected and `Asistente` otherwise, and `Ayuda` never returns to itself); from a form returns to
    `Mis terrenos`; from `Privacidad` returns to the section it was opened from; from `Asistente`, and
    from `Mis terrenos` after the rule above, the platform default applies (the app can exit). Back
    never leaves a stale selected tab or an invisible destination. Desktop gets the same route
@@ -128,8 +132,10 @@ have to remember which text link opens what and I never lose a half-filled land 
   paints behind the navigation bar; the wide rail sits beside the content. `imePadding()` is applied
   by the shell so the bottom bar stays above the keyboard.
 - **Routes.** `App` keeps the existing destination state plus the current section and the previous
-  non-help section. Tab selection maps a section to its destination and triggers `readLands()` when
-  entering `LandList` from another section. Privacy records the destination it was opened from
+  non-help section. The initial destination is `LandList` when a repository is injected and `Chat`
+  otherwise; the launch list is hydrated once with the same guarded read so the empty state never
+  flashes. Tab selection maps a section to its destination and triggers `readLands()` when entering
+  `LandList` from another section. Privacy records the destination it was opened from
   (`privacyReturn`). Forms keep the section at `Lands` and hide the bars.
 - **System back.** Use `androidx.compose.ui.backhandler.BackHandler`, opt in to its experimental
   annotation, and compose it only when `backTarget(...)` is non-null. **Implementation finding

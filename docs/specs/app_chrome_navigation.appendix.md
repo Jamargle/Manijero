@@ -102,10 +102,12 @@ Ordered; stop and record a blocker if a step contradicts the contract.
    in a `Row` from 840 dp; passes the remaining padding to content. The top bar gets no action.
    Add light/dark/2× previews for compact and wide shells (preview-only screens are fine).
 5. **Routes and state in `App.kt`.** Replace the bare destination state with section + destination +
-   previous-section + privacy-return state. Tab selection maps to a destination, triggers
-   `readLands()` when entering lands, and clears transient confirmations as appropriate. Wrap the
-   existing `when` content in `AppShell`. Hide the bars on form routes; privacy keeps them and its
-   `Volver` continues to return to the recorded section. Add the conditional common `BackHandler`.
+   previous-section + privacy-return state. The launch destination is `LandList` when a repository is
+   injected and `Chat` otherwise, and the launch list is hydrated with the same guarded read. Tab
+   selection maps to a destination, triggers `readLands()` when entering lands, and clears transient
+   confirmations as appropriate. Wrap the existing `when` content in `AppShell`. Hide the bars on
+   form routes; privacy keeps them and its `Volver` continues to return to the recorded section. Add
+   the conditional common `BackHandler`.
 6. **Remove duplicate top-level controls.** Remove `onLandsClick` and its button from
    `ChatHomeScreen` and all preview call sites; remove `onBack` and `Volver` from
    `LandListScreen` (and its previews); remove `onBack` and `Volver` from `CoverageScreen` (and its
@@ -224,6 +226,29 @@ actionable tasks), `:shared:compileKotlinIosSimulatorArm64` `BUILD SUCCESSFUL`, 
 unchanged. On the emulator at 914 dp (landscape, gesture navigation) the rail and the chat footer
 stay above the navigation bar; on the compact add form `Guardar terreno` and `Cancelar` stay above
 it; with the keyboard open the bottom bar sits directly above the IME with no extra gap.
+
+### Post-acceptance change: `Mis terrenos` launches by default
+
+After acceptance the owner asked that `Mis terrenos` be the default tab. `AppNavigation` gained
+`initialDestination(landsAvailable)` and `initialSection(landsAvailable)`: the land list opens when a
+local store is injected, and the assistant opens when it is not so the omitted lands tab can never be
+the launch screen. `App` starts `previousSection` on that same tab and hydrates the initial
+`LandListState` once with the same guarded fold as `readLands`, so the default list never flashes the
+empty state before the store answers. Five pure navigation tests were added (default destination,
+no-repository fallback, the launch tab is always in `availableSections`, and the two back-to-tab
+cases), plus four `AppLaunchTest` cases pinning the hydration fold: no store, an empty store, saved
+lands, and a store that refuses to answer (a failed read, never a false empty list). System back to a
+top-level tab now also updates `previousSection`, so launch → back → `Ayuda` → back returns to
+`Asistente` instead of the tab the app started on. Acceptance scenario 6 was clarified to name the
+launch tab explicitly, and the `android_mvp_build`/`desktop_mvp_build` scenarios that still claimed a
+chat-home launch were corrected.
+
+Re-verified after the change: focused block exit 0 with 220 host tests (18 in `AppNavigationTest`,
+four in `AppLaunchTest`), `--verify` exit 0 (`BUILD SUCCESSFUL`, 88 actionable tasks), iOS simulator
+compile `BUILD SUCCESSFUL`, and no golden changed (the shell captures pass an explicit section). On
+the Android emulator the app opens with `Mis terrenos` selected, shows the saved land after a
+force-stop and relaunch, still switches tabs normally, and back → `Ayuda` → back returns to
+`Asistente`; the Desktop app also opens on `Mis terrenos`.
 
 ### Screenshot review (performed 2026-10-25)
 

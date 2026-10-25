@@ -168,14 +168,25 @@ private const val ABSTAINED_SAMPLE_FALSE_PREMISE =
     "No puedo confirmar ese dato con los documentos oficiales revisados. " +
         "Comprueba el nombre o el número exacto con tu oficina comarcal agraria o con tu cooperativa."
 
+// The one-time launch hydration of the default lands list. It runs inside `remember` so repeated
+// recomposition never reads again; later reads happen on entry, retry and after a save or an edit.
+internal fun initialLandListState(repository: LandRepository?): LandListState =
+    repository?.let { store ->
+        runCatching { store.list() }.fold(
+            onSuccess = { lands -> LandListState(lands = lands) },
+            onFailure = { LandListState(loadFailed = true) },
+        )
+    } ?: LandListState()
+
 /**
  * Composition root. The answer service is injected so transport and endpoint decisions
  * stay outside the UI; until the backend exposes `/ask` the default reports that no
  * answer service is configured instead of inventing an answer.
  *
  * [landRepository] is the single local land store, injected by each platform entry point. When it is
- * absent (the iOS scaffold and previews) the lands destination is omitted instead of creating a
- * platform-specific store in common code.
+ * injected the app opens on `Mis terrenos`; when it is absent (the iOS scaffold and previews) the
+ * lands destination is omitted instead of creating a platform-specific store in common code, and
+ * the assistant is the launch screen.
  *
  * Every destination renders inside the one [AppShell]; the route table itself is pure and lives in
  * `AppNavigation.kt`.
@@ -188,9 +199,9 @@ fun App(
     answerService: AnswerService = UnavailableAnswerService,
 ) {
     val scope = rememberCoroutineScope()
-    // The land list is read at submit time and again on every retry (never while composing), so a
-    // land added, edited, or removed after the chat screen opened is reflected in the next request.
-    // With no repository (the iOS scaffold and previews) the accepted `general` request is used.
+    // The chat reads the land list at submit time and again on every retry, so a land added, edited
+    // or removed after the conversation started is reflected in the next request. With no repository
+    // (the iOS scaffold and previews) the accepted `general` request is used.
     val conversation = remember(answerService, scope, landRepository) {
         ChatConversation(
             answerService = answerService,
@@ -198,14 +209,20 @@ fun App(
             landsProvider = { landRepository?.list().orEmpty() },
         )
     }
-    var destination by remember { mutableStateOf(AppDestination.Chat) }
+    val landsAvailable = landRepository != null
+    // `Mis terrenos` is the launch tab when there is a local store; without one it would be a dead
+    // tab, so the assistant opens instead.
+    var destination by remember { mutableStateOf(initialDestination(landsAvailable)) }
     // The last top-level section that is not Help, so back from Ayuda returns to the tab it was
     // entered from instead of to itself. Detail routes (privacy, forms) keep their owning section.
-    var previousSection by remember { mutableStateOf(AppSection.Assistant) }
+    var previousSection by remember { mutableStateOf(initialSection(landsAvailable)) }
     // Where the privacy notice's own `Volver` returns to. Privacy is a detail route, not a tab.
-    var privacyReturn by remember { mutableStateOf(AppDestination.Chat) }
+    var privacyReturn by remember { mutableStateOf(initialDestination(landsAvailable)) }
     var addLandState by remember { mutableStateOf(AddLandState()) }
-    var landListState by remember { mutableStateOf(LandListState()) }
+    // Hydrate the launch list once in memory so the default `Mis terrenos` frame never flashes the
+    // empty state before a post-composition read can answer. The fold is the same guarded one used
+    // by `readLands`; a failure keeps the list unreadable with its retry notice.
+    var landListState by remember { mutableStateOf(initialLandListState(landRepository)) }
     var editLandState by remember { mutableStateOf<EditLandState?>(null) }
     var removeLandState by remember { mutableStateOf<RemoveLandState?>(null) }
     var landConfirmation by remember { mutableStateOf<LandListConfirmation?>(null) }
@@ -226,10 +243,11 @@ fun App(
         }
     }
 
-    // The single place that reads local lands: on entering the list, on retry, and after a save or
-    // an edit. The result is folded into a LandListAction so a failed read never looks empty and
-    // stale rows never survive, and the throwable is neither logged nor shown. It is never invoked
-    // while composing, so the chat home and ordinary recomposition perform no read.
+    // The one repeatable read of local lands: on entering the list, on retry, and after a save or
+    // an edit. (The launch list is hydrated once by `initialLandListState` inside `remember`.) The
+    // result is folded into a LandListAction so a failed read never looks empty and stale rows never
+    // survive, and the throwable is neither logged nor shown. It is never invoked while composing,
+    // so ordinary recomposition performs no read.
     val readLands: () -> Unit = {
         landListState = landListState.reduce(LandListAction.ReloadClicked)
         val repository = landRepository
@@ -281,6 +299,9 @@ fun App(
                 removeLandState = null
             }
             destination = systemBackTarget
+            // Back to a top-level tab also makes it the remembered section, so a later `Ayuda`
+            // return, and the selected tab, agree with the screen the person is actually on.
+            previousSection = rememberedSectionAfterBack(systemBackTarget, previousSection)
         }
     }
 

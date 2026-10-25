@@ -37,7 +37,7 @@ Given the toolchain and an Android SDK (auto-detected by `scripts/init.sh`, whic
 
 ### The APK installs and launches
 
-Given a running emulator with `adb`, when the debug APK is installed (`adb install -r …`) and the launcher activity `com.jamarglex.manijero/.MainActivity` starts, then the app opens on the shared chat home with no crash, no ANR, and no fatal `AndroidRuntime` entry in `logcat`.
+Given a running emulator with `adb`, when the debug APK is installed (`adb install -r …`) and the launcher activity `com.jamarglex.manijero/.MainActivity` starts, then the app opens on the shell's launch tab (`Mis terrenos` with its saved lands, since `app_chrome_navigation` changed the entry point) with no crash, no ANR, and no fatal `AndroidRuntime` entry in `logcat`.
 
 ### The accepted land journey works on the installed artifact
 
