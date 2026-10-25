@@ -310,6 +310,16 @@ component layer. These rules are durable:
   the accepted order, not a hidden control: the field and button stay in the same scroll and are
   never icon-only or off the page.
 
+## Help and privacy surfaces (adopted 2026-10-25)
+
+`help_privacy_refresh` uses `ManijeroScreen` as the single scroll/frame owner for both informational
+screens. Coverage topics and human help are neutral outlined cards; the existing limits are grouped
+in a neutral informational callout, without adding warning or certainty meaning. Privacy sections use
+the same outlined-card and semantic-heading treatment. Keep their resource copy and navigation
+callbacks unchanged; the privacy shared-attribute list remains derived from its exhaustive mapping.
+The visual grouping must not alter the distinction between device-local land records and attributes
+that may accompany a question. See [the feature contract](docs/specs/help_privacy_refresh.md).
+
 ## MVP surface intent
 
 - **Welcome and home:** explain what the assistant can and cannot do; offer a clear way to ask or

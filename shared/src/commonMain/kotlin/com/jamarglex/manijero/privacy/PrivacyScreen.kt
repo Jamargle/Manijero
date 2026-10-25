@@ -2,23 +2,22 @@ package com.jamarglex.manijero.privacy
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.widthIn
-import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.semantics.heading
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.jamarglex.manijero.theme.ManijeroTheme
+import com.jamarglex.manijero.design.ManijeroCard
+import com.jamarglex.manijero.design.ManijeroCardTone
+import com.jamarglex.manijero.design.ManijeroScreen
+import com.jamarglex.manijero.design.ManijeroSectionHeader
 import org.jetbrains.compose.resources.StringResource
 import org.jetbrains.compose.resources.stringResource
 import manijero.shared.generated.resources.Res
@@ -44,8 +43,6 @@ import manijero.shared.generated.resources.privacy_sent_unknown
 import manijero.shared.generated.resources.privacy_title
 import manijero.shared.generated.resources.coverage_privacy_link
 
-private val ContentMaxWidth = 720.dp
-
 /**
  * The plain-Spanish data-handling notice: what is saved on this device and what may leave it with a
  * question. It is stateless — no reducer, no callback beyond [onBack] — and every fact is carried by
@@ -58,28 +55,13 @@ fun PrivacyScreen(
     onCoverageClick: () -> Unit = {},
     modifier: Modifier = Modifier,
 ) {
-    Surface(
-        modifier = modifier.fillMaxSize(),
-        color = MaterialTheme.colorScheme.background,
-    ) {
-        Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .verticalScroll(rememberScrollState())
-                .padding(horizontal = 24.dp, vertical = 32.dp),
-            verticalArrangement = Arrangement.spacedBy(20.dp),
-        ) {
-            Column(
-                modifier = Modifier
-                    .widthIn(max = ContentMaxWidth)
-                    .fillMaxWidth(),
-                verticalArrangement = Arrangement.spacedBy(12.dp),
-            ) {
+    ManijeroScreen(modifier) {
+            Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
                 Text(
                     text = stringResource(Res.string.privacy_title),
                     style = MaterialTheme.typography.headlineMedium,
                     color = MaterialTheme.colorScheme.onBackground,
-                    textAlign = TextAlign.Start,
+                    modifier = Modifier.semantics { heading() },
                 )
                 Text(
                     text = stringResource(Res.string.privacy_intro),
@@ -118,13 +100,10 @@ fun PrivacyScreen(
 
             TextButton(
                 onClick = onBack,
-                modifier = Modifier
-                    .widthIn(max = ContentMaxWidth)
-                    .fillMaxWidth(),
+                modifier = Modifier.fillMaxWidth(),
             ) {
                 Text(stringResource(Res.string.privacy_back))
             }
-        }
     }
 }
 
@@ -134,17 +113,8 @@ private fun PrivacySection(
     title: StringResource,
     content: @Composable () -> Unit,
 ) {
-    Column(
-        modifier = Modifier
-            .fillMaxWidth()
-            .widthIn(max = ContentMaxWidth),
-        verticalArrangement = Arrangement.spacedBy(8.dp),
-    ) {
-        Text(
-            text = stringResource(title),
-            style = MaterialTheme.typography.titleMedium,
-            color = MaterialTheme.colorScheme.onBackground,
-        )
+    ManijeroCard(tone = ManijeroCardTone.Outlined) {
+        ManijeroSectionHeader(stringResource(title), heading = true)
         content()
     }
 }
@@ -184,6 +154,12 @@ private fun sharedAttributeLabel(attribute: SharedLandAttribute): StringResource
 @Composable
 private fun PrivacyNoticePreview() {
     ManijeroTheme { PrivacyScreen(onBack = {}) }
+}
+
+@Preview(name = "Privacy notice dark")
+@Composable
+private fun PrivacyNoticeDarkPreview() {
+    ManijeroTheme(darkTheme = true) { PrivacyScreen(onBack = {}) }
 }
 
 @Preview(name = "Privacy notice narrow, large text", widthDp = 320, fontScale = 2f)

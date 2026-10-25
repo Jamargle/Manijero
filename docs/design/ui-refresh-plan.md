@@ -726,6 +726,10 @@ retained, rows use known-value chips and named separate actions, forms group fie
 reordering, and removal uses a danger treatment with safe Cancel. Evidence and host-render limits
 are in [the feature appendix](../specs/lands_screens_refresh.appendix.md).
 
+Delivery note: P2-15…P2-16 are implemented by `help_privacy_refresh`
+([spec](../specs/help_privacy_refresh.md)). The shared screen frame/cards and limits callout preserve
+the existing content and actions; implementation and verification evidence is in its appendix.
+
 Sequencing rule: finish and validate each feature before starting the next. `design_token_refresh` and the pure data layer (`Land.kt`, store format, summary/search functions) touch disjoint files and are the only safe parallel lane; everything else is serial to keep review and evidence honest.
 
 Why this order:
