@@ -403,3 +403,33 @@ Unchanged and independently confirmed:
   status and rewrites no earlier acceptance text.
 - No code, test, screenshot, contract or product doc was modified for this re-validation; the only
   file changed is this record.
+
+#### Follow-up at `204d024` (implementer)
+
+`204d024 test(lands): reach the corrupt-value guards in the store test` resolves the three doc/test
+low notes above; N4 (the pre-existing 9-field dev file) remains the accepted trade. **Verdict stays
+`accept`.**
+
+- **N1 resolved.** `LandStoreFormatTest.kt:57-58` are now full 13-field lines: `land-4` carries
+  `NaN` in the area position and `land-5` carries `x` in the tree-count position. I re-counted the
+  `|`-separated fields from the current file: both lines have 13, so they clear the field-count
+  `require` (`LandRepository.kt:160`) and are skipped by the decoder's own guards — the non-finite
+  area check (`LandRepository.kt:196`) for `land-4`, and the `"x".toInt()` failure inside `decodeLine`'s
+  `runCatching` (`:171`) for `land-5`. The deliberately short `land-3` (5 fields) still covers the
+  field-count skip. The appendix sentence now says so explicitly.
+- **N2 resolved.** Appendix:268 now reads "25 suites, 242 tests".
+- **N3 resolved.** `CONTEXT.md:11` now says the zone is "required on every saved land".
+- **N4 unchanged** and still accepted: no shipped build, no migration path; the 9-field dev file
+  reads as no records.
+
+Re-run at `204d024`: `./scripts/init.sh --feature land_measurement_fields` → **exit `0`**,
+`BUILD SUCCESSFUL in 7s`; every published static gate passed; `verifyDesktopScreenshots`
+5 classes / 18 captures and `verifyAndroidScreenshots` 5 classes / 14 captures, 0 failures.
+`:shared:jvmTest` was up to date on the identical inputs, so I forced
+`./gradlew :shared:jvmTest --rerun-tasks --no-build-cache` → exit `0`, all tasks executed
+(no `FROM-CACHE`/`UP-TO-DATE`): **25 suites, 242 tests, 0 failures**, including
+`LandStoreFormatTest` 6/6.
+
+The re-validation section above was appended to this record in the earlier pass and is committed
+together with this follow-up note; `204d024` itself contains only the test and doc fixes. No product
+code, contract, backend, or golden was modified by this follow-up.
