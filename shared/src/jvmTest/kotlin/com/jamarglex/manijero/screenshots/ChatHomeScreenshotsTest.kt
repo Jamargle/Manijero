@@ -15,7 +15,6 @@ class ChatHomeScreenshotsTest : ScreenshotTestSupport() {
                 ChatHomeScreen(
                     state = ScreenshotFixtures.idleChat,
                     onAction = {},
-                    onLandsClick = {},
                     onPrivacyClick = {},
                     onCoverageClick = {},
                 )
@@ -30,7 +29,6 @@ class ChatHomeScreenshotsTest : ScreenshotTestSupport() {
                 ChatHomeScreen(
                     state = ScreenshotFixtures.idleChat,
                     onAction = {},
-                    onLandsClick = {},
                     onPrivacyClick = {},
                     onCoverageClick = {},
                 )
@@ -45,7 +43,6 @@ class ChatHomeScreenshotsTest : ScreenshotTestSupport() {
                 ChatHomeScreen(
                     state = ScreenshotFixtures.answeredChat,
                     onAction = {},
-                    onLandsClick = {},
                     onPrivacyClick = {},
                     onCoverageClick = {},
                 )
@@ -68,7 +65,6 @@ class ChatHomeScreenshotsTest : ScreenshotTestSupport() {
                 ChatHomeScreen(
                     state = ScreenshotFixtures.answeredChat,
                     onAction = {},
-                    onLandsClick = {},
                     onPrivacyClick = {},
                     onCoverageClick = {},
                 )

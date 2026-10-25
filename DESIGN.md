@@ -215,7 +215,8 @@ appearances. Names and geometry are fixed by
 `shared/src/commonMain/kotlin/com/jamarglex/manijero/design/` (navigation in `design/navigation/`),
 are `internal`, preview-backed, and take every visible string, value, icon, selection and callback
 as a parameter. The layer owns no copy, domain type, store, request or business rule and never reads
-`Res.string`; no screen adopts it yet.
+`Res.string`. The app shell adopts the navigation components today; the remaining components are
+adopted by the screen refreshes.
 
 - **Page frame.** `ManijeroScreen` paints `background`, owns one vertical scroll, applies 24 dp
   horizontal padding below 840 dp and 40 dp from it, 32 dp vertical padding, and centres a 720 dp
@@ -244,6 +245,18 @@ as a parameter. The layer owns no copy, domain type, store, request or business 
   asset change. `ManijeroBottomNavigation` and `ManijeroNavigationRail` keep every label visible,
   mark the selection with Material's indicator plus a heavier label (never colour alone), keep 48 dp
   targets, omit window insets, and resolve an out-of-range index to "nothing selected".
+- **App shell (adopted 2026-10-25).** `AppShell` is the one frame around every destination: a
+  `ManijeroTopAppBar` with the brand mark and the visible `Manijero` title and **no right-side
+  action**, the selected screen, and `ManijeroBottomNavigation` below 840 dp or
+  `ManijeroNavigationRail` from 840 dp. Tabs are `Asistente`, `Mis terrenos` and `Ayuda`; the lands
+  tab is omitted when no local repository is injected, so no tab can be dead. Tabs are the only
+  top-level navigation: screens must not add another `Volver` or `Mis terrenos` route. The bars are
+  hidden on add/edit/remove forms, which keep their own `Cancelar`; privacy stays a detail route with
+  its own `Volver`. Android system back returns lands → assistant, a form → lands, `Ayuda` → the tab
+  it was opened from, and privacy → the section it was opened from; it is not installed on the
+  assistant tab, so the platform default applies. The shell is the **single** owner of the status
+  bar, navigation bar, horizontal system-bar and ime insets; the bars and screens add none.
+  Privacy remains reachable from the chat footer and the help screen.
 - **Evidence.** The review-only `commonTest` gallery is captured at 1200×3000 dp and at 360 dp with
   2× text on both hosts; see `docs/screenshot-regression.md`.
 

@@ -22,7 +22,6 @@ class ChatHomeAndroidScreenshotsTest : AndroidScreenshotTestSupport() {
                 ChatHomeScreen(
                     state = ScreenshotFixtures.idleChat,
                     onAction = {},
-                    onLandsClick = {},
                     onPrivacyClick = {},
                     onCoverageClick = {},
                 )
@@ -40,7 +39,6 @@ class ChatHomeAndroidScreenshotsTest : AndroidScreenshotTestSupport() {
                 ChatHomeScreen(
                     state = ScreenshotFixtures.answeredChat,
                     onAction = {},
-                    onLandsClick = {},
                     onPrivacyClick = {},
                     onCoverageClick = {},
                 )

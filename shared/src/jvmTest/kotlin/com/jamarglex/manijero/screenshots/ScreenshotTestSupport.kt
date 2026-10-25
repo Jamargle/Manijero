@@ -67,13 +67,14 @@ abstract class ScreenshotTestSupport {
         name: String,
         width: Int,
         height: Int,
+        fontScale: Float = 1f,
         content: @Composable () -> Unit,
     ) {
         requireScreenshotMode()
         runDesktopComposeUiTest(width = width, height = height) {
             setContent {
                 CompositionLocalProvider(
-                    LocalDensity provides Density(density = 1f, fontScale = 1f),
+                    LocalDensity provides Density(density = 1f, fontScale = fontScale),
                     LocalLayoutDirection provides LayoutDirection.Ltr,
                 ) {
                     content()

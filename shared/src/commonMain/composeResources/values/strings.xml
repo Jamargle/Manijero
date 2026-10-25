@@ -1,4 +1,8 @@
 <resources>
+    <string name="app_title">Manijero</string>
+    <string name="nav_assistant">Asistente</string>
+    <string name="nav_lands">Mis terrenos</string>
+    <string name="nav_help">Ayuda</string>
     <string name="add_land_title">Añadir terreno</string>
     <string name="add_land_description">Solo el nombre es obligatorio. Si no sabes algún detalle, elige «No lo sé».</string>
     <string name="add_land_name_label">Nombre del terreno</string>
@@ -21,7 +25,6 @@
     <string name="land_list_description">Estos son los terrenos guardados en este dispositivo.</string>
     <string name="land_list_empty">Todavía no has guardado ningún terreno. Usa «Añadir terreno» para guardar el primero.</string>
     <string name="land_list_add">Añadir terreno</string>
-    <string name="land_list_back">Volver</string>
     <string name="land_list_municipality">Municipio: %1$s</string>
     <string name="land_list_water">Riego: %1$s</string>
     <string name="land_list_production">Producción: %1$s</string>

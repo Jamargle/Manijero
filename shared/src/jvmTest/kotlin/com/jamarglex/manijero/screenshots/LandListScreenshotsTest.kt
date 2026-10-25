@@ -17,7 +17,6 @@ class LandListScreenshotsTest : ScreenshotTestSupport() {
                     onAddLand = {},
                     onEditLand = {},
                     onRemoveLand = {},
-                    onBack = {},
                     onRetry = {},
                 )
             }
@@ -33,7 +32,6 @@ class LandListScreenshotsTest : ScreenshotTestSupport() {
                     onAddLand = {},
                     onEditLand = {},
                     onRemoveLand = {},
-                    onBack = {},
                     onRetry = {},
                 )
             }
@@ -49,7 +47,6 @@ class LandListScreenshotsTest : ScreenshotTestSupport() {
                     onAddLand = {},
                     onEditLand = {},
                     onRemoveLand = {},
-                    onBack = {},
                     onRetry = {},
                 )
             }
@@ -65,7 +62,6 @@ class LandListScreenshotsTest : ScreenshotTestSupport() {
                     onAddLand = {},
                     onEditLand = {},
                     onRemoveLand = {},
-                    onBack = {},
                     onRetry = {},
                 )
             }

@@ -33,7 +33,9 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
+import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.backhandler.BackHandler
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.semantics.LiveRegionMode
@@ -99,7 +101,6 @@ import manijero.shared.generated.resources.chat_home_clarification_title
 import manijero.shared.generated.resources.chat_home_description
 import manijero.shared.generated.resources.chat_home_failure_service
 import manijero.shared.generated.resources.chat_home_failure_unreachable
-import manijero.shared.generated.resources.chat_home_lands
 import manijero.shared.generated.resources.chat_home_privacy
 import manijero.shared.generated.resources.chat_home_privacy_summary
 import manijero.shared.generated.resources.coverage_open
@@ -168,20 +169,19 @@ private const val ABSTAINED_SAMPLE_FALSE_PREMISE =
         "Comprueba el nombre o el número exacto con tu oficina comarcal agraria o con tu cooperativa."
 
 /**
- * The shared destinations: the lands list is now the parent surface of the add, edit, and remove
- * forms.
- */
-private enum class AppDestination { Chat, LandList, AddLand, EditLand, RemoveLand, Privacy, Coverage }
-
-/**
  * Composition root. The answer service is injected so transport and endpoint decisions
  * stay outside the UI; until the backend exposes `/ask` the default reports that no
  * answer service is configured instead of inventing an answer.
  *
  * [landRepository] is the single local land store, injected by each platform entry point. When it is
- * absent (the iOS scaffold and previews) the lands affordance stays unavailable instead of creating
- * a platform-specific store in common code.
+ * absent (the iOS scaffold and previews) the lands destination is omitted instead of creating a
+ * platform-specific store in common code.
+ *
+ * Every destination renders inside the one [AppShell]; the route table itself is pure and lives in
+ * `AppNavigation.kt`.
  */
+@Suppress("DEPRECATION")
+@OptIn(ExperimentalComposeUiApi::class)
 @Composable
 fun App(
     landRepository: LandRepository? = null,
@@ -199,7 +199,11 @@ fun App(
         )
     }
     var destination by remember { mutableStateOf(AppDestination.Chat) }
-    var previousDestination by remember { mutableStateOf(AppDestination.Chat) }
+    // The last top-level section that is not Help, so back from Ayuda returns to the tab it was
+    // entered from instead of to itself. Detail routes (privacy, forms) keep their owning section.
+    var previousSection by remember { mutableStateOf(AppSection.Assistant) }
+    // Where the privacy notice's own `Volver` returns to. Privacy is a detail route, not a tab.
+    var privacyReturn by remember { mutableStateOf(AppDestination.Chat) }
     var addLandState by remember { mutableStateOf(AddLandState()) }
     var landListState by remember { mutableStateOf(LandListState()) }
     var editLandState by remember { mutableStateOf<EditLandState?>(null) }
@@ -239,169 +243,219 @@ fun App(
         }
     }
 
-    // One shared theme for every destination; the platform entry points stay theme-free.
+    // Which tab reads as selected. Privacy keeps the section it was opened from (its own `Volver`
+    // destination), so a detail route never drops or invents a selection.
+    val selectedSection = tabForDestination(
+        destination = if (destination == AppDestination.Privacy) privacyReturn else destination,
+        fallback = previousSection,
+    )
+
+    // Opening a section from the bars. Re-selecting the current tab is a no-op, so it never reloads
+    // the land list or clears a notice the person is still reading. Entering the land section keeps
+    // the accepted guarded read: a failure shows the retry notice, never a false empty list.
+    val openSection: (AppSection) -> Unit = { section ->
+        val target = sectionDestination(section)
+        if (target != destination) {
+            if (section == AppSection.Lands) {
+                landConfirmation = null
+                readLands()
+            }
+            destination = target
+        }
+        if (section != AppSection.Help) previousSection = section
+    }
+
+    // System back applies the same route table as the visible controls. It is installed only when
+    // there is somewhere to go, so the assistant tab keeps the platform default. Leaving a form
+    // with back abandons the draft exactly like its own `Cancelar`.
+    val systemBackTarget = backTarget(
+        destination = destination,
+        previousSection = previousSection,
+        privacyReturn = privacyReturn,
+    )
+    if (systemBackTarget != null) {
+        BackHandler {
+            if (systemBackTarget == AppDestination.LandList) {
+                addLandState = AddLandState()
+                editLandState = null
+                removeLandState = null
+            }
+            destination = systemBackTarget
+        }
+    }
+
+    // One shared theme and one shell for every destination; the platform entry points stay
+    // theme-free. The shell owns the bars, the section callbacks and the window insets.
     ManijeroTheme {
-        when (destination) {
-            AppDestination.Chat -> ChatHomeScreen(
-                state = conversation.state,
-                onAction = { action -> conversation.onAction(action) },
-                clarificationLands = clarificationLands,
-                onLandsClick = if (landRepository == null) {
-                    null
-                } else {
-                    {
-                        landConfirmation = null
-                        readLands()
-                        destination = AppDestination.LandList
-                    }
-                },
-                onPrivacyClick = { destination = AppDestination.Privacy },
-                onCoverageClick = { previousDestination = AppDestination.Chat; destination = AppDestination.Coverage },
-            )
-
-            // The notice needs no repository, so this destination is always reachable on Android and
-            // Desktop; it reads no land and writes nothing.
-            AppDestination.Privacy -> PrivacyScreen(
-                onBack = { destination = previousDestination },
-                onCoverageClick = { previousDestination = AppDestination.Privacy; destination = AppDestination.Coverage },
-            )
-            AppDestination.Coverage -> CoverageScreen(
-                onBack = { destination = previousDestination },
-                onPrivacyClick = { previousDestination = AppDestination.Coverage; destination = AppDestination.Privacy },
-            )
-
-            AppDestination.LandList -> LandListScreen(
-                state = landListState,
-                confirmation = landConfirmation,
-                onAddLand = {
-                    addLandState = AddLandState()
-                    landConfirmation = null
-                    destination = AppDestination.AddLand
-                },
-                onEditLand = { land ->
-                    editLandState = land.toEditLandState()
-                    landConfirmation = null
-                    destination = AppDestination.EditLand
-                },
-                onRemoveLand = { land ->
-                    removeLandState = land.toRemoveLandState()
-                    landConfirmation = null
-                    destination = AppDestination.RemoveLand
-                },
-                onBack = { destination = AppDestination.Chat },
-                onRetry = readLands,
-            )
-
-            AppDestination.AddLand -> {
-                val repository = landRepository
-                AddLandScreen(
-                    state = addLandState,
-                    onAction = { action ->
-                        val reduced = addLandState.reduce(action)
-                        addLandState = reduced
-                        if (action is AddLandAction.SaveClicked && repository != null) {
-                            val draft = reduced.toDraftOrNull()
-                            if (draft != null) {
-                                val saved = runCatching { repository.create(draft) }.isSuccess
-                                if (saved) {
-                                    addLandState = AddLandState()
-                                    landConfirmation = LandListConfirmation.ADDED
-                                    readLands()
-                                    destination = AppDestination.LandList
-                                } else {
-                                    addLandState = reduced.reduce(AddLandAction.SaveFailed)
-                                }
-                            }
-                        }
+        AppShell(
+            selectedSection = selectedSection,
+            landsAvailable = landRepository != null,
+            navigationVisible = navigationVisible(destination),
+            onSectionSelect = openSection,
+        ) {
+            when (destination) {
+                AppDestination.Chat -> ChatHomeScreen(
+                    state = conversation.state,
+                    onAction = { action -> conversation.onAction(action) },
+                    clarificationLands = clarificationLands,
+                    onPrivacyClick = {
+                        privacyReturn = AppDestination.Chat
+                        destination = AppDestination.Privacy
                     },
-                    onCancel = {
-                        addLandState = AddLandState()
-                        destination = AppDestination.LandList
+                    onCoverageClick = {
+                        previousSection = selectedSection
+                        destination = AppDestination.Coverage
                     },
                 )
-            }
 
-            // One record, and only that record: the update targets the edit state's own id. The
-            // update is performed only on an explicit `SaveClicked`, never while composing. A null
-            // result means the id is no longer stored, and a thrown failure means storage refused,
-            // so neither is ever presented as saved; the values stay on screen for retry or cancel.
-            AppDestination.EditLand -> editLandState?.let { renderedState ->
-                val repository = landRepository
-                EditLandScreen(
-                    state = renderedState,
-                    onAction = { action ->
-                        val reduced = (editLandState ?: renderedState).reduce(action)
-                        editLandState = reduced
-                        if (action is EditLandAction.SaveClicked && repository != null) {
-                            val draft = reduced.toDraftOrNull()
-                            if (draft != null) {
-                                val result = runCatching {
-                                    repository.update(reduced.landId, draft)
+                // The notice needs no repository, so this destination is always reachable on
+                // Android and Desktop; it reads no land and writes nothing.
+                AppDestination.Privacy -> PrivacyScreen(
+                    onBack = { destination = privacyReturn },
+                    onCoverageClick = {
+                        previousSection = selectedSection
+                        destination = AppDestination.Coverage
+                    },
+                )
+                AppDestination.Coverage -> CoverageScreen(
+                    onPrivacyClick = {
+                        privacyReturn = AppDestination.Coverage
+                        destination = AppDestination.Privacy
+                    },
+                )
+
+                AppDestination.LandList -> LandListScreen(
+                    state = landListState,
+                    confirmation = landConfirmation,
+                    onAddLand = {
+                        addLandState = AddLandState()
+                        landConfirmation = null
+                        destination = AppDestination.AddLand
+                    },
+                    onEditLand = { land ->
+                        editLandState = land.toEditLandState()
+                        landConfirmation = null
+                        destination = AppDestination.EditLand
+                    },
+                    onRemoveLand = { land ->
+                        removeLandState = land.toRemoveLandState()
+                        landConfirmation = null
+                        destination = AppDestination.RemoveLand
+                    },
+                    onRetry = readLands,
+                )
+
+                AppDestination.AddLand -> {
+                    val repository = landRepository
+                    AddLandScreen(
+                        state = addLandState,
+                        onAction = { action ->
+                            val reduced = addLandState.reduce(action)
+                            addLandState = reduced
+                            if (action is AddLandAction.SaveClicked && repository != null) {
+                                val draft = reduced.toDraftOrNull()
+                                if (draft != null) {
+                                    val saved = runCatching { repository.create(draft) }.isSuccess
+                                    if (saved) {
+                                        addLandState = AddLandState()
+                                        landConfirmation = LandListConfirmation.ADDED
+                                        readLands()
+                                        destination = AppDestination.LandList
+                                    } else {
+                                        addLandState = reduced.reduce(AddLandAction.SaveFailed)
+                                    }
                                 }
+                            }
+                        },
+                        onCancel = {
+                            addLandState = AddLandState()
+                            destination = AppDestination.LandList
+                        },
+                    )
+                }
+
+                // One record, and only that record: the update targets the edit state's own id. The
+                // update is performed only on an explicit `SaveClicked`, never while composing. A null
+                // result means the id is no longer stored, and a thrown failure means storage refused,
+                // so neither is ever presented as saved; the values stay on screen for retry or cancel.
+                AppDestination.EditLand -> editLandState?.let { renderedState ->
+                    val repository = landRepository
+                    EditLandScreen(
+                        state = renderedState,
+                        onAction = { action ->
+                            val reduced = (editLandState ?: renderedState).reduce(action)
+                            editLandState = reduced
+                            if (action is EditLandAction.SaveClicked && repository != null) {
+                                val draft = reduced.toDraftOrNull()
+                                if (draft != null) {
+                                    val result = runCatching {
+                                        repository.update(reduced.landId, draft)
+                                    }
+                                    when {
+                                        result.getOrNull() != null -> {
+                                            editLandState = null
+                                            landConfirmation = LandListConfirmation.UPDATED
+                                            readLands()
+                                            destination = AppDestination.LandList
+                                        }
+
+                                        result.isSuccess -> editLandState = reduced.reduce(
+                                            EditLandAction.SaveFailed(EditLandFailure.LAND_MISSING),
+                                        )
+
+                                        else -> editLandState = reduced.reduce(
+                                            EditLandAction.SaveFailed(EditLandFailure.WRITE_FAILED),
+                                        )
+                                    }
+                                }
+                            }
+                        },
+                        onCancel = {
+                            editLandState = null
+                            destination = AppDestination.LandList
+                        },
+                    )
+                }
+
+                // One record, and only that record: the removal targets the confirmation state's own id
+                // and runs `delete` only on the person's explicit `Eliminar el terreno`. Opening or
+                // cancelling the confirmation writes nothing. A `false` result means the id is no longer
+                // stored and a thrown failure means storage refused, so neither is ever presented as a
+                // removal: both keep the confirmation on screen with a distinct plain-Spanish message.
+                AppDestination.RemoveLand -> removeLandState?.let { renderedState ->
+                    val repository = landRepository
+                    RemoveLandScreen(
+                        state = renderedState,
+                        onRemove = {
+                            val cleared = (removeLandState ?: renderedState)
+                                .reduce(RemoveLandAction.RemoveClicked)
+                            removeLandState = cleared
+                            if (repository != null) {
+                                val result = runCatching { repository.delete(cleared.landId) }
                                 when {
-                                    result.getOrNull() != null -> {
-                                        editLandState = null
-                                        landConfirmation = LandListConfirmation.UPDATED
+                                    result.getOrNull() == true -> {
+                                        removeLandState = null
+                                        landConfirmation = LandListConfirmation.REMOVED
                                         readLands()
                                         destination = AppDestination.LandList
                                     }
 
-                                    result.isSuccess -> editLandState = reduced.reduce(
-                                        EditLandAction.SaveFailed(EditLandFailure.LAND_MISSING),
+                                    result.getOrNull() == false -> removeLandState = cleared.reduce(
+                                        RemoveLandAction.RemoveFailed(RemoveLandFailure.LAND_MISSING),
                                     )
 
-                                    else -> editLandState = reduced.reduce(
-                                        EditLandAction.SaveFailed(EditLandFailure.WRITE_FAILED),
+                                    else -> removeLandState = cleared.reduce(
+                                        RemoveLandAction.RemoveFailed(RemoveLandFailure.WRITE_FAILED),
                                     )
                                 }
                             }
-                        }
-                    },
-                    onCancel = {
-                        editLandState = null
-                        destination = AppDestination.LandList
-                    },
-                )
-            }
-
-            // One record, and only that record: the removal targets the confirmation state's own id
-            // and runs `delete` only on the person's explicit `Eliminar el terreno`. Opening or
-            // cancelling the confirmation writes nothing. A `false` result means the id is no longer
-            // stored and a thrown failure means storage refused, so neither is ever presented as a
-            // removal: both keep the confirmation on screen with a distinct plain-Spanish message.
-            AppDestination.RemoveLand -> removeLandState?.let { renderedState ->
-                val repository = landRepository
-                RemoveLandScreen(
-                    state = renderedState,
-                    onRemove = {
-                        val cleared = (removeLandState ?: renderedState)
-                            .reduce(RemoveLandAction.RemoveClicked)
-                        removeLandState = cleared
-                        if (repository != null) {
-                            val result = runCatching { repository.delete(cleared.landId) }
-                            when {
-                                result.getOrNull() == true -> {
-                                    removeLandState = null
-                                    landConfirmation = LandListConfirmation.REMOVED
-                                    readLands()
-                                    destination = AppDestination.LandList
-                                }
-
-                                result.getOrNull() == false -> removeLandState = cleared.reduce(
-                                    RemoveLandAction.RemoveFailed(RemoveLandFailure.LAND_MISSING),
-                                )
-
-                                else -> removeLandState = cleared.reduce(
-                                    RemoveLandAction.RemoveFailed(RemoveLandFailure.WRITE_FAILED),
-                                )
-                            }
-                        }
-                    },
-                    onCancel = {
-                        removeLandState = null
-                        destination = AppDestination.LandList
-                    },
-                )
+                        },
+                        onCancel = {
+                            removeLandState = null
+                            destination = AppDestination.LandList
+                        },
+                    )
+                }
             }
         }
     }
@@ -411,7 +465,6 @@ fun App(
 internal fun ChatHomeScreen(
     state: ChatHomeState,
     onAction: (ChatHomeAction) -> Unit,
-    onLandsClick: (() -> Unit)?,
     onPrivacyClick: (() -> Unit)? = null,
     onCoverageClick: (() -> Unit)? = null,
     clarificationLands: List<Land>? = null,
@@ -578,12 +631,6 @@ internal fun ChatHomeScreen(
                     enabled = state.canAsk,
                 ) {
                     Text(stringResource(Res.string.chat_home_ask))
-                }
-                TextButton(
-                    onClick = { onLandsClick?.invoke() },
-                    enabled = onLandsClick != null,
-                ) {
-                    Text(stringResource(Res.string.chat_home_lands))
                 }
             }
 
@@ -1122,7 +1169,7 @@ private fun ChatBubble(
 @Preview(name = "Chat home with examples")
 @Composable
 private fun ChatHomePreview() {
-    ManijeroTheme { ChatHomeScreen(ChatHomeState(), {}, {}) }
+    ManijeroTheme { ChatHomeScreen(ChatHomeState(), {}) }
 }
 
 @Preview(name = "Chat home with privacy summary and control")
@@ -1132,7 +1179,6 @@ private fun ChatHomePrivacyPreview() {
         ChatHomeScreen(
             state = ChatHomeState(),
             onAction = {},
-            onLandsClick = {},
             onPrivacyClick = {},
         )
     }
@@ -1145,7 +1191,6 @@ private fun ChatHomeSuggestionsNarrowLargeTextPreview() {
         ChatHomeScreen(
             state = ChatHomeState(question = "¿Qué obligaciones tengo por la condicionalidad?"),
             onAction = {},
-            onLandsClick = {},
         )
     }
 }
@@ -1157,7 +1202,6 @@ private fun ChatHomeWithQuestionPreview() {
         ChatHomeScreen(
             state = ChatHomeState(question = "¿Cuándo debo revisar mi olivar?"),
             onAction = {},
-            onLandsClick = {},
         )
     }
 }
@@ -1174,7 +1218,6 @@ private fun ChatHomeWideWindowPreview() {
                 ),
             ),
             onAction = {},
-            onLandsClick = {},
             onPrivacyClick = {},
         )
     }
@@ -1203,7 +1246,6 @@ private fun ChatHomeLongConversationLargeTextPreview() {
                 ),
             ),
             onAction = {},
-            onLandsClick = {},
             onPrivacyClick = {},
         )
     }
@@ -1221,7 +1263,6 @@ private fun ChatHomeAnsweredConversationPreview() {
                 ),
             ),
             onAction = {},
-            onLandsClick = {},
         )
     }
 }
@@ -1243,7 +1284,6 @@ private fun ChatHomeAnsweredTwoSourcesPreview() {
                 ),
             ),
             onAction = {},
-            onLandsClick = {},
         )
     }
 }
@@ -1265,7 +1305,6 @@ private fun ChatHomeSourceCardNarrowLargeTextPreview() {
                 ),
             ),
             onAction = {},
-            onLandsClick = {},
         )
     }
 }
@@ -1288,7 +1327,6 @@ private fun ChatHomeLandScopeAllActivePreview() {
                 ),
             ),
             onAction = {},
-            onLandsClick = {},
         )
     }
 }
@@ -1311,7 +1349,6 @@ private fun ChatHomeLandScopeSelectedPreview() {
                 ),
             ),
             onAction = {},
-            onLandsClick = {},
         )
     }
 }
@@ -1334,7 +1371,6 @@ private fun ChatHomeLandScopeAbstainedPreview() {
                 ),
             ),
             onAction = {},
-            onLandsClick = {},
         )
     }
 }
@@ -1357,7 +1393,6 @@ private fun ChatHomeLandScopeNarrowLargeTextPreview() {
                 ),
             ),
             onAction = {},
-            onLandsClick = {},
         )
     }
 }
@@ -1374,7 +1409,6 @@ private fun ChatHomeAbstainedConversationPreview() {
                 ),
             ),
             onAction = {},
-            onLandsClick = {},
         )
     }
 }
@@ -1393,7 +1427,6 @@ private fun ChatHomeBothResponseStatesPreview() {
                 ),
             ),
             onAction = {},
-            onLandsClick = {},
         )
     }
 }
@@ -1410,7 +1443,6 @@ private fun ChatHomeAbstentionNarrowLargeTextPreview() {
                 ),
             ),
             onAction = {},
-            onLandsClick = {},
         )
     }
 }
@@ -1426,7 +1458,6 @@ private fun ChatHomeWorkingPreview() {
                 submittedQuestion = "¿Puedo regar hoy?",
             ),
             onAction = {},
-            onLandsClick = {},
         )
     }
 }
@@ -1438,7 +1469,6 @@ private fun ChatHomeOverLimitPreview() {
         ChatHomeScreen(
             state = ChatHomeState(question = "a".repeat(2_100)),
             onAction = {},
-            onLandsClick = {},
         )
     }
 }
@@ -1455,7 +1485,6 @@ private fun ChatHomeFailureUnreachablePreview() {
                 failedQuestion = "¿Puedo regar hoy?",
             ),
             onAction = {},
-            onLandsClick = {},
         )
     }
 }
@@ -1474,7 +1503,6 @@ private fun ChatHomeFailureNarrowLargeTextPreview() {
                 failedQuestion = "¿Qué necesito preparar para la solicitud única?",
             ),
             onAction = {},
-            onLandsClick = {},
         )
     }
 }
@@ -1507,7 +1535,6 @@ private fun ChatHomeClarificationLoadingPreview() {
                 landIdsToChoose = listOf("land-1", "land-2"),
             ),
             onAction = {},
-            onLandsClick = {},
             // `null` is the unresolved guarded local read: title and explanation only, never the
             // "no puedo mostrar tus terrenos" fallback.
             clarificationLands = null,
@@ -1525,7 +1552,6 @@ private fun ChatHomeClarificationTwoLandsPreview() {
                 landIdsToChoose = listOf("land-1", "land-2"),
             ),
             onAction = {},
-            onLandsClick = {},
             clarificationLands = listOf(
                 clarificationLand("land-1", "Los Olivos", waterRegime = WaterRegime.IRRIGATED),
                 clarificationLand("land-2", "La Loma", waterRegime = WaterRegime.DRYLAND),
@@ -1544,7 +1570,6 @@ private fun ChatHomeClarificationOneLandPreview() {
                 landIdsToChoose = listOf("land-1"),
             ),
             onAction = {},
-            onLandsClick = {},
             clarificationLands = listOf(
                 clarificationLand(
                     id = "land-1",
@@ -1567,7 +1592,6 @@ private fun ChatHomeClarificationNarrowLargeTextPreview() {
                 landIdsToChoose = listOf("land-1", "land-2"),
             ),
             onAction = {},
-            onLandsClick = {},
             clarificationLands = listOf(
                 clarificationLand("land-1", "Los Olivos", waterRegime = WaterRegime.IRRIGATED),
                 clarificationLand("land-2", "La Loma", waterRegime = WaterRegime.DRYLAND),
