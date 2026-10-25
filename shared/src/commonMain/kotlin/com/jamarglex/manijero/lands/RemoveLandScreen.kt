@@ -37,7 +37,7 @@ import org.jetbrains.compose.resources.stringResource
  * two deliberate choices through [onRemove] and [onCancel]; the deletion happens in the caller and
  * only ever targets [RemoveLandState.landId]. The screen names the exact saved land and repeats the
  * same known details the list row shows, so two same-named lands stay distinguishable, and it
- * shows no id, area, or notes.
+ * shows no id or notes.
  */
 @Composable
 fun RemoveLandScreen(

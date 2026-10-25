@@ -242,7 +242,7 @@ scrollable; it was already a scrolling capture and no control is clipped or disa
 
 - No interactive Desktop or emulator walkthrough was performed in this environment; the user-flow
   evidence is the pure state/repository tests plus the five reviewed host goldens and the Compose
-  previews (light, dark, 2×, compact, wide) added/updated with the forms.
+  previews (light, large-font 2×, compact, wide) added/updated with the forms.
 - No real `land-store-v1` → v2 device upgrade, no downgrade to an older build, and no backup/sync
   restore was exercised; compatibility is proven only by decoder/encoder and repository tests.
 - No screen-reader audit or measured 2×-text verification on a device; focus order and the polite live
