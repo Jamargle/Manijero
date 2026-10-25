@@ -2,7 +2,9 @@ package com.jamarglex.manijero.lands
 
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
@@ -24,6 +26,14 @@ import androidx.compose.ui.semantics.liveRegion
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import com.jamarglex.manijero.design.ManijeroCard
+import com.jamarglex.manijero.design.ManijeroCardTone
+import com.jamarglex.manijero.design.ManijeroEmptyState
+import com.jamarglex.manijero.design.ManijeroSearchField
+import com.jamarglex.manijero.design.ManijeroSectionHeader
+import com.jamarglex.manijero.design.ManijeroStatCard
+import com.jamarglex.manijero.design.WideWindowBreakpoint
+import com.jamarglex.manijero.theme.ManijeroSpacing
 import com.jamarglex.manijero.theme.ManijeroTheme
 import manijero.shared.generated.resources.Res
 import manijero.shared.generated.resources.add_land_production_conventional
@@ -40,7 +50,8 @@ import manijero.shared.generated.resources.land_list_add
 import manijero.shared.generated.resources.land_list_description
 import manijero.shared.generated.resources.land_list_edit
 import manijero.shared.generated.resources.land_list_edit_description
-import manijero.shared.generated.resources.land_list_empty
+import manijero.shared.generated.resources.land_list_empty_body
+import manijero.shared.generated.resources.land_list_empty_title
 import manijero.shared.generated.resources.land_list_load_failed
 import manijero.shared.generated.resources.add_land_variety_other
 import manijero.shared.generated.resources.land_list_municipality
@@ -53,8 +64,29 @@ import manijero.shared.generated.resources.land_list_trees
 import manijero.shared.generated.resources.land_list_variety
 import manijero.shared.generated.resources.land_list_water
 import manijero.shared.generated.resources.land_list_zone
+import manijero.shared.generated.resources.land_search_clear
+import manijero.shared.generated.resources.land_search_hint
+import manijero.shared.generated.resources.land_search_label
+import manijero.shared.generated.resources.land_search_no_results
+import manijero.shared.generated.resources.land_summary_count_caption
+import manijero.shared.generated.resources.land_summary_count_caption_filtered
+import manijero.shared.generated.resources.land_summary_count_label
+import manijero.shared.generated.resources.land_summary_no_data
+import manijero.shared.generated.resources.land_summary_scope_all
+import manijero.shared.generated.resources.land_summary_scope_filtered
+import manijero.shared.generated.resources.land_summary_surface_caption
+import manijero.shared.generated.resources.land_summary_surface_caption_filtered
+import manijero.shared.generated.resources.land_summary_surface_label
+import manijero.shared.generated.resources.land_summary_surface_value
+import manijero.shared.generated.resources.land_summary_title
+import manijero.shared.generated.resources.land_summary_trees_caption
+import manijero.shared.generated.resources.land_summary_trees_caption_filtered
+import manijero.shared.generated.resources.land_summary_trees_label
+import manijero.shared.generated.resources.land_summary_trees_value_one
+import manijero.shared.generated.resources.land_summary_trees_value_other
 import manijero.shared.generated.resources.remove_land_removed
 import org.jetbrains.compose.resources.StringResource
+import org.jetbrains.compose.resources.pluralStringResource
 import org.jetbrains.compose.resources.stringResource
 
 private val ContentMaxWidth = 720.dp
@@ -64,13 +96,18 @@ enum class LandListConfirmation { ADDED, UPDATED, REMOVED }
 
 /**
  * List of the lands saved on this device. It renders whatever [state] it receives and reports every
- * interaction through [onAddLand], [onEditLand], [onRemoveLand], or [onRetry]; reading and
- * persistence happen in the caller. Top-level navigation is the app shell's job, so this screen
- * offers no `Volver`; the tabs are the way back. Rows stay non-clickable and show the exact saved name plus the
- * few known details, so similar lands stay distinguishable, and each row has its own visible
- * `Editar` control so correcting a land is a labelled, deliberate action. Each row also has its own
- * visible `Eliminar` control, whose accessible description names the exact saved land; selecting it
- * opens the confirmation and writes nothing by itself.
+ * interaction through [onAddLand], [onEditLand], [onRemoveLand], [onQueryChange] or [onRetry];
+ * reading, persistence and the search text itself live in the caller. Top-level navigation is the
+ * app shell's job, so this screen offers no `Volver`; the tabs are the way back.
+ *
+ * A successful read that found no land shows the shared empty state with one `Añadir terreno`
+ * action and no summary or search. Otherwise the screen summarizes the annotated surface and olive
+ * count of exactly the lands it is showing, filters them as the person types, and keeps the rows
+ * non-clickable with the exact saved name plus the few known details. Each row has its own visible
+ * `Editar` control, and its own `Eliminar` control whose accessible description names the exact
+ * saved land; selecting it opens the confirmation and writes nothing by itself. A query that
+ * matches no land shows an honest panel with a named clear action, and no summary at all, so a
+ * number is never stated for a land the person cannot see.
  */
 @Composable
 fun LandListScreen(
@@ -79,6 +116,7 @@ fun LandListScreen(
     onEditLand: (Land) -> Unit,
     onRemoveLand: (Land) -> Unit,
     onRetry: () -> Unit,
+    onQueryChange: (String) -> Unit,
     modifier: Modifier = Modifier,
     confirmation: LandListConfirmation? = null,
 ) {
@@ -86,97 +124,326 @@ fun LandListScreen(
         modifier = modifier.fillMaxSize(),
         color = MaterialTheme.colorScheme.background,
     ) {
-        Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .verticalScroll(rememberScrollState())
-                .padding(horizontal = 24.dp, vertical = 32.dp),
-            verticalArrangement = Arrangement.spacedBy(20.dp),
-            horizontalAlignment = Alignment.CenterHorizontally,
-        ) {
+        // The summary grid switches on the width of the window this screen receives. It must be
+        // measured here, around the padded content: the inner content column is capped at 720 dp,
+        // so a breakpoint read inside it could never reach 840 dp.
+        BoxWithConstraints(modifier = Modifier.fillMaxSize()) {
+            val wideWindow = maxWidth >= WideWindowBreakpoint
+
             Column(
                 modifier = Modifier
-                    .widthIn(max = ContentMaxWidth)
-                    .fillMaxWidth(),
-                verticalArrangement = Arrangement.spacedBy(16.dp),
+                    .fillMaxSize()
+                    .verticalScroll(rememberScrollState())
+                    .padding(horizontal = 24.dp, vertical = 32.dp),
+                verticalArrangement = Arrangement.spacedBy(20.dp),
+                horizontalAlignment = Alignment.CenterHorizontally,
             ) {
-                Text(
-                    text = stringResource(Res.string.chat_home_lands),
-                    style = MaterialTheme.typography.headlineMedium,
-                    color = MaterialTheme.colorScheme.onBackground,
-                )
-                Text(
-                    text = stringResource(Res.string.land_list_description),
-                    style = MaterialTheme.typography.bodyLarge,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                )
-
-                val confirmationResource = when (confirmation) {
-                    LandListConfirmation.ADDED -> Res.string.add_land_saved
-                    LandListConfirmation.UPDATED -> Res.string.edit_land_saved
-                    LandListConfirmation.REMOVED -> Res.string.remove_land_removed
-                    null -> null
-                }
-                if (confirmationResource != null) {
+                Column(
+                    modifier = Modifier
+                        .widthIn(max = ContentMaxWidth)
+                        .fillMaxWidth(),
+                    verticalArrangement = Arrangement.spacedBy(16.dp),
+                ) {
                     Text(
-                        text = stringResource(confirmationResource),
-                        style = MaterialTheme.typography.bodyLarge,
-                        color = MaterialTheme.colorScheme.primary,
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .semantics { liveRegion = LiveRegionMode.Polite },
+                        text = stringResource(Res.string.chat_home_lands),
+                        style = MaterialTheme.typography.headlineMedium,
+                        color = MaterialTheme.colorScheme.onBackground,
                     )
-                }
-
-                when {
-                    state.loadFailed -> Text(
-                        text = stringResource(Res.string.land_list_load_failed),
-                        style = MaterialTheme.typography.bodyLarge,
-                        color = MaterialTheme.colorScheme.error,
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .semantics { liveRegion = LiveRegionMode.Polite },
-                    )
-
-                    state.isEmpty -> Text(
-                        text = stringResource(Res.string.land_list_empty),
+                    Text(
+                        text = stringResource(Res.string.land_list_description),
                         style = MaterialTheme.typography.bodyLarge,
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                     )
 
-                    else -> state.lands.forEach { land ->
-                        LandRow(
-                            land = land,
-                            onEdit = { onEditLand(land) },
-                            onRemove = { onRemoveLand(land) },
+                    val confirmationResource = when (confirmation) {
+                        LandListConfirmation.ADDED -> Res.string.add_land_saved
+                        LandListConfirmation.UPDATED -> Res.string.edit_land_saved
+                        LandListConfirmation.REMOVED -> Res.string.remove_land_removed
+                        null -> null
+                    }
+                    if (confirmationResource != null) {
+                        Text(
+                            text = stringResource(confirmationResource),
+                            style = MaterialTheme.typography.bodyLarge,
+                            color = MaterialTheme.colorScheme.primary,
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .semantics { liveRegion = LiveRegionMode.Polite },
                         )
                     }
-                }
 
-                Column(
-                    modifier = Modifier.fillMaxWidth(),
-                    verticalArrangement = Arrangement.spacedBy(8.dp),
-                ) {
-                    if (state.loadFailed) {
-                        Button(
-                            onClick = onRetry,
-                            modifier = Modifier.fillMaxWidth(),
-                        ) {
-                            Text(stringResource(Res.string.land_list_retry))
+                    when {
+                        state.loadFailed -> {
+                            Text(
+                                text = stringResource(Res.string.land_list_load_failed),
+                                style = MaterialTheme.typography.bodyLarge,
+                                color = MaterialTheme.colorScheme.error,
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .semantics { liveRegion = LiveRegionMode.Polite },
+                            )
+                            Button(
+                                onClick = onRetry,
+                                modifier = Modifier.fillMaxWidth(),
+                            ) {
+                                Text(stringResource(Res.string.land_list_retry))
+                            }
                         }
-                    } else {
-                        Button(
-                            onClick = onAddLand,
-                            modifier = Modifier.fillMaxWidth(),
-                        ) {
-                            Text(stringResource(Res.string.land_list_add))
-                        }
+
+                        state.isEmpty -> ManijeroEmptyState(
+                            title = stringResource(Res.string.land_list_empty_title),
+                            body = stringResource(Res.string.land_list_empty_body),
+                            action = {
+                                Button(onClick = onAddLand) {
+                                    Text(stringResource(Res.string.land_list_add))
+                                }
+                            },
+                        )
+
+                        else -> LandListContent(
+                            state = state,
+                            wideWindow = wideWindow,
+                            onAddLand = onAddLand,
+                            onEditLand = onEditLand,
+                            onRemoveLand = onRemoveLand,
+                            onQueryChange = onQueryChange,
+                        )
                     }
                 }
             }
         }
     }
 }
+
+/**
+ * The populated list: the summary of the shown set, the search field, the single full-width Add
+ * action, then the matching rows or the no-results panel.
+ *
+ * The summary describes exactly the set the person is looking at: every saved land for a blank
+ * query, only the matches otherwise. When nothing matches there is no summary, because a total for
+ * zero shown lands could only be misread.
+ */
+@Composable
+private fun LandListContent(
+    state: LandListState,
+    wideWindow: Boolean,
+    onAddLand: () -> Unit,
+    onEditLand: (Land) -> Unit,
+    onRemoveLand: (Land) -> Unit,
+    onQueryChange: (String) -> Unit,
+) {
+    // The Spanish labels live in strings.xml, so the screen resolves them once per composition and
+    // hands them to the pure filter; a non-composable function may not read Res.string.
+    val labels = landSearchLabels()
+    val matches = filterLands(state.lands, state.query, labels)
+    // The same rule the filter uses decides whether anything is described as filtered: a query of
+    // punctuation or emoji only returns every land, so it must not switch the scope or the captions.
+    val queryActive = hasSearchTokens(state.query)
+
+    if (matches.isNotEmpty()) {
+        LandSummarySection(
+            summary = summarizeLands(matches),
+            savedTotal = state.lands.size,
+            filtered = queryActive,
+            wideWindow = wideWindow,
+        )
+    }
+
+    ManijeroSearchField(
+        value = state.query,
+        onValueChange = onQueryChange,
+        label = stringResource(Res.string.land_search_label),
+        clearDescription = stringResource(Res.string.land_search_clear),
+        placeholder = stringResource(Res.string.land_search_hint),
+    )
+
+    Button(
+        onClick = onAddLand,
+        modifier = Modifier.fillMaxWidth(),
+    ) {
+        Text(stringResource(Res.string.land_list_add))
+    }
+
+    if (matches.isEmpty()) {
+        LandNoResults(onClearQuery = { onQueryChange("") })
+    } else {
+        matches.forEach { land ->
+            LandRow(
+                land = land,
+                onEdit = { onEditLand(land) },
+                onRemove = { onRemoveLand(land) },
+            )
+        }
+    }
+}
+
+/**
+ * The three annotated summary cards over a scope caption. Values are formatted by the accepted
+ * `formatHectares`/`formatTreeCount`, an absent value reads `Sin datos` instead of a zero, and every
+ * card carries the denominator caption of the set it counted. One column below the accepted
+ * [WideWindowBreakpoint], three equal-width columns from it; the caller passes the window result so
+ * the breakpoint is measured on the window, not on the capped content column.
+ */
+@Composable
+private fun LandSummarySection(
+    summary: LandSummary,
+    savedTotal: Int,
+    filtered: Boolean,
+    wideWindow: Boolean,
+    modifier: Modifier = Modifier,
+) {
+    // Each caption pluralizes on the denominator it prints, so its noun and any verb agree with the
+    // number next to them: the count card prints the saved total, the surface/tree cards print the
+    // shown land count (which is the match count while a query is active, as scenario 4 requires).
+    // The search relation itself is stated by `land_summary_scope_filtered` above the cards; one
+    // pluralized sentence carrying two different counts could not agree with both.
+    val countDenominator = if (filtered) savedTotal else summary.total
+    val shownDenominator = summary.total
+    val countCaption = if (filtered) {
+        pluralStringResource(
+            resource = Res.plurals.land_summary_count_caption_filtered,
+            quantity = countDenominator,
+            summary.total,
+            countDenominator,
+        )
+    } else {
+        pluralStringResource(
+            resource = Res.plurals.land_summary_count_caption,
+            quantity = countDenominator,
+        )
+    }
+    val surfaceCaption = pluralStringResource(
+        resource = if (filtered) {
+            Res.plurals.land_summary_surface_caption_filtered
+        } else {
+            Res.plurals.land_summary_surface_caption
+        },
+        quantity = shownDenominator,
+        summary.surfaceKnownCount,
+        shownDenominator,
+    )
+    val treeCaption = pluralStringResource(
+        resource = if (filtered) {
+            Res.plurals.land_summary_trees_caption_filtered
+        } else {
+            Res.plurals.land_summary_trees_caption
+        },
+        quantity = shownDenominator,
+        summary.treeKnownCount,
+        shownDenominator,
+    )
+    val surfaceValue = summary.surfaceTotal
+        ?.let { total -> stringResource(Res.string.land_summary_surface_value, formatHectares(total)) }
+        ?: stringResource(Res.string.land_summary_no_data)
+    val treeValue = summary.treeTotal
+        ?.let { total ->
+            stringResource(
+                resource = if (total == 1L) {
+                    Res.string.land_summary_trees_value_one
+                } else {
+                    Res.string.land_summary_trees_value_other
+                },
+                formatTreeCount(total),
+            )
+        }
+        ?: stringResource(Res.string.land_summary_no_data)
+
+    val cards: List<@Composable (Modifier) -> Unit> = listOf(
+        { cardModifier ->
+            ManijeroStatCard(
+                label = stringResource(Res.string.land_summary_count_label),
+                value = formatTreeCount(summary.total),
+                supporting = countCaption,
+                modifier = cardModifier,
+            )
+        },
+        { cardModifier ->
+            ManijeroStatCard(
+                label = stringResource(Res.string.land_summary_surface_label),
+                value = surfaceValue,
+                supporting = surfaceCaption,
+                modifier = cardModifier,
+            )
+        },
+        { cardModifier ->
+            ManijeroStatCard(
+                label = stringResource(Res.string.land_summary_trees_label),
+                value = treeValue,
+                supporting = treeCaption,
+                modifier = cardModifier,
+            )
+        },
+    )
+
+    Column(
+        modifier = modifier.fillMaxWidth(),
+        verticalArrangement = Arrangement.spacedBy(ManijeroSpacing.Small),
+    ) {
+        ManijeroSectionHeader(
+            title = stringResource(Res.string.land_summary_title),
+            description = stringResource(
+                if (filtered) {
+                    Res.string.land_summary_scope_filtered
+                } else {
+                    Res.string.land_summary_scope_all
+                },
+            ),
+            heading = true,
+        )
+        if (wideWindow) {
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(ManijeroSpacing.Small),
+            ) {
+                cards.forEach { card -> card(Modifier.weight(1f)) }
+            }
+        } else {
+            Column(
+                modifier = Modifier.fillMaxWidth(),
+                verticalArrangement = Arrangement.spacedBy(ManijeroSpacing.Small),
+            ) {
+                cards.forEach { card -> card(Modifier.fillMaxWidth()) }
+            }
+        }
+    }
+}
+
+/**
+ * The honest no-results state: a neutral card, the plain sentence and one named clear action.
+ *
+ * It is a plain card, not a callout, so typing does not announce a live region on every keystroke.
+ * The Add action stays above it and reachable.
+ */
+@Composable
+private fun LandNoResults(
+    onClearQuery: () -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    ManijeroCard(modifier = modifier, tone = ManijeroCardTone.Tonal) {
+        Text(
+            text = stringResource(Res.string.land_search_no_results),
+            style = MaterialTheme.typography.bodyLarge,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+        )
+        TextButton(onClick = onClearQuery) {
+            Text(stringResource(Res.string.land_search_clear))
+        }
+    }
+}
+
+/** The resolved Spanish search labels of every water, production and variety value. */
+@Composable
+private fun landSearchLabels(): LandSearchLabels = LandSearchLabels(
+    waterRegime = WaterRegime.entries.associateWith { regime ->
+        stringResource(waterRegimeLabel(regime))
+    },
+    productionMethod = ProductionMethod.entries.associateWith { method ->
+        stringResource(productionMethodLabel(method))
+    },
+    variety = LandVariety.entries.associateWith { variety ->
+        stringResource(landVarietyLabel(variety))
+    },
+)
 
 /**
  * One saved land. The name and its details are merged into a single node so assistive technology
@@ -368,6 +635,7 @@ private fun LandListEmptyPreview() {
             onEditLand = {},
             onRemoveLand = {},
             onRetry = {},
+            onQueryChange = {},
         )
     }
 }
@@ -405,6 +673,81 @@ private fun LandListTwoLandsPreview() {
             onEditLand = {},
             onRemoveLand = {},
             onRetry = {},
+            onQueryChange = {},
+        )
+    }
+}
+
+@Preview(name = "Land list — summary without data")
+@Composable
+private fun LandListSummaryWithoutDataPreview() {
+    ManijeroTheme {
+        LandListScreen(
+            state = LandListState(
+                lands = listOf(
+                    previewLand("land-1", "Los Olivos", treeCount = 1),
+                    previewLand("land-2", "La Loma", municipality = "Martos"),
+                ),
+            ),
+            onAddLand = {},
+            onEditLand = {},
+            onRemoveLand = {},
+            onRetry = {},
+            onQueryChange = {},
+        )
+    }
+}
+
+@Preview(name = "Land list — filtered")
+@Composable
+private fun LandListFilteredPreview() {
+    ManijeroTheme {
+        LandListScreen(
+            state = LandListState(
+                lands = listOf(
+                    previewLand(
+                        "land-1",
+                        "Los Olivos",
+                        municipality = "Martos",
+                        areaHectares = 1.5,
+                        treeCount = 85,
+                    ),
+                    previewLand(
+                        "land-2",
+                        "La Loma",
+                        municipality = "Úbeda",
+                        variety = LandVariety.OTHER,
+                        varietyOther = "Royal de Cazorla",
+                    ),
+                ),
+                query = "ubeda",
+            ),
+            onAddLand = {},
+            onEditLand = {},
+            onRemoveLand = {},
+            onRetry = {},
+            onQueryChange = {},
+        )
+    }
+}
+
+@Preview(name = "Land list — search without results")
+@Composable
+private fun LandListNoResultsPreview() {
+    ManijeroTheme {
+        LandListScreen(
+            state = LandListState(
+                lands = listOf(
+                    previewLand("land-1", "Los Olivos", municipality = "Martos"),
+                    previewLand("land-2", "La Loma", municipality = "Úbeda"),
+                ),
+                query = "zzz",
+            ),
+            onAddLand = {},
+            onEditLand = {},
+            onRemoveLand = {},
+            onRetry = {},
+            onQueryChange = {},
         )
     }
 }
@@ -430,6 +773,7 @@ private fun LandListDuplicateNamesPreview() {
             onEditLand = {},
             onRemoveLand = {},
             onRetry = {},
+            onQueryChange = {},
         )
     }
 }
@@ -456,6 +800,7 @@ private fun LandListManyLandsPreview() {
             onEditLand = {},
             onRemoveLand = {},
             onRetry = {},
+            onQueryChange = {},
         )
     }
 }
@@ -480,6 +825,7 @@ private fun LandListLongTextPreview() {
             onEditLand = {},
             onRemoveLand = {},
             onRetry = {},
+            onQueryChange = {},
         )
     }
 }
@@ -494,6 +840,7 @@ private fun LandListLoadFailurePreview() {
             onEditLand = {},
             onRemoveLand = {},
             onRetry = {},
+            onQueryChange = {},
         )
     }
 }
@@ -508,6 +855,7 @@ private fun LandListJustSavedPreview() {
             onEditLand = {},
             onRemoveLand = {},
             onRetry = {},
+            onQueryChange = {},
             confirmation = LandListConfirmation.ADDED,
         )
     }
@@ -523,6 +871,7 @@ private fun LandListJustUpdatedPreview() {
             onEditLand = {},
             onRemoveLand = {},
             onRetry = {},
+            onQueryChange = {},
             confirmation = LandListConfirmation.UPDATED,
         )
     }
@@ -538,6 +887,7 @@ private fun LandListJustRemovedPreview() {
             onEditLand = {},
             onRemoveLand = {},
             onRetry = {},
+            onQueryChange = {},
             confirmation = LandListConfirmation.REMOVED,
         )
     }
@@ -553,6 +903,7 @@ private fun LandListCompactPreview() {
             onEditLand = {},
             onRemoveLand = {},
             onRetry = {},
+            onQueryChange = {},
         )
     }
 }
@@ -569,6 +920,7 @@ private fun LandListWidePreview() {
             onEditLand = {},
             onRemoveLand = {},
             onRetry = {},
+            onQueryChange = {},
         )
     }
 }
@@ -592,6 +944,7 @@ private fun LandListLargeFontPreview() {
             onEditLand = {},
             onRemoveLand = {},
             onRetry = {},
+            onQueryChange = {},
         )
     }
 }

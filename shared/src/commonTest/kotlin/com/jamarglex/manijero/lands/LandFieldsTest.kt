@@ -123,6 +123,18 @@ class LandFieldsTest {
     }
 
     @Test
+    fun `summed tree counts use the same grouping through the Long entry point`() {
+        assertEquals("1 285", formatTreeCount(1285L))
+        assertEquals("1 200 000", formatTreeCount(1_200_000L))
+        assertEquals("1", formatTreeCount(1L))
+        assertEquals("0", formatTreeCount(0L))
+        assertEquals(
+            "4 294 967 294",
+            formatTreeCount(Int.MAX_VALUE.toLong() + Int.MAX_VALUE.toLong()),
+        )
+    }
+
+    @Test
     fun `variety options use the approved shortlist order`() {
         assertEquals(
             listOf(

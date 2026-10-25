@@ -12,6 +12,8 @@ Use these terms consistently across product and engineering documents. This is a
 | Variety | The olive variety chosen from the approved shortlist, a short custom `Otra` text, or not yet known |
 | Surface | Optional user-entered land area in hectares; absent stays absent, never a zero or a guess |
 | Tree count | Optional user-entered number of olive trees; a whole number of at least one |
+| Annotated value | A value the person entered on a land. An absent value stays absent: the list summary says `Sin datos` and its caption states how many lands carried it, never `0 ha` or `0 olivos` |
+| Land search | Text-only local filter of the saved lands over name, zone, municipality, variety (or custom `Otra` text), water regime and production method; never measures, ids, notes or timestamps, and it neither ranks nor reorders |
 | Water regime | Whether a land is dryland, irrigated, mixed, or not yet known |
 | Production method | Whether production is conventional, organic, mixed, or not yet known |
 | PAC | Common Agricultural Policy of the European Union |
@@ -55,4 +57,4 @@ Use these terms consistently across product and engineering documents. This is a
 - **In MVP:** grounded AI chat, source display, abstention, basic multiple-land create/read/update/delete, land-aware clarification, Android and Desktop, local land storage, usability validation.
 - **Out of MVP:** iOS release, account/cloud sync, shared ownership, precise parcel mapping, full farm/business management, document/photo upload, aid calculations, voice input, and unreviewed autonomous content ingestion.
 
-Last reviewed: 2026-10-09
+Last reviewed: 2026-10-25

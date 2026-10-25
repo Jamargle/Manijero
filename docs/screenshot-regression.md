@@ -4,13 +4,17 @@ Two screenshot suites cover the shared Compose UI in `shared/src/commonMain`:
 
 | Platform | Renderer | Goldens | Captures |
 |---|---|---|---|
-| Desktop | Compose Desktop on the JVM target | `shared/src/jvmTest/screenshots/` | 4 app scenes × 2 widths + board in 2 appearances + component gallery in 4 configurations + app shell in 4 configurations = 18 |
-| Android | Compose UI rendered by Robolectric on the JVM (no emulator/device) | `shared/src/androidHostTest/screenshots/` | 4 app scenes at 360×800 dp + board at 900×1200 dp in 2 appearances + component gallery in 4 configurations + app shell in 4 configurations = 14 |
+| Desktop | Compose Desktop on the JVM target | `shared/src/jvmTest/screenshots/` | 4 app scenes × 2 widths + 2 lands search states (no results and one match) at one wide viewport each + board in 2 appearances + component gallery in 4 configurations + app shell in 4 configurations = 20 |
+| Android | Compose UI rendered by Robolectric on the JVM (no emulator/device) | `shared/src/androidHostTest/screenshots/` | 4 app scenes at 360×800 dp + 2 lands search states (no results and one match) at 900×1000 dp + board at 900×1200 dp in 2 appearances + component gallery in 4 configurations + app shell in 4 configurations = 16 |
 
 The app scenes are the same on both platforms and use the shared, code-owned fixtures in
 `shared/src/commonTest/kotlin/com/jamarglex/manijero/screenshots/ScreenshotFixtures.kt`: chat home
 idle (light), chat answered with a source card (dark), saved-lands list with two lands (light), and
-saved-lands empty state (dark). A fifth subject is the review-only `BrandVectorBoard`, a `commonTest`
+saved-lands empty state (dark). Two saved-lands search states are captured once per platform at
+900×1000 dp instead of the phone width: no results, and one match of two saved lands (both light). The
+wide viewport is used because a phone frame would push the no-results panel below the fold, and because
+the filtered frame must show the scope caption, the three `x de y` captions and the single matching row
+together. A fifth subject is the review-only `BrandVectorBoard`, a `commonTest`
 composable owned by `brand_vectors` and captured light/dark so all eighteen vectors are rendered by the
 theme; it is not a product screen. A sixth subject is the review-only `ComponentGallery`, a
 `commonTest` composable owned by `ui_component_library` that renders every shared component and tone:
@@ -89,7 +93,9 @@ Android:
   `es-rES-w900dp-h1200dp-mdpi` (900×1200 dp), and the component-gallery class sets
   `es-rES-w1200dp-h3000dp-mdpi` for the wide pair and `es-rES-w360dp-h5400dp-mdpi` for the 2× pair,
   so both hosts show the same compositions. The shell class uses the same 360×800 dp compact
-  viewport and overrides the two rail captures per method with `es-rES-w900dp-h1000dp-mdpi`; its
+  viewport and overrides the two rail captures per method with `es-rES-w900dp-h1000dp-mdpi`, which is
+  also the per-method qualifier of the lands class's `land_list_search_no_results` and
+  `land_list_search_filtered` captures; its
   large-text capture nests `Density(1f, fontScale = 2f)` around the shell frame;
 - the same explicit `ManijeroTheme(darkTheme = ...)`, density 1, and font scale 1, with the gallery's
   large-text captures nesting `Density(1f, fontScale = 2f)` around the gallery only;

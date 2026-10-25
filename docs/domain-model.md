@@ -30,6 +30,14 @@ Minimum candidate fields:
 
 The zone, variety, custom variety text, surface, and tree count stay on the device. They are shown in the land list, the removal confirmation, and the clarification chooser, but they never enter the question payload.
 
+### Land search and summary
+
+The saved-lands list can be filtered by a text query and shows a summary of annotated values. Both are **derived, never persisted or sent**: the query lives only in the in-memory list state, resets on every read, and the summary is recomputed from the lands on screen. No store field, `Land`/`LandDraft` field, request or log line carries either.
+
+The summary counts only annotated values and states its denominator (`x de y terrenos`, or `x de y encontrados` while a query is active), so a partial total never reads as a total for every saved land. An absent value stays absent: the card says `Sin datos`, never `0 ha` or `0 olivos`, and no total is inferred from another attribute. The wording says `anotado`, which is what the person wrote, and is not a verified, official or cadastral measurement.
+
+Search matches text only: name, zone, municipality, the variety label or custom `Otra` text, the water-regime label and the production-method label. It never matches the id, notes, timestamps, surface or tree count, and it neither ranks nor reorders the stored records. It folds Spanish accents, `ñ` and case, and treats punctuation and emoji as word separators.
+
 ### Land lifecycle
 
 ```text

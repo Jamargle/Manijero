@@ -48,8 +48,47 @@
     <string name="add_land_save_failed">No se ha podido guardar el terreno. Puedes intentarlo otra vez.</string>
     <string name="add_land_saved">El terreno se ha guardado en este dispositivo.</string>
     <string name="land_list_description">Estos son los terrenos guardados en este dispositivo.</string>
-    <string name="land_list_empty">Todavía no has guardado ningún terreno. Usa «Añadir terreno» para guardar el primero.</string>
+    <string name="land_list_empty_title">Aún no tienes terrenos añadidos</string>
+    <string name="land_list_empty_body">Cuando guardes uno, verás aquí lo que has anotado.</string>
     <string name="land_list_add">Añadir terreno</string>
+    <string name="land_summary_title">Resumen</string>
+    <string name="land_summary_scope_all">Cuenta lo que has anotado en los terrenos guardados.</string>
+    <string name="land_summary_scope_filtered">Cuenta solo lo que has anotado en los terrenos que coinciden con la búsqueda.</string>
+    <string name="land_summary_count_label">Terrenos guardados</string>
+    <string name="land_summary_surface_label">Superficie anotada</string>
+    <string name="land_summary_surface_value">%1$s ha</string>
+    <string name="land_summary_trees_label">Olivos anotados</string>
+    <string name="land_summary_trees_value_one">%1$s olivo</string>
+    <string name="land_summary_trees_value_other">%1$s olivos</string>
+    <string name="land_summary_no_data">Sin datos</string>
+    <string name="land_search_label">Buscar terreno</string>
+    <string name="land_search_hint">Buscar por nombre, municipio o tipo…</string>
+    <string name="land_search_clear">Borrar la búsqueda</string>
+    <string name="land_search_no_results">No hay terrenos que coincidan con la búsqueda.</string>
+    <plurals name="land_summary_count_caption">
+        <item quantity="one">Guardado en este dispositivo.</item>
+        <item quantity="other">Guardados en este dispositivo.</item>
+    </plurals>
+    <plurals name="land_summary_count_caption_filtered">
+        <item quantity="one">%1$d de %2$d terreno guardado</item>
+        <item quantity="other">%1$d de %2$d terrenos guardados</item>
+    </plurals>
+    <plurals name="land_summary_surface_caption">
+        <item quantity="one">%1$d de %2$d terreno con superficie</item>
+        <item quantity="other">%1$d de %2$d terrenos con superficie</item>
+    </plurals>
+    <plurals name="land_summary_surface_caption_filtered">
+        <item quantity="one">%1$d de %2$d terreno encontrado con superficie</item>
+        <item quantity="other">%1$d de %2$d terrenos encontrados con superficie</item>
+    </plurals>
+    <plurals name="land_summary_trees_caption">
+        <item quantity="one">%1$d de %2$d terreno con olivos</item>
+        <item quantity="other">%1$d de %2$d terrenos con olivos</item>
+    </plurals>
+    <plurals name="land_summary_trees_caption_filtered">
+        <item quantity="one">%1$d de %2$d terreno encontrado con olivos</item>
+        <item quantity="other">%1$d de %2$d terrenos encontrados con olivos</item>
+    </plurals>
     <string name="land_list_municipality">Municipio: %1$s</string>
     <string name="land_list_zone">Zona: %1$s</string>
     <string name="land_list_variety">Variedad: %1$s</string>

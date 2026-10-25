@@ -66,6 +66,7 @@ private fun LandsShell() {
             onEditLand = {},
             onRemoveLand = {},
             onRetry = {},
+            onQueryChange = {},
         )
     }
 }
