@@ -5,6 +5,9 @@ These PNGs are the **expected images** for the shared Compose UI, rendered on th
 images, not build output: they are committed on purpose and must only change through the recording
 procedure below.
 
+The suite is split by screen: `ChatHomeScreenshotsTest` and `LandListScreenshotsTest` own their
+captures, and `ScreenshotTestSupport` holds the shared determinism harness.
+
 ## Check the current UI against the baselines (read-only)
 
 ```sh

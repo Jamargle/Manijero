@@ -196,6 +196,20 @@ the goldens a developer will touch.
 - Baseline refresh is manual and human-reviewed; there is no automated guard beyond the review
   procedure in the README.
 
+### 2026-10-25 — split by screen (follow-up refactor)
+
+- `SharedScreenshotsTest` was split so each screen owns its file: `ChatHomeScreenshotsTest` (idle
+  light, answered-plus-source dark) and `LandListScreenshotsTest` (two-land light, empty dark),
+  sharing the determinism harness in `ScreenshotTestSupport`. No capture, fixture, golden,
+  threshold, task, or assertion changed; `ScreenshotFixtures` is untouched.
+- `./gradlew :shared:verifyScreenshots --rerun-tasks` → BUILD SUCCESSFUL, 4/4 PASSED, now reported
+  as `ChatHomeScreenshotsTest > chatHomeIdleLight`, `ChatHomeScreenshotsTest >
+  chatAnsweredSourceDark`, `LandListScreenshotsTest > landListEmptyDark`, and
+  `LandListScreenshotsTest > landListLight`.
+- The four golden SHA-256 values are unchanged by the split, and the Gradle filter
+  `com.jamarglex.manijero.screenshots.*` still selects both classes. The `SharedScreenshotsTest`
+  name in the earlier evidence entries above refers to the pre-split single file.
+
 ## Validator checklist
 
 - [ ] Scope is test-only; no production UI or feature behavior changed.

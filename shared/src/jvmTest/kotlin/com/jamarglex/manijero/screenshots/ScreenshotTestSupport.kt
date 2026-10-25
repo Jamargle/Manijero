@@ -12,27 +12,25 @@ import androidx.compose.ui.unit.LayoutDirection
 import com.github.takahirom.roborazzi.ExperimentalRoborazziApi
 import com.github.takahirom.roborazzi.RoborazziOptions
 import com.github.takahirom.roborazzi.roborazziSystemPropertyTaskType
-import com.jamarglex.manijero.ChatHomeScreen
-import com.jamarglex.manijero.lands.LandListScreen
-import com.jamarglex.manijero.theme.ManijeroTheme
 import io.github.takahirom.roborazzi.captureRoboImage
 import java.util.Locale
 import kotlin.test.AfterTest
 import kotlin.test.BeforeTest
-import kotlin.test.Test
 
 /**
- * Pixel regression coverage for the shared Compose screens, rendered on the existing Compose
- * Desktop (JVM) target.
+ * Shared harness for the shared-UI screenshot regression suite, rendered on the existing Compose
+ * Desktop (JVM) target. Each screen owns its captures in its own test class
+ * ([ChatHomeScreenshotsTest], [LandListScreenshotsTest]); this file holds only the parts that must
+ * stay identical across them.
  *
- * What this covers: the real `commonMain` composables ([ChatHomeScreen] and [LandListScreen]) in
- * two appearances. It does not render Android or iOS, does not prove accessibility, usability, or
- * product behavior, and does not judge whether the Spanish copy is good.
+ * What the suite covers: the real `commonMain` composables in two appearances. It does not render
+ * Android or iOS, does not prove accessibility, usability, or product behavior, and does not judge
+ * whether the Spanish copy is good.
  *
  * Determinism contract (all values are pinned here or in the Gradle task):
  *  - surface size: a fixed size per capture (see [CHAT_WIDTH] and friends);
- *  - appearance: the explicit `darkTheme` argument of [ManijeroTheme], never the host setting;
- *  - density and font scale: density 1, font scale 1, provided below;
+ *  - appearance: the explicit `darkTheme` argument of `ManijeroTheme`, never the host setting;
+ *  - density and font scale: density 1, font scale 1, provided in [capture];
  *  - layout direction: left-to-right;
  *  - locale: `es-ES` pinned for the duration of each test. The app ships one default
  *    `values/strings.xml`, so no locale-specific resource can be selected anyway;
@@ -45,7 +43,7 @@ import kotlin.test.Test
  * deliberately with `:shared:recordScreenshots` and review every changed PNG.
  */
 @OptIn(ExperimentalTestApi::class)
-class SharedScreenshotsTest {
+abstract class ScreenshotTestSupport {
 
     private var previousLocale: Locale? = null
 
@@ -61,73 +59,11 @@ class SharedScreenshotsTest {
         previousLocale = null
     }
 
-    /** Chat home in light appearance, before any question: the default entry surface. */
-    @Test
-    fun chatHomeIdleLight() =
-        capture(name = "chat_home_idle_light", width = CHAT_WIDTH, height = CHAT_HEIGHT) {
-            ManijeroTheme(darkTheme = false) {
-                ChatHomeScreen(
-                    state = ScreenshotFixtures.idleChat,
-                    onAction = {},
-                    onLandsClick = {},
-                    onPrivacyClick = {},
-                    onCoverageClick = {},
-                )
-            }
-        }
-
-    /** Dark appearance of the densest chat state: a supported answer, scope caption, source card. */
-    @Test
-    fun chatAnsweredSourceDark() =
-        capture(name = "chat_answered_source_dark", width = CHAT_WIDTH, height = CHAT_HEIGHT) {
-            ManijeroTheme(darkTheme = true) {
-                ChatHomeScreen(
-                    state = ScreenshotFixtures.answeredChat,
-                    onAction = {},
-                    onLandsClick = {},
-                    onPrivacyClick = {},
-                    onCoverageClick = {},
-                )
-            }
-        }
-
-    /** The saved-lands surface with two distinguishable lands, light appearance. */
-    @Test
-    fun landListLight() =
-        capture(name = "land_list_light", width = LAND_WIDTH, height = LAND_HEIGHT) {
-            ManijeroTheme(darkTheme = false) {
-                LandListScreen(
-                    state = ScreenshotFixtures.twoLands,
-                    onAddLand = {},
-                    onEditLand = {},
-                    onRemoveLand = {},
-                    onBack = {},
-                    onRetry = {},
-                )
-            }
-        }
-
-    /** The saved-lands empty state, dark appearance. */
-    @Test
-    fun landListEmptyDark() =
-        capture(name = "land_list_empty_dark", width = LAND_WIDTH, height = EMPTY_LAND_HEIGHT) {
-            ManijeroTheme(darkTheme = true) {
-                LandListScreen(
-                    state = ScreenshotFixtures.noLands,
-                    onAddLand = {},
-                    onEditLand = {},
-                    onRemoveLand = {},
-                    onBack = {},
-                    onRetry = {},
-                )
-            }
-        }
-
     /**
      * Renders [content] at a fixed surface size and captures the semantics root with Roborazzi.
      * A missing capture mode fails loudly instead of silently producing no image.
      */
-    private fun capture(
+    protected fun capture(
         name: String,
         width: Int,
         height: Int,
@@ -160,12 +96,12 @@ class SharedScreenshotsTest {
         }
     }
 
-    private companion object {
+    protected companion object {
         /**
          * Dimensions are density-independent pixels at the pinned density of 1. The answered
-         * chat state is taller than the viewport, so that golden records the page from the title
-         * through the start of the privacy notice; the footer links below it are outside the
-         * captured frame by design.
+         * chat state is taller than the viewport, so that golden records the top of the page
+         * (title, transcript, answer, and source card) and deliberately excludes the composer and
+         * privacy lines below the fold.
          */
         const val CHAT_WIDTH = 900
         const val CHAT_HEIGHT = 1200
