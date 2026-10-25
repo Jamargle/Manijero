@@ -17,10 +17,11 @@ class EditLandDesktopStoreTest {
         val path = directory.resolve("lands-v1.txt")
         try {
             val writer = LandRepository(FileLandStorage(path))
-            val nameOnly = writer.create(LandDraft("Los Olivos"), now = 1)
+            val nameOnly = writer.create(LandDraft("Los Olivos", "El Llano"), now = 1)
             val known = writer.create(
                 LandDraft(
                     name = "La Loma",
+                    zone = "Linde del arroyo",
                     municipality = "Martos",
                     waterRegime = WaterRegime.IRRIGATED,
                     productionMethod = ProductionMethod.ORGANIC,
@@ -39,6 +40,7 @@ class EditLandDesktopStoreTest {
             assertEquals(listOf("Los Olivos del camino", "La Loma"), reopened.map { it.name })
             assertEquals(nameOnly.id, reopened[0].id)
             assertEquals(nameOnly.createdAtEpochMillis, reopened[0].createdAtEpochMillis)
+            assertEquals("El Llano", reopened[0].zone)
             assertEquals(WaterRegime.UNKNOWN, reopened[0].waterRegime)
             assertEquals(ProductionMethod.UNKNOWN, reopened[0].productionMethod)
             assertEquals(known, reopened[1], "the other land must keep every stored value")
@@ -55,7 +57,13 @@ class EditLandDesktopStoreTest {
         try {
             val writer = LandRepository(FileLandStorage(path))
             val land = writer.create(
-                LandDraft("La Loma", "Martos", WaterRegime.IRRIGATED, ProductionMethod.ORGANIC),
+                LandDraft(
+                    name = "La Loma",
+                    zone = "Linde del arroyo",
+                    municipality = "Martos",
+                    waterRegime = WaterRegime.IRRIGATED,
+                    productionMethod = ProductionMethod.ORGANIC,
+                ),
                 now = 1,
             )
 

@@ -41,8 +41,8 @@ The plan deliberately separates **visual adaptation** (no behavior change) from 
 | D13 | New fields are local-only | `/ask`, `MinimalLandContext`, backend, and OpenAPI stay unchanged |
 | D14 | Search matches name, municipality, zone, variety, water, production | Accent/case-insensitive, client-side |
 | D15 | Summary shows count + partial surface + partial trees | Every total states how many lands contributed; never implies completeness |
-| D16 | Zone is required free text; variety is a shortlist + “Otra” + mixture + “No lo sé” | Required zone changes the only-name-required rule; existing lands remain readable |
-| D17 | Existing lands without a zone stay valid | No forced migration; editing such a land requires completing the zone |
+| D16 | Zone is required free text; variety is a shortlist + “Otra” + mixture + “No lo sé” | Required zone changes the only-name-required rule; every saved land carries one |
+| D17 | One local store format, no pre-release versioning | Nothing has shipped, so `land-store-v1` (13 fields) is both read and written; no legacy rows, migration reader or downgrade path |
 | D18 | Plan → feature specs → implementation | No new `feature_list.json` rows or code before approval |
 
 ### Scope-change note (important)
@@ -251,7 +251,7 @@ Consequence of D3: no serif headlines. The “rustic modern” feel is carried b
 | Mis terrenos (populated) | `LandListScreen.kt`: title, description, plain rows with text buttons | Needs summary cards, search, chips, zone/variety/measures, tonal actions, illustration state |
 | Mis terrenos (empty) | One sentence + add button | Needs illustration, heading, explanation, primary CTA |
 | Añadir | `AddLandScreen.kt`: name, municipality, radio groups; only name required | Needs zone, variety, surface, trees, optional grouping, required markers, styling |
-| Editar | `EditLandScreen.kt`: same fields, prefill | Same new fields; legacy lands without zone need the required-zone path |
+| Editar | `EditLandScreen.kt`: same fields, prefill | Same new fields; blank name or zone blocks the save |
 | Eliminar | `RemoveLandScreen.kt`: confirmation | Needs danger treatment, land identity, safe default focus |
 | Ayuda | `CoverageScreen.kt`: plain sections, text links | Needs section cards, icons, limits callout, same content |
 | Privacidad | `PrivacyScreen.kt`: plain sections; lists only the three sent attributes | Needs section cards, local-only fields section, clearer local/sent split |
@@ -390,8 +390,8 @@ Required-field feedback:
 
 ### 5.6 Editar terreno
 
-- Same form component as Añadir, prefilled.
-- New records always have a zone; legacy records may not. On edit, an empty zone shows the required error on save and focuses the zone field. The land remains readable in the list until edited.
+- Same form component as Añadir, prefilled from the stored record.
+- The stored zone is shown as it was saved. Clearing it shows the required error on save and focuses the zone field; nothing is saved until it is restored or replaced.
 - No delete action here.
 - Save success returns to the list with the update confirmation.
 
@@ -465,7 +465,7 @@ Each component ships with light, dark, and `fontScale = 2f` previews, plus the s
 | `SourceCardView` | Cited source | openable / unavailable | Number, title, body, date, excerpt, one open action |
 | `ClarificationChooser` | Choose lands | loading local read / no lands / rows / selected | Filtered to returned ids; never fabricates a land |
 | `LandRow` | Saved land | known/unknown attributes; long text | Not clickable; two labelled actions |
-| `LandForm` | Shared add/edit form | add / edit / legacy zone / errors | Same field order and validation in both |
+| `LandForm` | Shared add/edit form | add / edit / errors | Same field order and validation in both |
 | `RemoveLandConfirmation` | Delete confirmation | normal / failure / missing | Danger callout; cancel first focus |
 | `InfoCard` | Help/privacy sections | info / caution | Used by Ayuda and Privacidad |
 
@@ -484,7 +484,7 @@ Implementation notes:
 data class Land(
     val id: String,
     val name: String,
-    val zone: String? = null,            // required for new/edited records; null only for legacy rows
+    val zone: String,
     val municipality: String? = null,
     val waterRegime: WaterRegime = WaterRegime.UNKNOWN,
     val productionMethod: ProductionMethod = ProductionMethod.UNKNOWN,
@@ -504,21 +504,23 @@ enum class LandVariety {
 ```
 
 - `LandDraft` gains `zone`, `variety`, `varietyOther`, `treeCount`; `areaHectares` is now exposed.
-- `zone` is required in the form/reducer, not in the storage decoder (legacy records must load).
+- `zone` is required in the model, the form and the reducer, so a stored land always has one.
 - No changes to `MinimalLandContext`, `AskRequest`, OpenAPI, backend, or the chat payload.
 - `notes` stays hidden; do not turn it into zone. Zone is its own field with its own meaning and copy.
 
 ### 7.2 Store format
 
-- Keep `land-store-v1` files readable. Write a new `land-store-v2` header with fields:
+- There is one format, `land-store-v1`, read and written by the same codec; nothing has shipped, so no older
+  shape, migration reader or downgrade path is kept. Fields:
   `id | name | zone | municipality | waterRegime | productionMethod | variety | varietyOther | areaHectares | treeCount | notes | createdAt | updatedAt`.
-- Decoder accepts both headers: v1 (9 fields) maps missing fields to `null`/`UNKNOWN`; v2 requires its field count.
-- Writer emits v2 only.
+- Decoder requires that header and 13 fields per line; a line with a missing/blank zone, an invalid enum or an
+  invalid number is skipped whole, never repaired or invented.
 - Escaping stays the same (`%`, `|`, newline, carriage return).
-- Corrupt/unknown records keep the current conservative behavior: skip the record, never invent values.
-- Add fixtures for: v1 file, v2 file, mixed file, escaped zone/variety text, invalid enum, invalid numbers, empty file.
-- Desktop file name: keep `lands-v1.txt` (path compatibility) even though contents are v2; document it. Do not rename user data.
-- Downgrade is not supported: an older build cannot read a v2 file. Record this limitation in the spec; do not claim backup or rollback.
+- Tests cover: round-trip with escaped zone/variety text, empty file, unknown header, invalid enum, invalid numbers,
+  missing zone.
+- Desktop file name: keep `lands-v1.txt`; document the header as the format marker. Do not rename user data.
+- No migration, downgrade, backup or restore support is claimed; changing the format later means deliberately
+  adding a version and a reader.
 
 ### 7.3 Validation and normalization
 
@@ -534,7 +536,7 @@ enum class LandVariety {
 
 - Never infer surface from tree count or vice versa.
 - Never require surface/trees/variety.
-- `zone` required only for new/edited records; legacy rows remain valid.
+- `zone` required when creating and when editing, so no stored row is zone-less.
 
 ### 7.4 Summary calculations
 
@@ -630,13 +632,13 @@ Estimates are sessions of focused work, not calendar dates. Each step ends with 
 |---|---|---|---|
 | P1-01 | Append the superseding field decision and create the new owning spec; note affected contracts without rewriting past acceptance records | `docs/specs/land_setup_fields_decision.md` (append only), new `docs/specs/land_measurement_fields.md`, owner-spec notes | Scope change explicit, evidence gap stated, no code changed |
 | P1-01b | Update `DESIGN.md` field and privacy guidance only after approval of the new spec | `DESIGN.md` | Design guidance matches the approved fields |
-| P1-02 | Add `zone`, `variety`, `varietyOther`, `treeCount` to model/draft | `lands/Land.kt` | Compiles; defaults preserve old call sites |
-| P1-03 | Add v2 store encode/decode with v1 compatibility | `lands/LandRepository.kt` | v1/v2 fixtures pass; escaped text round-trips |
+| P1-02 | Add `zone`, `variety`, `varietyOther`, `treeCount` to model/draft | `lands/Land.kt` | Compiles; every saved land carries a zone |
+| P1-03 | One `land-store-v1` 13-field encode/decode, no second header | `lands/LandRepository.kt` | Round-trip, escaping, missing-zone and corrupt-line cases pass |
 | P1-04 | Normalize/validate new fields in the repository | `lands/LandRepository.kt` | Invalid records never written; tests |
 | P1-05 | Extend add/edit reducers with field state and validation | `lands/AddLandState.kt`, `EditLandState.kt` | Blank zone/variety-other/invalid numbers rejected with focus target |
-| P1-06 | Extend draft mapping and edit prefill | `lands/*State.kt`, `App.kt` | Values survive save failure; legacy zone stays empty |
+| P1-06 | Extend draft mapping and edit prefill | `lands/*State.kt`, `App.kt` | Values survive save failure; stored zone prefills |
 | P1-07 | Add the new fields to the add form | `lands/AddLandScreen.kt` | Required/optional copy; previews |
-| P1-08 | Reuse the form in edit with prefill and legacy-zone path | `lands/EditLandScreen.kt` | Editing a legacy land requires zone; list remains readable |
+| P1-08 | Reuse the form in edit with prefill | `lands/EditLandScreen.kt` | Clearing name or zone blocks the save and focuses it |
 | P1-09 | Show zone/variety/measures/chips in land rows and clarification chooser | `lands/LandListScreen.kt`, `App.kt` | Only known values shown; no inferred value |
 | P1-10 | Implement `LandSummary` derivation + number formatting | new `lands/LandSummary.kt` | Unit tests: empty, partial, all known, rounding |
 | P1-11 | Implement `filterLands` | new `lands/LandSearch.kt` | Unit tests: accents, ñ, case, emoji, blank, no match |
@@ -662,7 +664,7 @@ Estimates are sessions of focused work, not calendar dates. Each step ends with 
 | P2-10 | Land rows + tonal edit/delete actions | `lands/LandListScreen.kt` | 48 dp actions; not clickable row |
 | P2-11 | Lands confirmations/load failure | `lands/LandListScreen.kt` | Polite live region; retry |
 | P2-12 | Add screen layout and field grouping | `lands/AddLandScreen.kt` | One scroll; no hidden `No lo sé` |
-| P2-13 | Edit screen layout | `lands/EditLandScreen.kt` | Same order; legacy path |
+| P2-13 | Edit screen layout | `lands/EditLandScreen.kt` | Same order; stored values prefilled |
 | P2-14 | Remove screen danger treatment | `lands/RemoveLandScreen.kt` | Cancel-safe default focus |
 | P2-15 | Ayuda screen cards + limits callout | `coverage/CoverageScreen.kt` | Same content; no new links |
 | P2-16 | Privacidad screen cards + local-only section | `privacy/PrivacyScreen.kt` | Copy matches disclosure facts |
@@ -797,14 +799,14 @@ explicit Compose Desktop/KMP support). Scope and rules:
 
 | Risk | Mitigation |
 |---|---|
-| Required zone blocks low-confidence users or contradicts the accepted field decision | Explicit decision record; plain helper text with examples; legacy lands remain valid; manual comprehension check; revisit if users stall |
+| Required zone blocks low-confidence users or contradicts the accepted field decision | Explicit decision record; plain helper text with examples; manual comprehension check; revisit if users stall |
 | Partial totals mislead (“2,5 ha” looks complete) | Caption always states the denominator; `Sin datos` when none; never label “total” |
 | Palette changes break contrast | Pre-computed pairs plus mandatory tests; fallback to the accepted values for any failing pair |
 | Dark mode has leaked blue/off-family roles | Correct tertiary; test every role; dark screenshots per screen |
 | Navigation refactor loses chat state or breaks back | Hoist state; pure navigation mapping tests; Android back manual check; no deep links |
 | `App.kt` extraction causes conflicts or regressions | Extract in small steps inside the owning feature; keep behavior identical; test after each |
 | New fields leak to `/ask` or logs | Explicit serialization test; disclosure copy; no logging of field values |
-| Store v2 breaks existing desktop data | v1 fixtures, mixed-file fixtures, conservative skipping, keep the same file path |
+| Store format change breaks existing desktop data | One codec, conservative skipping, same file path; nothing has shipped, so no legacy rows exist to read |
 | Hand-authored icons look inconsistent | One 24 dp grid, 2 dp stroke, shared wrapper, visual QA in the gallery |
 | Search fails on accents/ñ | Pure fold function with a dedicated test set |
 | Scope creep from mockup content | Non-goals list; review gate; new content needs a spec |
@@ -823,7 +825,8 @@ Palette values were decided on 2026-10-25: the Stitch token block wins verbatim,
    chat footer and the help screen, so the shell bar carries identity only and never duplicates a
    route.
 3. **Add CTA position** — directly under the summary (proposed) versus a sticky bottom button/FAB.
-4. **Legacy lands without zone** — omit zone in the list and require it only when editing (proposed) versus show a “falta la zona” note.
+4. **Lands without a zone** — **decided 2026-10-25: not applicable.** Nothing has shipped, so no stored land
+   predates the required zone; `land-store-v1` carries a zone on every row and a zone-less line is skipped.
 5. **Search scope** — exclude numeric measures (proposed); include them if you expect people to search “1,5”.
 6. **“Otra” variety** — require a short free-text value (proposed) or allow the label alone.
 7. **Variety shortlist** — confirm Picual, Hojiblanca, Picudo, Lechín de Sevilla, Arbequina, Manzanilla, Gordal; add/remove any.
@@ -865,7 +868,7 @@ After approval, the next action is to create the first feature spec (`design_tok
 | Chat | `chat/ChatComposer.kt`, `chat/ChatMessages.kt`, `chat/SourceCards.kt`, `chat/ClarificationChooser.kt`, `chat/ChatStates.kt` | `App.kt`, `chat/*` |
 | Lands | `lands/LandSummary.kt`, `lands/LandSearch.kt`, `lands/LandForm.kt`, `lands/LandRow.kt` | `lands/*.kt`, `App.kt` |
 | Privacy/help | `design/InfoCard.kt` | `privacy/PrivacyScreen.kt`, `coverage/CoverageScreen.kt`, `privacy/LandDataDisclosure.kt` |
-| Tests | `commonTest/lands/LandSummaryTest.kt`, `LandSearchTest.kt`, `LandStoreFormatV2Test.kt`, `commonTest/design/*` | `ManijeroColorsTest.kt`, `ManijeroDesignSystemTest.kt`, `AddLandStateTest.kt`, `EditLandStateTest.kt`, `LandRepositoryTest.kt`, `LandContextBuilderTest.kt`, `LandDataDisclosureTest.kt` |
+| Tests | `commonTest/lands/LandSummaryTest.kt`, `LandSearchTest.kt`, `LandStoreFormatTest.kt`, `commonTest/design/*` | `ManijeroColorsTest.kt`, `ManijeroDesignSystemTest.kt`, `AddLandStateTest.kt`, `EditLandStateTest.kt`, `LandRepositoryTest.kt`, `LandContextBuilderTest.kt`, `LandDataDisclosureTest.kt` |
 | Docs | this plan | `DESIGN.md`, `design-references/README.md`, owner specs/validations, `feature_list.json`, `PROGRESS.md`, session log |
 
 ## Appendix B — Screen × state matrix

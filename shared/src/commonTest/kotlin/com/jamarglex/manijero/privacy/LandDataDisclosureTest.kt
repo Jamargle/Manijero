@@ -50,10 +50,14 @@ class LandDataDisclosureTest {
         val land = Land(
             id = "land-1",
             name = "Los Olivos",
+            zone = "Linde del arroyo",
             municipality = "Martos",
             waterRegime = WaterRegime.IRRIGATED,
             productionMethod = ProductionMethod.ORGANIC,
+            variety = com.jamarglex.manijero.lands.LandVariety.OTHER,
+            varietyOther = "Royal de Cazorla",
             areaHectares = 12.5,
+            treeCount = 1200,
             notes = "Nota privada con teléfono 600 000 000",
             createdAtEpochMillis = 1_700_000_000_000L,
             updatedAtEpochMillis = 1_700_000_111_111L,
@@ -85,13 +89,28 @@ class LandDataDisclosureTest {
             optionalKeys,
         )
 
-        listOf("name", "notes", "areaHectares", "createdAt", "updatedAt", "Los Olivos", "Nota privada")
-            .forEach { forbidden ->
-                assertFalse(
-                    encoded.contains(forbidden),
-                    "encoded payload must not contain $forbidden",
-                )
-            }
+        listOf(
+            "name",
+            "zone",
+            "variety",
+            "varietyOther",
+            "treeCount",
+            "areaHectares",
+            "notes",
+            "createdAt",
+            "updatedAt",
+            "Los Olivos",
+            "Linde del arroyo",
+            "Royal de Cazorla",
+            "12.5",
+            "1200",
+            "Nota privada",
+        ).forEach { forbidden ->
+            assertFalse(
+                encoded.contains(forbidden),
+                "encoded payload must not contain $forbidden",
+            )
+        }
     }
 
     @Test

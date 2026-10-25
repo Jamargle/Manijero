@@ -36,7 +36,7 @@ class AppLaunchTest {
     fun `saved lands launch as already loaded`() {
         val storage = MemoryStorage()
         val repository = LandRepository(storage)
-        val land = repository.create(LandDraft("La Loma"))
+        val land = repository.create(LandDraft("La Loma", "La Vega"))
 
         val state = initialLandListState(repository)
 

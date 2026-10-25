@@ -62,10 +62,29 @@ Operational MUST/MUST NOT rules that future features have to respect on top of
 ## Land editing
 
 - **MUST**: editing a land MUST update exactly one stored record: it carries every attribute the
-  edit form does not collect (`areaHectares`, `notes`) through unchanged, preserves the targeted
-  `id` and `createdAtEpochMillis`, never calls `create`/`delete`, and MUST NOT report an update as
-  saved when `update` returned `null` or threw. Reason: `edit_land` established that correcting one
-  detail must never rewrite another land or silently erase stored data.
+  edit form still does not collect (`notes`) through unchanged, preserves the targeted `id` and
+  `createdAtEpochMillis`, never calls `create`/`delete`, and MUST NOT report an update as saved when
+  `update` returned `null` or threw. Reason: `edit_land` established that correcting one detail must
+  never rewrite another land or silently erase stored data.
+
+## Land fields and storage
+
+- **MUST**: every stored land MUST have a trimmed non-blank zone of at most 80 characters, both on
+  create and on edit; clearing it MUST block the save. Reason: `land_measurement_fields` made the
+  zone the second required identity field.
+- **MUST**: land storage MUST use the single `land-store-v1` format (13 fields) and MUST NOT keep a
+  second decoder or migration path for an older shape. A line that cannot be decoded MUST be skipped
+  whole, and every decoded record MUST carry its zone; the Desktop file keeps its existing name.
+  Reason: no build predates this format, so dual-format code would be maintenance without data.
+- **MUST NOT**: infer a zone, variety, surface, or tree count from a name, municipality, question, or
+  another land. An absent optional value MUST stay absent in the store and MUST be omitted from the
+  land details rather than shown as zero. Reason: land records must not imply knowledge or
+  eligibility the person did not provide.
+- **MUST**: surface text MUST accept comma or dot, reject letters, signs and non-finite values, and store
+  at most two decimals by rounding a longer entry; tree count MUST be a whole ASCII number of at
+  least one. Raw text MUST stay on screen after an invalid save. Reason: the approved validation table
+  rounds a surface to the stored precision instead of refusing a plausible measurement or truncating it
+  silently.
 
 ## Client source cards
 
@@ -141,7 +160,8 @@ Operational MUST/MUST NOT rules that future features have to respect on top of
 - **MUST**: the on-screen data-handling notice MUST describe only the current behaviour — the lands
   are saved device-locally, and a question sends the question as written plus, for a land-aware
   answer, each land's opaque id and only the needed `municipality`/`water_regime`/`production_method`
-  (an unknown value sent as `unknown`, name/notes/area/timestamp never sent). It MUST NOT promise
+  (an unknown value sent as `unknown`; name, zone, variety, custom variety, surface, tree count,
+  notes and timestamps never sent). It MUST NOT promise
   backup, a cloud copy, or confidentiality beyond what the answer service's own terms offer, and
   MUST NOT name a land, an id, or make any eligibility or legal claim. Its sendable-attribute list
   MUST stay pinned (`privacy/LandDataDisclosure.kt`) and tied to the real encoded payload by a test,

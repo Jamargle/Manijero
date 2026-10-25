@@ -92,6 +92,7 @@ class ChatConversationTest {
     ) = Land(
         id = id,
         name = name,
+        zone = "El Llano",
         municipality = municipality,
         waterRegime = waterRegime,
         productionMethod = productionMethod,

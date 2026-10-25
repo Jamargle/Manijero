@@ -615,6 +615,7 @@ class ChatHomeStateTest {
         Land(
             id = id,
             name = name,
+            zone = "El Llano",
             waterRegime = water,
             createdAtEpochMillis = 1L,
             updatedAtEpochMillis = 1L,

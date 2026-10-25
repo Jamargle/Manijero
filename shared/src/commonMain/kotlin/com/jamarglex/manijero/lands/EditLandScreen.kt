@@ -25,8 +25,11 @@ import androidx.compose.ui.semantics.error
 import androidx.compose.ui.semantics.heading
 import androidx.compose.ui.semantics.liveRegion
 import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import com.jamarglex.manijero.design.ManijeroDropdownField
+import com.jamarglex.manijero.design.ManijeroMeasureField
 import com.jamarglex.manijero.theme.ManijeroTheme
 import manijero.shared.generated.resources.Res
 import manijero.shared.generated.resources.add_land_cancel
@@ -37,11 +40,27 @@ import manijero.shared.generated.resources.add_land_production_conventional
 import manijero.shared.generated.resources.add_land_production_label
 import manijero.shared.generated.resources.add_land_production_mixed
 import manijero.shared.generated.resources.add_land_production_organic
+import manijero.shared.generated.resources.add_land_surface_error
+import manijero.shared.generated.resources.add_land_surface_help
+import manijero.shared.generated.resources.add_land_surface_label
+import manijero.shared.generated.resources.add_land_trees_error
+import manijero.shared.generated.resources.add_land_trees_help
+import manijero.shared.generated.resources.add_land_trees_label
 import manijero.shared.generated.resources.add_land_unknown
+import manijero.shared.generated.resources.add_land_variety_help
+import manijero.shared.generated.resources.add_land_variety_label
+import manijero.shared.generated.resources.add_land_variety_other_error
+import manijero.shared.generated.resources.add_land_variety_other_help
+import manijero.shared.generated.resources.add_land_variety_other_label
+import manijero.shared.generated.resources.add_land_variety_other_too_long
 import manijero.shared.generated.resources.add_land_water_dryland
 import manijero.shared.generated.resources.add_land_water_irrigated
 import manijero.shared.generated.resources.add_land_water_label
 import manijero.shared.generated.resources.add_land_water_mixed
+import manijero.shared.generated.resources.add_land_zone_error
+import manijero.shared.generated.resources.add_land_zone_help
+import manijero.shared.generated.resources.add_land_zone_label
+import manijero.shared.generated.resources.add_land_zone_too_long
 import manijero.shared.generated.resources.edit_land_description
 import manijero.shared.generated.resources.edit_land_missing
 import manijero.shared.generated.resources.edit_land_save
@@ -52,8 +71,11 @@ import org.jetbrains.compose.resources.stringResource
 /**
  * Short shared form to correct one land. It renders whatever [state] it receives and reports every
  * interaction through [onAction] or [onCancel]; persistence happens in the caller and only ever
- * targets [EditLandState.landId]. The form is prefilled so the name tells the person which land is
- * being edited, and it deliberately shows no id, area, or notes.
+ * targets [EditLandState.landId].
+ *
+ * The person can clear any field; the record's zone and name are required, so clearing either one
+ * blocks the save. Saving with any invalid field writes nothing and moves focus to the first invalid
+ * one, in layout order.
  */
 @Composable
 fun EditLandScreen(
@@ -93,17 +115,27 @@ fun EditLandScreen(
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
 
-                // Same recoverable blank-name path as the add form: the focus is requested from the
-                // save path, so a repeated blank attempt re-focuses the field (the error flag itself
-                // does not change between two attempts).
+                // Same recoverable first-invalid path as the add form: the focus is requested from the
+                // save path, so a repeated invalid attempt re-focuses the field.
                 val nameFocus = remember { FocusRequester() }
-                val nameErrorMessage = stringResource(Res.string.add_land_name_error)
+                val zoneFocus = remember { FocusRequester() }
+                val varietyOtherFocus = remember { FocusRequester() }
+                val areaFocus = remember { FocusRequester() }
+                val treeCountFocus = remember { FocusRequester() }
                 val handleAction: (EditLandAction) -> Unit = { action ->
-                    if (action is EditLandAction.SaveClicked && !state.hasName) {
-                        nameFocus.requestFocus()
+                    if (action is EditLandAction.SaveClicked) {
+                        when {
+                            !state.hasName -> nameFocus.requestFocus()
+                            state.zoneIssue != null -> zoneFocus.requestFocus()
+                            !state.varietyOtherValid -> varietyOtherFocus.requestFocus()
+                            !state.areaMeasure.isValid -> areaFocus.requestFocus()
+                            !state.treeCountMeasure.isValid -> treeCountFocus.requestFocus()
+                        }
                     }
                     onAction(action)
                 }
+
+                val nameErrorMessage = stringResource(Res.string.add_land_name_error)
                 val nameErrorText: (@Composable () -> Unit)? = if (state.showNameError) {
                     {
                         Text(
@@ -129,12 +161,132 @@ fun EditLandScreen(
                     singleLine = true,
                 )
 
+                val zoneErrorMessage = when (state.zoneIssue) {
+                    ZoneProblem.BLANK -> stringResource(Res.string.add_land_zone_error)
+                    ZoneProblem.TOO_LONG -> stringResource(Res.string.add_land_zone_too_long)
+                    null -> null
+                }
+                val zoneHelp = stringResource(Res.string.add_land_zone_help)
+                val zoneSupportingText: (@Composable () -> Unit)? = when {
+                    state.showZoneError && zoneErrorMessage != null -> {
+                        {
+                            Text(
+                                text = zoneErrorMessage,
+                                modifier = Modifier.semantics {
+                                    liveRegion = LiveRegionMode.Polite
+                                },
+                            )
+                        }
+                    }
+
+                    else -> {
+                        { Text(text = zoneHelp) }
+                    }
+                }
+                OutlinedTextField(
+                    value = state.zone,
+                    onValueChange = { handleAction(EditLandAction.ZoneChanged(it)) },
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .focusRequester(zoneFocus)
+                        .semantics {
+                            if (state.showZoneError && zoneErrorMessage != null) {
+                                error(zoneErrorMessage)
+                            }
+                        },
+                    label = { Text(stringResource(Res.string.add_land_zone_label)) },
+                    isError = state.showZoneError,
+                    supportingText = zoneSupportingText,
+                    singleLine = true,
+                )
+
                 OutlinedTextField(
                     value = state.municipality,
                     onValueChange = { onAction(EditLandAction.MunicipalityChanged(it)) },
                     modifier = Modifier.fillMaxWidth(),
                     label = { Text(stringResource(Res.string.add_land_municipality_label)) },
                     singleLine = true,
+                )
+
+                val varietyOptions = LAND_VARIETY_OPTIONS.map { stringResource(landVarietyLabel(it)) }
+                ManijeroDropdownField(
+                    label = stringResource(Res.string.add_land_variety_label),
+                    options = varietyOptions,
+                    selected = stringResource(landVarietyLabel(state.variety)),
+                    onSelect = { chosen ->
+                        val index = varietyOptions.indexOf(chosen)
+                        if (index >= 0) {
+                            handleAction(EditLandAction.VarietySelected(LAND_VARIETY_OPTIONS[index]))
+                        }
+                    },
+                    supportingText = stringResource(Res.string.add_land_variety_help),
+                )
+
+                if (state.variety == LandVariety.OTHER) {
+                    val varietyOtherErrorMessage = when {
+                        state.varietyOther.isBlank() ->
+                            stringResource(Res.string.add_land_variety_other_error)
+
+                        else -> stringResource(Res.string.add_land_variety_other_too_long)
+                    }
+                    val varietyOtherHelp = stringResource(Res.string.add_land_variety_other_help)
+                    val varietyOtherSupportingText: (@Composable () -> Unit)? =
+                        if (state.showVarietyOtherError) {
+                            {
+                                Text(
+                                    text = varietyOtherErrorMessage,
+                                    modifier = Modifier.semantics {
+                                        liveRegion = LiveRegionMode.Polite
+                                    },
+                                )
+                            }
+                        } else {
+                            { Text(text = varietyOtherHelp) }
+                        }
+                    OutlinedTextField(
+                        value = state.varietyOther,
+                        onValueChange = { handleAction(EditLandAction.VarietyOtherChanged(it)) },
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .focusRequester(varietyOtherFocus)
+                            .semantics {
+                                if (state.showVarietyOtherError) {
+                                    error(varietyOtherErrorMessage)
+                                }
+                            },
+                        label = { Text(stringResource(Res.string.add_land_variety_other_label)) },
+                        isError = state.showVarietyOtherError,
+                        supportingText = varietyOtherSupportingText,
+                        singleLine = true,
+                    )
+                }
+
+                ManijeroMeasureField(
+                    value = state.areaText,
+                    onValueChange = { handleAction(EditLandAction.AreaChanged(it)) },
+                    label = stringResource(Res.string.add_land_surface_label),
+                    modifier = Modifier.focusRequester(areaFocus),
+                    supportingText = stringResource(Res.string.add_land_surface_help),
+                    errorText = if (state.showAreaError) {
+                        stringResource(Res.string.add_land_surface_error)
+                    } else {
+                        null
+                    },
+                    keyboardType = KeyboardType.Decimal,
+                )
+
+                ManijeroMeasureField(
+                    value = state.treeCountText,
+                    onValueChange = { handleAction(EditLandAction.TreeCountChanged(it)) },
+                    label = stringResource(Res.string.add_land_trees_label),
+                    modifier = Modifier.focusRequester(treeCountFocus),
+                    supportingText = stringResource(Res.string.add_land_trees_help),
+                    errorText = if (state.showTreeCountError) {
+                        stringResource(Res.string.add_land_trees_error)
+                    } else {
+                        null
+                    },
+                    keyboardType = KeyboardType.Number,
                 )
 
                 ChoiceGroup(
@@ -265,22 +417,41 @@ fun EditLandScreen(
     }
 }
 
+@Suppress("LongParameterList")
 private fun previewEditLandState(
     name: String = "Los Olivos",
+    zone: String = "Camino de la Fuente",
     municipality: String = "",
     waterRegime: WaterRegime = WaterRegime.UNKNOWN,
     productionMethod: ProductionMethod = ProductionMethod.UNKNOWN,
+    variety: LandVariety = LandVariety.UNKNOWN,
+    varietyOther: String = "",
+    areaText: String = "",
+    treeCountText: String = "",
+    preservedNotes: String? = null,
     showNameError: Boolean = false,
+    showZoneError: Boolean = false,
+    showVarietyOtherError: Boolean = false,
+    showAreaError: Boolean = false,
+    showTreeCountError: Boolean = false,
     failure: EditLandFailure? = null,
 ) = EditLandState(
     landId = "land-1",
     name = name,
+    zone = zone,
     municipality = municipality,
     waterRegime = waterRegime,
     productionMethod = productionMethod,
-    preservedAreaHectares = null,
-    preservedNotes = null,
+    variety = variety,
+    varietyOther = varietyOther,
+    areaText = areaText,
+    treeCountText = treeCountText,
+    preservedNotes = preservedNotes,
     showNameError = showNameError,
+    showZoneError = showZoneError,
+    showVarietyOtherError = showVarietyOtherError,
+    showAreaError = showAreaError,
+    showTreeCountError = showTreeCountError,
     failure = failure,
 )
 
@@ -297,9 +468,14 @@ private fun EditLandKnownValuesPreview() {
         EditLandScreen(
             state = previewEditLandState(
                 name = "La Loma",
+                zone = "Linde del arroyo",
                 municipality = "Martos",
                 waterRegime = WaterRegime.IRRIGATED,
                 productionMethod = ProductionMethod.ORGANIC,
+                variety = LandVariety.PICUAL,
+                areaText = "2,5",
+                treeCountText = "85",
+                preservedNotes = "Junto al arroyo",
             ),
             onAction = {},
             onCancel = {},
@@ -307,12 +483,54 @@ private fun EditLandKnownValuesPreview() {
     }
 }
 
-@Preview(name = "Edit land — missing name error")
+@Preview(name = "Edit land — missing name and zone errors")
 @Composable
-private fun EditLandNameErrorPreview() {
+private fun EditLandRequiredErrorsPreview() {
     ManijeroTheme {
         EditLandScreen(
-            state = previewEditLandState(name = "  ", municipality = "Úbeda", showNameError = true),
+            state = previewEditLandState(
+                name = "  ",
+                zone = "   ",
+                municipality = "Úbeda",
+                showNameError = true,
+                showZoneError = true,
+            ),
+            onAction = {},
+            onCancel = {},
+        )
+    }
+}
+
+@Preview(name = "Edit land — custom variety")
+@Composable
+private fun EditLandCustomVarietyPreview() {
+    ManijeroTheme {
+        EditLandScreen(
+            state = previewEditLandState(
+                name = "La Loma",
+                variety = LandVariety.OTHER,
+                varietyOther = "Royal de Cazorla",
+            ),
+            onAction = {},
+            onCancel = {},
+        )
+    }
+}
+
+@Preview(name = "Edit land — measure errors")
+@Composable
+private fun EditLandMeasureErrorsPreview() {
+    ManijeroTheme {
+        EditLandScreen(
+            state = previewEditLandState(
+                variety = LandVariety.OTHER,
+                varietyOther = "",
+                areaText = "mucho",
+                treeCountText = "0",
+                showVarietyOtherError = true,
+                showAreaError = true,
+                showTreeCountError = true,
+            ),
             onAction = {},
             onCancel = {},
         )
@@ -326,6 +544,7 @@ private fun EditLandWriteFailurePreview() {
         EditLandScreen(
             state = previewEditLandState(
                 name = "La Loma",
+                zone = "El Llano",
                 municipality = "Jaén",
                 waterRegime = WaterRegime.DRYLAND,
                 failure = EditLandFailure.WRITE_FAILED,
@@ -358,9 +577,13 @@ private fun EditLandLongTextPreview() {
         EditLandScreen(
             state = previewEditLandState(
                 name = "El olivar de mi abuelo junto al camino de la fuente",
+                zone = "Paraje de la Fuente del Roble, junto al cortijo viejo",
                 municipality = "Villanueva del Arzobispo (Sierra de Cazorla)",
                 waterRegime = WaterRegime.MIXED,
                 productionMethod = ProductionMethod.ORGANIC,
+                variety = LandVariety.LECHIN_DE_SEVILLA,
+                areaText = "12,75",
+                treeCountText = "1200",
             ),
             onAction = {},
             onCancel = {},
@@ -407,12 +630,18 @@ private fun EditLandLargeFontPreview() {
     }
 }
 
-@Preview(name = "Edit land — narrow, large font, name error", widthDp = 320, fontScale = 2f)
+@Preview(name = "Edit land — narrow, large font, required errors", widthDp = 320, fontScale = 2f)
 @Composable
-private fun EditLandNarrowLargeFontNameErrorPreview() {
+private fun EditLandNarrowLargeFontRequiredErrorsPreview() {
     ManijeroTheme {
         EditLandScreen(
-            state = previewEditLandState(name = "  ", municipality = "Úbeda", showNameError = true),
+            state = previewEditLandState(
+                name = "  ",
+                zone = "",
+                municipality = "Úbeda",
+                showNameError = true,
+                showZoneError = true,
+            ),
             onAction = {},
             onCancel = {},
         )

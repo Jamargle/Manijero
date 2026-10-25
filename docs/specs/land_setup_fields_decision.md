@@ -113,3 +113,45 @@ No target-user session was conducted or commissioned in this implementation. The
 ### Downstream boundary
 
 No production form, storage, request, disclosure, or user-facing copy changed. Existing owner contracts remain in force: [`add_land`](add_land.md) owns setup fields, [`minimal_land_context`](minimal_land_context.md) owns the three-attribute payload, and [`land_data_disclosure`](land_data_disclosure.md) owns its matching notice. If formative research identifies a needed field, create/approve a scoped follow-up under the owning form/data/context/disclosure features before changing behavior. Until then, do not expand the form or payload.
+
+## Superseding decision (2026-10-25)
+
+### What changes and why
+
+The 2026-10-20 record above is retained unchanged as history, but its field decision is **superseded by product decision**, not by new user evidence. `land_measurement_fields` changes the land setup so a saved land can describe the place and the grove in the words a person actually uses: a **required zone (paraje)**, an **optional variety**, and **optional surface and olive-tree count**, with the area already stored in the model now collected. This is the approved UI-refresh product slice ([`docs/design/ui-refresh-plan.md`](../design/ui-refresh-plan.md) D5/D6/D12–D17, §7, §9: P1-01…P1-09, P1-14…P1-16). No target-user session was conducted for this change either; the missing evidence is stated below and remains open.
+
+### Field rules now in force
+
+| Field | Disposition | Rule |
+|---|---|---|
+| Name/nickname | Required, unchanged | Trimmed, non-blank; local only; never sent. |
+| Zone (paraje) | **New; required** | Trimmed, non-blank, at most 80 characters. Every stored land carries one; clearing it blocks the save. |
+| Municipality | Optional, unchanged | Trimmed; blank stays absent; never inferred. |
+| Variety | **New; optional** | Fixed shortlist (`Picual`, `Hojiblanca`, `Picudo`, `Lechín de Sevilla`, `Arbequina`, `Manzanilla`, `Gordal`, `Mezcla de variedades`, `Otra`, `No lo sé`). `Otra` requires its own free text (max 40). `No lo sé` stores an unknown value. |
+| Surface | **New; optional** | Comma or dot accepted, at most two decimals by rounding a longer entry, finite and `>= 0`. Never inferred from tree count. Stored as hectares. |
+| Tree count | **New; optional** | Whole number `>= 1`. Never inferred from surface. |
+| Water regime | Optional, unchanged | `unknown` remains a valid state. |
+| Production method | Optional, unchanged | `unknown` remains a valid state. |
+| Free-text notes | Deferred, unchanged | Still not collected in the form, never sent. |
+
+Unknown or blank optional values are stored as unknown/absent and are never rendered as zero. Land records do not establish eligibility, and none of the new values is evidence of official status or completeness.
+
+### Local-only boundary
+
+The new values (zone, variety, custom variety text, surface, tree count) are saved only on the device. They never enter `MinimalLandContext`, `AskRequest`, the backend request, OpenAPI, the knowledge corpus, or a prompt, and no log line may include them. The sendable dimensions remain exactly municipality, water regime, and production method plus the opaque local id. The in-app data-handling notice is updated to say so.
+
+### Storage and compatibility
+
+The app uses one local storage format, `land-store-v1` (13 fields), for the whole store; there is no second shape or migration reader because no build has shipped yet. A malformed line is skipped whole. The Desktop file keeps its `lands-v1.txt` name. Backup, sync, restore, and downgrade remain unsupported.
+
+### Evidence and limits
+
+There are **no new target-user observations**. The required zone, the approved variety list, and the optional measures are product decisions from the approved UI-refresh plan, not usability findings, and they may lengthen setup or add comprehension burden for people with low digital confidence. The outstanding low-digital-confidence comprehension check is not closed or replaced by this decision. Automated evidence covers the repository, the forms' pure state, the store format, and the payload boundary; it cannot judge real-user comprehension. No real device upgrade, downgrade, or backup/restore was exercised.
+
+### Affected owners
+
+- [`land_measurement_fields`](land_measurement_fields.md) owns the model, the single `land-store-v1` format, forms, list/remove/clarification display, and this decision's implementation.
+- [`land_data_disclosure`](land_data_disclosure.md) owns the in-app notice, updated to name the new local-only values.
+- [`minimal_land_context`](minimal_land_context.md) stays unchanged: the payload keeps its three sendable dimensions.
+- [`add_land`](add_land.md) and [`edit_land`](edit_land.md) setup semantics are updated by the new owning feature; their earlier acceptance records stay as history.
+- [`land_search_and_summary`](land_search_and_summary.md) consumes the new values next; it is not implemented here.

@@ -15,10 +15,14 @@ class RemoveLandStateTest {
         val land = Land(
             id = "land-7",
             name = "La Loma",
+            zone = "Linde del arroyo",
             municipality = "Martos",
             waterRegime = WaterRegime.IRRIGATED,
             productionMethod = ProductionMethod.ORGANIC,
+            variety = LandVariety.OTHER,
+            varietyOther = "Royal de Cazorla",
             areaHectares = 2.5,
+            treeCount = 85,
             notes = "Junto al arroyo",
             createdAtEpochMillis = 1,
             updatedAtEpochMillis = 2,
@@ -28,23 +32,33 @@ class RemoveLandStateTest {
 
         assertEquals("land-7", state.landId)
         assertEquals("La Loma", state.name)
+        assertEquals("Linde del arroyo", state.zone)
         assertEquals("Martos", state.municipality)
         assertEquals(WaterRegime.IRRIGATED, state.waterRegime)
         assertEquals(ProductionMethod.ORGANIC, state.productionMethod)
+        assertEquals(LandVariety.OTHER, state.variety)
+        assertEquals("Royal de Cazorla", state.varietyOther)
+        assertEquals(2.5, state.areaHectares)
+        assertEquals(85, state.treeCount)
         assertNull(state.failure)
     }
 
     @Test
-    fun a_name_only_land_keeps_an_absent_municipality_and_unknown_attributes() {
+    fun a_name_only_land_keeps_its_zone_and_absent_optional_values() {
         val state = Land(
             id = "land-1",
             name = "Los Olivos",
+            zone = "El Llano",
             municipality = null,
             createdAtEpochMillis = 0,
             updatedAtEpochMillis = 0,
         ).toRemoveLandState()
 
+        assertEquals("El Llano", state.zone)
         assertNull(state.municipality)
+        assertEquals(LandVariety.UNKNOWN, state.variety)
+        assertNull(state.varietyOther)
+        assertNull(state.areaHectares)
         assertEquals(WaterRegime.UNKNOWN, state.waterRegime)
         assertEquals(ProductionMethod.UNKNOWN, state.productionMethod)
         assertNull(state.failure)
@@ -52,59 +66,36 @@ class RemoveLandStateTest {
 
     @Test
     fun remove_clicked_clears_a_previous_failure_and_changes_nothing_else() {
-        val base = RemoveLandState(
-            landId = "land-42",
-            name = "Los Olivos",
-            municipality = "Martos",
-            waterRegime = WaterRegime.DRYLAND,
-            productionMethod = ProductionMethod.ORGANIC,
-            failure = RemoveLandFailure.WRITE_FAILED,
-        )
+        val base = removeState(failure = RemoveLandFailure.WRITE_FAILED)
 
         val cleared = base.reduce(RemoveLandAction.RemoveClicked)
 
         assertNull(cleared.failure, "a retry must start clean")
-        assertEquals(base.landId, cleared.landId)
-        assertEquals(base.name, cleared.name)
-        assertEquals(base.municipality, cleared.municipality)
-        assertEquals(base.waterRegime, cleared.waterRegime)
-        assertEquals(base.productionMethod, cleared.productionMethod)
+        assertEquals(base.copy(failure = null), cleared)
     }
 
     @Test
     fun a_remove_failure_keeps_every_field_and_stays_retryable() {
-        val base = RemoveLandState(
-            landId = "land-1",
-            name = "La Loma",
-            municipality = "Jaén",
-            waterRegime = WaterRegime.IRRIGATED,
-            productionMethod = ProductionMethod.MIXED,
-        )
+        val base = removeState()
 
         val failed = base.reduce(RemoveLandAction.RemoveFailed(RemoveLandFailure.WRITE_FAILED))
 
         assertEquals(RemoveLandFailure.WRITE_FAILED, failed.failure)
-        assertEquals("land-1", failed.landId)
-        assertEquals("La Loma", failed.name)
-        assertEquals("Jaén", failed.municipality)
-        assertEquals(WaterRegime.IRRIGATED, failed.waterRegime)
-        assertEquals(ProductionMethod.MIXED, failed.productionMethod)
+        assertEquals(base, failed.copy(failure = null))
+        assertEquals(base.zone, failed.zone)
+        assertEquals(base.variety, failed.variety)
+        assertEquals(base.areaHectares, failed.areaHectares)
+        assertEquals(base.treeCount, failed.treeCount)
 
         val retried = failed.reduce(RemoveLandAction.RemoveClicked)
         assertNull(retried.failure)
-        assertEquals("land-1", retried.landId, "the retry must still target the same land")
-        assertEquals("La Loma", retried.name)
+        assertEquals(base.landId, retried.landId, "the retry must still target the same land")
+        assertEquals(base.name, retried.name)
     }
 
     @Test
     fun write_failure_and_missing_land_stay_distinguishable() {
-        val base = RemoveLandState(
-            landId = "land-1",
-            name = "Los Olivos",
-            municipality = null,
-            waterRegime = WaterRegime.UNKNOWN,
-            productionMethod = ProductionMethod.UNKNOWN,
-        )
+        val base = removeState()
 
         val writeFailed = base.reduce(RemoveLandAction.RemoveFailed(RemoveLandFailure.WRITE_FAILED))
         val missing = base.reduce(RemoveLandAction.RemoveFailed(RemoveLandFailure.LAND_MISSING))
@@ -118,13 +109,7 @@ class RemoveLandStateTest {
 
     @Test
     fun actions_never_retarget_the_record_being_removed() {
-        val base = RemoveLandState(
-            landId = "land-42",
-            name = "Los Olivos",
-            municipality = "Martos",
-            waterRegime = WaterRegime.DRYLAND,
-            productionMethod = ProductionMethod.CONVENTIONAL,
-        )
+        val base = removeState()
 
         val actions = listOf(
             RemoveLandAction.RemoveClicked,
@@ -151,6 +136,7 @@ class RemoveLandStateTest {
             val state = Land(
                 id = "land-1",
                 name = name,
+                zone = "El Llano",
                 createdAtEpochMillis = 0,
                 updatedAtEpochMillis = 0,
             ).toRemoveLandState()
@@ -160,11 +146,13 @@ class RemoveLandStateTest {
     }
 
     @Test
-    fun the_confirmation_carries_only_the_identity_fields() {
+    fun the_confirmation_carries_only_the_fields_the_shared_details_show() {
         val land = Land(
             id = "land-secreto",
             name = "Los Olivos",
+            zone = "El Llano",
             areaHectares = 12.75,
+            treeCount = 1200,
             notes = "Nota privada",
             createdAtEpochMillis = 5,
             updatedAtEpochMillis = 6,
@@ -172,16 +160,37 @@ class RemoveLandStateTest {
 
         val state = land.toRemoveLandState()
 
-        // Data-class equality proves nothing else (no area, notes, or timestamp) is carried.
+        // Data-class equality proves nothing else (no notes or timestamp) is carried.
         assertEquals(
             RemoveLandState(
                 landId = "land-secreto",
                 name = "Los Olivos",
+                zone = "El Llano",
                 municipality = null,
                 waterRegime = WaterRegime.UNKNOWN,
                 productionMethod = ProductionMethod.UNKNOWN,
+                variety = LandVariety.UNKNOWN,
+                varietyOther = null,
+                areaHectares = 12.75,
+                treeCount = 1200,
             ),
             state,
         )
     }
+
+    private fun removeState(
+        failure: RemoveLandFailure? = null,
+    ) = RemoveLandState(
+        landId = "land-42",
+        name = "Los Olivos",
+        zone = "El Llano",
+        municipality = "Martos",
+        waterRegime = WaterRegime.DRYLAND,
+        productionMethod = ProductionMethod.ORGANIC,
+        variety = LandVariety.PICUAL,
+        varietyOther = null,
+        areaHectares = 2.5,
+        treeCount = 85,
+        failure = failure,
+    )
 }

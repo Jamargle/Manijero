@@ -8,6 +8,10 @@ Use these terms consistently across product and engineering documents. This is a
 |---|---|
 | Olive grower / land manager | Person who owns or manages one or more olive-growing lands |
 | Land | A user-managed olive-growing area represented in the app; not necessarily a legal cadastral parcel |
+| Zone / paraje | The plain-language place, path, or area that identifies where a land is; required on every saved land, never inferred |
+| Variety | The olive variety chosen from the approved shortlist, a short custom `Otra` text, or not yet known |
+| Surface | Optional user-entered land area in hectares; absent stays absent, never a zero or a guess |
+| Tree count | Optional user-entered number of olive trees; a whole number of at least one |
 | Water regime | Whether a land is dryland, irrigated, mixed, or not yet known |
 | Production method | Whether production is conventional, organic, mixed, or not yet known |
 | PAC | Common Agricultural Policy of the European Union |

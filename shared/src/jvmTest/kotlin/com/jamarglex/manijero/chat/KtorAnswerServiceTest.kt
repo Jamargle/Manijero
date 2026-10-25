@@ -115,6 +115,7 @@ class KtorAnswerServiceTest {
             Land(
                 id = "land-1",
                 name = "Los Olivos",
+                zone = "El Llano",
                 municipality = "Martos",
                 waterRegime = LocalWaterRegime.IRRIGATED,
                 productionMethod = LocalProductionMethod.ORGANIC,
@@ -126,6 +127,7 @@ class KtorAnswerServiceTest {
             Land(
                 id = "land-2",
                 name = "La Loma",
+                zone = "La Vega",
                 createdAtEpochMillis = 1_700_000_000_000L,
                 updatedAtEpochMillis = 1_700_000_000_000L,
             ),

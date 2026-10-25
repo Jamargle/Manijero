@@ -42,12 +42,17 @@ import manijero.shared.generated.resources.land_list_edit
 import manijero.shared.generated.resources.land_list_edit_description
 import manijero.shared.generated.resources.land_list_empty
 import manijero.shared.generated.resources.land_list_load_failed
+import manijero.shared.generated.resources.add_land_variety_other
 import manijero.shared.generated.resources.land_list_municipality
 import manijero.shared.generated.resources.land_list_production
 import manijero.shared.generated.resources.land_list_remove
 import manijero.shared.generated.resources.land_list_remove_description
 import manijero.shared.generated.resources.land_list_retry
+import manijero.shared.generated.resources.land_list_surface
+import manijero.shared.generated.resources.land_list_trees
+import manijero.shared.generated.resources.land_list_variety
 import manijero.shared.generated.resources.land_list_water
+import manijero.shared.generated.resources.land_list_zone
 import manijero.shared.generated.resources.remove_land_removed
 import org.jetbrains.compose.resources.StringResource
 import org.jetbrains.compose.resources.stringResource
@@ -208,7 +213,12 @@ private fun LandRow(
                     color = MaterialTheme.colorScheme.onSurface,
                 )
                 LandDetails(
+                    zone = land.zone,
                     municipality = land.municipality,
+                    variety = land.variety,
+                    varietyOther = land.varietyOther,
+                    areaHectares = land.areaHectares,
+                    treeCount = land.treeCount,
                     waterRegime = land.waterRegime,
                     productionMethod = land.productionMethod,
                 )
@@ -238,13 +248,20 @@ private fun LandRow(
 }
 
 /**
- * The known detail lines of one land, shared by the list row and the removal confirmation so a
- * value reads the same in both. It renders no name, id, area, or notes: the caller shows the name
- * itself. An absent municipality is skipped, and an `UNKNOWN` attribute still reads `No lo sé`.
+ * The known detail lines of one land, shared by the list row, the removal confirmation and the
+ * clarification chooser so a value reads the same everywhere. It renders no name, id or notes: the
+ * caller shows the name itself. An absent municipality, surface or tree count is omitted, never
+ * shown as zero or guessed; an `UNKNOWN` attribute reads `No lo sé`.
  */
+@Suppress("LongParameterList")
 @Composable
 internal fun LandDetails(
+    zone: String,
     municipality: String?,
+    variety: LandVariety,
+    varietyOther: String?,
+    areaHectares: Double?,
+    treeCount: Int?,
     waterRegime: WaterRegime,
     productionMethod: ProductionMethod,
     modifier: Modifier = Modifier,
@@ -253,8 +270,26 @@ internal fun LandDetails(
         modifier = modifier,
         verticalArrangement = Arrangement.spacedBy(4.dp),
     ) {
+        if (zone.isNotBlank()) {
+            LandRowDetail(stringResource(Res.string.land_list_zone, zone))
+        }
         municipality?.takeIf { it.isNotBlank() }?.let { value ->
             LandRowDetail(stringResource(Res.string.land_list_municipality, value))
+        }
+        val varietyValue = when (variety) {
+            LandVariety.OTHER -> varietyOther?.takeIf { it.isNotBlank() }
+                ?: stringResource(Res.string.add_land_variety_other)
+
+            else -> stringResource(landVarietyLabel(variety))
+        }
+        LandRowDetail(stringResource(Res.string.land_list_variety, varietyValue))
+        areaHectares?.let { value ->
+            LandRowDetail(
+                stringResource(Res.string.land_list_surface, formatHectares(value)),
+            )
+        }
+        treeCount?.let { value ->
+            LandRowDetail(stringResource(Res.string.land_list_trees, formatTreeCount(value)))
         }
         LandRowDetail(
             stringResource(
@@ -296,16 +331,27 @@ private fun productionMethodLabel(productionMethod: ProductionMethod): StringRes
         ProductionMethod.MIXED -> Res.string.add_land_production_mixed
     }
 
+@Suppress("LongParameterList")
 private fun previewLand(
     id: String,
     name: String,
+    zone: String = "El Llano",
     municipality: String? = null,
+    variety: LandVariety = LandVariety.UNKNOWN,
+    varietyOther: String? = null,
+    areaHectares: Double? = null,
+    treeCount: Int? = null,
     waterRegime: WaterRegime = WaterRegime.UNKNOWN,
     productionMethod: ProductionMethod = ProductionMethod.UNKNOWN,
 ) = Land(
     id = id,
     name = name,
+    zone = zone,
     municipality = municipality,
+    variety = variety,
+    varietyOther = varietyOther,
+    areaHectares = areaHectares,
+    treeCount = treeCount,
     waterRegime = waterRegime,
     productionMethod = productionMethod,
     createdAtEpochMillis = 0,
@@ -333,13 +379,25 @@ private fun LandListTwoLandsPreview() {
         LandListScreen(
             state = LandListState(
                 lands = listOf(
-                    previewLand("land-1", "Los Olivos"),
+                    previewLand(
+                        "land-1",
+                        "Los Olivos",
+                        zone = "Camino de la Fuente",
+                        municipality = "Martos",
+                        variety = LandVariety.PICUAL,
+                        areaHectares = 1.5,
+                        treeCount = 85,
+                        waterRegime = WaterRegime.DRYLAND,
+                        productionMethod = ProductionMethod.ORGANIC,
+                    ),
                     previewLand(
                         "land-2",
                         "La Loma",
-                        municipality = "Martos",
+                        zone = "Linde del arroyo",
+                        municipality = "Úbeda",
+                        variety = LandVariety.OTHER,
+                        varietyOther = "Royal de Cazorla",
                         waterRegime = WaterRegime.IRRIGATED,
-                        productionMethod = ProductionMethod.ORGANIC,
                     ),
                 ),
             ),
@@ -358,10 +416,11 @@ private fun LandListDuplicateNamesPreview() {
         LandListScreen(
             state = LandListState(
                 lands = listOf(
-                    previewLand("land-1", "Los Olivos"),
+                    previewLand("land-1", "Los Olivos", zone = "El Llano"),
                     previewLand(
                         "land-2",
                         "Los Olivos",
+                        zone = "Las Eras",
                         municipality = "Úbeda",
                         waterRegime = WaterRegime.DRYLAND,
                     ),
