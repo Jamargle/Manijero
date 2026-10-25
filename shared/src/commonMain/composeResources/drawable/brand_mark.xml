@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  Manijero brand mark: an open olive ring enclosing a single leaf and stem.
+  Hand-authored on a 32 x 32 grid; monochrome mask (black) so the wrapper supplies the theme
+  colour. Decorative identity only: no check, seal, or badge shape.
+-->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="32dp"
+    android:height="32dp"
+    android:viewportWidth="32"
+    android:viewportHeight="32">
+
+    <path
+        android:pathData="M25,16 A9,9 0 1 1 16,7"
+        android:fillColor="#00000000"
+        android:strokeColor="#000000"
+        android:strokeWidth="2"
+        android:strokeLineCap="round"
+        android:strokeLineJoin="round" />
+
+    <path
+        android:pathData="M11.5,19.5 C11,15.2 13.5,11.8 20.5,11 C20.7,15.4 18.2,18.9 11.5,19.5 Z"
+        android:fillColor="#00000000"
+        android:strokeColor="#000000"
+        android:strokeWidth="2"
+        android:strokeLineCap="round"
+        android:strokeLineJoin="round" />
+
+    <path
+        android:pathData="M11.5,19.5 L10.9,20.3"
+        android:fillColor="#00000000"
+        android:strokeColor="#000000"
+        android:strokeWidth="2"
+        android:strokeLineCap="round"
+        android:strokeLineJoin="round" />
+</vector>

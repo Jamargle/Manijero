@@ -213,3 +213,20 @@ Operational MUST/MUST NOT rules that future features have to respect on top of
   or narrows corpus scope. Reason: `coverage_and_help` establishes that people must not infer broad
   coverage from the assistant; stale or overconfident disclosure could prompt reliance outside the
   evidence actually reviewed.
+
+## Brand vectors
+
+- **MUST**: shipped brand vectors (the mark, sixteen `ic_*` glyphs, the olive-branch illustration)
+  stay single-colour Android-XML masks under
+  `shared/src/commonMain/composeResources/drawable/` with only `#000000` / `#00000000` literals — no
+  `android:tint`, gradient, `aapt:attr`, clip path, or `@android:` — and take every rendered colour
+  from the theme. A new glyph follows the 24 dp outline grid (2 dp round stroke, no fill, 2–22 dp safe
+  area) and ships with its board entry and the owning spec's gates. Reason: `brand_vectors`; a baked
+  colour or a second dark-mode asset would break the palette and the contrast pairs
+  `design_token_refresh` guarantees.
+- **MUST**: the mark and illustration stay decorative — no `contentDescription` or colour parameter,
+  no semantics node, halo painted in Compose — and MUST NOT read as a check, seal, badge, or
+  "verified"/"official" cue, or qualify an answer, source, or land. Reason: `brand_vectors`; a status
+  reading would reintroduce the legal-certainty failure `response_states` forbids.
+- **MUST NOT**: add an icon font (`material-icons-*`), raster/binary icon asset, or generated image
+  for these glyphs. Reason: repository-owned vectors keep the tint policy and the pinned inventory.

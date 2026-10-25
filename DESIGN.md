@@ -163,6 +163,48 @@ Dark:
 
 Checks test the full listed pair set, not every mathematically possible combination of roles.
 
+## Brand vectors and iconography
+
+The identity layer is hand-authored vector XML under
+`shared/src/commonMain/composeResources/drawable/`, drawn by thin wrappers in
+`com.jamarglex.manijero.design`. Every vector is a single-colour mask, so one asset serves both
+appearances. Names and geometry are fixed by
+[`docs/specs/brand_vectors.md`](docs/specs/brand_vectors.md); screens adopt them in later features.
+
+### Icon set
+
+- Sixteen outline glyphs. A screen needing another glyph extends the inventory in its own feature
+  instead of drawing a path inline.
+- Geometry: 24 dp on a 24×24 viewport, 2 dp stroke, round caps and joins, no fill, content inside the
+  2–22 dp safe area. Sizes: 24 dp default, 20 dp inline (`ManijeroIconSize.Default` / `Inline`); never
+  stretched.
+- `ManijeroIcon(resource, contentDescription, …)` is the only supported way to draw one. The
+  description has no default, so each call site states whether the glyph carries meaning (`null` =
+  decorative). Pair unclear icons with text; the wrapper adds no padding, touch target, or click
+  handling — interactive icons go inside the consuming feature's `IconButton`.
+- Tint: `LocalContentColor` by default. Do not hardcode a colour to express status; `caution` and
+  `danger` stay the only status hues, and no icon alone conveys caution, error, eligibility, or
+  verification.
+
+### Brand mark and empty-state illustration
+
+- `ManijeroBrandMark(modifier, size)`: open olive ring with a leaf, `primary`, 32 dp default (28 and
+  48 dp valid), no blur, no description or colour parameter. Identity only — never a check, seal,
+  badge, or "verified" cue, and never applied to an answer, source, or land.
+- `ManijeroOliveBranch(modifier, size)`: olive sprig on a circular `primaryContainer` halo painted in
+  Compose, sprig `onPrimaryContainer`, 160–200 dp (180 dp default), decorative with no semantics node.
+  The surface shows the text that explains the empty state.
+- The gated pairs (`primary`/`background`; `onPrimaryContainer`/`primaryContainer`) cover the tints.
+
+### Asset and tint policy
+
+- Vectors carry no appearance colour: only `#000000` and `#00000000` literals, no `android:tint`,
+  gradient, `aapt:attr`, clip path, or external reference, and only the XML subset Compose
+  Multiplatform decodes on Android, Desktop, and iOS.
+- No generated imagery, raster asset, icon font, `material-icons-*` dependency, or new token.
+- Material Symbols conventions (Apache 2.0) inform the geometry; path data is original to the
+  repository. The licence record is in the feature appendix.
+
 ## Layout and interaction
 
 - Give each screen one primary action, with plain labels such as “Añadir terreno” and “Preguntar”.
