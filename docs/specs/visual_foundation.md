@@ -1,5 +1,11 @@
 # Feature Spec: `visual_foundation`
 
+> **Palette superseded (2026-10-25):** the colour values in this spec are the accepted historical
+> contract. The approved replacement palette is the Stitch token block (light and dark exports),
+> recorded in `docs/design/ui-refresh-plan.md` §3.1 and `DESIGN.md` with two `outlineVariant`
+> accessibility corrections; it takes effect when `design_token_refresh` is implemented. Behavior
+> and verification requirements here are unchanged.
+
 ## Source metadata
 
 - **Feature:** `visual_foundation` — Apply the shared visual foundation (`client`), `depends_on: []`.

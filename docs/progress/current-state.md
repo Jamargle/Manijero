@@ -29,9 +29,15 @@ points at the per-feature records.
   `knowledge/`, and synthetic implementer-authored fixtures under `backend/tests/fixtures/`. Their
   numbers are report-only and none is legal-coverage evidence.
 - **Theme and accessibility.** The shared design system's themed palette (`theme/ManijeroColors.kt`,
-  `ManijeroTheme.kt`) is applied once in `App()`. Chat, the
-  land forms, and the privacy notice carry the accepted accessibility treatment (merged semantics,
-  polite live regions, never colour alone).
+  `ManijeroTheme.kt`) is applied once in `App()` and renders the approved Stitch token palette in
+  both appearances, with two `outlineVariant` accessibility corrections. The shared theme tests
+  (`ManijeroColorsTest`, `ManijeroDesignSystemTest`) gate the documented values and contrast in light
+  and dark, so a wrong value fails the shared build instead of reaching a screen. `DESIGN.md` records
+  the values and the two corrections; `docs/design/ui-refresh-plan.md` §3.1 holds the approved plan.
+  Screens are not yet restyled beyond the five existing card surfaces, which now read
+  `surfaceContainerLowest` so they still look raised against the canvas. Chat, the land forms, and
+  the privacy notice carry the accepted accessibility treatment (merged semantics, polite live
+  regions, never colour alone).
 - **Verification and evidence.** The `./scripts/init.sh` tiers (`--feature`, `--fast`, `--verify`,
   `--backend-tests`, `--android`, `--desktop`) are the gate. No automated UI/E2E harness exists:
   Android evidence is an emulator-only debug artifact and Desktop evidence is a local run.

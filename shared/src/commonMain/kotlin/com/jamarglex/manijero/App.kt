@@ -704,7 +704,7 @@ private fun ChatAssistantCard(
         scopeLabel = scopeLabel,
         text = text,
         annotatedText = annotatedText,
-        containerColor = MaterialTheme.colorScheme.surface,
+        containerColor = MaterialTheme.colorScheme.surfaceContainerLowest,
         liveRegionMode = liveRegionMode,
     )
 }
@@ -780,7 +780,7 @@ private fun SourceCardView(card: SourceCard, modifier: Modifier = Modifier) {
     Surface(
         modifier = modifier.fillMaxWidth(),
         shape = RoundedCornerShape(16.dp),
-        color = MaterialTheme.colorScheme.surface,
+        color = MaterialTheme.colorScheme.surfaceContainerLowest,
         border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant),
     ) {
         Column(
@@ -873,7 +873,7 @@ private fun ChatNoticeBubble(
         label = stringResource(Res.string.chat_speaker_assistant),
         labelColor = MaterialTheme.colorScheme.onSurfaceVariant,
         text = text,
-        containerColor = MaterialTheme.colorScheme.surface,
+        containerColor = MaterialTheme.colorScheme.surfaceContainerLowest,
         liveRegionMode = liveRegionMode,
     )
 }
@@ -906,7 +906,7 @@ private fun LandClarificationChooser(
             .fillMaxWidth()
             .widthIn(max = ContentMaxWidth),
         shape = RoundedCornerShape(16.dp),
-        color = MaterialTheme.colorScheme.surface,
+        color = MaterialTheme.colorScheme.surfaceContainerLowest,
         border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant),
     ) {
         Column(

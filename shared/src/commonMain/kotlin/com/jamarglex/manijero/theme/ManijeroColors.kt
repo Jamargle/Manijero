@@ -1,15 +1,19 @@
 package com.jamarglex.manijero.theme
 
 import androidx.compose.material3.ColorScheme
-import androidx.compose.material3.lightColorScheme
 import androidx.compose.material3.darkColorScheme
+import androidx.compose.material3.lightColorScheme
 import androidx.compose.runtime.Immutable
 import androidx.compose.runtime.staticCompositionLocalOf
 import androidx.compose.ui.graphics.Color
 import kotlin.math.pow
 
 /**
- * The Manijero visual foundation: the olive-grove palette from `DESIGN.md` ("Visual foundation").
+ * The world-facing colour palette: the Stitch token set recorded in `DESIGN.md` ("Palette").
+ *
+ * The light and dark values are the Stitch token exports, with two changes only: `outlineVariant`
+ * is darkened/lightened enough to clear the WCAG 3:1 non-text contrast floor on every surface, and
+ * `scrim` keeps Material's black because neither export defines it.
  *
  * This file is the only place in the repository allowed to declare a hex colour. Screens read
  * [androidx.compose.material3.MaterialTheme.colorScheme] roles or [LocalManijeroSemanticColors]
@@ -17,86 +21,94 @@ import kotlin.math.pow
  */
 
 // ---------------------------------------------------------------------------------------------
-// DESIGN.md tokens. These are the source of truth: they must not change without updating DESIGN.md.
+// DESIGN.md light tokens. These are the source of truth: they must not change without updating
+// DESIGN.md ("Core tokens" and "Material role map").
 // ---------------------------------------------------------------------------------------------
 
 /** `olive-800`: primary actions, navigation, selected states. */
-internal val ManijeroOlive800 = Color(0xFF354B32)
+internal val ManijeroOlive800 = Color(0xFF214624)
 
 /** `olive-900`: pressed state and strong emphasis (`primaryStrong`). */
 internal val ManijeroOlive900 = Color(0xFF263724)
 
-/** `canvas`: warm page background. */
-internal val ManijeroCanvas = Color(0xFFF7F6F0)
+/** `canvas`: page background. */
+internal val ManijeroCanvas = Color(0xFFF9FAF4)
 
-/** `surface`: cards and input surfaces. */
-internal val ManijeroSurface = Color(0xFFFFFFFF)
+/** The one white in the system: card/input surfaces and every on-colour Stitch documents as white. */
+internal val ManijeroWhite = Color(0xFFFFFFFF)
+
+/** `surface`: cards and input surfaces (Material `surfaceContainerLowest`). */
+internal val ManijeroSurface = ManijeroWhite
 
 /** `text-primary`: main text. */
-internal val ManijeroTextPrimary = Color(0xFF1D221B)
+internal val ManijeroTextPrimary = Color(0xFF1A1C19)
 
 /** `text-secondary`: secondary text and metadata. */
-internal val ManijeroTextSecondary = Color(0xFF4B5149)
+internal val ManijeroTextSecondary = Color(0xFF424940)
 
 /** `border`: form boundaries and separators (`outline`). */
-internal val ManijeroBorder = Color(0xFF777D73)
+internal val ManijeroBorder = Color(0xFF72796F)
 
-/** `caution`: warnings, always paired with text or an icon. */
+/** `outlineVariant`: the lowered-emphasis boundary; the one light Stitch value that fails a gate. */
+internal val ManijeroOutlineVariant = Color(0xFF757C71)
+
+/** `caution`: warnings and limitations, always paired with text or an icon. */
 internal val ManijeroCaution = Color(0xFF704600)
 
 /** `caution-surface`: caution callout background, always beside caution text. */
 internal val ManijeroCautionSurface = Color(0xFFFFF2D4)
 
 /** `danger`: errors and destructive actions (`error`), always paired with text or an icon. */
-internal val ManijeroDanger = Color(0xFFA12622)
+internal val ManijeroDanger = Color(0xFFBA1A1A)
 
 /** `scrim`: intentionally the Material default; a black scrim carries no hue to leak. */
 internal val ManijeroScrim = Color(0xFF000000)
 
 // ---------------------------------------------------------------------------------------------
-// Derived values. DESIGN.md names only the ten tokens above; these replace the remaining Material 3
-// colour roles. They stay inside the same warm-neutral/olive families (no new hue), and each one is
-// justified here. DESIGN.md documents the same table.
+// Remaining light roles. Stitch documents each value; none is derived locally.
 // ---------------------------------------------------------------------------------------------
 
-/** Low-emphasis container: the person's own message bubble. Neutral so olive keeps meaning "primary". */
-internal val ManijeroSurfaceVariant = Color(0xFFE7E5DD)
+internal val ManijeroPrimaryContainer = Color(0xFF385E39)
+internal val ManijeroOnPrimaryContainer = Color(0xFFABD6A7)
 
-/** Warm lift family for future cards, menus, and sheets. */
+internal val ManijeroSecondary = Color(0xFF7E562E)
+internal val ManijeroSecondaryContainer = Color(0xFFFDC796)
+internal val ManijeroOnSecondaryContainer = Color(0xFF79512A)
+
+internal val ManijeroTertiary = Color(0xFF602E40)
+internal val ManijeroTertiaryContainer = Color(0xFF7B4557)
+internal val ManijeroOnTertiaryContainer = Color(0xFFFEB7CC)
+
+/** Neutral container behind user messages and excerpts. */
+internal val ManijeroSurfaceVariant = Color(0xFFE2E3DD)
+
+/** The tint Material uses for elevated surfaces; Stitch defines its own, not `primary`. */
+internal val ManijeroSurfaceTint = Color(0xFF416741)
+
+/** Snackbar/reverse surfaces. */
+internal val ManijeroInverseSurface = Color(0xFF2F312D)
+internal val ManijeroInverseOnSurface = Color(0xFFF1F1EB)
+internal val ManijeroInversePrimary = Color(0xFFA7D2A3)
+
+/** Error container from the Stitch error family rather than a Material default. */
+internal val ManijeroErrorContainer = Color(0xFFFFDAD6)
+internal val ManijeroOnErrorContainer = Color(0xFF93000A)
+
+/** Surface extremes and the tonal container family. */
+internal val ManijeroSurfaceBright = Color(0xFFF9FAF4)
+internal val ManijeroSurfaceDim = Color(0xFFDADAD5)
 internal val ManijeroSurfaceContainerLowest = Color(0xFFFFFFFF)
-internal val ManijeroSurfaceContainerLow = Color(0xFFFCFBF6)
-internal val ManijeroSurfaceContainer = Color(0xFFF2F0E9)
-internal val ManijeroSurfaceContainerHigh = Color(0xFFEDEBE3)
-internal val ManijeroSurfaceContainerHighest = Color(0xFFE7E5DD)
-
-/** Surface extremes and the recessed surface. */
-internal val ManijeroSurfaceBright = Color(0xFFFFFFFC)
-internal val ManijeroSurfaceDim = Color(0xFFDFDDD4)
-
-/** Softer separator/bubble border that still clears 3:1 against canvas, surface, and surfaceVariant. */
-internal val ManijeroOutlineVariant = Color(0xFF7E8479)
-
-/** Light olive fill for selected/tonal containers; text on it is [ManijeroOlive900]. */
-internal val ManijeroPrimaryContainer = Color(0xFFD9E2D2)
-
-/** Second tonal fill, same olive family as [ManijeroPrimaryContainer]. */
-internal val ManijeroSecondaryContainer = Color(0xFFDFE4D8)
+internal val ManijeroSurfaceContainerLow = Color(0xFFF3F4EE)
+internal val ManijeroSurfaceContainer = Color(0xFFEEEEE9)
+internal val ManijeroSurfaceContainerHigh = Color(0xFFE8E9E3)
+internal val ManijeroSurfaceContainerHighest = Color(0xFFE2E3DD)
 
 /**
- * Third emphasis step. Still olive: a brown tertiary would read as a caution state.
- * [ManijeroTertiaryContainer] is the lightest tonal fill.
+ * The Ecológico land-attribute chip pair. Stitch exposes it as `primaryFixed`/`onPrimaryFixed`,
+ * which this Material version does not map to roles, so it is kept as a semantic value.
  */
-internal val ManijeroTertiary = Color(0xFF40573C)
-internal val ManijeroTertiaryContainer = Color(0xFFE9EDE2)
-
-/** Snackbar/reverse surfaces that avoid the Material purple family. */
-internal val ManijeroInverseSurface = Color(0xFF2E332C)
-internal val ManijeroInverseOnSurface = Color(0xFFF1F2EC)
-internal val ManijeroInversePrimary = Color(0xFFB6C4AC)
-
-/** Calm danger container derived from [ManijeroDanger] instead of a Material default. */
-internal val ManijeroErrorContainer = Color(0xFFF9DEDA)
-internal val ManijeroOnErrorContainer = Color(0xFF6E1714)
+internal val ManijeroEcoChipContainer = Color(0xFFC2EEBE)
+internal val ManijeroOnEcoChipContainer = Color(0xFF002106)
 
 // ---------------------------------------------------------------------------------------------
 // Roles
@@ -104,34 +116,38 @@ internal val ManijeroOnErrorContainer = Color(0xFF6E1714)
 
 /**
  * Every role the palette documents is set explicitly, so no component can fall back to a Material
- * default (purple/teal). The Material 3 expressive `*Fixed` roles are intentionally absent: they are
- * not part of the DESIGN.md token set and no screen uses them.
+ * default (purple/teal). Stitch's `*Fixed` roles are not exposed by this Material version and are
+ * intentionally absent.
+ *
+ * Note that Stitch sets `background`, `surface`, and `surfaceBright` to the same light value. The
+ * Material role `surface` is therefore the page canvas; raised cards and inputs use
+ * `surfaceContainerLowest` (the `surface` design token), as documented in `DESIGN.md`.
  */
 internal val ManijeroLightColorScheme: ColorScheme = lightColorScheme(
     primary = ManijeroOlive800,
-    onPrimary = ManijeroSurface,
+    onPrimary = ManijeroWhite,
     primaryContainer = ManijeroPrimaryContainer,
-    onPrimaryContainer = ManijeroOlive900,
+    onPrimaryContainer = ManijeroOnPrimaryContainer,
     inversePrimary = ManijeroInversePrimary,
-    secondary = ManijeroTextSecondary,
-    onSecondary = ManijeroSurface,
+    secondary = ManijeroSecondary,
+    onSecondary = ManijeroWhite,
     secondaryContainer = ManijeroSecondaryContainer,
-    onSecondaryContainer = ManijeroOlive900,
+    onSecondaryContainer = ManijeroOnSecondaryContainer,
     tertiary = ManijeroTertiary,
-    onTertiary = ManijeroSurface,
+    onTertiary = ManijeroWhite,
     tertiaryContainer = ManijeroTertiaryContainer,
-    onTertiaryContainer = ManijeroOlive900,
+    onTertiaryContainer = ManijeroOnTertiaryContainer,
     background = ManijeroCanvas,
     onBackground = ManijeroTextPrimary,
-    surface = ManijeroSurface,
+    surface = ManijeroCanvas,
     onSurface = ManijeroTextPrimary,
     surfaceVariant = ManijeroSurfaceVariant,
     onSurfaceVariant = ManijeroTextSecondary,
-    surfaceTint = ManijeroOlive800,
+    surfaceTint = ManijeroSurfaceTint,
     inverseSurface = ManijeroInverseSurface,
     inverseOnSurface = ManijeroInverseOnSurface,
     error = ManijeroDanger,
-    onError = ManijeroSurface,
+    onError = ManijeroWhite,
     errorContainer = ManijeroErrorContainer,
     onErrorContainer = ManijeroOnErrorContainer,
     outline = ManijeroBorder,
@@ -146,7 +162,7 @@ internal val ManijeroLightColorScheme: ColorScheme = lightColorScheme(
     surfaceContainerHighest = ManijeroSurfaceContainerHighest,
 )
 
-/** Dark roles follow the paired Stitch dark reference; adjusted olive roles retain Manijero semantics. */
+/** Dark roles are the Stitch dark token export, with the same single `outlineVariant` correction. */
 internal val ManijeroDarkColorScheme: ColorScheme = darkColorScheme(
     primary = Color(0xFF85A886), onPrimary = Color(0xFF0D1B0E),
     primaryContainer = Color(0xFF283C29), onPrimaryContainer = Color(0xFFCFE8CF),
@@ -160,7 +176,7 @@ internal val ManijeroDarkColorScheme: ColorScheme = darkColorScheme(
     surfaceTint = Color(0xFFABD0AC), inverseSurface = Color(0xFFE3E3DE),
     inverseOnSurface = Color(0xFF2F312E), error = Color(0xFFFFB4AB), onError = Color(0xFF690005),
     errorContainer = Color(0xFF93000A), onErrorContainer = Color(0xFFFFDAD6),
-    outline = Color(0xFF8C948C), outlineVariant = Color(0xFF646B64), scrim = ManijeroScrim,
+    outline = Color(0xFF8C948C), outlineVariant = Color(0xFF868E86), scrim = ManijeroScrim,
     surfaceBright = Color(0xFF242C24), surfaceDim = Color(0xFF1A201B),
     surfaceContainerLowest = Color(0xFF0D100D), surfaceContainerLow = Color(0xFF181E18),
     surfaceContainer = Color(0xFF202820), surfaceContainerHigh = Color(0xFF2C362C),
@@ -175,12 +191,16 @@ internal val ManijeroDarkColorScheme: ColorScheme = darkColorScheme(
  * The tokens Material 3 cannot express. Danger is deliberately absent: it is
  * [ColorScheme.error], and the border is [ColorScheme.outline], so one value keeps one source.
  *
- * @property caution caution text/icon on `canvas`, `surface`, or [cautionSurface]; all pairs clear
- * 4.5:1.
- * @property onCaution content on a solid caution-filled surface (8.19:1 against [caution]).
+ * @property caution caution text/icon on `canvas`, `surface`, or [cautionSurface]; light 7.37:1 on
+ * [cautionSurface] and 8.19:1 on the white card, dark 8.12:1 and 13.44:1.
+ * @property onCaution content on a solid caution-filled surface (8.19:1 light, 10.12:1 dark).
  * @property cautionSurface caution callout background, always beside explicit caution text.
- * @property primaryStrong `olive-900` emphasis for strong labels or surfaces (11.72:1 as text on
- * `canvas`). Material's pressed feedback is a state layer over `primary`, not a container swap.
+ * @property primaryStrong `olive-900` emphasis for strong labels or surfaces (12.09:1 light,
+ * 14.01:1 dark as text on the page background). Material's pressed feedback is a state layer over
+ * `primary`, not a container swap.
+ * @property ecoContainer Ecológico chip container; 13.33:1 light and 13.26:1 dark under
+ * [onEcoContainer].
+ * @property onEcoContainer Ecológico chip text/icon.
  */
 @Immutable
 data class ManijeroSemanticColors(
@@ -188,19 +208,24 @@ data class ManijeroSemanticColors(
     val onCaution: Color,
     val cautionSurface: Color,
     val primaryStrong: Color,
+    val ecoContainer: Color,
+    val onEcoContainer: Color,
 )
 
 /** The light semantic colours; also the local's default, so a missing provider cannot crash. */
 internal val ManijeroLightSemanticColors = ManijeroSemanticColors(
     caution = ManijeroCaution,
-    onCaution = ManijeroSurface,
+    onCaution = ManijeroWhite,
     cautionSurface = ManijeroCautionSurface,
     primaryStrong = ManijeroOlive900,
+    ecoContainer = ManijeroEcoChipContainer,
+    onEcoContainer = ManijeroOnEcoChipContainer,
 )
 
 internal val ManijeroDarkSemanticColors = ManijeroSemanticColors(
     caution = Color(0xFFFFD18A), onCaution = Color(0xFF3A2600),
     cautionSurface = Color(0xFF4B350D), primaryStrong = Color(0xFFCFE8CF),
+    ecoContainer = Color(0xFFC7ECC6), onEcoContainer = Color(0xFF02210A),
 )
 
 /**

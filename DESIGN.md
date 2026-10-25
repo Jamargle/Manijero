@@ -6,22 +6,23 @@ Use this guide for shared UI design and Spanish user-facing copy. Feature behavi
 spec; architecture and source-set boundaries belong in `ARCHITECTURE.md`; implementation and
 verification status belong in `PROGRESS.md` and `docs/validations/`.
 
-Stitch mockups reference archive is indexed in [`design-references/README.md`](design-references/README.md). The shared app implements the selected paired Stitch-derived light/dark design system. The launcher icon is an identity asset, not a UI reference.
+Stitch mockups reference archive is indexed in [`design-references/README.md`](design-references/README.md). The shared app's palette is the Stitch token palette, with two documented accessibility corrections; the values are recorded below. The launcher icon is an identity asset, not a UI reference.
 
 ### Reference designs and adoption rules
 
 - Treat screen PNGs and HTML under `design-references/stitch/` as visual inspiration, not production-ready Compose or a source of truth for product behavior.
-- The selected baseline palettes are recorded in `stitch/manijero_design_system/DESIGN.md` and `stitch/manijero_design_system_dark_mode/DESIGN.md`. The implemented values below are authoritative; contrast-driven adjustments are noted.
+- The winning palette is the `colors:` token block in the front matter of `stitch/manijero_design_system/DESIGN.md` (light) and `stitch/manijero_design_system_dark_mode/DESIGN.md` (dark). Those are the values the exported screens were generated from. The prose colour names in the light export — deep olive `#385E39`, earth brown `#8C6239`, sun-baked amber `#D9A036`, limestone cream `#F4F1EA` — contradict that same file's token block and its screenshots; they are retained as provenance, not adopted.
+- Two accessibility corrections are the only deviations from Stitch: `outlineVariant` `#C2C8BD` → `#757C71` in light and `#424942` → `#868E86` in dark. Stitch's values measure 1.63:1 and 1.97:1 against the page, and this repository gates non-text boundaries at 3:1. Every other role keeps its Stitch value verbatim. `scrim` `#000000` is the one role neither export defines.
 - Stitch PRD/masterplan text is historical design input. Where it proposes behavior outside the current MVP (for example navigation or content not in the accepted contracts), existing product scope and approved feature specs take precedence.
 - Screen references map to existing feature contracts rather than creating duplicate feature entries. See the archive index for the mapping and known gaps.
 
-### Shared design system (implemented)
+### Shared design system
 
-`shared_design_system` defines paired roles in `shared/src/commonMain`, selected automatically with the common Compose system appearance signal. No appearance setting or platform theme fork exists. The constructors explicitly map every applicable Material 3 role and semantic caution colors; source values are in `ManijeroColors.kt`. Common previews cover light, dark, and enlarged text. Shape and spacing scales live in `ManijeroTokens.kt`.
+`shared_design_system` defines paired roles in `shared/src/commonMain`, selected automatically with the common Compose system appearance signal. No appearance setting or platform theme fork exists. The constructors explicitly map every applicable Material 3 role plus the semantic caution, emphasis, and Ecológico chip colours; source values are in `ManijeroColors.kt`. Common previews cover light, dark, and enlarged text. Shape and spacing scales live in `ManijeroTokens.kt`.
 
-**Typography:** the app uses the Material 3 default typography, which resolves to the platform font. No custom family, scale, or bundled font asset is part of the design system.
+**Typography:** the app uses the Material 3 default typography, which resolves to the platform font. Stitch's Source Serif 4 / Source Sans 3 scale is not adopted: no custom family, scale, or bundled font asset is part of the design system.
 
-The paired scheme extends the original light-only foundation without changing screen layouts or behavior. Screen-level changes remain with each owning feature. The ten base light tokens in the table below remain the accepted warm olive palette (including their original hex values); derived Material roles and a dark counterpart are added.
+**Palette status (2026-10-25).** The values below are the implemented palette: `design_token_refresh` applies them in `ManijeroColors.kt` and re-gates the contrast tests in both appearances. Earlier acceptance records keep their original values as history.
 
 ## Design intent
 
@@ -31,91 +32,136 @@ terms. Never imply that an answer is legally definitive through confident visual
 
 ## Visual foundation
 
-Use a restrained olive and warm-neutral palette. The values below are product-direction tokens, not
-a verified brand palette. Keep them centralized; do not use raw color literals in screens. The
-shared theme is the sole implementation location for hex colors and maps these tokens to Material 3
-roles or semantic colors. Its derived role values and contrast mapping are documented in
-[`ManijeroColors.kt`](shared/src/commonMain/kotlin/com/jamarglex/manijero/theme/ManijeroColors.kt)
-and the [`visual_foundation` spec](docs/specs/visual_foundation.md).
+The palette is the Stitch agricultural system: deep olive primary, earth-brown secondary, plum tertiary in light mode and blue tertiary in dark mode, over a limestone-neutral family. Keep the values centralized; do not use raw colour literals in screens. The shared theme is the only implementation location for hex colours and maps them to Material 3 roles or semantic colours.
 
-| Light base token | Value | Intent |
-|---|---|---|
-| `olive-800` | `#354B32` | Primary actions, navigation, selected states |
-| `olive-900` | `#263724` | Pressed state and strong emphasis |
-| `canvas` | `#F7F6F0` | Warm page background |
-| `surface` | `#FFFFFF` | Cards and input surfaces |
-| `text-primary` | `#1D221B` | Main text |
-| `text-secondary` | `#4B5149` | Secondary text and metadata |
-| `border` | `#777D73` | Boundaries and separators |
-| `caution` | `#704600` | Warnings, paired with text/icon |
-| `caution-surface` | `#FFF2D4` | Caution callout background |
-| `danger` | `#A12622` | Errors and destructive actions, paired with text/icon |
+### Core tokens
 
-The ten tokens above remain implemented verbatim by the shared theme in
-`shared/src/commonMain/kotlin/com/jamarglex/manijero/theme/ManijeroColors.kt`, which is also the only
-place in the repository allowed to declare a hex colour. Screens read Material 3 roles or the
-`LocalManijeroSemanticColors` values instead of raw hex. The launcher artwork is still the stock
-Android Studio template, so no token was changed on that basis.
+The ten accepted token names keep their roles. Seven take the Stitch value; `primaryStrong`, `caution`, and `caution-surface` stay as accepted because Stitch has no emphasis or status roles. `surface` here means card and input surfaces, so it maps to `surfaceContainerLowest` (`#FFFFFF`), because Stitch's own `surface` equals `background`.
 
-### Derived tokens
+| Token | Light | Dark | Material role |
+|---|---|---|---|
+| `primary` (`olive-800`) | `#214624` | `#85A886` | `primary` |
+| `primaryStrong` (`olive-900`) | `#263724` | `#CFE8CF` | no role; semantic emphasis |
+| `canvas` | `#F9FAF4` | `#121612` | `background` |
+| `surface` | `#FFFFFF` | `#0D100D` | `surfaceContainerLowest` |
+| `text-primary` | `#1A1C19` | `#E1E3DF` | `onSurface` / `onBackground` |
+| `text-secondary` | `#424940` | `#C2C8BF` | `onSurfaceVariant` |
+| `border` | `#72796F` | `#8C948C` | `outline` |
+| `caution` | `#704600` | `#FFD18A` | no role; semantic |
+| `caution-surface` | `#FFF2D4` | `#4B350D` | no role; semantic |
+| `danger` | `#BA1A1A` | `#FFB4AB` | `error` |
 
-The original light foundation names only the ten tokens above. Material 3 needs a value for every other colour role it
-exposes, and leaving a role unset would leak the default purple/teal palette. The following derived
-values fill those roles. They stay in the same warm-neutral/olive families (no new hue) and are
-documented where they are declared in `ManijeroColors.kt`.
+`outlineVariant` is a separate gated boundary token rather than one of those ten: light `#757C71`, dark `#868E86` — the corrected values. The shared theme is the only place in the repository allowed to declare a hex colour; screens read Material 3 roles or the `LocalManijeroSemanticColors` values instead. The launcher artwork is still the stock Android Studio template, so no token was changed on that basis.
 
-| Derived value | Hex | Use |
-|---|---|---|
-| `surfaceVariant` / `surfaceContainerHighest` | `#E7E5DD` | Low-emphasis container (the person's own message bubble) |
-| `surfaceContainerLow` / `surfaceContainer` / `surfaceContainerHigh` | `#FCFBF6` / `#F2F0E9` / `#EDEBE3` | Warm lift family for cards, menus, and sheets |
-| `surfaceContainerLowest` / `surfaceBright` | `#FFFFFF` / `#FFFFFC` | Surface extremes |
-| `surfaceDim` | `#DFDDD4` | Recessed surface |
-| `outlineVariant` | `#7E8479` | Softer separator/bubble border; 3.05:1 against `surfaceVariant` |
-| `primaryContainer` / `onPrimaryContainer` | `#D9E2D2` / `#263724` | Light olive fill for selected/tonal containers |
-| `secondaryContainer` / `onSecondaryContainer` | `#DFE4D8` / `#263724` | Second tonal fill in the same family |
-| `tertiary` / `onTertiary` | `#40573C` / `#FFFFFF` | Third olive emphasis step (no brown, which would read as caution) |
-| `tertiaryContainer` / `onTertiaryContainer` | `#E9EDE2` / `#263724` | Lightest tonal fill |
-| `inverseSurface` / `inverseOnSurface` / `inversePrimary` | `#2E332C` / `#F1F2EC` / `#B6C4AC` | Snackbar/reverse surfaces without purple leakage |
-| `errorContainer` / `onErrorContainer` | `#F9DEDA` / `#6E1714` | Calm danger container derived from `danger` |
+### Material role map
 
-`caution`, `caution-surface`, and `olive-900` (as `primaryStrong`) have no Material 3 role and are
-provided through `LocalManijeroSemanticColors`. `danger` is `colorScheme.error` and `border` is
-`colorScheme.outline`, so each value keeps a single source.
-
-### Implemented dark palette
-
-Dark values follow the Stitch dark reference; its contrast-failing outline-variant `#424942` is
-corrected to `#646B64`. Below is the complete paired Material role mapping, in role order; all values
-are explicit in the common theme (the expressive `*Fixed` extension roles are not applicable to this
-Material version and are not claimed as mapped).
+Stitch exports a complete Material 3 role set in both modes, so no role is left to a derived value. Roles are listed in pairs.
 
 | Material roles | Light | Dark |
 |---|---|---|
-| primary / onPrimary | `#354B32` / `#FFFFFF` | `#85A886` / `#0D1B0E` |
-| primaryContainer / onPrimaryContainer / inversePrimary | `#D9E2D2` / `#263724` / `#B6C4AC` | `#283C29` / `#CFE8CF` / `#456648` |
-| secondary / onSecondary / secondaryContainer / onSecondaryContainer | `#4B5149` / `#FFFFFF` / `#DFE4D8` / `#263724` | `#D4C5A9` / `#382E1C` / `#4F422E` / `#F1E5CC` |
-| tertiary / onTertiary / tertiaryContainer / onTertiaryContainer | `#40573C` / `#FFFFFF` / `#E9EDE2` / `#263724` | `#B8C5D6` / `#222D3B` / `#93A0B0` / `#2B3745` |
-| background / onBackground; surface / onSurface | `#F7F6F0` / `#1D221B`; `#FFFFFF` / `#1D221B` | `#121612` / `#E1E3DF`; `#121612` / `#E1E3DF` |
-| surfaceVariant / onSurfaceVariant / surfaceTint | `#E7E5DD` / `#4B5149` / `#354B32` | `#333532` / `#C2C8BF` / `#ABD0AC` |
-| inverseSurface / inverseOnSurface | `#2E332C` / `#F1F2EC` | `#E3E3DE` / `#2F312E` |
-| error / onError / errorContainer / onErrorContainer | `#A12622` / `#FFFFFF` / `#F9DEDA` / `#6E1714` | `#FFB4AB` / `#690005` / `#93000A` / `#FFDAD6` |
-| outline / outlineVariant / scrim | `#777D73` / `#7E8479` / `#000000` | `#8C948C` / `#646B64` / `#000000` |
-| surfaceBright / surfaceDim | `#FFFFFC` / `#DFDDD4` | `#242C24` / `#1A201B` |
-| surfaceContainerLowest / Low / Container / High / Highest | `#FFFFFF` / `#FCFBF6` / `#F2F0E9` / `#EDEBE3` / `#E7E5DD` | `#0D100D` / `#181E18` / `#202820` / `#2C362C` / `#384438` |
+| primary / onPrimary | `#214624` / `#FFFFFF` | `#85A886` / `#0D1B0E` |
+| primaryContainer / onPrimaryContainer | `#385E39` / `#ABD6A7` | `#283C29` / `#CFE8CF` |
+| secondary / onSecondary / secondaryContainer / onSecondaryContainer | `#7E562E` / `#FFFFFF` / `#FDC796` / `#79512A` | `#D4C5A9` / `#382E1C` / `#4F422E` / `#F1E5CC` |
+| tertiary / onTertiary / tertiaryContainer / onTertiaryContainer | `#602E40` / `#FFFFFF` / `#7B4557` / `#FEB7CC` | `#B8C5D6` / `#222D3B` / `#93A0B0` / `#2B3745` |
+| background / onBackground; surface / onSurface | `#F9FAF4` / `#1A1C19`; `#F9FAF4` / `#1A1C19` | `#121612` / `#E1E3DF`; `#121612` / `#E1E3DF` |
+| surfaceVariant / onSurfaceVariant / surfaceTint | `#E2E3DD` / `#424940` / `#416741` | `#333532` / `#C2C8BF` / `#ABD0AC` |
+| inverseSurface / inverseOnSurface / inversePrimary | `#2F312D` / `#F1F1EB` / `#A7D2A3` | `#E3E3DE` / `#2F312E` / `#456648` |
+| error / onError / errorContainer / onErrorContainer | `#BA1A1A` / `#FFFFFF` / `#FFDAD6` / `#93000A` | `#FFB4AB` / `#690005` / `#93000A` / `#FFDAD6` |
+| outline / outlineVariant (corrected) / scrim | `#72796F` / `#757C71` / `#000000` | `#8C948C` / `#868E86` / `#000000` |
+| surfaceBright / surfaceDim | `#F9FAF4` / `#DADAD5` | `#242C24` / `#1A201B` |
+| surfaceContainerLowest / Low / Container / High / Highest | `#FFFFFF` / `#F3F4EE` / `#EEEEE9` / `#E8E9E3` / `#E2E3DD` | `#0D100D` / `#181E18` / `#202820` / `#2C362C` / `#384438` |
+
+Light `background`, `surface`, and `surfaceBright` are the same `#F9FAF4`. Cards, inputs, and app bars that must read as raised therefore use `surfaceContainerLowest` (`#FFFFFF`) or the low/container family, never `surface`.
+
+`outlineVariant` is the one documented deviation: `#757C71` and `#868E86` are the softest in-family values that still clear 3:1 on every light and dark surface. They sit close to `outline` (`#72796F` / `#8C948C`); that reduced separation is the deliberate cost of the accessibility gate.
+
+Stitch also exports expressive `*Fixed` roles, which this Material version does not expose; they are not claimed as mapped. The Ecológico chip pair is exposed as the semantic `ecoContainer` / `onEcoContainer` values below because `primaryFixed` / `onPrimaryFixed` cannot be roles here.
+
+### Manijero-only semantic colours
+
+Stitch has no status or warning roles, so these four stay as accepted and are the only non-Stitch values in the system besides the two `outlineVariant` corrections: `caution`, `cautionSurface`, `onCaution`, and `primaryStrong`. They have no Material 3 role and are provided through `LocalManijeroSemanticColors`. `danger` is `colorScheme.error` and `border` is `colorScheme.outline`, so each value keeps a single source.
+
+| Token | Light | Dark | Use |
+|---|---|---|---|
+| `caution` | `#704600` | `#FFD18A` | Uncertainty and limitations, always with text/icon |
+| `cautionSurface` | `#FFF2D4` | `#4B350D` | Caution callout background |
+| `onCaution` | `#FFFFFF` | `#3A2600` | Text/icon on filled caution |
+| `primaryStrong` | `#263724` | `#CFE8CF` | Pressed state and strong emphasis (`olive-900`) |
+
+There are no separate `earth`, `earthContainer`, `sun`, or `sunContainer` tokens. Stitch `secondary` (earth brown) and `tertiary` (plum in light, blue in dark) carry decorative and sectional accents; they must never be the only cue for caution, error, eligibility, or verification. `caution` and `danger` remain the only status hues.
+
+### Land-attribute chips
+
+Chip colours reuse Stitch role pairs rather than introducing new hues; every pair clears 4.5:1 with text.
+
+| Chip | Light container / ink | Dark container / ink | Anchor pair |
+|---|---|---|---|
+| Secano | `#FDC796` / `#79512A` | `#4F422E` / `#F1E5CC` | `secondaryContainer` / `onSecondaryContainer` |
+| Regadío | `#385E39` / `#ABD6A7` | `#283C29` / `#CFE8CF` | `primaryContainer` / `onPrimaryContainer` |
+| Ecológico | `#C2EEBE` / `#002106` | `#C7ECC6` / `#02210A` | semantic `ecoContainer` / `onEcoContainer` |
+| Neutral / `No lo sé` | `#E2E3DD` / `#1A1C19` | `#384438` / `#E1E3DF` | `surfaceContainerHighest` / `onSurface` |
+
+Chips always carry text, never colour alone.
 
 ### Contrast contract
 
 Common tests enumerate the intended readable text pairs (on-colour for primary, secondary,
 tertiary, background, surface, surface-variant, tonal containers, inverse surface, error and error
 container) at >=4.5:1, and non-text boundaries/icons (error against background, outline against
-surface/background/surface-variant, outline-variant against base surface and low container,
-primary against surface) at >=3:1. Semantic tests also check caution on light canvas, white surface,
-and caution surface, and onCaution on its filled caution color. Representative calculated ratios:
-light onSurface/surface 16.19:1; primary/surface 9.53:1; danger/surface 7.46:1; outlineVariant/
-surfaceVariant 3.05:1; caution/cautionSurface 7.37:1; caution/canvas 7.56:1; dark onSurface/surface
-14.14:1; primary/surface 6.91:1; error/surface 10.76:1; outline/surface 5.86:1; corrected
-outlineVariant/surface 3.33:1. Checks test the full listed pair set, not every mathematically possible
-combination of roles.
+surface/background/surface-variant, outline-variant against background, surface, and every container
+from lowest through highest plus `surfaceDim`, primary against surface) at >=3:1. Semantic tests also
+check `caution` on `background` in light and on `surfaceContainerLowest` in dark, `caution` on
+`cautionSurface` in both, `onCaution` on its filled caution colour, and every land-attribute chip
+pair.
+
+The ratios below are WCAG 2.x relative-luminance results calculated from the values above. The shared
+theme tests assert them, so the test helper remains the gate, and any later value change must
+recompute them.
+
+Light:
+
+- Text: `onSurface` on background/surface 16.35, on `surfaceContainerLowest` 17.16, on the container
+  family 15.51 / 14.74 / 14.05 / 13.29, on `surfaceDim` 12.23. `onSurfaceVariant` on
+  background 8.86, on `surfaceContainerLowest` 9.30, on the container family 8.41 / 7.99 / 7.61 /
+  7.20, on `surfaceDim` 6.63.
+- Brand: `onPrimary`/`primary` 10.68; `onPrimaryContainer`/`primaryContainer` 4.56;
+  `secondary`/background 6.14; `onSecondary`/`secondary` 6.45;
+  `onSecondaryContainer`/`secondaryContainer` 4.56; `tertiary`/background 10.20;
+  `onTertiary`/`tertiary` 10.70; `onTertiaryContainer`/`tertiaryContainer` 4.54;
+  `primaryStrong`/background 12.09.
+- Status: `caution`/`cautionSurface` 7.37, /background 7.80, /`surfaceContainerLowest` 8.19;
+  `onCaution`/`caution` 8.19; `error`/background 6.16, /`surfaceContainerLowest` 6.46,
+  /`surfaceVariant` 5.00; `onError`/`error` 6.46; `error`/`errorContainer` 5.00;
+  `onErrorContainer`/`errorContainer` 7.24.
+- Tonal and inverse: `inverseOnSurface`/`inverseSurface` 11.59;
+  `inversePrimary`/`inverseSurface` 7.75.
+- Non-text: `outline`/background 4.28, /`surfaceContainerLowest` 4.49, /`surfaceVariant` 3.48;
+  `outlineVariant`/background 4.10, /`surfaceContainerLowest` 4.31, /`surfaceContainerLow` 3.89,
+  /`surfaceContainer` 3.70, /`surfaceContainerHigh` 3.53, /`surfaceContainerHighest` 3.33,
+  /`surfaceDim` 3.07; `primary`/background 10.18; `error`/background 6.16.
+- Land chips: 4.56 (Secano), 4.56 (Regadío), 13.33 (Ecológico), 13.29 (Neutral).
+
+Dark:
+
+- Text: `onSurface` on background/surface 14.14, on `surfaceContainerLowest` 14.82, on the container
+  family 13.13 / 11.73 / 9.73 / 7.92, on `surfaceDim` 12.84. `onSurfaceVariant` on
+  background 10.71, on `surfaceVariant` 7.26, on `surfaceContainerHighest` 6.00.
+- Brand: `onPrimary`/`primary` 6.73; `primary`/background 6.91;
+  `onPrimaryContainer`/`primaryContainer` 9.10; `secondary`/background 10.75;
+  `onSecondary`/`secondary` 7.84; `onSecondaryContainer`/`secondaryContainer` 7.82;
+  `tertiary`/background 10.44; `onTertiary`/`tertiary` 7.96;
+  `onTertiaryContainer`/`tertiaryContainer` 4.55; `primaryStrong`/background 14.01.
+- Status: `error`/background 10.76; `onError`/`error` 7.72; `error`/`errorContainer` 5.51;
+  `onErrorContainer`/`errorContainer` 7.24; `caution`/`cautionSurface` 8.12;
+  `caution`/`surfaceContainerLowest` 13.44; `onCaution`/`caution` 10.12.
+- Tonal and inverse: `inverseOnSurface`/`inverseSurface` 10.20;
+  `inversePrimary`/`inverseSurface` 5.02.
+- Non-text: `outline`/background 5.86, /`surfaceVariant` 3.97; `outlineVariant`/background 5.42,
+  /`surfaceContainerLowest` 5.68, /`surfaceContainerLow` 5.03, /`surfaceContainer` 4.49,
+  /`surfaceContainerHigh` 3.73, /`surfaceContainerHighest` 3.03, /`surfaceDim` 4.92.
+- Land chips: 7.82 (Secano), 9.10 (Regadío), 13.26 (Ecológico), 7.92 (Neutral).
+
+Checks test the full listed pair set, not every mathematically possible combination of roles.
 
 ## Layout and interaction
 
