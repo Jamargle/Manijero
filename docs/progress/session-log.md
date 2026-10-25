@@ -8,6 +8,7 @@ restate evidence here.
 
 | Date | Event | Record |
 |---|---|---|
+| 2026-10-25 | `ui_refresh_accessibility_audit` accepted by the repository owner acting as validator. | `docs/specs/ui_refresh_accessibility_audit.md` · `docs/validations/ui_refresh_accessibility_audit.md` |
 | 2026-10-25 | `help_privacy_refresh` accepted. | `docs/specs/help_privacy_refresh.md` · `docs/validations/help_privacy_refresh.md` |
 | 2026-10-24 | Planned `shared_design_system` from the user-selected Stitch light/dark tokens; feature is not_started pending implementation. | `docs/specs/shared_design_system.md`, `docs/specs/shared_design_system.appendix.md`, `DESIGN.md` |
 | 2026-10-22 | Imported user-provided Stitch screen/design references and indexed their relationship to existing feature contracts; no feature status or shipped tokens changed. | `design-references/README.md`, `DESIGN.md`, `ARCHITECTURE.md` |
