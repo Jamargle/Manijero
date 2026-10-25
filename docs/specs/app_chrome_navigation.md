@@ -5,10 +5,10 @@
 - **Feature:** `app_chrome_navigation` — add the app bar and adaptive navigation shell (`client`).
 - **Status at planning:** `not_started`; depends on accepted `ui_component_library`.
 - **Source behavior:** put the existing shared screens inside one shell: a brand top app bar, three
-  top-level destinations (Asistente, Mis terrenos, Ayuda), a bottom bar on compact windows and a
-  labelled navigation rail from 840 dp, real window-inset ownership, and predictable back rules. The
-  duplicate top-level `Mis terrenos` / `Volver` controls are removed because the tabs now own
-  navigation; forms keep `Cancelar`. No screen content is restyled.
+  top-level destinations (Mis terrenos, Asistente, Ayuda, in that tab order), a bottom bar on compact
+  windows and a labelled navigation rail from 840 dp, real window-inset ownership, and predictable
+  back rules. The duplicate top-level `Mis terrenos` / `Volver` controls are removed because the tabs
+  now own navigation; forms keep `Cancelar`. No screen content is restyled.
 - **Source plan:** [`docs/design/ui-refresh-plan.md`](../design/ui-refresh-plan.md) §3.5, §4.1
   ("App shell"), §5.1, §5.3 ("Volver removed once tabs exist"), §5.8, §8 P0-17…P0-19;
   `DESIGN.md` "Shared component layer" and "Layout and interaction".
@@ -67,9 +67,9 @@ accident.
 
 1. **One shell, three places.** On Android and Desktop the app renders a top app bar with the 32 dp
    brand mark and the visible title `Manijero`, then the selected screen inside the shell. Compact
-   windows (`< 840 dp`) show a bottom bar with `Asistente`, `Mis terrenos`, `Ayuda`; windows at
-   `>= 840 dp` show a labelled rail on the left and no bottom bar. Selection is the Material
-   indicator plus the heavier label, never colour alone.
+   windows (`< 840 dp`) show a bottom bar with `Mis terrenos`, `Asistente`, `Ayuda` from left to
+   right; windows at `>= 840 dp` show a labelled rail on the left in the same order and no bottom
+   bar. Selection is the Material indicator plus the heavier label, never colour alone.
 2. **Tabs are the only top-level navigation.** With a local land store injected the app opens on
    `Mis terrenos` (the saved lands are read once before the first list frame); without a store it
    opens on `Asistente`. Selecting a tab shows that section; the conversation state and the loaded
@@ -118,8 +118,9 @@ accident.
 ## Technical approach
 
 - **Navigation model.** Extract the small route vocabulary out of `App.kt` into `AppNavigation.kt`:
-  `AppSection { Assistant, Lands, Help }`, `AppDestination { Chat, LandList, AddLand, EditLand,
-  RemoveLand, Privacy, Coverage }`, `availableSections(landsAvailable)`,
+  `AppSection { Lands, Assistant, Help }` (tab order),
+  `AppDestination { Chat, LandList, AddLand, EditLand, RemoveLand, Privacy, Coverage }`,
+  `availableSections(landsAvailable)`,
   `tabForDestination(destination)`, `navigationVisible(destination)`,
   `sectionDestination(section)` and `backTarget(destination, previousSection)`. The functions are
   pure and unit-tested; `Privacy` resolves to the section the person came from, so it never clears

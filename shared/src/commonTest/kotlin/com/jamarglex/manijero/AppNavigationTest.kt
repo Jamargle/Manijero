@@ -17,13 +17,22 @@ class AppNavigationTest {
     @Test
     fun `lands tab exists only with a local repository`() {
         assertEquals(
-            listOf(AppSection.Assistant, AppSection.Lands, AppSection.Help),
+            listOf(AppSection.Lands, AppSection.Assistant, AppSection.Help),
             availableSections(landsAvailable = true),
         )
         assertEquals(
             listOf(AppSection.Assistant, AppSection.Help),
             availableSections(landsAvailable = false),
         )
+    }
+
+    @Test
+    fun `lands opens on the leftmost tab and the assistant sits beside it`() {
+        val sections = availableSections(landsAvailable = true)
+
+        assertEquals(0, sections.indexOf(AppSection.Lands))
+        assertEquals(1, sections.indexOf(AppSection.Assistant))
+        assertEquals(2, sections.indexOf(AppSection.Help))
     }
 
     @Test

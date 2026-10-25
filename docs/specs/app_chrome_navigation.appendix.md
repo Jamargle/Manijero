@@ -250,6 +250,25 @@ the Android emulator the app opens with `Mis terrenos` selected, shows the saved
 force-stop and relaunch, still switches tabs normally, and back → `Ayuda` → back returns to
 `Asistente`; the Desktop app also opens on `Mis terrenos`.
 
+### Post-acceptance change: `Mis terrenos` is the leftmost tab
+
+The owner then asked that `Mis terrenos` be the first tab, followed by `Asistente` and `Ayuda` in
+that order. `AppSection` now declares `{ Lands, Assistant, Help }` and `availableSections` filters
+that declaration (`Lands` still disappears without a local repository), so the compact bottom bar
+and the wide rail both lay out those tabs left to right/top to bottom. A new pure test pins the
+three tab positions and asserts the existing expected order. The four shell goldens per host were
+re-recorded through `recordDesktopScreenshots`/`recordAndroidScreenshots` with `--tests
+AppShellScreenshotsTest` and reviewed: the bar shows `Mis terrenos`, `Asistente`, `Ayuda` with the
+lands pill on the left, and the rail lists the same order. No other golden regressed.
+
+Re-verified after the reorder: focused block exit 0 with 221 host tests (19 in `AppNavigationTest`),
+`--verify` exit 0 (`BUILD SUCCESSFUL`, 88 actionable tasks), iOS simulator compile `BUILD
+SUCCESSFUL`. On the Android emulator the first tab is `Mis terrenos` (its selected pill covers the
+left third of the bar), followed by `Asistente` and `Ayuda`, and the app still launches on the saved
+`La Loma by` list. The wide rail's longest label still sits flush against the window edge at the
+default rail width, exactly as in the accepted rail goldens; the reorder did not change the rail
+width or the already-recorded 2× wrap limit.
+
 ### Screenshot review (performed 2026-10-25)
 
 New and recorded (8 images, opened at full size): Desktop

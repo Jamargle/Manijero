@@ -87,6 +87,16 @@ relaunch; back from `Mis terrenos` reaches `Asistente`; the Desktop app also ope
 This changes the user-visible entry point in the contract and `DESIGN.md`; the tabs, back rules,
 forms and inset ownership are otherwise unchanged.
 
+Post-acceptance tab-order change (same day): the owner asked for `Mis terrenos` to be the leftmost
+tab, followed by `Asistente` and `Ayuda`. `AppSection` is now declared in that tab order and
+`availableSections` filters it, so the compact bar and wide rail both start with `Mis terrenos`; a
+new pure test pins the three positions. The four shell goldens per host were re-recorded and
+reviewed for the new order. Re-verified: focused block exit 0 (221 host tests, 19 navigation),
+`--verify` exit 0 (88 tasks), iOS compile `BUILD SUCCESSFUL`, and on the emulator the first tab is
+`Mis terrenos` with its selected pill, still opening on the saved list. The rail's longest label
+remains flush with the window edge at the existing rail width, a pre-existing observation recorded
+in the appendix, not a new defect from the reorder.
+
 Declared limits, accepted as scope boundaries:
 
 - At 2× text on a 360 dp compact shell the bottom-navigation labels remain visible but wrap

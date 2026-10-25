@@ -260,11 +260,12 @@ Operational MUST/MUST NOT rules that future features have to respect on top of
   system-bar and ime window insets; the top app bar, navigation bar, rail and every hosted screen
   MUST NOT add their own window-inset padding. Reason: `app_chrome_navigation` made the shell the one
   frame, and a second inset owner double-pads or draws under a system bar.
-- **MUST**: the shell tabs (`Asistente`, `Mis terrenos`, `Ayuda`) are the only top-level navigation;
-  a screen MUST NOT re-add a top-level `Volver` or `Mis terrenos` affordance. The lands tab MUST be
-  omitted when no local `LandRepository` is injected, and a selected index MUST never point at an
-  omitted destination. Reason: `app_chrome_navigation` removed the duplicate routes; re-adding one
-  would give two authorities for the same move and could expose a dead destination.
+- **MUST**: the shell tabs (`Mis terrenos`, `Asistente`, `Ayuda`, in that left-to-right order) are
+  the only top-level navigation; a screen MUST NOT re-add a top-level `Volver` or `Mis terrenos`
+  affordance. The lands tab MUST be omitted when no local `LandRepository` is injected, and a
+  selected index MUST never point at an omitted destination. Reason: `app_chrome_navigation` removed
+  the duplicate routes; re-adding one would give two authorities for the same move and could expose
+  a dead destination.
 - **MUST**: add/edit/remove land forms hide the navigation bars and keep their own `Cancelar`;
   privacy stays a detail route with its own `Volver`. Android system back MUST follow
   `AppNavigation.backTarget` (lands → assistant, form → lands, help → the tab it was entered from,

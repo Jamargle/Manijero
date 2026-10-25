@@ -1,12 +1,13 @@
 package com.jamarglex.manijero
 
 /**
- * The three top-level places the shell exposes as tabs. The order is the tab order.
+ * The three top-level places the shell exposes as tabs, first tab first: `Mis terrenos`,
+ * `Asistente`, `Ayuda`.
  *
  * `Lands` is absent from [availableSections] when no local land repository is injected, so the
  * shell can never show a destination that cannot do anything.
  */
-internal enum class AppSection { Assistant, Lands, Help }
+internal enum class AppSection { Lands, Assistant, Help }
 
 /**
  * Every screen the composition root can show. `Privacy` and the three form routes are detail
@@ -16,11 +17,7 @@ internal enum class AppDestination { Chat, LandList, AddLand, EditLand, RemoveLa
 
 /** The destinations the shell may show, in tab order. */
 internal fun availableSections(landsAvailable: Boolean): List<AppSection> =
-    if (landsAvailable) {
-        listOf(AppSection.Assistant, AppSection.Lands, AppSection.Help)
-    } else {
-        listOf(AppSection.Assistant, AppSection.Help)
-    }
+    AppSection.entries.filter { landsAvailable || it != AppSection.Lands }
 
 /**
  * The screen shown after launch: `Mis terrenos` when a local land repository is injected, so the
