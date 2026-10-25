@@ -127,6 +127,9 @@ fun parseTreeCount(raw: String): MeasureResult<Int> {
 /** Rounds a surface to at most two decimals, the precision the app stores. */
 fun roundHectares(value: Double): Double {
     if (!value.isFinite()) return value
+    // Beyond this magnitude the `* 100` itself would overflow to infinity, and the value has no
+    // meaningful fractional part left anyway; returning it untouched keeps a finite value finite.
+    if (abs(value) > Double.MAX_VALUE / 100.0) return value
     return round(value * 100.0) / 100.0
 }
 

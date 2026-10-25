@@ -75,7 +75,8 @@ class LandFieldsTest {
     }
 
     @Test
-    fun `surface rejects letters signs and several separators`() {
+    fun `surface rejects letters signs several separators and overflow`() {
+        assertFalse(parseAreaHectares("9".repeat(400)).isValid)
         listOf("letras", "-1", "+1", "1,2,3", "NaN", "Infinity", "1e3")
             .forEach { raw ->
                 assertFalse(parseAreaHectares(raw).isValid, "<$raw> must not be a valid surface")
@@ -101,6 +102,7 @@ class LandFieldsTest {
     fun `rounding and formatting never invent decimals or thousands dots`() {
         assertEquals(1.24, roundHectares(1.236))
         assertEquals(2.0, roundHectares(2.0))
+        assertEquals(1e307, roundHectares(1e307))
         assertEquals("1,5", formatHectares(1.5))
         assertEquals("2", formatHectares(2.0))
         assertEquals("0,75", formatHectares(0.75))
