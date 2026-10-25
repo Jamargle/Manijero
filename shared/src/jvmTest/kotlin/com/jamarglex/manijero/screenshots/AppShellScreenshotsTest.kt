@@ -3,7 +3,7 @@ package com.jamarglex.manijero.screenshots
 import androidx.compose.runtime.Composable
 import com.jamarglex.manijero.AppSection
 import com.jamarglex.manijero.AppShell
-import com.jamarglex.manijero.ChatHomeScreen
+import com.jamarglex.manijero.chat.ChatHomeScreen
 import com.jamarglex.manijero.coverage.CoverageScreen
 import com.jamarglex.manijero.lands.LandListScreen
 import com.jamarglex.manijero.theme.ManijeroTheme

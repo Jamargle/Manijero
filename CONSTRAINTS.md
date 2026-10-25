@@ -214,6 +214,19 @@ Operational MUST/MUST NOT rules that future features have to respect on top of
   an entry's merged node, an announcement, a target size, or the scroll timing without any test
   failing.
 
+## Chat surface presentation
+
+- **MUST**: the assistant surface MUST keep one visible `Preguntar` action with a decorative send
+  glyph under the question field (never an icon-only, unlabeled or renamed send), MUST keep the `Tú`
+  and `Asistente` speaker labels visible inside every transcript entry even when the user entry is
+  end-aligned at 85 % of the column, MUST keep the abstention's `Asistente` label, scope caption and
+  `Sin respuesta segura` state label together inside its single merged caution node, MUST keep the
+  three suggested questions as controls that only fill the composer and never submit, and MUST keep
+  the recoverable failure a `ManijeroCallout(Danger)` whose `Reintentar` remains a sibling focusable
+  node. Reason: `chat_screen_refresh` restyled this surface; each of these carries meaning that
+  colour, alignment or position alone cannot, and a later "cleaner" card could drop a label or merge
+  the retry without any test failing.
+
 ## Land form accessibility
 
 - **MUST**: the land add and edit forms MUST keep a plain-Spanish text name on every control, MUST

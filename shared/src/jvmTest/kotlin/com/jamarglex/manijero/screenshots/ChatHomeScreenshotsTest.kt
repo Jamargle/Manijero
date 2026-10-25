@@ -1,6 +1,6 @@
 package com.jamarglex.manijero.screenshots
 
-import com.jamarglex.manijero.ChatHomeScreen
+import com.jamarglex.manijero.chat.ChatHomeScreen
 import com.jamarglex.manijero.theme.ManijeroTheme
 import kotlin.test.Test
 
@@ -67,6 +67,33 @@ class ChatHomeScreenshotsTest : ScreenshotTestSupport() {
                     onAction = {},
                     onPrivacyClick = {},
                     onCoverageClick = {},
+                )
+            }
+        }
+
+    /** The caution abstention: icon, speaker, scope, state label and the server message verbatim. */
+    @Test
+    fun chatAbstentionDark() =
+        capture(name = "chat_abstention_dark", width = CHAT_WIDTH, height = CHAT_HEIGHT) {
+            ManijeroTheme(darkTheme = true) {
+                ChatHomeScreen(
+                    state = ScreenshotFixtures.abstainedResponse,
+                    onAction = {},
+                    onPrivacyClick = {},
+                    onCoverageClick = {},
+                )
+            }
+        }
+
+    /** The clarification chooser over the two saved lands, light appearance. */
+    @Test
+    fun chatClarificationLight() =
+        capture(name = "chat_clarification_light", width = CHAT_WIDTH, height = CHAT_HEIGHT) {
+            ManijeroTheme(darkTheme = false) {
+                ChatHomeScreen(
+                    state = ScreenshotFixtures.clarificationChat,
+                    onAction = {},
+                    clarificationLands = ScreenshotFixtures.twoLands.lands,
                 )
             }
         }
