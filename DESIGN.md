@@ -205,6 +205,48 @@ appearances. Names and geometry are fixed by
 - Material Symbols conventions (Apache 2.0) inform the geometry; path data is original to the
   repository. The licence record is in the feature appendix.
 
+## Shared component layer
+
+`ui_component_library` adds the presentational blocks the screen refreshes adopt in later features:
+`ManijeroScreen`, `ManijeroCard`, `ManijeroSectionHeader`, `ManijeroCallout`, `ManijeroStatCard`,
+`ManijeroEmptyState`, `ManijeroAttributeChip`, `ManijeroChoiceCard`, `ManijeroSearchField`,
+`ManijeroDropdownField`, `ManijeroMeasureField`, and the navigation components
+`ManijeroTopAppBar`, `ManijeroBottomNavigation` and `ManijeroNavigationRail`. They live under
+`shared/src/commonMain/kotlin/com/jamarglex/manijero/design/` (navigation in `design/navigation/`),
+are `internal`, preview-backed, and take every visible string, value, icon, selection and callback
+as a parameter. The layer owns no copy, domain type, store, request or business rule and never reads
+`Res.string`; no screen adopts it yet.
+
+- **Page frame.** `ManijeroScreen` paints `background`, owns one vertical scroll, applies 24 dp
+  horizontal padding below 840 dp and 40 dp from it, 32 dp vertical padding, and centres a 720 dp
+  content column. It owns no window insets and no bars; the shell's future `Scaffold` is the single
+  inset owner.
+- **Containers.** `ManijeroCard` has `Surface`, `Tonal`, `Outlined` and `Danger` tones (16 dp
+  radius; 1 dp `outlineVariant` or `error` border where the tone defines one) and is never
+  clickable: a caller puts its own button, link or choice row inside. `ManijeroSectionHeader` emits
+  a real `heading()` only when asked. `ManijeroStatCard` requires the caption that states what the
+  value counts. `ManijeroEmptyState` pairs the decorative olive branch with a real heading, a plain
+  explanation and one caller-supplied action.
+- **Messages and attributes.** `ManijeroCallout` has `Info`, `Caution`, `Danger` and `Confirmation`
+  tones, always an icon plus the caller's text, only its title-and-text block a polite live region,
+  and an optional action slot that stays its own focusable node. `ManijeroAttributeChip` carries the
+  four accepted chip pairs, always its own label, and no click or target.
+- **Choices and fields.** One `ManijeroChoiceCard` is one radio option (`Role.RadioButton`,
+  description merged into the announced name, error border); the consuming form owns the
+  `selectableGroup`. `ManijeroSearchField` has a named 48 dp clear action and filters nothing;
+  `ManijeroDropdownField` renders an exposed menu; `ManijeroMeasureField` is a decimal field with no
+  parser. Validation, formatting and totals stay in the owning feature.
+- **Navigation.** `ManijeroTopAppBar` is a flat `surfaceContainerLowest` bar with a 1 dp
+  `outlineVariant` divider and no shadow: the 32 dp brand mark (identity, never status), the title,
+  and an optional privacy action. From 840 dp the action is a `TextButton` with `ic_info` plus the
+  visible label; below it an `IconButton` named by the caller's description. The fixed inventory has
+  no shield, so the accessible name carries the meaning; a shield stays a later, visually reviewed
+  asset change. `ManijeroBottomNavigation` and `ManijeroNavigationRail` keep every label visible,
+  mark the selection with Material's indicator plus a heavier label (never colour alone), keep 48 dp
+  targets, omit window insets, and resolve an out-of-range index to "nothing selected".
+- **Evidence.** The review-only `commonTest` gallery is captured at 1200×3000 dp and at 360 dp with
+  2× text on both hosts; see `docs/screenshot-regression.md`.
+
 ## Layout and interaction
 
 - Give each screen one primary action, with plain labels such as “Añadir terreno” and “Preguntar”.

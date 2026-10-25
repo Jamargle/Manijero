@@ -4,16 +4,21 @@ Two screenshot suites cover the shared Compose UI in `shared/src/commonMain`:
 
 | Platform | Renderer | Goldens | Captures |
 |---|---|---|---|
-| Desktop | Compose Desktop on the JVM target | `shared/src/jvmTest/screenshots/` | 4 app scenes × 2 widths + board in 2 appearances = 10 |
-| Android | Robolectric on the host JVM (no emulator/device) | `shared/src/androidHostTest/screenshots/` | 4 app scenes at 360×800 dp + board at 900×1200 dp in 2 appearances = 6 |
+| Desktop | Compose Desktop on the JVM target | `shared/src/jvmTest/screenshots/` | 4 app scenes × 2 widths + board in 2 appearances + component gallery in 4 configurations = 14 |
+| Android | Compose UI rendered by Robolectric on the JVM (no emulator/device) | `shared/src/androidHostTest/screenshots/` | 4 app scenes at 360×800 dp + board at 900×1200 dp in 2 appearances + component gallery in 4 configurations = 10 |
 
 The app scenes are the same on both platforms and use the shared, code-owned fixtures in
 `shared/src/commonTest/kotlin/com/jamarglex/manijero/screenshots/ScreenshotFixtures.kt`: chat home
 idle (light), chat answered with a source card (dark), saved-lands list with two lands (light), and
 saved-lands empty state (dark). A fifth subject is the review-only `BrandVectorBoard`, a `commonTest`
 composable owned by `brand_vectors` and captured light/dark so all eighteen vectors are rendered by the
-theme; it is not a product screen. The goldens are separate per platform because Desktop and Android
-rasterise text, fonts, and controls differently.
+theme; it is not a product screen. A sixth subject is the review-only `ComponentGallery`, a
+`commonTest` composable owned by `ui_component_library` that renders every shared component and tone:
+light/dark at 1200×3000 dp (font scale 1) and light/dark at 360×5400 dp with font scale 2. The
+height was raised from the planned 4000 dp because the measured 2× content reached about 5190 px on
+Desktop and 4530 px on Android; 5400 dp leaves headroom so no section clips. It is a review viewport,
+not a screen size. Neither review board is a product screen. The goldens are separate per
+platform because Desktop and Android rasterise text, fonts, and controls differently.
 
 ## Verify before committing or pushing
 
@@ -70,17 +75,21 @@ hide a regression.
 
 Desktop:
 
-- density 1, font scale 1, layout direction LTR, JVM locale pinned to `es-ES` for each test;
-- appearance is the explicit `ManijeroTheme(darkTheme = ...)` argument, never the host setting;
+- density 1, font scale 1, layout direction LTR, JVM locale pinned to `es-ES` for each test; the
+  gallery's two large-text captures nest `Density(1f, fontScale = 2f)` around the gallery only;
+- appearance is the `darkTheme` argument on `ManijeroTheme`, never the host setting;
 - fixtures are code-owned: no clock, network, disk, backend, or land store;
 - comparison: Roborazzi `SimpleImageComparator(maxDistance = 0.007)` with
   `changeThreshold = 0.001F` (0.1% of the frame).
 
 Android:
 
-- Robolectric SDK 35; app scenes use `es-rES-w360dp-h800dp-mdpi` (360×800 dp), and the review-only board
-  class pins `es-rES-w900dp-h1200dp-mdpi` (900×1200 dp) so both hosts show the same composition;
-- the same explicit `ManijeroTheme(darkTheme = ...)`, density 1, and font scale 1;
+- Robolectric SDK 35; app scenes use `es-rES-w360dp-h800dp-mdpi` (360×800 dp), the board class pins
+  `es-rES-w900dp-h1200dp-mdpi` (900×1200 dp), and the component-gallery class sets
+  `es-rES-w1200dp-h3000dp-mdpi` for the wide pair and `es-rES-w360dp-h5400dp-mdpi` for the 2× pair,
+  so both hosts show the same compositions;
+- the same explicit `ManijeroTheme(darkTheme = ...)`, density 1, and font scale 1, with the gallery's
+  large-text captures nesting `Density(1f, fontScale = 2f)` around the gallery only;
 - the same fixtures and the same explicit `changeThreshold = 0.001F`.
 
 A real regression (moved control, changed colour, wrapped line) covers far more than the threshold;
@@ -109,5 +118,9 @@ a meaningful change.
   local, developer-invoked gates.
 - **No accessibility, usability, legal, or product-behavior proof.** A pass only means the selected
   Desktop and Android frames match the committed images within the threshold.
-- **Only the listed frames are gated.** Other screens, states, text sizes, locales, window sizes, and
-  Android API levels are not covered.
+- **The component gallery is not a product screen.** Its pass proves the shared layer renders on both
+  hosts in two appearances and at one enlarged text size; it does not prove any screen, interaction,
+  screen-reader output, device rendering, or usability.
+- **Only the listed frames are gated.** The gallery covers one 2× text size in one locale; other
+  screens, states, intermediate text sizes, locales, window sizes, and Android API levels are not
+  covered.
