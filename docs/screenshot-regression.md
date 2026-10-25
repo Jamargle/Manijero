@@ -10,10 +10,10 @@ Two screenshot suites cover the shared Compose UI in `shared/src/commonMain`:
 The app scenes are the same on both platforms and use the shared, code-owned fixtures in
 `shared/src/commonTest/kotlin/com/jamarglex/manijero/screenshots/ScreenshotFixtures.kt`: chat home
 idle (light), chat answered with a source card (dark), saved-lands list with two lands (light), and
-saved-lands empty state (dark). A fifth subject is the review-only `BrandVectorBoard` (a `commonTest`
-composable) owned by `brand_vectors`, captured in light and dark so the eighteen brand vectors are
-rendered by the theme; it is not a product screen and makes no accessibility claim. The goldens are
-separate per platform because Desktop and Android rasterise text, fonts, and controls differently.
+saved-lands empty state (dark). A fifth subject is the review-only `BrandVectorBoard`, a `commonTest`
+composable owned by `brand_vectors` and captured light/dark so all eighteen vectors are rendered by the
+theme; it is not a product screen. The goldens are separate per platform because Desktop and Android
+rasterise text, fonts, and controls differently.
 
 ## Verify before committing or pushing
 
@@ -78,9 +78,8 @@ Desktop:
 
 Android:
 
-- Robolectric SDK 35; the app scenes use qualifiers `es-rES-w360dp-h800dp-mdpi` (360×800 dp phone
-  viewport), and the review-only board class pins `es-rES-w900dp-h1200dp-mdpi` (900×1200 dp) per its
-  spec so both hosts show the same composition;
+- Robolectric SDK 35; app scenes use `es-rES-w360dp-h800dp-mdpi` (360×800 dp), and the review-only board
+  class pins `es-rES-w900dp-h1200dp-mdpi` (900×1200 dp) so both hosts show the same composition;
 - the same explicit `ManijeroTheme(darkTheme = ...)`, density 1, and font scale 1;
 - the same fixtures and the same explicit `changeThreshold = 0.001F`.
 

@@ -1,168 +1,87 @@
 # Validation: `brand_vectors`
 
-**Verdict: accept** — 2026-10-25 (second pass; first pass returned `revise` for documentation only)
+**Verdict: accept** — 2026-10-25 (second pass; pass 1 returned `revise` for documentation only)
 
-Independent validation of the uncommitted implementation against
-[`docs/specs/brand_vectors.md`](../specs/brand_vectors.md), the appendix checklist in
-[`brand_vectors.appendix.md`](../specs/brand_vectors.appendix.md), `DESIGN.md`, `CONSTRAINTS.md`, and
-`PROGRESS.md`, in the `feature/brand_vectors` worktree (base `main` @ `8b3f680`).
-
-Verdict trail: pass 1 `revise` on one documentation-consistency finding (M1: the harness doc
-`docs/screenshot-regression.md` still stated 8 Desktop / 4 Android goldens and a single Android
-viewport) plus four low-severity doc/comment nits (L1–L4) → implementer repair pass → pass 2 `accept`.
-No code, asset, test behaviour, Gradle, theme, string, backend, contract, or golden change was required
-or made by the repair.
+Independent validation against [`brand_vectors.md`](../specs/brand_vectors.md), its appendix
+checklist, `DESIGN.md`, `CONSTRAINTS.md`, and `PROGRESS.md` in the `feature/brand_vectors` worktree
+(base `main` @ `8b3f680`). Pass 1 `revise` on M1 (the harness doc still declared 8 Desktop / 4 Android
+goldens) plus L1–L4 doc nits → repair pass → pass 2 `accept`. No code, asset, test behaviour, Gradle,
+theme, string, backend, contract, or golden change was required.
 
 ## What was checked
 
-- **Inventory and geometry (independent parse, not the shell gates alone).** Exactly eighteen vectors
-  under `shared/src/commonMain/composeResources/drawable/`: `brand_mark.xml` (32×32) and
-  `olive_branch.xml` (96×96) on their specified viewports, plus the sixteen `ic_*.xml` named by the
-  contract. Each icon parses as a 24 dp vector on a 24×24 viewport with one or two paths, all six
-  stroke attributes present on every path (stroke 2, round caps, round joins), no filled shape, and
-  painted extent inside the 2–22 dp safe area (tightest: `ic_warning` x 2.30–21.70, `ic_retry`
-  y 3.66–20.90). The wizard placeholder `compose-multiplatform.xml` is untouched and excluded from
-  the inventory (19 files in the directory, 18 in the inventory).
-- **Colour separation.** Only `#000000` (28 occurrences) and `#00000000` (28) appear as colour
-  literals across the eighteen files; no `android:tint`, gradient, `aapt:attr` block, clip path,
-  `@android:` reference, or external resource reference. Every rendered colour comes from a wrapper.
-- **Wrapper contract.** `ManijeroIcon` loads through `painterResource`, requires an explicit
-  `contentDescription` (no default), draws at exactly the requested `size` and tints from
-  `LocalContentColor`. `ManijeroBrandMark` and `ManijeroOliveBranch` expose no description or colour
-  parameter and add no semantics node; the mark uses `primary`, the illustration paints its halo in
-  Compose (`primaryContainer` + `CircleShape`) with the sprig in `onPrimaryContainer`. All wrappers
-  are `internal`, stateless, in `com.jamarglex.manijero.design`, with light/dark previews.
-- **No adoption.** A reference grep found no screen, `App.kt`, theme, or string reference to the
-  `design` package; only the two screenshot classes import `BrandVectorBoard`. The board's labels are
-  review identifiers and do not exist in `composeResources/values/strings.xml`.
-- **Test quality.** `BrandVectorSetTest` names all eighteen resources through the generated accessors
-  (so a missing or renamed file fails to compile), cross-checks the drawable registry, asserts
-  pairwise distinctness, and pins the wizard placeholder as excluded — not a tautology. 4 tests ran.
-- **Goldens.** Four new board PNGs, all 900×1200, four distinct hashes, light ≠ dark:
-
-  ```
-  a66ad9cf710e575014649198fc405d6775f4bf9622c7cc0086c56f4c3d6d1a0d  jvmTest/.../brand_vector_board_dark.png
-  4ba8ea3f7cbf5b14918995ec8fa2c83624e8567b22472ff6302db79ea8e3f415  jvmTest/.../brand_vector_board_light.png
-  5fdd9ff7710b3aded7fa47dc7681439285a99f2eea66bbb26506fb49a8184c58  androidHostTest/.../brand_vector_board_dark.png
-  0d59c6fd487c3fe9562a5dda750468c39625e4f125b44160de458b531d08f873  androidHostTest/.../brand_vector_board_light.png
-  ```
-
-  `git diff --exit-code -- shared/src/jvmTest/screenshots shared/src/androidHostTest/screenshots`
-  exited 0 before and after the full gate, and across the repair pass: the eight Desktop and four
-  Android pre-existing goldens are byte-identical to `HEAD`. The four new images were recorded
-  deliberately with per-class filters (`:shared:recordDesktopScreenshots --tests
-  '*BrandVectorBoardScreenshotsTest'`, `:shared:recordAndroidScreenshots --tests
-  '*BrandVectorBoardAndroidScreenshotsTest'`); the validator confirmed by hash and mtime that the
-  repair pass and re-validation re-recorded nothing.
-- **Scope.** `git status --porcelain` over `*.gradle.kts`, `gradle/`, `androidApp`, `desktopApp`,
-  `theme/`, `strings.xml`, `App.kt`, `contracts/`, `backend/`, `knowledge/`, `design-references/`,
-  `ARCHITECTURE.md`, and `AGENTS.md` was empty. No dependency or module was added; no
-  `material-icons-*` entry exists in the catalog.
-- **Visual review (host-rendered).** All four goldens opened at full size: sixteen glyphs legible at
-  24 dp with `ic_search`/`ic_clear` distinct at 20 dp, the mark at 28/32/48 dp, the sprig inside its
-  halo at 160/200 dp with no clipping, single colour, both appearances.
+- **Inventory and geometry.** Independent parse of all eighteen files: `brand_mark.xml` 32×32,
+  `olive_branch.xml` 96×96, and sixteen `ic_*.xml` on a 24×24 viewport with stroke 2, round caps/joins,
+  no fill, and painted extent inside 2–22 (tightest: `ic_warning` x 2.30–21.70, `ic_retry` y 3.66–20.90).
+  The placeholder is untouched and excluded (19 files, 18 in inventory).
+- **Colour and wrappers.** Only `#000000`/`#00000000` literals; no tint, gradient, `aapt:attr`, clip
+  path, or external reference. `ManijeroIcon` requires `contentDescription`, uses `painterResource`,
+  exact size, and `LocalContentColor`; the mark and illustration expose no description or colour
+  parameter and use `primary` / `primaryContainer`+`onPrimaryContainer`, with the halo in Compose.
+- **No adoption or scope drift.** No screen, `App.kt`, theme, or string reference reaches the `design`
+  package; board labels are not shipped copy; `git status` over screens, theme, strings, Gradle,
+  backend, contracts, and `design-references/` is empty; no `material-icons-*` entry exists.
+- **Goldens and visual review.** Four new 900×1200 PNGs with distinct hashes, light ≠ dark; the twelve
+  pre-existing PNGs are byte-identical before, after, and across the repair. All four opened: sixteen
+  glyphs legible at 24 dp, `ic_search`/`ic_clear` distinct at 20 dp, the mark at 28/32/48 dp, the sprig
+  inside its halo at 160/200 dp.
+- **Test quality.** The inventory test named all eighteen accessors (so a missing/renamed file fails to
+  compile), cross-checked the registry, asserted distinctness, and excluded the placeholder; 4 tests.
+  It was later removed on review — presence is now compile-enforced by the board's references.
 
 ## Verification (independently run)
 
 | Command | Result |
 |---|---|
-| `./scripts/init.sh --feature brand_vectors` (pass 1, twice, and after the repair) | **exit 0** — `BrandVectorSetTest` 4 tests / 0 failures; `verifyScreenshots` green (10 Desktop + 6 Android screenshot tests); inventory/style/colour/dependency gates silent-pass |
-| `./scripts/init.sh --verify` (pass 1 and after the repair) | **exit 0** — fast tier passed, "All 9 offline checks passed", `:shared:testAndroidHostTest`, `:androidApp:assembleDebug`, `:desktopApp:build` successful |
-| `MANIJERO_PYTHON=…/Manijero/backend/.venv/bin/python ./scripts/init.sh --backend-tests` | **618 passed** — matches the appendix claim |
-| Parsed `shared/build/test-results/jvmTest/*.xml` and `…/testAndroidHostTest/*.xml` | jvmTest **204 tests / 24 classes**, androidHostTest **190 tests / 20 classes**, 0 failures, 0 errors — matches the appendix |
-| `git diff --exit-code -- shared/src/jvmTest/screenshots shared/src/androidHostTest/screenshots` (four runs) | **exit 0** every time — the twelve pre-existing PNGs never changed |
-| `sips -g pixelWidth -g pixelHeight` on the four new PNGs | 900 × 1200 each, four distinct SHA-256 values |
-| Inline `bash -euo pipefail -c` probes of the corrected `material-icons` gate | **exit 0** without a match, **exit 1** with one; the old `&&` form exited 1 in both cases (the documented defect). The `fillColor="#000000"` and `android:width="24dp"` gates still fail when violated |
-| `git diff -- docs/specs/brand_vectors.md` | exactly three hunks: the corrected gate, and two rows recording that `docs/screenshot-regression.md` is part of this feature's delivered docs |
+| `./scripts/init.sh --feature brand_vectors` (pass 1, twice, and after the repair) | exit 0 — 4 inventory tests; `verifyScreenshots` green (10 Desktop + 6 Android); gates silent-pass |
+| `./scripts/init.sh --verify` (pass 1 and after the repair) | exit 0 — fast tier, 9 offline checks, `:shared:testAndroidHostTest`, `:androidApp:assembleDebug`, `:desktopApp:build` |
+| `MANIJERO_PYTHON=…/backend/.venv/bin/python ./scripts/init.sh --backend-tests` | 618 passed |
+| Parsed `jvmTest`/`testAndroidHostTest` result XML | 204 tests / 24 classes and 190 / 20, zero failures |
+| Goldens | `git diff --exit-code` over both screenshot dirs exit 0 in four runs; four new images 900×1200 with distinct hashes |
+| Gate probes | corrected `material-icons` gate exits 0 without a match and 1 with one; the old `&&` form exited 1 both ways |
 
-Not re-run: an iOS compile (not covered by any tier; the appendix records the same gap). No golden was
-recorded or re-recorded by the validator.
+Not re-run: an iOS compile (no tier covers it). No golden was recorded or re-recorded by the validator.
 
 ## Findings
 
-**Pass 1 — `revise`, documentation only:**
+Pass 1 `revise`, documentation only: **M1** `docs/screenshot-regression.md` still said 8 Desktop / 4
+Android, four scenes, and one Android viewport; it needed the new counts, the board as a subject, both
+qualifiers, and the dedicated-class allowance. **L1** `CONSTRAINTS.md` cited a non-existent
+`shared_theme` → now `design_token_refresh`. **L2** stale "eight-column" comment → "four-column".
+**L3** `DESIGN.md` claimed `ManijeroShapes` reuse (nothing does) → removed. **L4** stray blank line →
+removed. Pass 2 `accept`: all five closed, nothing unrelated moved, focused tier and full gate green.
 
-- **M1 (medium)** `docs/screenshot-regression.md` still declared 8 Desktop / 4 Android goldens, listed
-  only the four app scenes, and presented `es-rES-w360dp-h800dp-mdpi` as *the* Android condition. It is
-  the doc `AGENTS.md` routes harness questions to, and its own "Adding a capture" step requires
-  updating it. **Fixed** in the repair pass (10/6 counts, the board as fifth subject, both Android
-  qualifiers, the dedicated-class allowance) and recorded in the spec's expected-changes and
-  documentation-impact tables.
-- **L1 (low)** `CONSTRAINTS.md` cited a non-existent `shared_theme` feature. **Fixed** — now cites
-  `design_token_refresh`.
-- **L2 (low)** A stale "eight-column icon grid" comment in `BrandVectorBoardScreenshotsTest.kt`.
-  **Fixed** to "four-column".
-- **L3 (low)** `DESIGN.md` claimed the assets reuse `ManijeroShapes`; nothing does. **Fixed**.
-- **L4 (low)** Stray double blank line in `DESIGN.md`. **Fixed.**
+All appendix checklist items passed. The contract's last gate was corrected from
+`grep … && { exit 1; }` to `if grep …; then exit 1; fi` before validation (the old form returned failure
+exactly when the rule passed) and was probed to fail when a `material-icons` dependency exists.
 
-**Pass 2 — `accept`.** All five findings verified closed, nothing unrelated moved, focused tier and
-full gate green, no golden re-recorded.
+## Honest limits
 
-## Appendix validator checklist
-
-All twelve items **PASS**: eighteen named vectors with the placeholder untouched; icon grid geometry
-and safe area; no baked appearance colour or unsupported vector feature; `ManijeroIcon`'s required
-content description, exact size, tint and loader; decorative mark and illustration with fixed theme
-roles; halo in Compose with 160–200 dp working; review-only board and previews unreferenced by any
-screen with labels outside `strings.xml`; non-tautological `BrandVectorSetTest`; four new goldens with
-the twelve existing PNGs byte-identical; no screen/host/theme/string/Gradle/backend/contract/
-`design-references/` change and no new dependency or module; durable rules recorded in `DESIGN.md` and
-`CONSTRAINTS.md` with `ARCHITECTURE.md`/`AGENTS.md` untouched; evidence real and bounded.
-
-## Contract correction carried into acceptance
-
-The focused block's final gate originally read
-`grep -q 'material-icons' … && { echo …; exit 1; }`, so it returned the *failure* status exactly when
-the rule passed and `./scripts/init.sh --feature brand_vectors` could never exit 0. The orchestrator
-corrected that single line to `if grep -q …; then …; exit 1; fi` before validation; the corrected form
-was probed to fail when such a dependency exists, the block now exits 0 with every check passing, and
-no other spec line, acceptance scenario, or contract requirement moved. It is recorded in the
-appendix's "Notes and deviations".
-
-## Honest limits carried forward
-
-- The goldens are host renders only: Compose Desktop (macOS host-font-pinned) and Robolectric SDK 35
-  on the host JVM, at density 1, font scale 1, LTR, pinned `es-ES`. The board is a review surface, not
-  a screen; no device, emulator, iOS, screen-reader, touch-target, or real-screen legibility claim is
-  made, and no screen adopts the assets in this feature.
-- No iOS target was compiled, so "all targets decode these vectors" rests on the documented Compose
-  Multiplatform XML subset, not an iOS build.
-- Per-file geometry, colour, and unsupported-feature rules are enforced by the focused shell gates;
-  `BrandVectorSetTest` runs in `commonTest` without file-system access, so it pins the inventory and
-  registry rather than parsing XML.
-- The four new goldens join the pending human owner sign-off, which now covers sixteen images (twelve
-  app baselines + four board captures). The mechanism and this validator review exist;
-  product-owner approval does not.
-- Non-blocking polish left unapplied so the accepted tree stayed exactly as validated: in
-  `docs/screenshot-regression.md`, the Android bullet about "the same fixtures and the same explicit
-  `changeThreshold`" could be read as applying to the board class, which renders `BrandVectorBoard`
-  and uses no fixtures.
+- Host renders only: Compose Desktop (macOS-font-pinned) and Robolectric SDK 35, density 1, font scale
+  1, LTR, `es-ES`; no device, emulator, iOS, screen-reader, touch-target, or real-screen claim, and no
+  screen adopts the assets.
+- No iOS target was compiled; "all targets decode these vectors" rests on the documented XML subset.
+- Per-file geometry, colour, and unsupported-feature rules are enforced by the focused shell gates; the
+  inventory is compile-enforced by the board.
+- Owner sign-off now covers sixteen images (twelve app baselines + four board captures); the mechanism
+  and this review exist, product-owner approval does not.
 
 ## Security
 
-No finding. Static Android-XML masks plus pure Compose wrappers: no network, storage, permissions,
-personal or land data, logging, or dynamic content; no new dependency, module, or runtime path.
+No finding: static XML masks plus pure Compose wrappers; no network, storage, permissions, personal or
+land data, logging, or dynamic content; no new dependency, module, or runtime path.
 
-## Post-acceptance follow-up (2026-10-25)
+## Post-acceptance follow-ups (2026-10-25)
 
-A review question was raised after acceptance: the review-only `BrandVectorBoard` sat in production
-`commonMain` although nothing in the app renders it. It was relocated to
-`shared/src/commonTest/kotlin/com/jamarglex/manijero/design/BrandVectorBoard.kt` with its two
-`@Preview` functions removed (test sources are not a preview surface; the wrappers keep their own
-previews). The three wrappers (`ManijeroIcon`, `ManijeroBrandMark`, `ManijeroOliveBranch`) stay in
-`commonMain`: they are the API this feature publishes for later adoption, so moving them to test sources
-would hide the product API instead of removing dead code.
+Both were review clean-ups with no behaviour or pixel change, so the verdict stands.
 
-The accepted verdict above still stands because nothing behavioural changed. Re-verified at the time of
-the move: `./scripts/init.sh --feature brand_vectors` exits 0, and SHA-256 snapshots of all sixteen
-goldens before and after the move are identical (ten Desktop, six Android), so no baseline was
-re-recorded. Commit: `refactor: move brand vector board to test sources`.
-
-Follow-up 2 (same day): the separate inventory test `BrandVectorSetTest` was removed on review as
-redundant. Presence is enforced at compile time by the board's references to all eighteen accessors; the
-file set, 24 dp grid, stroke, outline-only, colour-literal, and dependency rules are enforced by the
-focused shell gates; and the four goldens render every vector in both appearances. The focused block no
-longer runs a `jvmTest --tests` filter — `./gradlew :shared:verifyScreenshots` plus the gates is the
-focused tier. Re-verified after removal: focused block exit 0 and `./scripts/init.sh --verify` exit 0,
-with all sixteen goldens still byte-identical. Commit: `test: remove redundant brand vector inventory
-test`.
+- **Board moved to test sources.** `BrandVectorBoard` had no production consumer (only the two
+  screenshot classes import it), so it moved to
+  `shared/src/commonTest/kotlin/com/jamarglex/manijero/design/BrandVectorBoard.kt` and dropped its
+  previews. The three wrappers stay in `commonMain` as the API later features adopt. Verified: focused
+  block exit 0 and SHA-256 of all sixteen goldens identical before and after
+  (`refactor: move brand vector board to test sources`).
+- **Inventory test removed.** `BrandVectorSetTest` was a third copy of the eighteen names. Presence is
+  compile-enforced by the board, style and file count by the shell gates, rendering by the goldens.
+  Verified: focused block exit 0, `--verify` exit 0, all sixteen goldens byte-identical
+  (`test: remove redundant brand vector inventory test`).
