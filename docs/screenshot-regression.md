@@ -7,6 +7,10 @@ Two screenshot suites cover the shared Compose UI in `shared/src/commonMain`:
 | Desktop | Compose Desktop on the JVM target | `shared/src/jvmTest/screenshots/` | 6 chat states (idle light, answered dark, abstention dark, clarification light; idle and answered also at 360×800) + 6 lands states (list light and empty dark, each at 900×1200 and 360×800, plus search no results and one match at 900×1000) + board in 2 appearances + component gallery in 4 configurations + app shell in 4 configurations = 22 |
 | Android | Compose UI rendered by Robolectric on the JVM (no emulator/device) | `shared/src/androidHostTest/screenshots/` | 4 chat states at 360×800 dp + 4 lands states (list light and empty dark at 360×800, search no results and one match at 900×1000) + board at 900×1200 dp in 2 appearances + component gallery in 4 configurations + app shell in 4 configurations = 18 |
 
+The land-screen refresh changes the populated-list row treatment; if its list or filtered-list
+captures differ, only those land captures may be recorded after visual inspection. Shell and chat
+captures are not part of this feature and must remain untouched, even if their host baselines fail.
+
 The app scenes are the same on both platforms and use the shared, code-owned fixtures in
 `shared/src/commonTest/kotlin/com/jamarglex/manijero/screenshots/ScreenshotFixtures.kt`: chat idle
 (light), chat answered with a source card (dark), chat abstention with its state label (dark), chat
@@ -39,6 +43,14 @@ To run one platform only:
 ```sh
 ./gradlew :shared:verifyDesktopScreenshots   # no Android SDK needed
 ./gradlew :shared:verifyAndroidScreenshots   # Robolectric; needs an Android SDK to build, not a device
+```
+
+For a feature whose suite shares the aggregate tasks with unrelated screens, a filtered verification
+can isolate that feature without weakening the normal gate, for example:
+
+```sh
+./gradlew :shared:verifyDesktopScreenshots --tests 'com.jamarglex.manijero.screenshots.LandListScreenshotsTest' \
+  :shared:verifyAndroidScreenshots --tests 'com.jamarglex.manijero.screenshots.LandListAndroidScreenshotsTest'
 ```
 
 On a failure, inspect the artifacts:

@@ -2,26 +2,25 @@ package com.jamarglex.manijero.lands
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.widthIn
-import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.semantics.LiveRegionMode
+import androidx.compose.ui.semantics.heading
 import androidx.compose.ui.semantics.liveRegion
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import com.jamarglex.manijero.design.ManijeroCard
+import com.jamarglex.manijero.design.ManijeroCardTone
+import com.jamarglex.manijero.design.ManijeroScreen
 import com.jamarglex.manijero.theme.ManijeroTheme
 import manijero.shared.generated.resources.Res
 import manijero.shared.generated.resources.add_land_cancel
@@ -46,97 +45,80 @@ fun RemoveLandScreen(
     onCancel: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
-    Surface(
-        modifier = modifier.fillMaxSize(),
-        color = MaterialTheme.colorScheme.background,
-    ) {
-        Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .verticalScroll(rememberScrollState())
-                .padding(horizontal = 24.dp, vertical = 32.dp),
-            verticalArrangement = Arrangement.spacedBy(20.dp),
-            horizontalAlignment = Alignment.CenterHorizontally,
-        ) {
+    ManijeroScreen(modifier = modifier) {
+        Text(
+            text = stringResource(Res.string.remove_land_title),
+            style = MaterialTheme.typography.headlineMedium,
+            color = MaterialTheme.colorScheme.onBackground,
+            modifier = Modifier.semantics { heading() },
+        )
+        Text(
+            text = stringResource(Res.string.remove_land_confirm, state.name),
+            style = MaterialTheme.typography.bodyLarge,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+        )
+
+        // The known details are the same lines the row shows, merged into one node so the
+        // removal target reads as a single item. The name appears once, in the sentence above.
+        ManijeroCard(tone = ManijeroCardTone.Danger) {
             Column(
-                modifier = Modifier
-                    .widthIn(max = 720.dp)
-                    .fillMaxWidth(),
-                verticalArrangement = Arrangement.spacedBy(16.dp),
+                modifier = Modifier.semantics(mergeDescendants = true) {},
+                verticalArrangement = Arrangement.spacedBy(4.dp),
             ) {
-                Text(
-                    text = stringResource(Res.string.remove_land_title),
-                    style = MaterialTheme.typography.headlineMedium,
-                    color = MaterialTheme.colorScheme.onBackground,
+                LandDetails(
+                    zone = state.zone,
+                    municipality = state.municipality,
+                    variety = state.variety,
+                    varietyOther = state.varietyOther,
+                    areaHectares = state.areaHectares,
+                    treeCount = state.treeCount,
+                    waterRegime = state.waterRegime,
+                    productionMethod = state.productionMethod,
                 )
-                Text(
-                    text = stringResource(Res.string.remove_land_confirm, state.name),
-                    style = MaterialTheme.typography.bodyLarge,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                )
-
-                // The known details are the same lines the row shows, merged into one node so the
-                // removal target reads as a single item. The name appears once, in the sentence above.
-                Column(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .semantics(mergeDescendants = true) {},
-                    verticalArrangement = Arrangement.spacedBy(4.dp),
-                ) {
-                    LandDetails(
-                        zone = state.zone,
-                        municipality = state.municipality,
-                        variety = state.variety,
-                        varietyOther = state.varietyOther,
-                        areaHectares = state.areaHectares,
-                        treeCount = state.treeCount,
-                        waterRegime = state.waterRegime,
-                        productionMethod = state.productionMethod,
-                    )
-                }
-
-                val failureMessage = when (state.failure) {
-                    RemoveLandFailure.WRITE_FAILED -> Res.string.remove_land_failed
-                    RemoveLandFailure.LAND_MISSING -> Res.string.remove_land_missing
-                    null -> null
-                }
-                if (failureMessage != null) {
-                    Text(
-                        text = stringResource(failureMessage),
-                        style = MaterialTheme.typography.bodyLarge,
-                        color = MaterialTheme.colorScheme.error,
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .semantics { liveRegion = LiveRegionMode.Polite },
-                    )
-                }
-
-                // The destructive choice is the one primary action and carries the themed danger pair
-                // together with its text label, so it is never signalled by colour alone. Cancelar is
-                // the secondary back control and writes nothing.
-                Column(
-                    modifier = Modifier.fillMaxWidth(),
-                    verticalArrangement = Arrangement.spacedBy(8.dp),
-                ) {
-                    Button(
-                        onClick = onRemove,
-                        modifier = Modifier.fillMaxWidth(),
-                        colors = ButtonDefaults.buttonColors(
-                            containerColor = MaterialTheme.colorScheme.error,
-                            contentColor = MaterialTheme.colorScheme.onError,
-                        ),
-                    ) {
-                        Text(stringResource(Res.string.remove_land_remove))
-                    }
-                    TextButton(
-                        onClick = onCancel,
-                        modifier = Modifier.fillMaxWidth(),
-                    ) {
-                        Text(stringResource(Res.string.add_land_cancel))
-                    }
-                }
             }
         }
+
+        val failureMessage = when (state.failure) {
+            RemoveLandFailure.WRITE_FAILED -> Res.string.remove_land_failed
+            RemoveLandFailure.LAND_MISSING -> Res.string.remove_land_missing
+            null -> null
+        }
+        if (failureMessage != null) {
+            Text(
+                text = stringResource(failureMessage),
+                style = MaterialTheme.typography.bodyLarge,
+                color = MaterialTheme.colorScheme.error,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .semantics { liveRegion = LiveRegionMode.Polite },
+            )
+        }
+
+        // The destructive choice is the one primary action and carries the themed danger pair
+        // together with its text label, so it is never signalled by colour alone. Cancelar is
+        // the secondary back control and writes nothing.
+        Column(
+            modifier = Modifier.fillMaxWidth(),
+            verticalArrangement = Arrangement.spacedBy(8.dp),
+        ) {
+            Button(
+                onClick = onRemove,
+                modifier = Modifier.fillMaxWidth(),
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = MaterialTheme.colorScheme.error,
+                    contentColor = MaterialTheme.colorScheme.onError,
+                ),
+            ) {
+                Text(stringResource(Res.string.remove_land_remove))
+            }
+            TextButton(
+                onClick = onCancel,
+                modifier = Modifier.fillMaxWidth(),
+            ) {
+                Text(stringResource(Res.string.add_land_cancel))
+            }
+        }
+
     }
 }
 

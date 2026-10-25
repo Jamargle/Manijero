@@ -721,6 +721,11 @@ instead of the three-dot indicator (§5.2 item 5), and the composer keeps a visi
 with a decorative `ic_send` instead of the unnamed `Enviar` icon button (item 8), because
 `chat_screen_refresh` recorded a visible action as the accessible choice.
 
+Delivery note: P2-09…P2-14 are implemented by `lands_screens_refresh`: accepted list behavior is
+retained, rows use known-value chips and named separate actions, forms group fields without
+reordering, and removal uses a danger treatment with safe Cancel. Evidence and host-render limits
+are in [the feature appendix](../specs/lands_screens_refresh.appendix.md).
+
 Sequencing rule: finish and validate each feature before starting the next. `design_token_refresh` and the pure data layer (`Land.kt`, store format, summary/search functions) touch disjoint files and are the only safe parallel lane; everything else is serial to keep review and evidence honest.
 
 Why this order:

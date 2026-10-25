@@ -2,16 +2,11 @@ package com.jamarglex.manijero.lands
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.widthIn
-import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Button
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
-import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
@@ -28,8 +23,11 @@ import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import com.jamarglex.manijero.design.ManijeroCard
+import com.jamarglex.manijero.design.ManijeroCardTone
 import com.jamarglex.manijero.design.ManijeroDropdownField
 import com.jamarglex.manijero.design.ManijeroMeasureField
+import com.jamarglex.manijero.design.ManijeroScreen
 import com.jamarglex.manijero.theme.ManijeroTheme
 import manijero.shared.generated.resources.Res
 import manijero.shared.generated.resources.add_land_cancel
@@ -84,21 +82,9 @@ fun EditLandScreen(
     onCancel: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
-    Surface(
-        modifier = modifier.fillMaxSize(),
-        color = MaterialTheme.colorScheme.background,
-    ) {
-        Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .verticalScroll(rememberScrollState())
-                .padding(horizontal = 24.dp, vertical = 32.dp),
-            verticalArrangement = Arrangement.spacedBy(20.dp),
-            horizontalAlignment = Alignment.CenterHorizontally,
-        ) {
+    ManijeroScreen(modifier = modifier) {
             Column(
                 modifier = Modifier
-                    .widthIn(max = 720.dp)
                     .fillMaxWidth(),
                 verticalArrangement = Arrangement.spacedBy(16.dp),
             ) {
@@ -135,6 +121,7 @@ fun EditLandScreen(
                     onAction(action)
                 }
 
+                ManijeroCard(tone = ManijeroCardTone.Tonal) {
                 val nameErrorMessage = stringResource(Res.string.add_land_name_error)
                 val nameErrorText: (@Composable () -> Unit)? = if (state.showNameError) {
                     {
@@ -200,6 +187,8 @@ fun EditLandScreen(
                     singleLine = true,
                 )
 
+                }
+                ManijeroCard(tone = ManijeroCardTone.Outlined) {
                 OutlinedTextField(
                     value = state.municipality,
                     onValueChange = { onAction(EditLandAction.MunicipalityChanged(it)) },
@@ -379,6 +368,8 @@ fun EditLandScreen(
                     ),
                 )
 
+                }
+
                 val failureMessage = when (state.failure) {
                     EditLandFailure.WRITE_FAILED -> Res.string.edit_land_save_failed
                     EditLandFailure.LAND_MISSING -> Res.string.edit_land_missing
@@ -413,7 +404,6 @@ fun EditLandScreen(
                     }
                 }
             }
-        }
     }
 }
 

@@ -130,7 +130,11 @@ Operational MUST/MUST NOT rules that future features have to respect on top of
   that names the land being removed, and MUST NOT report a removal that `delete` did not confirm (a
   `false` result or a thrown failure is never a removal). Reason: `remove_land` established that a
   person's other lands and their local-only store must survive a removal untouched, and that a
-  permanent local action must never be claimed when it did not happen.
+   permanent local action must never be claimed when it did not happen.
+
+- **MUST**: land-list Edit and Remove controls remain separate from the non-clickable row and their
+  accessible names MUST include both the action and saved land name. Reason: duplicate land names
+  are permitted; an action announced without its target can remove or edit the wrong record.
 
 ## Client land context
 
