@@ -1,6 +1,6 @@
 # UI Refresh Plan — Manijero
 
-**Status:** draft for product-owner review; the §3.1 palette (Stitch token values plus two `outlineVariant` corrections) was approved on 2026-10-25 and is recorded in `DESIGN.md`. Nothing in this document has been implemented.
+**Status:** approved for the feature slicing below; `design_token_refresh` (P0-01…P0-06) is implemented and accepted, and the remaining slices are registered in `feature_list.json` as `not_started` work. The §3.1 palette is approved and recorded in `DESIGN.md`; the open decisions in §12 still apply to the unscheduled slices.
 **Date:** 2026-10-25
 **Scope:** adapt the existing shared Compose UI to the Stitch references and the shared theme, screen by screen and component by component, for Android, Desktop, and iOS-reusable `commonMain`.
 **Authority:** existing feature specs own behavior. This plan proposes visual, structural, and scoped content changes; after approval it is sliced into new feature specs with their own acceptance records.
@@ -684,7 +684,8 @@ Estimates are sessions of focused work, not calendar dates. Each step ends with 
 
 ## 9. Feature slicing and sequencing
 
-Only after your approval, add these entries to `feature_list.json` with specs and appendices:
+All entries below are registered in `feature_list.json` as of 2026-10-25, with their spec and validation
+paths reserved. Each spec is written when its feature is planned, before any code starts.
 
 | Proposed feature | Steps | Depends on | Kind |
 |---|---|---|---|
@@ -707,9 +708,14 @@ Why this order:
 - Fields before lands screens, so the list/form are built once with their final content.
 - Chat before or after lands is independent once the shell exists; chat is higher risk (semantics, live regions), so do it before the larger lands restyle to keep review focused.
 
-Registration: `design_token_refresh` was added to `feature_list.json` on 2026-10-25 with
-[`docs/specs/design_token_refresh.md`](../specs/design_token_refresh.md) and its appendix; the remaining
-entries are registered one at a time, each when its spec is planned.
+Registration (2026-10-25): `design_token_refresh` is accepted, with
+[`docs/specs/design_token_refresh.md`](../specs/design_token_refresh.md), its appendix, and
+[`docs/validations/design_token_refresh.md`](../validations/design_token_refresh.md). It declares
+`shared_design_system` as its prerequisite although the table lists none, because the accepted theme
+owns the files it edits. The other nine features are registered as `not_started` with reserved spec and
+validation paths; their specs and appendices do not exist yet, so `select-feature.sh` reports `planner`
+for the first dependency-ready one. Sequencing stays as written: finish and validate one feature before
+starting the next.
 
 ---
 
