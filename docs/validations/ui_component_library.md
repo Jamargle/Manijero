@@ -12,7 +12,8 @@ golden, Gradle, theme, string, vector, or backend change was required.
 - **Contract and API.** All fourteen declarations from the contract table exist as `internal`
   composables/data classes in `com.jamarglex.manijero.design` (nine files plus `design/navigation/`),
   with the contracted parameter names, defaults and enums; the two pure helpers
-  (`screenHorizontalPadding`, `selectedDestinationIndex`) are exercised at their boundaries.
+  (`screenHorizontalPadding`, `selectedDestinationIndex`) are reviewed in source and exercised by the
+  gallery renders. Their 839/840 dp and invalid-index boundaries have no dedicated test.
 - **Presentational scope.** The package takes every visible string/value/icon/selection/callback as
   a parameter; it imports no `lands`/`chat`/`privacy`/`coverage`/`platform` type, reads no store,
   sends no request, logs nothing, and contains no `Res.string`. Every colour is a
@@ -37,17 +38,23 @@ golden, Gradle, theme, string, vector, or backend change was required.
 
 | Command | Result |
 |---|---|
-| `./scripts/init.sh --feature ui_component_library` | exit 0 — inventory/colour/domain/screen/gallery/golden gates silent-pass; 6 helper tests; `verifyScreenshots` green (14 Desktop + 10 Android) |
+| `./scripts/init.sh --feature ui_component_library` | exit 0 — inventory/colour/domain/screen/gallery/golden gates silent-pass; `verifyScreenshots` green (14 Desktop + 10 Android) |
 | `./scripts/init.sh --fast` | exit 0 — "All 9 offline checks passed"; backend pytest skipped because pytest is not installed (documented harness behaviour) |
 | `./scripts/init.sh --verify` | exit 0 — fast tier, `:shared:testAndroidHostTest`, `:androidApp:assembleDebug`, `:desktopApp:build` all successful |
-| `./gradlew :shared:jvmTest --tests ManijeroComponentsTest :shared:verifyScreenshots --rerun-tasks` | exit 0 — recompiled the JVM/Android main and host-test sources; 24/24 screenshot tests passed; helper XML `tests=6 failures=0` |
-| `./gradlew :shared:jvmTest :shared:testAndroidHostTest --rerun-tasks` | exit 0 — 204 jvm tests / 190 Android host tests, zero failures |
+| `./gradlew :shared:verifyScreenshots --rerun-tasks` | exit 0 — recompiled the JVM/Android main and host-test sources; 24/24 screenshot tests passed |
+| `./gradlew :shared:jvmTest :shared:testAndroidHostTest --rerun-tasks` | exit 0 — 198 jvm tests / 190 Android host tests, zero failures |
 | `git diff --exit-code -- '*.png'`, `git status --porcelain` | exit 0 — only the 8 new goldens untracked; 16 pre-existing goldens unchanged; no screen, vector, string, Gradle, theme, backend, contract, or docs-scope change |
 
 Not re-run: backend pytest (pytest unavailable), device/emulator, iOS build, or a screen-reader
 walkthrough; none is claimed by the contract.
 
 ## Findings
+
+Post-validation change (2026-10-25): the owner asked to remove
+`commonTest/design/ManijeroComponentsTest.kt` because the gallery and screenshot suites were judged
+to cover the same ground. It is removed. The fixed-viewport renders do not exercise the 839/840 dp
+padding boundary or invalid selected indices, so those two checks are now review-only; the spec and
+appendix were corrected accordingly. No shipped source changed.
 
 No blocking or required finding. The disclosed deviations are accepted: the spec prose now matches
 its own 9 + 2 file table; the narrow review viewport is 360×5400 dp because the 2× content measures

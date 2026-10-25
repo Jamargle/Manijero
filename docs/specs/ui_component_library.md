@@ -30,7 +30,6 @@ presentational: it renders the strings, colours, values and callbacks its caller
   components `ManijeroTopAppBar`, `ManijeroBottomNavigation`, `ManijeroNavigationRail`).
 - Light, dark and 2× text previews per component.
 - A review-only `commonTest` gallery plus four Desktop and four Android host screenshot goldens.
-- Common tests for the two pure helpers the layer introduces.
 - Durable rules in `DESIGN.md`, `CONSTRAINTS.md` and `docs/screenshot-regression.md`.
 
 **Non-goals**
@@ -168,14 +167,14 @@ Rules that hold for every row:
 - Reuse the existing screenshot harness: two dedicated test classes, the pinned threshold, and the
   explicit record tasks. Record only the eight new gallery goldens; never re-record an app or brand
   board golden.
-- `ManijeroComponentsTest` (commonTest) covers `screenHorizontalPadding` (839/840 dp boundary, compact,
-  wide) and `selectedDestinationIndex` (valid, `-1`, equal to count, negative, count greater than
-  one). No new test dependency.
+- The two pure helpers have no dedicated test class. Their behaviour is exercised by the gallery
+  renders and read in review; the fixed viewports do not assert the 839/840 dp boundary, and the
+  renders use only valid selections. No new test dependency.
 
 ## Expected file changes
 
 - **Add** the nine component files plus the two navigation files under `design/`.
-- **Add** `commonTest/design/ComponentGallery.kt` and `commonTest/design/ManijeroComponentsTest.kt`.
+- **Add** `commonTest/design/ComponentGallery.kt`.
 - **Add** `jvmTest/.../screenshots/ComponentGalleryScreenshotsTest.kt`,
   `androidHostTest/.../screenshots/ComponentGalleryAndroidScreenshotsTest.kt`, and the eight PNGs.
 - **Update** `DESIGN.md` (component layer, top-bar action glyph decision), `CONSTRAINTS.md`
@@ -216,7 +215,6 @@ the visual evidence), and enforces the scope rules. It is read-only apart from G
 
 <!-- verify:start -->
 ```sh
-./gradlew :shared:jvmTest --tests ManijeroComponentsTest
 ./gradlew :shared:verifyScreenshots
 design="$REPO_ROOT/shared/src/commonMain/kotlin/com/jamarglex/manijero/design"
 for name in ManijeroScreen ManijeroCard ManijeroSectionHeader ManijeroCallout ManijeroStatCard ManijeroEmptyState ManijeroAttributeChip ManijeroChoiceCard ManijeroSearchField ManijeroDropdownField ManijeroMeasureField ManijeroTopAppBar ManijeroBottomNavigation ManijeroNavigationRail; do
@@ -244,9 +242,9 @@ fi
 ```
 <!-- verify:end -->
 
-The block proves compile, the two pure helpers, theme-only styling, the scope gates and pixel
-stability. It cannot judge whether a component looks right, wraps cleanly at 2× text, or reads well to
-a screen reader; those are the gallery review and the limits recorded in the acceptance record.
+The block proves compile, theme-only styling, the scope gates and pixel stability. It cannot judge
+whether a component looks right, wraps cleanly at 2× text, or reads well to a screen reader; those are
+the gallery review and the limits recorded in the acceptance record.
 
 ## Appendix
 

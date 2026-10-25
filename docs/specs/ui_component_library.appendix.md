@@ -43,8 +43,9 @@ source file.
   pattern (`BrandVectorBoard`), captured by a dedicated class per platform.
 - **Test capability.** `commonTest` has `kotlin-test` only; there is no Compose UI test dependency
   there and the plan forbids adding one. Component behavior therefore rests on compile, previews,
-  screenshot goldens and review; only pure helpers get common unit tests. `androidHostTest` already
-  has `compose.ui.test.junit4`, so the Android gallery class can use the existing rule.
+  screenshot goldens and review, for the pure helpers as much as for the composables.
+  `androidHostTest` already has `compose.ui.test.junit4`, so the Android gallery class can use the
+  existing rule.
 - **Docs.** `DESIGN.md` already records the palette, chip pairs, icon rules and layout intent;
   `CONSTRAINTS.md` ends at the brand-vector rules; `docs/screenshot-regression.md` states the current
   capture table (10 Desktop / 6 Android) and the "add a capture" procedure.
@@ -102,16 +103,15 @@ Ordered; each task ends with the stated check.
 | T3 | Add `ManijeroCallout` (four tones, icon+text, polite text node, action slot) and `ManijeroAttributeChip` (four tones) | Caution/danger pairs match `DESIGN.md`; action stays its own node |
 | T4 | Add `ManijeroChoiceCard`, `ManijeroSearchField`, `ManijeroDropdownField`, `ManijeroMeasureField` with previews and 48 dp targets | Radio role, clear button, exposed menu and error state rendered |
 | T5 | Add `ManijeroTopAppBar`, `ManijeroBottomNavigation`, `ManijeroNavigationRail`, `ManijeroDestination`, `selectedDestinationIndex` | Compact/wide action variants; labels always visible; out-of-range index safe |
-| T6 | Add `ManijeroComponentsTest` for the two pure helpers | `:shared:jvmTest --tests ManijeroComponentsTest` green |
-| T7 | Add `ComponentGallery` in `commonTest` and the two screenshot classes | Eight goldens recorded; existing sixteen PNGs unchanged |
-| T8 | Review every new golden image (light/dark, 2× text, no clipping, no colour-only state) | Reviewed images match the spec |
-| T9 | Update `DESIGN.md`, `CONSTRAINTS.md`, `docs/screenshot-regression.md` | Docs match the shipped layer and capture table |
-| T10 | Run focused block, `--fast`, `--verify`; record evidence; validate | All green; honest limits recorded |
+| T6 | Add `ComponentGallery` in `commonTest` and the two screenshot classes | Eight goldens recorded; existing sixteen PNGs unchanged |
+| T7 | Review every new golden image (light/dark, 2× text, no clipping, no colour-only state) | Reviewed images match the spec |
+| T8 | Update `DESIGN.md`, `CONSTRAINTS.md`, `docs/screenshot-regression.md` | Docs match the shipped layer and capture table |
+| T9 | Run focused block, `--fast`, `--verify`; record evidence; validate | All green; honest limits recorded |
 
 ## Verification plan
 
-1. Focused block: `./scripts/init.sh --feature ui_component_library` (pure tests, both screenshot
-   suites, inventory/colour/domain/screen/golden/dependency gates).
+1. Focused block: `./scripts/init.sh --feature ui_component_library` (both screenshot suites and
+   the inventory/colour/domain/screen/golden/dependency gates).
 2. `./scripts/init.sh --fast` for the shared host tests, contract examples, backend suite and offline
    evaluators, confirming nothing outside `shared` moved.
 3. `./scripts/init.sh --verify` for the Android host tests and both app builds, confirming the layer
@@ -151,8 +151,7 @@ Implemented 2026-10-25 in `feature/ui_component_library` (worktree
   (`ManijeroTopAppBar.kt`, `ManijeroNavigation.kt`), all `internal` in package
   `com.jamarglex.manijero.design`: the fourteen named declarations, their tone enums, and the two
   pure helpers (`screenHorizontalPadding`, `selectedDestinationIndex`).
-- Review-only `commonTest/design/ComponentGallery.kt` and
-  `commonTest/design/ManijeroComponentsTest.kt`.
+- Review-only `commonTest/design/ComponentGallery.kt`.
 - `jvmTest/.../screenshots/ComponentGalleryScreenshotsTest.kt`,
   `androidHostTest/.../screenshots/ComponentGalleryAndroidScreenshotsTest.kt`, and eight new PNGs
   (four per host).
@@ -165,16 +164,12 @@ Implemented 2026-10-25 in `feature/ui_component_library` (worktree
 
 | # | Command | Result |
 |---|---|---|
-| 1 | `./gradlew :shared:jvmTest --tests ManijeroComponentsTest` | PASS — `tests=6 skipped=0 failures=0 errors=0` in `shared/build/test-results/jvmTest/TEST-com.jamarglex.manijero.design.ManijeroComponentsTest.xml` |
-| 2 | `./gradlew :shared:recordDesktopScreenshots --tests "...ComponentGalleryScreenshotsTest"` | PASS — only the four Desktop gallery names were written |
-| 3 | `./gradlew :shared:recordAndroidScreenshots --tests "...ComponentGalleryAndroidScreenshotsTest"` | PASS — only the four Android gallery names were written |
-| 4 | `./gradlew :shared:verifyScreenshots` | PASS — BUILD SUCCESSFUL; 14 Desktop (4 gallery + 10 existing) and 10 Android (4 gallery + 6 existing) captures |
-| 5 | `./scripts/init.sh --feature ui_component_library` | exit 0 — focused tests, both screenshot suites, and the inventory/colour/domain/screen/golden/material-icons gates |
-| 6 | `./scripts/init.sh --fast` | exit 0 — "All 9 offline checks passed"; backend pytest skipped because pytest is not installed (documented harness behaviour) |
-| 7 | `./scripts/init.sh --verify` | exit 0 — BUILD SUCCESSFUL for `:shared:testAndroidHostTest`, `:androidApp:assembleDebug` and `:desktopApp:build` |
-
-The focused block's `:shared:jvmTest` was UP-TO-DATE on the re-run; its XML report is the evidence
-for the six tests, not the task's up-to-date status.
+| 1 | `./gradlew :shared:recordDesktopScreenshots --tests "...ComponentGalleryScreenshotsTest"` | PASS — only the four Desktop gallery names were written |
+| 2 | `./gradlew :shared:recordAndroidScreenshots --tests "...ComponentGalleryAndroidScreenshotsTest"` | PASS — only the four Android gallery names were written |
+| 3 | `./gradlew :shared:verifyScreenshots` | PASS — BUILD SUCCESSFUL; 14 Desktop (4 gallery + 10 existing) and 10 Android (4 gallery + 6 existing) captures |
+| 4 | `./scripts/init.sh --feature ui_component_library` | exit 0 — focused gate, both screenshot suites, and the inventory/colour/domain/screen/golden/material-icons gates |
+| 5 | `./scripts/init.sh --fast` | exit 0 — "All 9 offline checks passed"; backend pytest skipped because pytest is not installed (documented harness behaviour) |
+| 6 | `./scripts/init.sh --verify` | exit 0 — BUILD SUCCESSFUL for `:shared:testAndroidHostTest`, `:androidApp:assembleDebug` and `:desktopApp:build` |
 
 ### New goldens
 
@@ -241,6 +236,11 @@ byte-identical, and the record tasks were filtered to the new gallery classes wi
   option so the review image demonstrates the non-colour cue.
 - **Deprecated menu anchor.** `ManijeroDropdownField` uses `ExposedDropdownMenuAnchorType` rather
   than the deprecated `MenuAnchorType`; behaviour and API surface are unchanged.
+- **Helper test removal.** After acceptance, the owner asked to delete `ManijeroComponentsTest`
+  because the gallery renders and the screenshot suites were judged to cover the same ground. It was
+  removed, and the spec, this appendix, the acceptance record, `PROGRESS.md` and the session log were
+  corrected: no test now asserts the 839/840 dp padding boundary or invalid selected indices, and
+  those remain review-only checks.
 - **Honest limits.** Host renders only: Desktop goldens are macOS-font-pinned and Android goldens are
   Robolectric SDK 35; density 1, `es-ES`, one 2× text size. No device, emulator, iOS, screen-reader,
   focus/keyboard, usability or user-comprehension claim. No screen adopts the layer yet. The
@@ -272,7 +272,8 @@ git diff --stat
       variants and states.
 - [x] 48 dp interactive targets, accessible names, radio role/description, visible labels on both bars,
       Material focus indication retained.
-- [x] Both pure helpers are tested at their boundaries (839/840 dp; invalid selected index).
+- [x] The two pure helpers have no dedicated test class (removed at the owner's request); their
+      boundary values are reviewed in source, not asserted by a test or by a fixed-viewport render.
 - [x] Exactly eight new gallery goldens, reviewed; both screenshot suites pass; record tasks were used
       explicitly and nothing else was re-recorded.
 - [x] `DESIGN.md`, `CONSTRAINTS.md` and `docs/screenshot-regression.md` are updated and honest;
@@ -284,7 +285,7 @@ git diff --stat
 
 Independent validation ran on 2026-10-25 against base `ec8e0c6` in this worktree and returned
 **accept**, with no code, test, golden or documentation repair required. It re-read all eleven
-component sources and both test classes, re-ran the focused block, `--fast` and `--verify`, forced
+component sources, the gallery and the two screenshot classes, re-ran the focused block, `--fast` and `--verify`, forced
 reruns of the shared host test and golden suites, and confirmed the ten prior app renders and four
 prior board renders are byte-identical. The record is
 [`docs/validations/ui_component_library.md`](../validations/ui_component_library.md). Known limit
