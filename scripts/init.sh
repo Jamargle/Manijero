@@ -25,7 +25,10 @@ if [[ "${1:-}" == "--backend" ]]; then
   "$VENV/bin/python" -m pip install -r "$BACKEND_DIR/requirements.txt"
   cd "$BACKEND_DIR"
   export MANIJERO_ACTIVE_CAMPAIGN="${MANIJERO_ACTIVE_CAMPAIGN:-2026}"
-  exec "$VENV/bin/python" -m uvicorn app.main:app --reload
+  # Android emulators reach the host through 10.0.2.2, not the host's loopback
+  # interface directly. Keep the bind configurable for local development.
+  BACKEND_HOST="${MANIJERO_BACKEND_HOST:-0.0.0.0}"
+  exec "$VENV/bin/python" -m uvicorn app.main:app --reload --host "$BACKEND_HOST"
 fi
 
 # Auto-detect ANDROID_HOME and local.properties if not already set

@@ -9,20 +9,29 @@ From the repository root, start it with the shared startup script:
 
 The script creates `backend/.venv` when needed, installs/updates the runtime
 requirements, sets `MANIJERO_ACTIVE_CAMPAIGN=2026` unless already configured,
-and launches Uvicorn with reload enabled. Stop it with `Ctrl+C`. To start it
-manually instead, run:
+and launches Uvicorn with reload enabled, bound to `0.0.0.0` so the Android
+emulator can reach the host through `10.0.2.2`. This also makes the development
+server reachable from your local network; use a trusted network/firewall, or set
+`MANIJERO_BACKEND_HOST=127.0.0.1` to restrict it to this computer (Desktop will
+still work, but Android will not). Stop it with `Ctrl+C`. To start it manually
+instead, run:
 
 ```sh
 cd backend
 python3 -m venv .venv
 . .venv/bin/activate
 python -m pip install -r requirements.txt
-MANIJERO_ACTIVE_CAMPAIGN=2026 python -m uvicorn app.main:app --reload
+MANIJERO_ACTIVE_CAMPAIGN=2026 python -m uvicorn app.main:app --reload --host 0.0.0.0
 curl http://127.0.0.1:8000/health
 curl -X POST http://127.0.0.1:8000/ask \
   -H 'content-type: application/json' \
   -d '{"question":"¿Qué información hay?","land_context":{"mode":"general","lands":[]}}'
 ```
+
+For a physical Android device on the same trusted LAN, use the computer's LAN
+address as the Android endpoint when building, for example
+`./gradlew :androidApp:assembleDebug -PmanijeroAskBaseUrl=http://192.168.1.20:8000`.
+The emulator default remains `http://10.0.2.2:8000`.
 
 For backend tests and artifact validation, install the development dependencies
 in a virtual environment instead:
