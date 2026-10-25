@@ -265,7 +265,7 @@ evidence above is kept unchanged; this section records the current state.
 
 ```text
 BUILD SUCCESSFUL in 11s
-jvmTest: 26 suites, 242 tests, 0 failures
+jvmTest: 25 suites, 242 tests, 0 failures
 verifyDesktopScreenshots: 5 suites, 18 tests, 0 failures
 verifyAndroidScreenshots: 5 suites, 14 tests, 0 failures
 ```
@@ -282,7 +282,9 @@ examples, `pytest` skipped (not installed; no backend file changed) and `All 9 o
 **Store evidence now in `LandStoreFormatTest` (6 tests)** — round trip of all 13 fields including
 escaped `|`/newline/`%` text; header-only empty store reopens empty; unknown header (including
 `land-store-v2`) reads as no records; invalid enum, `NaN` area, non-numeric tree count and short lines
-are skipped whole while valid neighbours survive; a line with a blank zone is skipped whole.
+are skipped whole while valid neighbours survive; a line with a blank zone is skipped whole. (The
+fixtures are full 13-field lines, so the area and tree-count guards themselves run, not just the
+field-count check.)
 
 **Goldens** — no screenshot fixture or golden changed in this follow-up; the existing
 `land_list_light` (Desktop/Android), `land_list_light_phone` and `app_shell_lands_rail_dark` images

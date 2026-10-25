@@ -258,3 +258,148 @@ written when any field is invalid, and a rejected field keeps its raw text for c
   on the new zone/variety/surface/tree-count data without new storage work.
 - Recommended follow-ups are the five low notes above; none of them changes user-visible behaviour
   today.
+
+## 2026-10-25 — Re-validation: single pre-release store format
+
+**Verdict: accept (with low notes).** Independently re-validated at HEAD `344d902`
+("refactor(lands): drop pre-release store versioning") on branch `feature/land_measurement_fields`,
+on top of the already-accepted `072fb7a`. The earlier acceptance section above is left untouched as
+history and is stale on one point: it describes the `land-store-v1` reader plus the `land-store-v2`
+writer. Because no build has shipped, the product owner removed pre-release storage versioning; the
+app now reads and writes exactly one 13-field `land-store-v1` format, `Land.zone` is non-null, and a
+stored record without a zone is skipped whole.
+
+### What I ran and observed
+
+| Command | Exit | Observed |
+|---|---|---|
+| `./scripts/init.sh --feature land_measurement_fields` | `0` | `BUILD SUCCESSFUL in 7s`; every published static gate passed (one `land-store-v1` header, no `land-store-v2` in `LandRepository.kt`, `LandVariety`, `zone`/`treeCount` in `Land.kt`, no new field in `chat/LandContextBuilder.kt`, all fourteen string keys, both new test files); `:shared:verifyDesktopScreenshots` ran 5 classes / 18 captures and `:shared:verifyAndroidScreenshots` ran 5 classes / 14 captures with 0 failures, so every golden still matches; `:shared:jvmTest` was up to date on identical inputs, so I forced an independent execution (next row). |
+| `./gradlew :shared:jvmTest --no-build-cache --rerun-tasks --console=plain` | `0` | Every task executed (no `FROM-CACHE`/`UP-TO-DATE` line in the log): 25 classes, **242 tests, 0 failures, 0 errors, 0 skipped**. Per class: `LandStoreFormatTest` 6, `LandFieldsTest` 10, `AddLandStateTest` 14, `EditLandStateTest` 12, `LandRepositoryTest` 6, `EditLandRepositoryTest` 6, `RemoveLandStateTest` 8, `RemoveLandRepositoryTest` 5, `LandDataDisclosureTest` 3, and the five Desktop store tests. |
+| `./scripts/init.sh --fast` | `0` | `Fast tier passed.`; contract examples `Validated 2 request and 3 response examples against answer_api_contract`; `[skip] Backend unit tests: pytest is not installed.` (virtualenv recipe printed); `All 9 offline checks passed.`; `:shared:jvmTest` up to date on the same inputs. |
+| `git status --porcelain` | `0` | Clean tree at `344d902` before this record was appended. |
+
+`./scripts/init.sh --verify` was not rerun in this pass; the full-gate evidence for `c229b74` above
+remains the only Android-host-test / debug-APK / Desktop-build run.
+
+### Contract scenarios 1–8 (current contract)
+
+1. **A saved store still opens.** One header, one line shape: `HEADER = "land-store-v1"`
+   (`LandRepository.kt:125`), `FIELD_COUNT = 13` (`:127`), writer `:129-149`, reader `:151-156`,
+   per-line decode `:158-176`. `LandStoreFormatTest` round-trips all 13 fields including `|`, `%` and
+   newline text (`:26-48`), reopens a header-only store empty (`:18-23`) and reads an unknown header
+   as no records (`:11-16`). `LandRepositoryTest` "two lands survive reopening repository" covers the
+   repository path, and `EditLandRepositoryTest` / `RemoveLandRepositoryTest` first tests assert the
+   untouched neighbouring line is byte-identical after a write, so no record is lost.
+2. **New records require a zone.** `zoneProblem`/`isValidZone` (`LandFields.kt:37-47`) trim first;
+   `normalize` rejects a blank or over-long zone before any write (`LandRepository.kt:88-90`); the add
+   view model exposes the error and the save path requests focus on the zone field
+   (`AddLandScreen.kt:146`); `AddLandState` trims the saved zone. `AddLandStateTest`
+   "blank name or zone shows its error and builds no draft" (`:25`) and "an over-long zone is rejected
+   while a trimmed valid zone is saved" (`:45`), `LandRepositoryTest` "blank name blank zone and
+   invalid measures are rejected", and `EditLandStateTest` "an emptied zone cannot be saved until a
+   zone is entered" (`:75`) pin it.
+3. **Optional measurements stay optional and unknown.** Blank measures parse to
+   `MeasureResult.Valid(null)` (`LandFields.kt:94`, `:118`); a name+zone draft keeps `UNKNOWN`/`null`;
+   `LandDetails` (`LandListScreen.kt:273-293`) renders the zone and `Variedad: No lo sé`, omits absent
+   surface/trees and never renders zero. `AddLandStateTest` "name and zone only land is saved with
+   unknown attributes and survives reopening" (`:78`) and `EditLandStateTest`
+   "prefilled_state_mirrors_the_stored_record" (`:16`) cover save and exact prefill.
+4. **Measurements and free text are validated, never guessed.** `parseAreaHectares`
+   (`LandFields.kt:94-111`, comma or dot, finite, `>= 0`), `parseTreeCount` (`:118-125`, ASCII digits
+   `>= 1`), `roundHectares` (`:128`) and `isValidVarietyOther` (`:53`) are pinned by `LandFieldsTest`
+   "surface accepts comma or dot and rounds to two decimals" (`:62`), "surface rejects letters signs
+   several separators and overflow" (`:78`) and "tree count accepts only whole ASCII numbers of at
+   least one" (`:88`); raw text retention is asserted in `AddLandStateTest` (`:169`) and
+   `EditLandStateTest` (`:202`).
+5. **Variety choices are the approved shortlist.** `LAND_VARIETY_OPTIONS` is the ten approved options
+   in order (`LandFields.kt:17-28`), pinned by `LandFieldsTest` "variety options use the approved
+   shortlist order" (`:126`); `AddLandScreen` shows the `Otra` field only for `OTHER`, and
+   `LandDetails` shows the custom text instead of the label (`LandListScreen.kt:279-285`).
+6. **New values never leave the device.** The published grep gate passes and
+   `chat/LandContextBuilder.kt` names no new field; `LandDataDisclosureTest` encodes a fully populated
+   land and asserts the only optional keys are `municipality`/`water_regime`/`production_method` and
+   that none of the names or values of zone, variety, custom variety, area, trees or notes appear
+   (`:92-113`); the privacy copy names them as saved only on this device and not sent
+   (`strings.xml:119`, `:128`). `SHARED_LAND_ATTRIBUTES` and the `AskRequest`/`MinimalLandContext`
+   types are unchanged.
+7. **The field decision is superseded explicitly.** The 2026-10-20 body of
+   `land_setup_fields_decision.md` is untouched by this follow-up (the diff hunk starts at
+   `@@ -125,10 +125,10 @@`, inside the appended section); that section now says the single
+   `land-store-v1` format is the whole store and every stored land carries its zone (`:128`, `:145`),
+   still states the absence of new target-user evidence, and still names the affected owners.
+   `docs/risks-and-open-questions.md` records the same decision without claiming any legacy data.
+8. **Scope stays inside the land data slice.** `git show 344d902 --name-only` lists 30 files: the
+   shared land model/repository/fields, add/edit/list/remove screens and states, `App.kt`, the land and
+   privacy suites plus the chat/answer test fixtures that now pass a zone, `CONSTRAINTS.md`,
+   `DESIGN.md`, `PROGRESS.md`, five `docs/` pages and four spec files.
+   There is no `backend/`, `contracts/`, `knowledge/`, production `chat/` type, theme, navigation,
+   Gradle, entry-point or PNG change (`git show --name-only | grep -i png` is empty), and
+   `:shared:verifyScreenshots` still matches all 18 Desktop and 14 Android goldens.
+
+### Code and documentation consistency
+
+- No old shape remains in code or current docs: no `HEADER_V2`/`V1_FIELD_COUNT`/`decodeV1`/`decodeV2`,
+  no `zone: String?`, `zone == null` or `zone.orEmpty()` in `shared/src`, and no `legacy` path in the
+  lands sources. The only `land-store-v2` strings left are the unknown-header test
+  (`LandStoreFormatTest.kt:87-94`), the contract's negative static gate and historical prose in the
+  appendix and this record.
+- The model is single-sourced: `Land.zone: String` (`Land.kt:13`) and `LandDraft.zone: String`
+  (`Land.kt:32`); the encoder has no `orEmpty()` fallback for the zone (`LandRepository.kt:136`).
+- Current documentation agrees with the code: `CONSTRAINTS.md:72-87` (single format, every decoded
+  record carries its zone, skip whole, no inference), `PROGRESS.md:12` and `:25`,
+  `docs/progress/current-state.md:18-22`, `docs/domain-model.md:19`,
+  `docs/specs/local_land_store.md:30-33`, `docs/specs/land_setup_fields_decision.md:145` and
+  `docs/design/ui-refresh-plan.md` D16/D17 and §7.2.
+- `PROGRESS.md` and the `land_measurement_fields` line in `docs/progress/session-log.md` already
+  describe the single format and the unchanged limits, so no correction was required. The appendix
+  marks its earlier evidence as pre-simplification and appends the current evidence rather than
+  rewriting it.
+
+### Low notes (none blocks acceptance)
+
+- **N1 — one corrupt-line fixture never reaches its guard (low, pre-existing).**
+  `LandStoreFormatTest.kt:57-58` (`land-4` "Área mala", `land-5` "Árboles malos") each contain only
+  12 `|`-separated fields, so they are skipped by the field-count `require` (`LandRepository.kt:160`)
+  before the non-finite-area guard (`:196`) or `treeCount.toInt()` (`:171`) runs. The guards are
+  correct on inspection and `land-2` does exercise the invalid-enum skip, but the appendix sentence
+  "invalid enum, `NaN` area, non-numeric tree count and short lines are skipped whole"
+  (appendix:283-285) overstates the test. The same fixtures were already present in `c229b74`, so the
+  follow-up did not introduce it. One-line repair if wanted: append one empty field to each line
+  (`…|NaN||5|6|7` and `…|1|x|7|8|9`).
+- **N2 — appendix suite count (nit).** Appendix:268 quotes "26 suites" for `:shared:jvmTest`; the
+  JUnit XML has 25 suites/classes and 242 tests, which matches the earlier acceptance record. Every
+  other number reproduces.
+- **N3 — glossary wording (low).** `CONTEXT.md:11` still says the zone is "required for new and edited
+  lands", phrasing inherited from the legacy-zone rule. The current truth is stronger (every stored
+  land carries one). Wording only; nothing contradicts the code.
+- **N4 — observed consequence on a real pre-existing dev store (accepted, not a defect).** This host
+  still has `~/.manijero/lands-v1.txt`, written 2026-10-21 with a 9-field `land-store-v1` line; the
+  current decoder now reads it as zero records (`LandRepository.kt:151-160`). Opening the list does
+  not rewrite the file, but the next save would replace the snapshot with only the records it can
+  read. That is exactly the trade the product owner accepted for the pre-release store, since no build
+  has shipped (`git tag -l` is empty and the Android evidence is an emulator debug artifact), so no
+  product user data is involved. Recorded so the consequence is visible rather than implied.
+
+### Honest limits
+
+Unchanged and independently confirmed:
+
+- No interactive Desktop or emulator walkthrough: the user-flow evidence is the pure
+  state/repository tests plus the existing host goldens and the form previews.
+- No screen-reader audit and no measured 2×-text check on a device or Desktop window; focus order and
+  the polite live regions are code-reviewed only (`AddLandScreen.kt:146`, `:181-218`).
+- No real upgrade, downgrade or backup/restore was exercised — and with a single format there is no
+  upgrade path left to exercise. Persistence is proven by encoder/decoder, repository and Desktop
+  store tests only.
+- No new target-user evidence for the required zone, the ten-option variety list or the optional
+  measures; the low-digital-confidence comprehension check and the product-owner golden sign-off
+  remain open in `PROGRESS.md`.
+- The backend pytest tier still cannot run (`pytest` absent) and no backend file changed; the full
+  `--verify` gate was not rerun in this pass.
+
+### Handoff
+
+- `feature_list.json` keeps `land_measurement_fields` as `accepted`; this re-validation changes no
+  status and rewrites no earlier acceptance text.
+- No code, test, screenshot, contract or product doc was modified for this re-validation; the only
+  file changed is this record.

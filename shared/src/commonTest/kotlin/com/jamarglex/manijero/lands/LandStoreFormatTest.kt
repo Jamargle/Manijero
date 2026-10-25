@@ -54,8 +54,8 @@ class LandStoreFormatTest {
             land-1|Los Olivos|El Llano||DRYLAND|ORGANIC|PICUAL||1.5|85||1|2
             land-2|Campos rotos|El Llano||DRYLAND|ORGANIC|NO_EXISTE||1.5|85||3|4
             land-3|Línea corta|El Llano||DRYLAND
-            land-4|Área mala|La Vega||UNKNOWN|UNKNOWN|UNKNOWN||NaN||5|6
-            land-5|Árboles malos|La Vega||UNKNOWN|UNKNOWN|UNKNOWN||1|x|7|8
+            land-4|Área mala|La Vega||UNKNOWN|UNKNOWN|UNKNOWN||NaN|||5|6
+            land-5|Árboles malos|La Vega||UNKNOWN|UNKNOWN|UNKNOWN||1|x||7|8
             land-6|La Loma|La Vega||IRRIGATED|MIXED|OTHER|Royal|2.5|1200|Nota|9|10
         """.trimIndent()
 
