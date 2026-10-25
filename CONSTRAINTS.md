@@ -69,14 +69,13 @@ Operational MUST/MUST NOT rules that future features have to respect on top of
 
 ## Land fields and storage
 
-- **MUST**: every new or edited land MUST have a trimmed non-blank zone of at most 80 characters.
-  A legacy `land-store-v1` record without a zone MUST stay readable and listed, and MUST require a
-  zone only when it is edited. Reason: `land_measurement_fields` made the zone the second required
-  identity field while preserving already-saved lands.
-- **MUST**: land storage MUST read both `land-store-v1` and `land-store-v2` but write only
-  `land-store-v2`. A v1 record's missing zone, variety, custom variety and tree count MUST decode as
-  `null`/`UNKNOWN`, never as a guessed value; the Desktop file keeps its existing name. Reason: the
-  accepted field decision explicitly rejects a forced migration and invented data.
+- **MUST**: every stored land MUST have a trimmed non-blank zone of at most 80 characters, both on
+  create and on edit; clearing it MUST block the save. Reason: `land_measurement_fields` made the
+  zone the second required identity field.
+- **MUST**: land storage MUST use the single `land-store-v1` format (13 fields) and MUST NOT keep a
+  second decoder or migration path for an older shape. A line that cannot be decoded MUST be skipped
+  whole, and every decoded record MUST carry its zone; the Desktop file keeps its existing name.
+  Reason: no build predates this format, so dual-format code would be maintenance without data.
 - **MUST NOT**: infer a zone, variety, surface, or tree count from a name, municipality, question, or
   another land. An absent optional value MUST stay absent in the store and MUST be omitted from the
   land details rather than shown as zero. Reason: land records must not imply knowledge or

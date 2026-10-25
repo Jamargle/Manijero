@@ -102,41 +102,6 @@ class EditLandRepositoryTest {
     }
 
     @Test
-    fun a_legacy_land_without_zone_requires_a_zone_and_keeps_its_identity_notes_and_area() {
-        val storage = MemoryStorage()
-        val repository = repository(storage)
-        val legacy = Land(
-            id = "land-legacy",
-            name = "Los Olivos",
-            zone = null,
-            municipality = "Martos",
-            areaHectares = 2.5,
-            notes = "Nota privada",
-            createdAtEpochMillis = 1,
-            updatedAtEpochMillis = 1,
-        )
-        storage.value =
-            "land-store-v1\nland-legacy|Los Olivos|Martos|UNKNOWN|UNKNOWN|2.5|Nota privada|1|1"
-
-        val prefilled = repository(storage).list().single().toEditLandState()
-        assertEquals("", prefilled.zone)
-        assertNull(prefilled.toDraftOrNull(), "a legacy record needs a zone before it can be saved")
-
-        val draft = prefilled
-            .reduce(EditLandAction.ZoneChanged("El Llano"))
-            .toDraftOrNull()!!
-
-        repository.update(legacy.id, draft, 5)
-
-        val stored = repository(storage).list().single()
-        assertEquals("land-legacy", stored.id)
-        assertEquals(1L, stored.createdAtEpochMillis)
-        assertEquals("El Llano", stored.zone)
-        assertEquals(2.5, stored.areaHectares)
-        assertEquals("Nota privada", stored.notes)
-    }
-
-    @Test
     fun a_name_only_land_edited_elsewhere_keeps_its_unknown_attributes() {
         val storage = MemoryStorage()
         val repository = repository(storage)

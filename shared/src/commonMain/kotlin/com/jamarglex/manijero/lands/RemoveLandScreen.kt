@@ -143,7 +143,7 @@ fun RemoveLandScreen(
 @Suppress("LongParameterList")
 private fun previewRemoveLandState(
     name: String = "Los Olivos",
-    zone: String? = "Camino de la Fuente",
+    zone: String = "Camino de la Fuente",
     municipality: String? = null,
     variety: LandVariety = LandVariety.UNKNOWN,
     varietyOther: String? = null,

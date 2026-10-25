@@ -82,8 +82,7 @@ class LandRepository(
 
 /**
  * The single write gate: no record is persisted unless every required value is present and every
- * optional value is either absent or valid. The zone is required here (a `LandDraft` cannot even be
- * built without one); a legacy record keeps its empty value only until it is edited.
+ * optional value is either absent or valid. The zone is required here, as it is in [LandDraft].
  */
 private fun normalize(draft: LandDraft): LandDraft {
     require(draft.name.trim().isNotEmpty()) { "Land name must not be blank" }
@@ -113,29 +112,28 @@ private fun normalize(draft: LandDraft): LandDraft {
 private fun generateLandId(): String = "land-${Random.nextLong().toString(16)}"
 
 /**
- * The device-local land store.
+ * The local land store.
  *
- * The writer always emits `land-store-v2` with 13 `|`-separated, escaped fields:
+ * There is one format: the `land-store-v1` header followed by one line per land, with 13
+ * `|`-separated, escaped fields:
  * `id|name|zone|municipality|waterRegime|productionMethod|variety|varietyOther|areaHectares|treeCount|notes|createdAt|updatedAt`.
- * The reader still accepts a `land-store-v1` file (nine fields, no zone/variety/measures) and maps
- * those missing values to `null`/`UNKNOWN`; it never invents a value. A corrupt line is skipped whole,
- * as before, and an unknown header reads as no records.
+ * A line that cannot be decoded is skipped whole, and a header that is not recognised yields no
+ * records. No deployment predates this format, so there is no second decoder or migration path to
+ * keep: changing the format later means adding a version and a reader deliberately.
  */
 internal object LandStoreFormat {
-    private const val HEADER_V1 = "land-store-v1"
-    private const val HEADER_V2 = "land-store-v2"
+    private const val HEADER = "land-store-v1"
     private const val SEPARATOR = "|"
-    private const val V1_FIELD_COUNT = 9
-    private const val V2_FIELD_COUNT = 13
+    private const val FIELD_COUNT = 13
 
     fun encode(records: List<Land>): String = buildString {
-        append(HEADER_V2)
+        append(HEADER)
         records.forEach { land ->
             append('\n')
             append(listOf(
                 land.id,
                 land.name,
-                land.zone.orEmpty(),
+                land.zone,
                 land.municipality.orEmpty(),
                 land.waterRegime.name,
                 land.productionMethod.name,
@@ -153,40 +151,17 @@ internal object LandStoreFormat {
     fun decode(value: String?): List<Land> {
         if (value.isNullOrEmpty()) return emptyList()
         val lines = value.lineSequence().toList()
-        return when (lines.firstOrNull()) {
-            HEADER_V1 -> lines.drop(1).mapNotNull(::decodeV1)
-            HEADER_V2 -> lines.drop(1).mapNotNull(::decodeV2)
-            else -> emptyList()
-        }
+        if (lines.firstOrNull() != HEADER) return emptyList()
+        return lines.drop(1).mapNotNull(::decodeLine)
     }
 
-    private fun decodeV1(line: String): Land? = runCatching {
+    private fun decodeLine(line: String): Land? = runCatching {
         val fields = line.split(SEPARATOR).map(::unescape)
-        require(fields.size == V1_FIELD_COUNT)
+        require(fields.size == FIELD_COUNT)
         land(
             id = fields[0],
             name = fields[1],
-            zone = null,
-            municipality = fields[2].ifEmpty { null },
-            waterRegime = fields[3],
-            productionMethod = fields[4],
-            variety = LandVariety.UNKNOWN.name,
-            varietyOther = null,
-            areaHectares = fields[5].ifEmpty { null }?.toDouble(),
-            treeCount = null,
-            notes = fields[6].ifEmpty { null },
-            createdAtEpochMillis = fields[7].toLong(),
-            updatedAtEpochMillis = fields[8].toLong(),
-        )
-    }.getOrNull()
-
-    private fun decodeV2(line: String): Land? = runCatching {
-        val fields = line.split(SEPARATOR).map(::unescape)
-        require(fields.size == V2_FIELD_COUNT)
-        land(
-            id = fields[0],
-            name = fields[1],
-            zone = fields[2].ifEmpty { null },
+            zone = fields[2],
             municipality = fields[3].ifEmpty { null },
             waterRegime = fields[4],
             productionMethod = fields[5],
@@ -204,7 +179,7 @@ internal object LandStoreFormat {
     private fun land(
         id: String,
         name: String,
-        zone: String?,
+        zone: String,
         municipality: String?,
         waterRegime: String,
         productionMethod: String,
@@ -216,7 +191,7 @@ internal object LandStoreFormat {
         createdAtEpochMillis: Long,
         updatedAtEpochMillis: Long,
     ): Land? {
-        if (id.isEmpty() || name.isEmpty()) return null
+        if (id.isEmpty() || name.isEmpty() || zone.isBlank()) return null
         // A record whose stored area is not finite is corrupt whole, never a value to guess.
         if (areaHectares != null && !areaHectares.isFinite()) return null
         return Land(

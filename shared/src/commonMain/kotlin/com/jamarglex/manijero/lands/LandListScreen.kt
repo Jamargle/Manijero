@@ -250,13 +250,13 @@ private fun LandRow(
 /**
  * The known detail lines of one land, shared by the list row, the removal confirmation and the
  * clarification chooser so a value reads the same everywhere. It renders no name, id or notes: the
- * caller shows the name itself. A missing zone (a legacy record), municipality, surface or tree
- * count is omitted, never shown as zero or guessed; an `UNKNOWN` attribute reads `No lo sé`.
+ * caller shows the name itself. An absent municipality, surface or tree count is omitted, never
+ * shown as zero or guessed; an `UNKNOWN` attribute reads `No lo sé`.
  */
 @Suppress("LongParameterList")
 @Composable
 internal fun LandDetails(
-    zone: String?,
+    zone: String,
     municipality: String?,
     variety: LandVariety,
     varietyOther: String?,
@@ -270,8 +270,8 @@ internal fun LandDetails(
         modifier = modifier,
         verticalArrangement = Arrangement.spacedBy(4.dp),
     ) {
-        zone?.takeIf { it.isNotBlank() }?.let { value ->
-            LandRowDetail(stringResource(Res.string.land_list_zone, value))
+        if (zone.isNotBlank()) {
+            LandRowDetail(stringResource(Res.string.land_list_zone, zone))
         }
         municipality?.takeIf { it.isNotBlank() }?.let { value ->
             LandRowDetail(stringResource(Res.string.land_list_municipality, value))
@@ -335,7 +335,7 @@ private fun productionMethodLabel(productionMethod: ProductionMethod): StringRes
 private fun previewLand(
     id: String,
     name: String,
-    zone: String? = null,
+    zone: String = "El Llano",
     municipality: String? = null,
     variety: LandVariety = LandVariety.UNKNOWN,
     varietyOther: String? = null,

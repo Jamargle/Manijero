@@ -52,12 +52,13 @@ class EditLandStateTest {
         val state = Land(
             id = "land-1",
             name = "Los Olivos",
+            zone = "El Llano",
             municipality = null,
             createdAtEpochMillis = 0,
             updatedAtEpochMillis = 0,
         ).toEditLandState()
 
-        assertEquals("", state.zone, "a legacy record opens with an empty required zone")
+        assertEquals("El Llano", state.zone)
         assertEquals("", state.municipality)
         assertEquals(WaterRegime.UNKNOWN, state.waterRegime)
         assertEquals(ProductionMethod.UNKNOWN, state.productionMethod)
@@ -71,14 +72,15 @@ class EditLandStateTest {
     }
 
     @Test
-    fun a_legacy_land_without_zone_cannot_be_saved_until_a_zone_is_entered() {
+    fun an_emptied_zone_cannot_be_saved_until_a_zone_is_entered() {
         val base = Land(
             id = "land-1",
             name = "Los Olivos",
+            zone = "El Llano",
             municipality = "Martos",
             createdAtEpochMillis = 0,
             updatedAtEpochMillis = 0,
-        ).toEditLandState()
+        ).toEditLandState().copy(zone = "")
 
         val blocked = base.reduce(EditLandAction.SaveClicked)
         assertTrue(blocked.showZoneError)

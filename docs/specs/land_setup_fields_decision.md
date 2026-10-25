@@ -125,10 +125,10 @@ The 2026-10-20 record above is retained unchanged as history, but its field deci
 | Field | Disposition | Rule |
 |---|---|---|
 | Name/nickname | Required, unchanged | Trimmed, non-blank; local only; never sent. |
-| Zone (paraje) | **New; required for new and edited records** | Trimmed, non-blank, at most 80 characters. Legacy lands without a zone stay readable and require a zone only when edited. |
+| Zone (paraje) | **New; required** | Trimmed, non-blank, at most 80 characters. Every stored land carries one; clearing it blocks the save. |
 | Municipality | Optional, unchanged | Trimmed; blank stays absent; never inferred. |
 | Variety | **New; optional** | Fixed shortlist (`Picual`, `Hojiblanca`, `Picudo`, `Lechín de Sevilla`, `Arbequina`, `Manzanilla`, `Gordal`, `Mezcla de variedades`, `Otra`, `No lo sé`). `Otra` requires its own free text (max 40). `No lo sé` stores an unknown value. |
-| Surface | **New; optional** | Comma or dot accepted, at most two decimals, finite and `>= 0`. Never inferred from tree count. Stored as hectares. |
+| Surface | **New; optional** | Comma or dot accepted, at most two decimals by rounding a longer entry, finite and `>= 0`. Never inferred from tree count. Stored as hectares. |
 | Tree count | **New; optional** | Whole number `>= 1`. Never inferred from surface. |
 | Water regime | Optional, unchanged | `unknown` remains a valid state. |
 | Production method | Optional, unchanged | `unknown` remains a valid state. |
@@ -142,15 +142,15 @@ The new values (zone, variety, custom variety text, surface, tree count) are sav
 
 ### Storage and compatibility
 
-The app writes the new `land-store-v2` format (13 fields). Existing `land-store-v1` files still load, with the new fields absent/unknown; there is no forced migration, and an older build cannot read a v2 file. The Desktop file keeps its `lands-v1.txt` name; only its contents change. Backup, sync, restore, and downgrade remain unsupported.
+The app uses one local storage format, `land-store-v1` (13 fields), for the whole store; there is no second shape or migration reader because no build has shipped yet. A malformed line is skipped whole. The Desktop file keeps its `lands-v1.txt` name. Backup, sync, restore, and downgrade remain unsupported.
 
 ### Evidence and limits
 
-There are **no new target-user observations**. The required zone, the approved variety list, and the optional measures are product decisions from the approved UI-refresh plan, not usability findings, and they may lengthen setup or add comprehension burden for people with low digital confidence. The outstanding low-digital-confidence comprehension check is not closed or replaced by this decision. Automated evidence covers the repository, the forms' pure state, the store formats, and the payload boundary; it cannot judge real-user comprehension. No real v1→v2 device upgrade, downgrade, or backup/restore was exercised.
+There are **no new target-user observations**. The required zone, the approved variety list, and the optional measures are product decisions from the approved UI-refresh plan, not usability findings, and they may lengthen setup or add comprehension burden for people with low digital confidence. The outstanding low-digital-confidence comprehension check is not closed or replaced by this decision. Automated evidence covers the repository, the forms' pure state, the store format, and the payload boundary; it cannot judge real-user comprehension. No real device upgrade, downgrade, or backup/restore was exercised.
 
 ### Affected owners
 
-- [`land_measurement_fields`](land_measurement_fields.md) owns the model, store v2, forms, list/remove/clarification display, and this decision's implementation.
+- [`land_measurement_fields`](land_measurement_fields.md) owns the model, the single `land-store-v1` format, forms, list/remove/clarification display, and this decision's implementation.
 - [`land_data_disclosure`](land_data_disclosure.md) owns the in-app notice, updated to name the new local-only values.
 - [`minimal_land_context`](minimal_land_context.md) stays unchanged: the payload keeps its three sendable dimensions.
 - [`add_land`](add_land.md) and [`edit_land`](edit_land.md) setup semantics are updated by the new owning feature; their earlier acceptance records stay as history.

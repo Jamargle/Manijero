@@ -27,8 +27,9 @@ backup, or land-aware chat behavior.
 ## Persistence design
 
 `LandStorage` is a small key/value boundary (`read`/`write`) used by the shared
-repository and tests. The repository stores a versioned, line-oriented format
-(`land-store-v1`) with escaped fields. Malformed records are ignored so a
+repository and tests. The repository stores one line-oriented format
+(`land-store-v1`) with escaped fields; later features added fields to it, and
+nothing has shipped that would need an older shape. Malformed records are ignored so a
 partially damaged local file does not prevent the remaining records from being
 opened. Writes replace the complete snapshot.
 

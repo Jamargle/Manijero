@@ -287,8 +287,8 @@ adopted by the screen refreshes.
   text when chosen, surface in hectares, olive-tree count, water regime, production method, actions.
   Name and zone say “obligatorio” in words; the rest say “opcional” and offer “No lo sé” where the
   value is an attribute. Zone, variety, custom variety text, surface, and tree count stay on the
-  device and never enter the question payload. A saved legacy land without a zone stays readable and
-  asks for one only when edited.
+  device and never enter the question payload. Every saved land has a zone; clearing it blocks the
+  save.
 - **Land clarification:** when an answer materially differs by land, let the user choose one or more
   named lands and continue.
 - **Privacy and help:** explain what is stored on device and what may be sent with a question; make

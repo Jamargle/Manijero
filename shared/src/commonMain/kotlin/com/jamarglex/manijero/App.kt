@@ -1540,7 +1540,7 @@ private fun ChatHomeFailureNarrowLargeTextPreview() {
 private fun clarificationLand(
     id: String,
     name: String,
-    zone: String? = null,
+    zone: String = "El Llano",
     municipality: String? = null,
     variety: LandVariety = LandVariety.UNKNOWN,
     varietyOther: String? = null,

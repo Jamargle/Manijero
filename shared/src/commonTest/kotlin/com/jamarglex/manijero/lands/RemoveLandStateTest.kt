@@ -44,16 +44,17 @@ class RemoveLandStateTest {
     }
 
     @Test
-    fun a_name_only_land_keeps_a_null_zone_and_absent_optional_values() {
+    fun a_name_only_land_keeps_its_zone_and_absent_optional_values() {
         val state = Land(
             id = "land-1",
             name = "Los Olivos",
+            zone = "El Llano",
             municipality = null,
             createdAtEpochMillis = 0,
             updatedAtEpochMillis = 0,
         ).toRemoveLandState()
 
-        assertNull(state.zone)
+        assertEquals("El Llano", state.zone)
         assertNull(state.municipality)
         assertEquals(LandVariety.UNKNOWN, state.variety)
         assertNull(state.varietyOther)
@@ -135,6 +136,7 @@ class RemoveLandStateTest {
             val state = Land(
                 id = "land-1",
                 name = name,
+                zone = "El Llano",
                 createdAtEpochMillis = 0,
                 updatedAtEpochMillis = 0,
             ).toRemoveLandState()

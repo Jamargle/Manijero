@@ -109,7 +109,7 @@ class RemoveLandRepositoryTest {
 
     private fun assertHeaderOnlySnapshot(snapshot: String) {
         val lines = snapshot.lineSequence().toList()
-        assertEquals("land-store-v2", lines.firstOrNull(), "the store header must survive")
+        assertEquals("land-store-v1", lines.firstOrNull(), "the store header must survive")
         assertEquals(1, lines.size, "an empty store must be a valid header-only snapshot")
         assertTrue(snapshot.isNotEmpty())
     }

@@ -3,15 +3,14 @@ package com.jamarglex.manijero.lands
 /**
  * One saved land.
  *
- * [zone] is required for every record the app writes; it is `null` only for a record that was
- * saved before this field existed (a `land-store-v1` file). [variety] is `UNKNOWN` until the person
+ * [zone] is required for every stored record, like the name. [variety] is `UNKNOWN` until the person
  * chooses one, and [varietyOther] holds the custom text only for [LandVariety.OTHER]. Optional
  * measures stay `null` when the person did not provide them: absence is never a zero or a guess.
  */
 data class Land(
     val id: String,
     val name: String,
-    val zone: String? = null,
+    val zone: String,
     val municipality: String? = null,
     val waterRegime: WaterRegime = WaterRegime.UNKNOWN,
     val productionMethod: ProductionMethod = ProductionMethod.UNKNOWN,
@@ -25,8 +24,8 @@ data class Land(
 )
 
 /**
- * The values one add or edit action may write. [zone] is required: a new or edited record can never
- * be saved without it, while a stored legacy record keeps its readable `null` zone until edited.
+ * The values one add or edit action may write. [zone] is required: a record can never be saved
+ * without it.
  */
 data class LandDraft(
     val name: String,

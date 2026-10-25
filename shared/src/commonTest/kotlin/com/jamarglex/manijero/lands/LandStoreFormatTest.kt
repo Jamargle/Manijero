@@ -2,10 +2,10 @@ package com.jamarglex.manijero.lands
 
 import kotlin.test.Test
 import kotlin.test.assertEquals
-import kotlin.test.assertNotNull
+import kotlin.test.assertNull
 import kotlin.test.assertTrue
 
-/** The `land-store-v2` writer and the still-supported `land-store-v1` reader. */
+/** The one `land-store-v1` format: one writer, one reader, and no older shape to migrate. */
 class LandStoreFormatTest {
     @Test
     fun `empty and unknown stores read as no records`() {
@@ -16,14 +16,14 @@ class LandStoreFormatTest {
     }
 
     @Test
-    fun `an empty store is a v2 header and a reopened empty store`() {
+    fun `an empty store is just the header and reopens empty`() {
         val encoded = LandStoreFormat.encode(emptyList())
-        assertEquals("land-store-v2", encoded)
+        assertEquals("land-store-v1", encoded)
         assertEquals(emptyList(), LandStoreFormat.decode(encoded))
     }
 
     @Test
-    fun `v2 round trip keeps every field including escaped text`() {
+    fun `round trip keeps every field including escaped text`() {
         val land = Land(
             id = "land|1",
             name = "Olivar 100%\nNorte",
@@ -42,83 +42,15 @@ class LandStoreFormatTest {
 
         val encoded = LandStoreFormat.encode(listOf(land))
 
-        assertTrue(encoded.startsWith("land-store-v2\n"))
+        assertTrue(encoded.startsWith("land-store-v1\n"))
         assertEquals(listOf(land), LandStoreFormat.decode(encoded))
         assertEquals(13, encoded.lineSequence().drop(1).single().split('|').size)
     }
 
     @Test
-    fun `a v1 store still loads without inventing the missing values`() {
-        val encoded = """
-            land-store-v1
-            land-1|Los Olivos|Martos|IRRIGATED|ORGANIC|2.5|Nota privada|1|2
-            land-2|La Loma||UNKNOWN|UNKNOWN|||3|4
-        """.trimIndent()
-
-        val lands = LandStoreFormat.decode(encoded)
-
-        assertEquals(2, lands.size)
-        assertEquals("land-1", lands[0].id)
-        assertEquals("Los Olivos", lands[0].name)
-        assertEquals(null, lands[0].zone)
-        assertEquals("Martos", lands[0].municipality)
-        assertEquals(WaterRegime.IRRIGATED, lands[0].waterRegime)
-        assertEquals(ProductionMethod.ORGANIC, lands[0].productionMethod)
-        assertEquals(LandVariety.UNKNOWN, lands[0].variety)
-        assertEquals(null, lands[0].varietyOther)
-        assertEquals(2.5, lands[0].areaHectares)
-        assertEquals(null, lands[0].treeCount)
-        assertEquals("Nota privada", lands[0].notes)
-        assertEquals(1L, lands[0].createdAtEpochMillis)
-        assertEquals(2L, lands[0].updatedAtEpochMillis)
-
-        assertEquals(null, lands[1].zone)
-        assertEquals(null, lands[1].municipality)
-        assertEquals(null, lands[1].areaHectares)
-        assertEquals(null, lands[1].notes)
-    }
-
-    @Test
-    fun `a v1 snapshot is rewritten as v2 on the next write`() {
-        val v1 = "land-store-v1\nland-1|Los Olivos|Martos|UNKNOWN|UNKNOWN|||1|2"
-        var stored: String? = v1
-        val storage = object : LandStorage {
-            override fun read(): String? = stored
-
-            override fun write(value: String) {
-                stored = value
-            }
-        }
-        val repository = LandRepository(storage = storage, idGenerator = { "land-2" })
-
-        val loaded = repository.list().single()
-        assertEquals(null, loaded.zone)
-
-        val updated = repository.update(
-            id = loaded.id,
-            draft = LandDraft(
-                name = loaded.name,
-                zone = "El Llano",
-                municipality = loaded.municipality,
-            ),
-            now = 5L,
-        )
-
-        assertNotNull(updated)
-        val written = stored!!
-        assertTrue(written.startsWith("land-store-v2\n"))
-        val reloaded = LandStoreFormat.decode(written).single()
-        assertEquals("El Llano", reloaded.zone)
-        assertEquals(LandVariety.UNKNOWN, reloaded.variety)
-        assertEquals(null, reloaded.treeCount)
-        assertEquals(1L, reloaded.createdAtEpochMillis)
-        assertEquals(5L, reloaded.updatedAtEpochMillis)
-    }
-
-    @Test
     fun `corrupt records are skipped whole and valid neighbours survive`() {
         val encoded = """
-            land-store-v2
+            land-store-v1
             land-1|Los Olivos|El Llano||DRYLAND|ORGANIC|PICUAL||1.5|85||1|2
             land-2|Campos rotos|El Llano||DRYLAND|ORGANIC|NO_EXISTE||1.5|85||3|4
             land-3|Línea corta|El Llano||DRYLAND
@@ -131,7 +63,7 @@ class LandStoreFormatTest {
 
         assertEquals(listOf("land-1", "land-6"), lands.map { it.id })
         assertEquals("PICUAL", lands[0].variety.name)
-        assertEquals(null, lands[0].municipality)
+        assertNull(lands[0].municipality)
         assertEquals(1.5, lands[0].areaHectares)
         assertEquals(85, lands[0].treeCount)
         assertEquals("Royal", lands[1].varietyOther)
@@ -141,19 +73,20 @@ class LandStoreFormatTest {
     }
 
     @Test
-    fun `a v2 header never decodes a v1-shaped line`() {
+    fun `a record without a zone is skipped whole`() {
         val encoded = """
-            land-store-v2
-            land-1|Los Olivos|Martos|IRRIGATED|ORGANIC|2.5|Nota|1|2
+            land-store-v1
+            land-1|Los Olivos||Martos|UNKNOWN|UNKNOWN|UNKNOWN|||||1|2
+            land-2|La Loma|El Llano|Martos|UNKNOWN|UNKNOWN|UNKNOWN|||||3|4
         """.trimIndent()
 
-        assertEquals(emptyList(), LandStoreFormat.decode(encoded))
+        assertEquals(listOf("land-2"), LandStoreFormat.decode(encoded).map { it.id })
     }
 
     @Test
-    fun `a v1 header never decodes a v2-shaped line`() {
+    fun `a store with another header reads as no records`() {
         val encoded = """
-            land-store-v1
+            land-store-v2
             land-1|Los Olivos|El Llano||DRYLAND|ORGANIC|PICUAL||1.5|85||1|2
         """.trimIndent()
 

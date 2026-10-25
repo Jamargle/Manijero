@@ -73,9 +73,9 @@ import org.jetbrains.compose.resources.stringResource
  * interaction through [onAction] or [onCancel]; persistence happens in the caller and only ever
  * targets [EditLandState.landId].
  *
- * The form is prefilled from the stored record. A legacy record loaded without a zone opens with an
- * empty required zone field and cannot be saved until one is written. Saving with any invalid field
- * writes nothing and moves focus to the first invalid one, in layout order.
+ * The person can clear any field; the record's zone and name are required, so clearing either one
+ * blocks the save. Saving with any invalid field writes nothing and moves focus to the first invalid
+ * one, in layout order.
  */
 @Composable
 fun EditLandScreen(
@@ -476,23 +476,6 @@ private fun EditLandKnownValuesPreview() {
                 areaText = "2,5",
                 treeCountText = "85",
                 preservedNotes = "Junto al arroyo",
-            ),
-            onAction = {},
-            onCancel = {},
-        )
-    }
-}
-
-@Preview(name = "Edit land — legacy land without zone")
-@Composable
-private fun EditLandLegacyWithoutZonePreview() {
-    ManijeroTheme {
-        EditLandScreen(
-            state = previewEditLandState(
-                name = "Los Olivos",
-                zone = "",
-                municipality = "Martos",
-                showZoneError = true,
             ),
             onAction = {},
             onCancel = {},

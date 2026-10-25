@@ -10,10 +10,10 @@ enum class EditLandFailure { WRITE_FAILED, LAND_MISSING }
  * it ever carries. Like the add form it keeps the raw text the person typed so nothing is lost while
  * correcting a mistake and normalises only when validating and building a [LandDraft].
  *
- * The zone is now collected, so a legacy land stored without one opens with an empty zone and must
- * get one before it can be saved again. [preservedNotes] stays because this form still does not
- * expose notes, and dropping them would silently erase stored data. Ids, timestamps, and storage
- * rules stay in [LandRepository].
+ * The zone is required, so a land always opens with its stored zone and the form refuses a blank or
+ * over-long one. [preservedNotes] stays because this form still does not expose notes, and dropping
+ * them would silently erase stored data. Ids, timestamps, and storage rules stay in
+ * [LandRepository].
  */
 data class EditLandState(
     val landId: String,
@@ -54,13 +54,12 @@ data class EditLandState(
  * The starting form for this loaded record: every stored value as editable text, the municipality and
  * custom variety text as text (absent becomes an empty field), the two attributes exactly as stored
  * (an `UNKNOWN` value preselects `No lo sé`), and the notes this form does not show carried along for
- * the update. A legacy record without a zone opens with an empty required field; nothing is renamed,
- * defaulted, or guessed.
+ * the update. Nothing is renamed, defaulted, or guessed.
  */
 fun Land.toEditLandState(): EditLandState = EditLandState(
     landId = id,
     name = name,
-    zone = zone.orEmpty(),
+    zone = zone,
     municipality = municipality.orEmpty(),
     waterRegime = waterRegime,
     productionMethod = productionMethod,

@@ -9,7 +9,7 @@ enum class RemoveLandFailure { WRITE_FAILED, LAND_MISSING }
  * It identifies exactly one loaded [Land] by [landId], which is the only record this state may ever
  * delete, and repeats the known details the row shows so two same-named lands stay distinguishable.
  * The name is the stored, already-trimmed name copied verbatim; an `UNKNOWN` variety or attribute
- * stays `UNKNOWN`, an absent zone or measure stays absent, and the custom variety text is copied only
+ * stays `UNKNOWN`, an absent measure stays absent, and the custom variety text is copied only
  * when it exists. [failure] records why a confirmed removal did not happen and is kept separate from
  * the identity fields, so the land still identifies itself for a retry. Ids, timestamps, notes,
  * persistence rules, and resource lookups stay out of this layer. No Compose or platform types belong
@@ -18,7 +18,7 @@ enum class RemoveLandFailure { WRITE_FAILED, LAND_MISSING }
 data class RemoveLandState(
     val landId: String,
     val name: String,
-    val zone: String?,
+    val zone: String,
     val municipality: String?,
     val waterRegime: WaterRegime,
     val productionMethod: ProductionMethod,
