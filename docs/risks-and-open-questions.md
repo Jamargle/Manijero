@@ -29,6 +29,7 @@ Resolved product direction lives in [the build brief](build-brief.md) and [domai
 | PAC answer-evaluation sample is narrow | A report could be mistaken for broad answer quality or legal validation | Keep metrics report-only; publish the exact case/topic boundary and omissions. The report makes no quality or legal claim and does not represent untested questions. |
 | Summary totals read as a verified or cadastral measurement | A person, or someone reading over their shoulder, could treat `Superficie anotada` / `Olivos anotados` as an official or measured figure | The wording says `anotado`, every card carries an `x de y` denominator, nothing annotated reads `Sin datos` and never `0 ha`/`0 olivos`, and the summary is never used as eligibility information. **No user test yet**: the design assumes the wording is understood; validating it with intended users, including low digital confidence, stays outstanding. |
 | Search cannot find a land the person expects | A blank or unexpected result may read as “my land is gone” instead of “this word is not in the record” | Search covers only name, zone, municipality, variety (or custom `Otra` text), water regime and production method; the hint names those fields and the results keep the stored order. Searching by surface or tree count is deliberately unsupported. **No user test yet**: expect questions about why a measure does not match. |
+| Refreshed assistant screen has only host renders and an automated interaction test | The restyle changes every chat surface and adds a hero. Robolectric/Roborazzi frames do not prove a device render, screen-reader output, or that a person with low digital confidence still finds the send action. | Run the manual Android/Desktop smoke, TalkBack/keyboard pass and owner visual sign-off that remain outstanding in [`chat_screen_refresh`](specs/chat_screen_refresh.appendix.md); on 360×800 dp with both shell bars the `Preguntar` button needs one short scroll, so confirm that cost is acceptable before release. |
 
 ## Open questions
 
@@ -68,4 +69,4 @@ Resolved product direction lives in [the build brief](build-brief.md) and [domai
 | Cooperative-facing review tools or content | A cooperative agrees to participate and boundaries are clear |
 | Hosted LLM for answer generation | After corpus coverage and the first measured baseline are reviewed; check current terms, privacy, limits, cost, and verifier behavior |
 
-Last reviewed: 2026-10-18
+Last reviewed: 2026-10-25

@@ -275,6 +275,41 @@ adopted by the screen refreshes.
   state and a simple retry where appropriate.
 - Do not communicate status through color alone.
 
+## Assistant surface (adopted 2026-10-25)
+
+`chat_screen_refresh` moved the assistant surface out of `App.kt` into `chat/` and adopted the shared
+component layer. These rules are durable:
+
+- **Frame and hero.** One `ManijeroScreen` (one scroll, 24/40 dp padding, 32 dp vertical padding,
+  centred 720 dp column) and exactly one `heading()`: `¿En qué puedo ayudarte?` in
+  `headlineMedium`. The hero is one `ManijeroCard(Tonal)` with the 32 dp decorative brand mark above
+  the heading and the unchanged description in `bodyLarge`/`onSurfaceVariant`. The mark is identity,
+  never a badge, date, status, greeting or answer cue.
+- **Speakers.** Every transcript entry renders `Tú` or `Asistente` as visible text and stays one
+  merged semantics node. A `Tú` entry is `primary`/`onPrimary`, end-aligned, at most 85 % of the
+  column, and is never announced as a reply. An answered `Asistente` entry is an outlined neutral
+  card on `surfaceContainerLowest`; citation numerals stay superscript and are not links.
+- **Abstention and states.** A `Sin respuesta segura` entry keeps the `cautionSurface` container, the
+  1 dp `caution` boundary, the `Asistente` label, the scope caption and the caution state label all
+  inside one politely announced node; it adds no confident colour, check or "verified" cue. The
+  working state is a neutral `surfaceContainerLow` notice, text only. A failure is a
+  `ManijeroCallout(Danger)` whose `Reintentar` is its own sibling control, never a transcript entry.
+- **Suggestions.** The three accepted example questions are wrapping `AssistChip`s with a
+  decorative `ic_chat`. They never truncate a question and only fill the composer; they never submit.
+- **Composer and footer.** The field keeps `Escribe tu pregunta`, the example placeholder, 3–6 lines
+  and the over-limit message. It is followed by one full-width filled `Preguntar` button with a
+  decorative `ic_send`, disabled while blank, over the limit or submitting. The privacy summary is
+  always present; the two icon + label footer actions appear only when their callbacks are wired.
+- **Land chooser.** The clarification chooser is an outlined card with the accepted title,
+  explanation, one checkbox row per offered land (the box aligned with the land name inside a 48 dp
+  target, the unchanged plain `LandDetails` below), and `Continuar`, enabled only after a selection.
+  It shows nothing while the guarded local read is unresolved and the accepted fallback if no land
+  matches; it never fabricates a land.
+- **Compact limit.** At 360×800 dp with both shell bars, the hero and suggestions occupy the first
+  screen, so the composer's `Preguntar` button needs one short scroll. This is a recorded limit of
+  the accepted order, not a hidden control: the field and button stay in the same scroll and are
+  never icon-only or off the page.
+
 ## MVP surface intent
 
 - **Welcome and home:** explain what the assistant can and cannot do; offer a clear way to ask or

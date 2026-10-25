@@ -160,10 +160,12 @@ request or a cautious "no lo sé" for a confident answer.
   `ManijeroScreen`; section spacing comes from `ManijeroSpacing.Comfortable`, internal card spacing
   from `Compact`/`Small`, and the 720 dp cap lives only in `ManijeroScreen`. The
   `BringIntoViewRequester` and its 1 dp end marker move unchanged inside the transcript section.
-- **Hero.** `ManijeroCard(tone = ManijeroCardTone.Tonal)` with a `Row` of `ManijeroBrandMark()` and
-  a column holding the heading and description. The heading keeps `semantics { heading() }`; the
-  mark is decorative (`contentDescription = null` inside the wrapper) and is never attached to an
-  answer.
+- **Hero.** `ManijeroCard(tone = ManijeroCardTone.Tonal)` with `ManijeroBrandMark()` stacked above
+  the column holding the heading and description. The mark was planned beside the heading, but at
+  2× text the narrower title column broke the heading's final `?` onto its own line (reviewed on
+  the shell large-text capture); stacking keeps the heading readable at both scales. The heading
+  keeps `semantics { heading() }`; the mark is decorative (`contentDescription = null` inside the
+  wrapper) and is never attached to an answer.
 - **Transcript.** `ChatBubble` becomes the shared surface for user, answered, abstained and notice
   entries: `ManijeroShapes.Large`, `ManijeroSpacing.Comfortable` padding, `Compact` internal
   spacing, caller-supplied container/border/label colours. The user entry is wrapped in a

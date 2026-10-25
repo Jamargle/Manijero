@@ -59,6 +59,38 @@ internal object ScreenshotFixtures {
         lastResponseStatus = AnswerStatus.answered,
     )
 
+    /**
+     * An abstained answer: the assistant could not confirm the claim with the reviewed sources.
+     * The message is copied verbatim from `contracts/examples/response-abstained.json`, so the
+     * captured notice text is the accepted wording and not invented copy.
+     */
+    val abstainedResponse = ChatHomeState(
+        messages = listOf(
+            ChatMessage(
+                speaker = Speaker.USER,
+                text = "¿Cuándo termina el plazo para pedir la ayuda?",
+            ),
+            ChatMessage(
+                speaker = Speaker.ASSISTANT,
+                text = "No puedo confirmar ese plazo con la información oficial revisada. " +
+                    "Consulta la convocatoria vigente o tu Oficina Comarcal Agraria antes de actuar.",
+                answerStatus = AnswerStatus.abstained,
+                landScope = LandContextMode.all_active,
+            ),
+        ),
+        lastResponseStatus = AnswerStatus.abstained,
+    )
+
+    /**
+     * A pending clarification over the two saved lands. The opaque ids match [twoLands], so the
+     * chooser can render real stored rows; the screen still filters them, and a failed read would
+     * show the accepted fallback instead.
+     */
+    val clarificationChat = ChatHomeState(
+        lastResponseStatus = AnswerStatus.needs_land_clarification,
+        landIdsToChoose = listOf("land-1", "land-2"),
+    )
+
     /** Two distinguishable saved lands with known and unknown attributes. */
     val twoLands = LandListState(
         lands = listOf(

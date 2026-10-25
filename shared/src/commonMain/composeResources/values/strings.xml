@@ -135,7 +135,6 @@
     <string name="chat_home_failure_unreachable">No se ha podido conectar con el servicio, así que todavía no tengo tu respuesta. Comprueba tu conexión e inténtalo otra vez.</string>
     <string name="chat_home_failure_service">El servicio no está disponible en este momento, así que todavía no tengo tu respuesta. Inténtalo otra vez dentro de un momento.</string>
     <string name="chat_home_retry">Reintentar</string>
-    <string name="chat_home_submitted">Tu pregunta está lista para continuar.</string>
     <string name="chat_home_suggestions_title">Puedes empezar con una de estas preguntas</string>
     <string name="chat_home_suggestion_solicitud_unica">¿Qué necesito preparar para la solicitud única?</string>
     <string name="chat_home_suggestion_sigpac">¿Qué es el SIGPAC y para qué sirve?</string>

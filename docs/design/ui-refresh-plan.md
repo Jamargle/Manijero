@@ -713,6 +713,14 @@ Delivery note: P0-17…P0-19 are implemented by the `app_chrome_navigation` feat
 ([spec](../specs/app_chrome_navigation.md)); its status and evidence live in `feature_list.json`
 and the acceptance record, not here. This plan stays a historical design input.
 
+Delivery note: P2-01…P2-08 are implemented by the `chat_screen_refresh` feature
+([spec](../specs/chat_screen_refresh.md)); its status and evidence live in `feature_list.json`,
+the appendix and the acceptance record, not here. Two intentional departures from this plan's prose
+are recorded in the appendix: the working state stays a static `surfaceContainerLow` text notice
+instead of the three-dot indicator (§5.2 item 5), and the composer keeps a visible `Preguntar` label
+with a decorative `ic_send` instead of the unnamed `Enviar` icon button (item 8), because
+`chat_screen_refresh` recorded a visible action as the accessible choice.
+
 Sequencing rule: finish and validate each feature before starting the next. `design_token_refresh` and the pure data layer (`Land.kt`, store format, summary/search functions) touch disjoint files and are the only safe parallel lane; everything else is serial to keep review and evidence honest.
 
 Why this order:

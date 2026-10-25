@@ -4,13 +4,14 @@ Two screenshot suites cover the shared Compose UI in `shared/src/commonMain`:
 
 | Platform | Renderer | Goldens | Captures |
 |---|---|---|---|
-| Desktop | Compose Desktop on the JVM target | `shared/src/jvmTest/screenshots/` | 4 app scenes × 2 widths + 2 lands search states (no results and one match) at one wide viewport each + board in 2 appearances + component gallery in 4 configurations + app shell in 4 configurations = 20 |
-| Android | Compose UI rendered by Robolectric on the JVM (no emulator/device) | `shared/src/androidHostTest/screenshots/` | 4 app scenes at 360×800 dp + 2 lands search states (no results and one match) at 900×1000 dp + board at 900×1200 dp in 2 appearances + component gallery in 4 configurations + app shell in 4 configurations = 16 |
+| Desktop | Compose Desktop on the JVM target | `shared/src/jvmTest/screenshots/` | 6 chat states (idle light, answered dark, abstention dark, clarification light; idle and answered also at 360×800) + 6 lands states (list light and empty dark, each at 900×1200 and 360×800, plus search no results and one match at 900×1000) + board in 2 appearances + component gallery in 4 configurations + app shell in 4 configurations = 22 |
+| Android | Compose UI rendered by Robolectric on the JVM (no emulator/device) | `shared/src/androidHostTest/screenshots/` | 4 chat states at 360×800 dp + 4 lands states (list light and empty dark at 360×800, search no results and one match at 900×1000) + board at 900×1200 dp in 2 appearances + component gallery in 4 configurations + app shell in 4 configurations = 18 |
 
 The app scenes are the same on both platforms and use the shared, code-owned fixtures in
-`shared/src/commonTest/kotlin/com/jamarglex/manijero/screenshots/ScreenshotFixtures.kt`: chat home
-idle (light), chat answered with a source card (dark), saved-lands list with two lands (light), and
-saved-lands empty state (dark). Two saved-lands search states are captured once per platform at
+`shared/src/commonTest/kotlin/com/jamarglex/manijero/screenshots/ScreenshotFixtures.kt`: chat idle
+(light), chat answered with a source card (dark), chat abstention with its state label (dark), chat
+clarification chooser over two lands (light), land list with two lands (light), and land empty
+(dark). Two saved-lands search states are captured once per platform at
 900×1000 dp instead of the phone width: no results, and one match of two saved lands (both light). The
 wide viewport is used because a phone frame would push the no-results panel below the fold, and because
 the filtered frame must show the scope caption, the three `x de y` captions and the single matching row
