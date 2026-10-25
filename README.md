@@ -32,7 +32,7 @@ The client app needs the local FastAPI service running to send questions. From t
 ./scripts/init.sh --backend
 ```
 
-On first run, the script creates `backend/.venv` and installs the backend requirements; later runs reuse that environment and check/install requirements. It starts the API with campaign `2026` unless `MANIJERO_ACTIVE_CAMPAIGN` is already set. Leave that terminal open, then run `./scripts/init.sh --android` or `./scripts/init.sh --desktop` in another terminal. Android Emulator reaches the backend through `http://10.0.2.2:8000`; Desktop uses `http://127.0.0.1:8000`. Check the service at `http://127.0.0.1:8000/health`. Stop the backend with `Ctrl+C` when finished.
+On first run, the script creates `backend/.venv` and installs the backend requirements; later runs reuse that environment and check/install requirements. It starts the API with campaign `2026` unless `MANIJERO_ACTIVE_CAMPAIGN` is already set. The backend binds to `0.0.0.0` for Android emulator access through `http://10.0.2.2:8000`; this exposes the local development API on your network, so use a trusted network or set `MANIJERO_BACKEND_HOST=127.0.0.1` to restrict access to this computer. Leave that terminal open, then run `./scripts/init.sh --android` or `./scripts/init.sh --desktop` in another terminal. Desktop uses `http://127.0.0.1:8000`. Check the service at `http://127.0.0.1:8000/health`. Stop the backend with `Ctrl+C` when finished. For a physical Android device on the same trusted LAN, build with `-PmanijeroAskBaseUrl=http://<computer-lan-ip>:8000`.
 
 
 ### Running the client apps
@@ -43,7 +43,7 @@ Building and running:
 ./scripts/init.sh --android-run # builds, boots an emulator if needed, installs, and launches the app
 ./scripts/init.sh --desktop    # launches the Desktop app
 ```
-When the service is running and reachable, the Android app is wired to the local service in `http://10.0.2.2:8000`; otherwise questions show the plain-Spanish failure notice with a `Reintentar` button.
+When the service is running and reachable, the Android app is wired to the local service in `http://10.0.2.2:8000`; otherwise questions show the plain-Spanish failure notice with a `Reintentar` button. On Android 17, the app asks for local-network access on first launch; allow it so the app can reach the development backend.
 The Desktop app is wired to the local service in `http://127.0.0.1:8000`. Besides that, the Desktop app keeps its lands in `~/.manijero/lands-v1.txt` (the shared `land-store-v1` format); remove that file to start from an empty list.
 
 ### Build and verification

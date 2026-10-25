@@ -1,7 +1,11 @@
 package com.jamarglex.manijero
 
+import android.Manifest
+import android.content.pm.PackageManager
+import android.os.Build
 import android.os.Bundle
 import androidx.activity.ComponentActivity
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.compose.runtime.Composable
@@ -14,6 +18,10 @@ import com.jamarglex.manijero.lands.LandRepository
 import com.jamarglex.manijero.lands.SharedPreferencesLandStorage
 
 class MainActivity : ComponentActivity() {
+    private val localNetworkPermissionLauncher = registerForActivityResult(
+        ActivityResultContracts.RequestPermission(),
+    ) { }
+
     private val answerClient by lazy { answerHttpClient(Android.create()) }
     private val answerService by lazy { KtorAnswerService(answerClient, androidAskBaseUrl(BuildConfig.ASK_BASE_URL)) }
     private val landRepository by lazy {
@@ -23,6 +31,12 @@ class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         enableEdgeToEdge()
         super.onCreate(savedInstanceState)
+
+        if (Build.VERSION.SDK_INT >= 37 &&
+            checkSelfPermission(Manifest.permission.ACCESS_LOCAL_NETWORK) != PackageManager.PERMISSION_GRANTED
+        ) {
+            localNetworkPermissionLauncher.launch(Manifest.permission.ACCESS_LOCAL_NETWORK)
+        }
 
         setContent {
             App(landRepository, answerService)
