@@ -213,3 +213,30 @@ Operational MUST/MUST NOT rules that future features have to respect on top of
   or narrows corpus scope. Reason: `coverage_and_help` establishes that people must not infer broad
   coverage from the assistant; stale or overconfident disclosure could prompt reliance outside the
   evidence actually reviewed.
+
+## Brand vectors
+
+- **MUST**: every shipped brand vector (the mark, the sixteen `ic_*` glyphs, the olive-branch
+  illustration) MUST stay a single monochrome Android-XML mask under
+  `shared/src/commonMain/composeResources/drawable/` whose only colour literals are `#000000` and
+  `#00000000`, with no `android:tint`, gradient, `aapt:attr` block, clip path, or `@android:`
+  reference, and its colour MUST be supplied at the call site from the theme (`ManijeroIcon` tint,
+  or the wrappers' fixed `primary` / `primaryContainer` + `onPrimaryContainer` roles). Reason:
+  `brand_vectors` established one asset per vector for both appearances, and a colour baked into a
+  vector or a second dark-mode asset would break the palette and the contrast tokens
+  `design_token_refresh` guarantees.
+- A new glyph MUST be authored on the 24 dp outline grid (24×24 viewport, 2 dp stroke, round caps
+  and joins, no filled shape, content inside the 2–22 dp safe area) and added together with its entry
+  in `BrandVectorSetTest` and the inventory/style/colour gates in the owning spec. Reason: the set is
+  one visual weight and a fixed sixteen-name inventory, so an improvised inline path or a filled icon
+  would silently break both the look and the asset gate.
+- **MUST**: the brand mark and the empty-state illustration MUST stay decorative — no
+  `contentDescription` parameter, no semantics node, no colour parameter, the illustration halo
+  painted in Compose rather than in the vector — and MUST NOT be used as a check, seal, badge, or
+  "verified"/"official" cue, nor to qualify an answer, source, or land. Reason: `brand_vectors`
+  established identity and decoration only, and a status reading of the mark would reintroduce the
+  legal-certainty failure `response_states` forbids.
+- **MUST NOT**: add a `material-icons-*` (or any other icon-font) runtime dependency, a raster or
+  binary icon asset, or a generated image for these glyphs. Reason: `brand_vectors` replaced that
+  dependency with repository-owned vectors; an icon font would bypass the theme tint policy and the
+  pinned inventory.

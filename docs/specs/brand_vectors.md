@@ -210,7 +210,8 @@ internal fun ManijeroOliveBranch(
   and the four goldens `brand_vector_board_light.png` / `brand_vector_board_dark.png` in
   `shared/src/jvmTest/screenshots/` and `shared/src/androidHostTest/screenshots/`.
 - **Update** `DESIGN.md` (brand vectors, icon and illustration rules, tint policy, licence pointer),
-  `CONSTRAINTS.md` (durable asset rules).
+  `CONSTRAINTS.md` (durable asset rules), `docs/screenshot-regression.md` (the new capture counts and
+  the board's dedicated Android viewport).
 - **Update after acceptance only:** `feature_list.json`, `PROGRESS.md`, `docs/progress/session-log.md`,
   this feature's appendix, `docs/validations/brand_vectors.md`.
 - **Not changed:** every existing screen and host module, `theme/*`, `composeResources/values/strings.xml`,
@@ -234,6 +235,7 @@ internal fun ManijeroOliveBranch(
 |---|---|---|
 | `DESIGN.md` | Update | Records the brand mark, icon set, illustration, tint policy, and licence pointer as the visual authority later screens cite. |
 | `CONSTRAINTS.md` | Update | Adds the durable asset rules a later change must not break: monochrome theme-tinted vectors only, decorative identity, no Material icon dependency. |
+| `docs/screenshot-regression.md` | Update | It is the harness doc future features follow; it needs the new capture counts and the board's viewport so the next suite is added consistently. |
 | `PROGRESS.md` | Update after acceptance | Notes the new assets and the pending owner sign-off for the added goldens. |
 | `docs/progress/session-log.md` | Update after acceptance | One pointer line to the spec and acceptance record. |
 | `ARCHITECTURE.md` | Not needed | Resources stay inside the existing `shared` `commonMain` boundary; no module, dependency, or runtime path changes. |
@@ -268,7 +270,7 @@ for icon in $icons; do
   grep -q 'android:strokeLineJoin="round"' "$icon" || { echo "$icon does not use round joins" >&2; exit 1; }
   grep -q 'android:fillColor="#000000"' "$icon" && { echo "$icon contains a filled shape; the set is outline-only" >&2; exit 1; }
 done
-grep -q 'material-icons' "$REPO_ROOT/gradle/libs.versions.toml" && { echo "material-icons dependency was added" >&2; exit 1; }
+if grep -q 'material-icons' "$REPO_ROOT/gradle/libs.versions.toml"; then echo "material-icons dependency was added" >&2; exit 1; fi
 ```
 <!-- verify:end -->
 

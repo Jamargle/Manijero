@@ -163,6 +163,68 @@ Dark:
 
 Checks test the full listed pair set, not every mathematically possible combination of roles.
 
+## Brand vectors and iconography
+
+The identity layer is hand-authored vector XML under
+`shared/src/commonMain/composeResources/drawable/`, drawn by thin shared wrappers in
+`com.jamarglex.manijero.design`. Every vector is a single-colour mask, so there is one asset per
+vector and both appearances tint it from the theme. `brand_vectors` owns the assets and the wrappers;
+screens adopt them in later features, and the geometry and licence record lives in that feature's
+appendix ([`docs/specs/brand_vectors.appendix.md`](docs/specs/brand_vectors.appendix.md)).
+
+### Icon set
+
+- Sixteen outline glyphs: `ic_chat`, `ic_lands`, `ic_help`, `ic_search`, `ic_add`, `ic_edit`,
+  `ic_delete`, `ic_back`, `ic_retry`, `ic_send`, `ic_external_link`, `ic_info`, `ic_warning`,
+  `ic_check`, `ic_chevron_down`, `ic_clear`. That list is fixed; a screen that needs another glyph
+  extends the inventory (asset, test, focused gate) in its own feature instead of drawing a path
+  inline.
+- Geometry: a 24 dp vector on a 24×24 viewport, a 2 dp stroke with round caps and joins, no filled
+  shape, and content inside the 2–22 dp safe area. The single weight keeps the set coherent with the
+  flat, outlined-card foundation and quieter than filled icons.
+- Sizes: 24 dp by default and 20 dp inline (`ManijeroIconSize.Default` and `Inline`). Icons are never
+  stretched or scaled to arbitrary sizes.
+- Adoption: `ManijeroIcon(resource, contentDescription, …)` is the only supported way to draw one.
+  Its `contentDescription` has no default, so each call site states whether the glyph carries
+  meaning (`null` = decorative). Pair an unclear icon with text; the wrapper adds no padding, touch
+  target, or click handling — an interactive icon goes inside the consuming feature's `IconButton`,
+  which brings `ManijeroLayout.MinTouchTarget`.
+- Tint: `LocalContentColor` by default, so a glyph follows its surrounding text/surface role. Do not
+  hardcode a colour per call site to express status: `caution` and `danger` stay the only status
+  hues, and no icon alone may convey caution, error, eligibility, or verification.
+
+### Brand mark
+
+- `ManijeroBrandMark(modifier, size = ManijeroIconSize.Large)`: the open olive ring with a leaf, drawn
+  at exactly the requested size (32 dp default; 28 dp and 48 dp are valid call sites) with no blur.
+- Identity, not status. The wrapper exposes no content description, no colour, and no state, so it
+  cannot become a check, seal, badge, or "verified" cue. It is used for the app's own identity (top
+  app bar in a later feature), never to qualify an answer, a source, or a land.
+- Tint: `MaterialTheme.colorScheme.primary`. The gated `primary`-on-`background` pair covers it in
+  both appearances.
+
+### Empty-state illustration
+
+- `ManijeroOliveBranch(modifier, size = 180.dp)`: the olive sprig on a soft halo, valid from 160 dp to
+  200 dp without clipping.
+- The halo is painted in Compose (`primaryContainer`, circular) and the sprig is tinted
+  `onPrimaryContainer`; neither colour lives in the asset. The gated
+  `onPrimaryContainer`-on-`primaryContainer` pair covers the illustration.
+- Decorative: no content description, no colour parameter, no semantics node. The surface that shows
+  it supplies the text that explains the empty state.
+
+### Asset and tint policy
+
+- Vectors carry no appearance colour. The only colour literals allowed are the black mask
+  (`#000000`) and transparency (`#00000000`); no `android:tint`, gradient, `aapt:attr` block, clip
+  path, or `@android:`/external resource reference. Compose Multiplatform must decode every file on
+  Android, Desktop, and iOS, so only the documented `<vector>`/`<path>` subset is used.
+- No generated imagery, raster asset, bundled icon font, or `material-icons-*` runtime dependency.
+- No new colour or size token is introduced for these assets: they reuse `ManijeroIconSize` and the
+  theme roles above.
+- Source geometry follows Material Symbols conventions (Google Fonts Icons gallery, Apache License
+  2.0); the path data is original to this repository and the licence note is in the feature appendix.
+
 ## Layout and interaction
 
 - Give each screen one primary action, with plain labels such as “Añadir terreno” and “Preguntar”.

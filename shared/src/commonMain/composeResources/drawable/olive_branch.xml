@@ -1,0 +1,69 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  Empty-state olive sprig: a curved stem, two pairs of leaves, and two olives.
+  Hand-authored on a 96 x 96 grid; monochrome mask (black) so the wrapper supplies the theme
+  colour. The soft halo is painted by ManijeroOliveBranch, never in this file, so no appearance
+  colour enters the asset.
+-->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="96dp"
+    android:height="96dp"
+    android:viewportWidth="96"
+    android:viewportHeight="96">
+
+    <path
+        android:pathData="M48,82 C46,68 46,50 52,28"
+        android:fillColor="#00000000"
+        android:strokeColor="#000000"
+        android:strokeWidth="2"
+        android:strokeLineCap="round"
+        android:strokeLineJoin="round" />
+
+    <path
+        android:pathData="M46.5,66 C37,65 32,58 33,48 C42,48 47,56 46.5,66 Z M46.5,66 L33.5,48.5"
+        android:fillColor="#00000000"
+        android:strokeColor="#000000"
+        android:strokeWidth="2"
+        android:strokeLineCap="round"
+        android:strokeLineJoin="round" />
+
+    <path
+        android:pathData="M47.5,56 C56,53 61,46 60,37 C51,40 46,47 47.5,56 Z M47.5,56 L60,37"
+        android:fillColor="#00000000"
+        android:strokeColor="#000000"
+        android:strokeWidth="2"
+        android:strokeLineCap="round"
+        android:strokeLineJoin="round" />
+
+    <path
+        android:pathData="M48.5,44 C41,42 37,35 38,26 C45,28 49,35 48.5,44 Z M48.5,44 L38,26"
+        android:fillColor="#00000000"
+        android:strokeColor="#000000"
+        android:strokeWidth="2"
+        android:strokeLineCap="round"
+        android:strokeLineJoin="round" />
+
+    <path
+        android:pathData="M50,34 C56,31 59,25 58,19 C52,21 49,26 50,34 Z M50,34 L58,19"
+        android:fillColor="#00000000"
+        android:strokeColor="#000000"
+        android:strokeWidth="2"
+        android:strokeLineCap="round"
+        android:strokeLineJoin="round" />
+
+    <path
+        android:pathData="M37.6,73.5 A3.4,3.4 0 0 1 44.4,73.5 A3.4,3.4 0 0 1 37.6,73.5 Z M46.9,73.5 L44.4,73.5"
+        android:fillColor="#00000000"
+        android:strokeColor="#000000"
+        android:strokeWidth="2"
+        android:strokeLineCap="round"
+        android:strokeLineJoin="round" />
+
+    <path
+        android:pathData="M51.3,79 A3.2,3.2 0 0 1 57.7,79 A3.2,3.2 0 0 1 51.3,79 Z M47.8,79 L51.3,79"
+        android:fillColor="#00000000"
+        android:strokeColor="#000000"
+        android:strokeWidth="2"
+        android:strokeLineCap="round"
+        android:strokeLineJoin="round" />
+</vector>
