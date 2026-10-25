@@ -15,10 +15,12 @@ points at the per-feature records.
   platform Ktor engine and local development base URL, so the launched apps use the running local
   service. Without a reachable backend they show the existing plain-Spanish failure notice with
   `Reintentar`.
-- **Lands.** Device-local and versioned (`land-store-v1`): `~/.manijero/lands-v1.txt` on Desktop,
-  `manijero_lands` SharedPreferences on Android. Add, list, edit, and remove all go through the
-  shared repository; unknown attributes stay `UNKNOWN`; only the attributes a question needs may
-  leave the device (`chat/LandContextBuilder.kt`, pinned by `privacy/LandDataDisclosure.kt`).
+- **Lands.** Device-local and versioned: the app writes `land-store-v2` (required zone/paraje, plus
+  optional variety, surface and olive-tree count) into `~/.manijero/lands-v1.txt` on Desktop and the
+  `manijero_lands` SharedPreferences on Android, and still reads `land-store-v1` records with the new
+  fields absent. Add, list, edit, and remove all go through the shared repository; unknown attributes
+  stay `UNKNOWN` and absent measures stay absent; only the attributes a question needs may leave the
+  device (`chat/LandContextBuilder.kt`, pinned by `privacy/LandDataDisclosure.kt`).
 - **Backend.** FastAPI exposes liveness-only `/health` and a local, campaign-scoped `/ask`; no
   model provider is configured.
 - **Knowledge and offline boundaries.** `knowledge/source_catalog.json` (`source-catalog-v1`)
