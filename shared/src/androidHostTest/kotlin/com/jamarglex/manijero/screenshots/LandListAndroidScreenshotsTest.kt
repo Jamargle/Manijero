@@ -24,7 +24,6 @@ class LandListAndroidScreenshotsTest : AndroidScreenshotTestSupport() {
                     onAddLand = {},
                     onEditLand = {},
                     onRemoveLand = {},
-                    onBack = {},
                     onRetry = {},
                 )
             }
@@ -40,7 +39,6 @@ class LandListAndroidScreenshotsTest : AndroidScreenshotTestSupport() {
                     onAddLand = {},
                     onEditLand = {},
                     onRemoveLand = {},
-                    onBack = {},
                     onRetry = {},
                 )
             }

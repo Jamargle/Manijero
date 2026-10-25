@@ -4,8 +4,8 @@ Two screenshot suites cover the shared Compose UI in `shared/src/commonMain`:
 
 | Platform | Renderer | Goldens | Captures |
 |---|---|---|---|
-| Desktop | Compose Desktop on the JVM target | `shared/src/jvmTest/screenshots/` | 4 app scenes × 2 widths + board in 2 appearances + component gallery in 4 configurations = 14 |
-| Android | Compose UI rendered by Robolectric on the JVM (no emulator/device) | `shared/src/androidHostTest/screenshots/` | 4 app scenes at 360×800 dp + board at 900×1200 dp in 2 appearances + component gallery in 4 configurations = 10 |
+| Desktop | Compose Desktop on the JVM target | `shared/src/jvmTest/screenshots/` | 4 app scenes × 2 widths + board in 2 appearances + component gallery in 4 configurations + app shell in 4 configurations = 18 |
+| Android | Compose UI rendered by Robolectric on the JVM (no emulator/device) | `shared/src/androidHostTest/screenshots/` | 4 app scenes at 360×800 dp + board at 900×1200 dp in 2 appearances + component gallery in 4 configurations + app shell in 4 configurations = 14 |
 
 The app scenes are the same on both platforms and use the shared, code-owned fixtures in
 `shared/src/commonTest/kotlin/com/jamarglex/manijero/screenshots/ScreenshotFixtures.kt`: chat home
@@ -76,7 +76,8 @@ hide a regression.
 Desktop:
 
 - density 1, font scale 1, layout direction LTR, JVM locale pinned to `es-ES` for each test; the
-  gallery's two large-text captures nest `Density(1f, fontScale = 2f)` around the gallery only;
+  gallery's two large-text captures nest `Density(1f, fontScale = 2f)` around the gallery only, and
+  the shell large-text capture uses the same 2× density for its frame only;
 - appearance is the `darkTheme` argument on `ManijeroTheme`, never the host setting;
 - fixtures are code-owned: no clock, network, disk, backend, or land store;
 - comparison: Roborazzi `SimpleImageComparator(maxDistance = 0.007)` with
@@ -87,7 +88,9 @@ Android:
 - Robolectric SDK 35; app scenes use `es-rES-w360dp-h800dp-mdpi` (360×800 dp), the board class pins
   `es-rES-w900dp-h1200dp-mdpi` (900×1200 dp), and the component-gallery class sets
   `es-rES-w1200dp-h3000dp-mdpi` for the wide pair and `es-rES-w360dp-h5400dp-mdpi` for the 2× pair,
-  so both hosts show the same compositions;
+  so both hosts show the same compositions. The shell class uses the same 360×800 dp compact
+  viewport and overrides the two rail captures per method with `es-rES-w900dp-h1000dp-mdpi`; its
+  large-text capture nests `Density(1f, fontScale = 2f)` around the shell frame;
 - the same explicit `ManijeroTheme(darkTheme = ...)`, density 1, and font scale 1, with the gallery's
   large-text captures nesting `Density(1f, fontScale = 2f)` around the gallery only;
 - the same fixtures and the same explicit `changeThreshold = 0.001F`.
@@ -100,7 +103,8 @@ a meaningful change.
 
 1. Add a test to the platform's test class next to the existing captures. Keep chat states in the
    chat class and lands states in the lands class, and reuse `ScreenshotFixtures`. A review-only
-   board that is neither a chat nor a lands scene gets its own dedicated class on each platform.
+   board that is neither a chat nor a lands scene gets its own dedicated class on each platform;
+   the shell's four frames live in `AppShellScreenshotsTest` on each host.
 2. Record with the explicit task, inspect the new image, and commit it with the test.
 3. Update this document's capture table and the feature appendix evidence.
 

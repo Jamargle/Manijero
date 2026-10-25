@@ -43,7 +43,7 @@ import manijero.shared.generated.resources.coverage_privacy_link
 private val MaxWidth = 720.dp
 
 @Composable
-fun CoverageScreen(onBack: () -> Unit, onPrivacyClick: () -> Unit, modifier: Modifier = Modifier) {
+fun CoverageScreen(onPrivacyClick: () -> Unit, modifier: Modifier = Modifier) {
     Surface(modifier.fillMaxSize(), color = MaterialTheme.colorScheme.background) {
         Column(Modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(24.dp), verticalArrangement = Arrangement.spacedBy(20.dp)) {
             Column(Modifier.widthIn(max = MaxWidth).fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(12.dp)) {
@@ -54,7 +54,6 @@ fun CoverageScreen(onBack: () -> Unit, onPrivacyClick: () -> Unit, modifier: Mod
             CoverageSectionView(Res.string.coverage_section_limits, listOf(Res.string.coverage_no_coop, Res.string.coverage_no_personal, Res.string.coverage_no_outside, Res.string.coverage_no_unrelated, Res.string.coverage_not_yet_topics))
             CoverageSectionView(Res.string.coverage_section_help, listOf(Res.string.coverage_help_body))
             TextButton(onClick = onPrivacyClick, modifier = Modifier.widthIn(max = MaxWidth).fillMaxWidth()) { Text(stringResource(Res.string.coverage_privacy_link)) }
-            TextButton(onClick = onBack, modifier = Modifier.widthIn(max = MaxWidth).fillMaxWidth()) { Text(stringResource(Res.string.privacy_back)) }
         }
     }
 }
@@ -66,5 +65,5 @@ fun CoverageScreen(onBack: () -> Unit, onPrivacyClick: () -> Unit, modifier: Mod
     }
 }
 
-@Preview(name = "Coverage") @Composable private fun CoveragePreview() { ManijeroTheme { CoverageScreen({}, {}) } }
-@Preview(name = "Coverage narrow, large text", widthDp = 320, fontScale = 2f) @Composable private fun CoverageLargePreview() { ManijeroTheme { CoverageScreen({}, {}) } }
+@Preview(name = "Coverage") @Composable private fun CoveragePreview() { ManijeroTheme { CoverageScreen({}) } }
+@Preview(name = "Coverage narrow, large text", widthDp = 320, fontScale = 2f) @Composable private fun CoverageLargePreview() { ManijeroTheme { CoverageScreen({}) } }

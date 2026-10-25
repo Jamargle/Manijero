@@ -49,11 +49,15 @@ abstract class AndroidScreenshotTestSupport {
      * Sets [content] on the Robolectric activity and captures the semantics root with Roborazzi.
      * A missing capture mode fails loudly instead of silently producing no image.
      */
-    protected fun capture(name: String, content: @Composable () -> Unit) {
+    protected fun capture(
+        name: String,
+        fontScale: Float = 1f,
+        content: @Composable () -> Unit,
+    ) {
         requireScreenshotMode()
         composeRule.setContent {
             CompositionLocalProvider(
-                LocalDensity provides Density(density = 1f, fontScale = 1f),
+                LocalDensity provides Density(density = 1f, fontScale = fontScale),
             ) {
                 content()
             }

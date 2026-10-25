@@ -213,8 +213,14 @@ Consequence of D3: no serif headlines. The “rustic modern” feel is carried b
 
 - Use `BoxWithConstraints` or `WindowWidthSizeClass`-equivalent logic in `commonMain`; do not add an adaptive-layout dependency.
 - `Scaffold` owns insets. Composer uses `imePadding`; bottom navigation stays above the keyboard where the platform allows it.
-- Top bar: brand mark + “Manijero” on the left; one right-side privacy action (shield + label on wide, icon + accessible label on compact). Hide that action while the Privacy screen itself is open. Tab duplication means no help action is needed in the bar.
-- Back behavior: Android system back from a non-chat tab returns to Asistente; from a form returns to Mis terrenos; from Privacidad/Ayuda returns to the previous tab. Desktop keeps explicit back controls in forms only. Verify the common back API at implementation; if unavailable, provide an `expect/actual` host hook rather than dropping system-back support.
+- Top bar: brand mark + “Manijero” on the left and **no right-side action** — decided 2026-10-25
+  (§12.2). This supersedes the earlier privacy-action proposal; privacy stays reachable from the chat
+  footer and the help screen, and tab duplication means no help action is needed in the bar.
+- Back behavior: Android system back follows `AppNavigation.backTarget` — a non-chat tab returns to
+  Asistente, a form returns to Mis terrenos, Ayuda returns to the tab it was entered from, and
+  Privacidad returns to the section it was opened from. The handler is installed only when that
+  target exists. Desktop keeps explicit controls (`Cancelar`, `Volver`, tabs) and claims no OS back
+  gesture. Implemented with the first-party `androidx.compose.ui.backhandler.BackHandler`.
 - Tab state: selected tab is hoisted in `App`; conversation state survives tab switches. Scroll position per tab is not guaranteed and is not claimed.
 
 ### 3.6 Motion
@@ -701,6 +707,10 @@ paths reserved. Each spec is written when its feature is planned, before any cod
 | `help_privacy_refresh` | P2-15…P2-16 | `ui_component_library`, `land_measurement_fields` | Visual adaptation + copy |
 | `ui_refresh_accessibility_audit` | P2-17…P2-20, P3-01…P3-10 | all above | Verification |
 
+Delivery note: P0-17…P0-19 are implemented by the `app_chrome_navigation` feature
+([spec](../specs/app_chrome_navigation.md)); its status and evidence live in `feature_list.json`
+and the acceptance record, not here. This plan stays a historical design input.
+
 Sequencing rule: finish and validate each feature before starting the next. `design_token_refresh` and the pure data layer (`Land.kt`, store format, summary/search functions) touch disjoint files and are the only safe parallel lane; everything else is serial to keep review and evidence honest.
 
 Why this order:
@@ -809,7 +819,9 @@ explicit Compose Desktop/KMP support). Scope and rules:
 Palette values were decided on 2026-10-25: the Stitch token block wins verbatim, with two gated `outlineVariant` corrections (§3.1). The remaining items are open; each shows the recommended choice.
 
 1. **Palette values** in §3.1 — **decided 2026-10-25**: Stitch token block adopted, `outlineVariant` corrected in both modes, recorded in `DESIGN.md`; no further approval needed.
-2. **Top-bar right action** — privacy (proposed) versus no action versus help.
+2. **Top-bar right action** — **decided 2026-10-25: no action.** Privacy remains reachable from the
+   chat footer and the help screen, so the shell bar carries identity only and never duplicates a
+   route.
 3. **Add CTA position** — directly under the summary (proposed) versus a sticky bottom button/FAB.
 4. **Legacy lands without zone** — omit zone in the list and require it only when editing (proposed) versus show a “falta la zona” note.
 5. **Search scope** — exclude numeric measures (proposed); include them if you expect people to search “1,5”.
@@ -828,7 +840,8 @@ Palette values were decided on 2026-10-25: the Stitch token block wins verbatim,
 - [ ] The confirmed decisions in §1 match your intent.
 - [x] The palette is decided (2026-10-25): Stitch token values verbatim, plus the two `outlineVariant` corrections, recorded in `DESIGN.md`.
 - [ ] Keeping Material 3 typography is still the right trade-off after seeing the target.
-- [ ] The three-tab chrome and privacy action are right for low-confidence users.
+- [x] The three-tab chrome is right for low-confidence users; the top bar carries no action and
+  privacy stays in the chat footer and the help screen (decided 2026-10-25).
 - [ ] The required-zone decision and its scope-change record are acceptable.
 - [ ] The field list and validation rules in §7 are complete and correctly scoped.
 - [ ] Search and summary behavior is what you expect.

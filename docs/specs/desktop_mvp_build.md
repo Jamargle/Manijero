@@ -39,7 +39,7 @@ Given the toolchain, when `./scripts/init.sh --verify` runs, then it exits `0`, 
 
 ### The Desktop app launches
 
-Given the built Desktop target, when `./scripts/init.sh --desktop` (i.e. `./gradlew :desktopApp:run`) runs, then a Desktop window titled "Manijero" opens showing the shared chat home with no exception, stack trace, or error in the run log, and the process stays alive until closed.
+Given the built Desktop target, when `./scripts/init.sh --desktop` (i.e. `./gradlew :desktopApp:run`) runs, then a Desktop window titled "Manijero" opens showing the shell's launch tab (`Mis terrenos` with its saved lands, since `app_chrome_navigation` changed the entry point) with no exception, stack trace, or error in the run log, and the process stays alive until closed.
 
 ### The accepted land journey works on Desktop
 

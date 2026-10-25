@@ -37,7 +37,6 @@ import manijero.shared.generated.resources.add_land_water_mixed
 import manijero.shared.generated.resources.chat_home_lands
 import manijero.shared.generated.resources.edit_land_saved
 import manijero.shared.generated.resources.land_list_add
-import manijero.shared.generated.resources.land_list_back
 import manijero.shared.generated.resources.land_list_description
 import manijero.shared.generated.resources.land_list_edit
 import manijero.shared.generated.resources.land_list_edit_description
@@ -60,8 +59,9 @@ enum class LandListConfirmation { ADDED, UPDATED, REMOVED }
 
 /**
  * List of the lands saved on this device. It renders whatever [state] it receives and reports every
- * interaction through [onAddLand], [onEditLand], [onRemoveLand], [onBack], or [onRetry]; reading and
- * persistence happen in the caller. Rows stay non-clickable and show the exact saved name plus the
+ * interaction through [onAddLand], [onEditLand], [onRemoveLand], or [onRetry]; reading and
+ * persistence happen in the caller. Top-level navigation is the app shell's job, so this screen
+ * offers no `Volver`; the tabs are the way back. Rows stay non-clickable and show the exact saved name plus the
  * few known details, so similar lands stay distinguishable, and each row has its own visible
  * `Editar` control so correcting a land is a labelled, deliberate action. Each row also has its own
  * visible `Eliminar` control, whose accessible description names the exact saved land; selecting it
@@ -73,7 +73,6 @@ fun LandListScreen(
     onAddLand: () -> Unit,
     onEditLand: (Land) -> Unit,
     onRemoveLand: (Land) -> Unit,
-    onBack: () -> Unit,
     onRetry: () -> Unit,
     modifier: Modifier = Modifier,
     confirmation: LandListConfirmation? = null,
@@ -167,12 +166,6 @@ fun LandListScreen(
                         ) {
                             Text(stringResource(Res.string.land_list_add))
                         }
-                    }
-                    TextButton(
-                        onClick = onBack,
-                        modifier = Modifier.fillMaxWidth(),
-                    ) {
-                        Text(stringResource(Res.string.land_list_back))
                     }
                 }
             }
@@ -328,7 +321,6 @@ private fun LandListEmptyPreview() {
             onAddLand = {},
             onEditLand = {},
             onRemoveLand = {},
-            onBack = {},
             onRetry = {},
         )
     }
@@ -354,7 +346,6 @@ private fun LandListTwoLandsPreview() {
             onAddLand = {},
             onEditLand = {},
             onRemoveLand = {},
-            onBack = {},
             onRetry = {},
         )
     }
@@ -379,7 +370,6 @@ private fun LandListDuplicateNamesPreview() {
             onAddLand = {},
             onEditLand = {},
             onRemoveLand = {},
-            onBack = {},
             onRetry = {},
         )
     }
@@ -406,7 +396,6 @@ private fun LandListManyLandsPreview() {
             onAddLand = {},
             onEditLand = {},
             onRemoveLand = {},
-            onBack = {},
             onRetry = {},
         )
     }
@@ -431,7 +420,6 @@ private fun LandListLongTextPreview() {
             onAddLand = {},
             onEditLand = {},
             onRemoveLand = {},
-            onBack = {},
             onRetry = {},
         )
     }
@@ -446,7 +434,6 @@ private fun LandListLoadFailurePreview() {
             onAddLand = {},
             onEditLand = {},
             onRemoveLand = {},
-            onBack = {},
             onRetry = {},
         )
     }
@@ -461,7 +448,6 @@ private fun LandListJustSavedPreview() {
             onAddLand = {},
             onEditLand = {},
             onRemoveLand = {},
-            onBack = {},
             onRetry = {},
             confirmation = LandListConfirmation.ADDED,
         )
@@ -477,7 +463,6 @@ private fun LandListJustUpdatedPreview() {
             onAddLand = {},
             onEditLand = {},
             onRemoveLand = {},
-            onBack = {},
             onRetry = {},
             confirmation = LandListConfirmation.UPDATED,
         )
@@ -493,7 +478,6 @@ private fun LandListJustRemovedPreview() {
             onAddLand = {},
             onEditLand = {},
             onRemoveLand = {},
-            onBack = {},
             onRetry = {},
             confirmation = LandListConfirmation.REMOVED,
         )
@@ -509,7 +493,6 @@ private fun LandListCompactPreview() {
             onAddLand = {},
             onEditLand = {},
             onRemoveLand = {},
-            onBack = {},
             onRetry = {},
         )
     }
@@ -526,7 +509,6 @@ private fun LandListWidePreview() {
             onAddLand = {},
             onEditLand = {},
             onRemoveLand = {},
-            onBack = {},
             onRetry = {},
         )
     }
@@ -550,7 +532,6 @@ private fun LandListLargeFontPreview() {
             onAddLand = {},
             onEditLand = {},
             onRemoveLand = {},
-            onBack = {},
             onRetry = {},
         )
     }
