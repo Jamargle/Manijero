@@ -690,7 +690,8 @@ paths reserved. Each spec is written when its feature is planned, before any cod
 | Proposed feature | Steps | Depends on | Kind |
 |---|---|---|---|
 | `design_token_refresh` | P0-01…P0-06 | — | Visual foundation |
-| `brand_vectors` | P0-07…P0-10 | `design_token_refresh` | Visual foundation |
+| `screenshot_regression_tests` | Test harness over the existing screens and states (not a P0–P2 step) | `design_token_refresh` | Test infrastructure |
+| `brand_vectors` | P0-07…P0-10 | `design_token_refresh`, `screenshot_regression_tests` | Visual foundation |
 | `ui_component_library` | P0-11…P0-16 | `brand_vectors` | Visual foundation |
 | `app_chrome_navigation` | P0-17…P0-19 | `ui_component_library` | Behaviour/structure change |
 | `land_measurement_fields` | P1-01…P1-09, P1-14…P1-16 | `design_token_refresh`, `ui_component_library` | Data + product change |
@@ -704,6 +705,7 @@ Sequencing rule: finish and validate each feature before starting the next. `des
 
 Why this order:
 - Palette and components first, so screens are adapted once.
+- Screenshot regression next, before any visual churn: goldens recorded against the accepted palette make every later slice's visual diff reviewable instead of invisible.
 - Navigation before screens, so every screen is laid out inside the final shell.
 - Fields before lands screens, so the list/form are built once with their final content.
 - Chat before or after lands is independent once the shell exists; chat is higher risk (semantics, live regions), so do it before the larger lands restyle to keep review focused.
@@ -712,9 +714,12 @@ Registration (2026-10-25): `design_token_refresh` is accepted, with
 [`docs/specs/design_token_refresh.md`](../specs/design_token_refresh.md), its appendix, and
 [`docs/validations/design_token_refresh.md`](../validations/design_token_refresh.md). It declares
 `shared_design_system` as its prerequisite although the table lists none, because the accepted theme
-owns the files it edits. The other nine features are registered as `not_started` with reserved spec and
+owns the files it edits. The other ten features are registered as `not_started` with reserved spec and
 validation paths; their specs and appendices do not exist yet, so `select-feature.sh` reports `planner`
-for the first dependency-ready one. Sequencing stays as written: finish and validate one feature before
+for the first dependency-ready one. `screenshot_regression_tests` is cross-cutting rather than a
+P0–P2 step: it captures the screens and states that exist when it lands, and `brand_vectors` plus every
+later visual slice depends on it so an unexpected visual change is caught and approved by a human
+instead of merging silently. Sequencing stays as written: finish and validate one feature before
 starting the next.
 
 ---
@@ -737,9 +742,11 @@ starting the next.
 - Unit tests for every pure function (summary, search, store format, field validation, navigation mapping).
 - Contrast tests covering the approved pair list, including chips and dark mode.
 - Previews for every component state and every screen state, light/dark/2× text.
-- Android and Desktop screenshots for the screens the feature touches.
+- Android and Desktop screenshots for the screens the feature touches; once `screenshot_regression_tests`
+  lands, the committed golden set is the first evidence and a human approval is required for any
+  intentional visual change.
 - A short manual accessibility note: focus order, screen-reader labels, 48 dp targets, 2× text behavior.
-- An explicit “not verified” line for anything the repo cannot verify (iOS runtime, real users, automated UI/E2E).
+- An explicit “not verified” line for anything the repo cannot verify (iOS runtime, real users, automated UI/E2E beyond the screenshot gate).
 
 ### 10.3 What this plan does not prove
 
@@ -747,6 +754,32 @@ starting the next.
 - It does not prove usability with low-digital-confidence users. The manual check stays outstanding.
 - It does not prove iOS rendering; only shared-code compatibility.
 - It does not establish that the new fields improve answers; they are local context for the person, not legal evidence.
+
+### 10.4 Automated screenshot regression (registered)
+
+`screenshot_regression_tests` turns the screenshot evidence in §10.2 from a manual artifact into a
+gate, using [Roborazzi](https://github.com/takahirom/roborazzi) (Apache-2.0, community-maintained,
+explicit Compose Desktop/KMP support). Scope and rules:
+
+- **What it captures.** The Compose UI in `shared/src/commonMain`, rendered through the existing
+  Desktop JVM target with Compose UI test. No emulator and no Android SDK are needed. Android-specific
+  rendering stays manual, because Roborazzi on this path does not exercise the Android layoutlib.
+- **Determinism.** Each capture fixes window size, `ManijeroTheme` appearance, font scale, locale, and
+  the land/chat fixtures it feeds in. Desktop Compose renders real host fonts, so antialiasing can
+  differ between machines; the compare threshold is set explicitly and recorded in the spec, not left
+  at a silent default.
+- **Baselines are reviewed artifacts.** Goldens live in the repo next to the tests. A human records
+  them on a pinned environment and reviews the resulting images in the pull request.
+- **Human in the loop on change.** CI runs verify only. It never records. An unexpected pixel
+  difference fails the gate and uploads the expected/actual/diff images as artifacts, so a person
+  opens them, decides whether the change is intended, and only then re-records the golden and commits
+  it with the code change that caused it.
+- **Known risks.** Roborazzi's Compose Desktop support is labelled experimental, so the spec pins the
+  version and records the fallback (manual screenshots) if the harness becomes unusable. Font and
+  OS differences between the recording host and CI can still produce flaky diffs; the mitigation is
+  the explicit threshold plus recording on the same pinned environment CI uses.
+- **Not proven.** Screenshot regressions do not prove usability, accessibility, Android rendering,
+  iOS rendering, or correct behavior. They only prove that a rendered frame changed or did not.
 
 ---
 
@@ -766,7 +799,7 @@ starting the next.
 | Search fails on accents/ñ | Pure fold function with a dedicated test set |
 | Scope creep from mockup content | Non-goals list; review gate; new content needs a spec |
 | Large-text layouts clip chips/actions | 2× previews per component and per screen; wrapping grids |
-| No automated UI harness | Manual screenshot evidence; never claim more than observed |
+| No automated UI/E2E harness until `screenshot_regression_tests` lands | Manual screenshot evidence in the meantime; the screenshot feature covers `commonMain` rendering only and never claims behavior, Android, or iOS coverage |
 | iOS drift | Keep `commonMain` pure; optional compile smoke; no iOS-only APIs |
 
 ---
