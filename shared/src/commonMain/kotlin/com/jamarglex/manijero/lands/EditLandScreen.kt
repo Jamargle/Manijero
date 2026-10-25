@@ -542,7 +542,7 @@ private fun EditLandMeasureErrorsPreview() {
             state = previewEditLandState(
                 variety = LandVariety.OTHER,
                 varietyOther = "",
-                areaText = "1,234",
+                areaText = "mucho",
                 treeCountText = "0",
                 showVarietyOtherError = true,
                 showAreaError = true,

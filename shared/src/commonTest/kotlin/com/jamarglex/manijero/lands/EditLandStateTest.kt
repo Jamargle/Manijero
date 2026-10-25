@@ -206,10 +206,10 @@ class EditLandStateTest {
             updatedAtEpochMillis = 0,
         ).toEditLandState()
 
-        val badArea = base.copy(areaText = "1,234").reduce(EditLandAction.SaveClicked)
+        val badArea = base.copy(areaText = "mucho").reduce(EditLandAction.SaveClicked)
         assertTrue(badArea.showAreaError)
         assertNull(badArea.toDraftOrNull())
-        assertEquals("1,234", badArea.areaText)
+        assertEquals("mucho", badArea.areaText)
 
         val badTrees = base.copy(treeCountText = "0").reduce(EditLandAction.SaveClicked)
         assertTrue(badTrees.showTreeCountError)

@@ -68,11 +68,15 @@ class LandFieldsTest {
         assertEquals(MeasureResult.Valid(0.5), parseAreaHectares(".5"))
         assertEquals(MeasureResult.Valid(0.0), parseAreaHectares("0"))
         assertEquals(MeasureResult.Valid(1.5), parseAreaHectares(" 1,5 "))
+        assertEquals(MeasureResult.Valid(1.23), parseAreaHectares("1,234"))
+        assertEquals(MeasureResult.Valid(1.23), parseAreaHectares("1.234"))
+        assertEquals(MeasureResult.Valid(1.24), parseAreaHectares("1,236"))
+        assertEquals(MeasureResult.Valid(2.0), parseAreaHectares("1,999"))
     }
 
     @Test
-    fun `surface rejects letters signs several separators and three or more decimals`() {
-        listOf("letras", "-1", "+1", "1,2,3", "1,234", "1.234", "NaN", "Infinity", "1e3")
+    fun `surface rejects letters signs and several separators`() {
+        listOf("letras", "-1", "+1", "1,2,3", "NaN", "Infinity", "1e3")
             .forEach { raw ->
                 assertFalse(parseAreaHectares(raw).isValid, "<$raw> must not be a valid surface")
                 assertNull(parseAreaHectares(raw).valueOrNull())

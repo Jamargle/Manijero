@@ -563,7 +563,7 @@ private fun AddLandMeasureErrorsPreview() {
                 name = "La Loma",
                 zone = "El Llano",
                 variety = LandVariety.OTHER,
-                areaText = "1,234",
+                areaText = "mucho",
                 treeCountText = "0",
                 showVarietyOtherError = true,
                 showAreaError = true,

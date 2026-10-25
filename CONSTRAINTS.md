@@ -81,10 +81,11 @@ Operational MUST/MUST NOT rules that future features have to respect on top of
   another land. An absent optional value MUST stay absent in the store and MUST be omitted from the
   land details rather than shown as zero. Reason: land records must not imply knowledge or
   eligibility the person did not provide.
-- **MUST**: surface text MUST accept comma or dot, reject letters, signs, non-finite values and three
-  or more decimal digits, and store at most two decimals; tree count MUST be a whole ASCII number of
-  at least one. Raw text MUST stay on screen after an invalid save. Reason: the approved validation
-  table forbids silent truncation and guessed measurements.
+- **MUST**: surface text MUST accept comma or dot, reject letters, signs and non-finite values, and store
+  at most two decimals by rounding a longer entry; tree count MUST be a whole ASCII number of at
+  least one. Raw text MUST stay on screen after an invalid save. Reason: the approved validation table
+  rounds a surface to the stored precision instead of refusing a plausible measurement or truncating it
+  silently.
 
 ## Client source cards
 

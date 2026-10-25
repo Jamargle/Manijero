@@ -87,9 +87,9 @@ sealed interface MeasureResult<out T> {
 
 /**
  * Parses the optional surface field as hectares. Blank is a valid absent value; a comma or a dot is
- * accepted as the decimal separator; letters, signs, several separators, more than two decimal
- * digits, non-finite values and negative values are rejected. The accepted value is rounded to two
- * decimals, so no stored surface carries meaningless precision.
+ * accepted as the decimal separator; letters, signs, several separators, non-finite values and
+ * negative values are rejected. The accepted value is rounded to two decimals, so a longer entry is
+ * kept at the stored precision instead of being refused as if the person had made a mistake.
  */
 fun parseAreaHectares(raw: String): MeasureResult<Double> {
     val text = raw.trim()
@@ -104,8 +104,6 @@ fun parseAreaHectares(raw: String): MeasureResult<Double> {
     if (!whole.all { it.isAsciiDigit() } || !fraction.all { it.isAsciiDigit() }) {
         return MeasureResult.Invalid
     }
-    // Three or more decimals are an input mistake, not a value to silently truncate.
-    if (fraction.length > 2) return MeasureResult.Invalid
 
     val value = normalized.toDoubleOrNull() ?: return MeasureResult.Invalid
     if (!value.isFinite() || value < 0.0) return MeasureResult.Invalid

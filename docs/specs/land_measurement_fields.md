@@ -75,10 +75,10 @@ zero or a guess; reopening the land in edit prefills exactly the stored values.
 
 ### 5. Measurements and free text are validated, never guessed
 
-Given the new input fields, when the person enters letters, a negative or non-finite surface, a surface with three or
-more decimals, zero/negative/decimal/overflowing tree counts, an over-long variety text, or selects `Otra` with no
+Given the new input fields, when the person enters letters, a negative or non-finite surface, zero/negative/decimal/overflowing tree counts, an over-long variety text, or selects `Otra` with no
 text, then saving is blocked with the matching plain-Spanish message and the raw text stays on screen; when they enter
-`1,5`, `1.5`, `0,75` or `85`, the value is stored as 1.5, 1.5, 0.75 or 85 (surface rounded to at most two decimals).
+`1,5`, `1.5`, `0,75`, `85` or `1,234`, the value is stored as 1.5, 1.5, 0.75, 85 or 1.23 (a surface with three or more
+decimals is rounded to the stored two decimals, never rejected for precision).
 
 ### 6. Variety choices are the approved shortlist
 

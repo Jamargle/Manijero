@@ -176,7 +176,15 @@ class AddLandStateTest {
         assertEquals(1.5, saved.areaHectares)
         assertEquals(85, saved.treeCount)
 
-        listOf("letras", "-1", "1,234", "1,2,3").forEach { raw ->
+        val rounded = AddLandState(
+            name = "La Loma",
+            zone = "El Llano",
+            areaText = "1,234",
+        ).reduce(AddLandAction.SaveClicked)
+        assertFalse(rounded.showAreaError)
+        assertEquals(1.23, rounded.toDraftOrNull()?.areaHectares)
+
+        listOf("letras", "-1", "1,2,3").forEach { raw ->
             val state = AddLandState(
                 name = "La Loma",
                 zone = "El Llano",

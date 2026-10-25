@@ -259,8 +259,8 @@ scrollable; it was already a scrolling capture and no control is clipped or disa
       a zone is supplied and keeps id, `createdAtEpochMillis` and notes.
 - [ ] Optional fields stay optional: blank values persist as null/`UNKNOWN`, never zero, never inferred, and the edit
       form prefills stored values.
-- [ ] Surface accepts comma/dot, rejects negative/non-finite/3+ decimals with plain Spanish copy, and rounds to two
-      decimals; trees require a whole number ≥ 1; raw text survives an error.
+- [ ] Surface accepts comma/dot, rejects negative/non-finite values with plain Spanish copy, and rounds a
+      three-or-more-decimal entry to two decimals; trees require a whole number ≥ 1; raw text survives an error.
 - [ ] `Otra` requires non-blank ≤ 40 text; the approved shortlist and `No lo sé` match the contract; the custom text is
       displayed.
 - [ ] `LandContextBuilder` and every `AskRequest` shape are unchanged; a fully populated land yields no
