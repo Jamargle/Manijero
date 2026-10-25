@@ -3,6 +3,7 @@ package com.jamarglex.manijero.theme
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
+import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -11,8 +12,6 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.RadioButton
@@ -25,6 +24,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import kotlin.math.roundToInt
 import manijero.shared.generated.resources.Res
 import manijero.shared.generated.resources.add_land_save_failed
 import org.jetbrains.compose.resources.stringResource
@@ -62,30 +62,71 @@ internal fun selectManijeroColorScheme(darkTheme: Boolean) =
 
 private data class TokenSwatch(
     val name: String,
-    val hex: String,
     val color: Color,
 )
 
+/** Formats the colour the theme actually uses, so the board cannot drift from a typed label. */
+private fun Color.hexLabel(): String {
+    fun channel(value: Float): String =
+        (value * 255f).roundToInt().toString(16).uppercase().padStart(2, '0')
+
+    return "#${channel(red)}${channel(green)}${channel(blue)}"
+}
+
 /**
- * Review-only board so caution and danger can be inspected before `response_states` ships. It is not
- * part of any screen, and its labels are preview samples (the danger line reuses an existing shipped
- * string), so no new shipped copy is introduced.
+ * Review-only board for the shared palette: every documented role, the semantic colours, and the
+ * four land-attribute chips, each labelled with the colour it renders. It is not part of any screen
+ * and its labels are preview samples (the danger line reuses an existing shipped string), so no new
+ * shipped copy is introduced.
  */
 @Composable
 private fun ManijeroTokenBoard() {
-    val tokens = listOf(
-        TokenSwatch("olive-800", "#354B32", ManijeroOlive800),
-        TokenSwatch("olive-900", "#263724", ManijeroOlive900),
-        TokenSwatch("canvas", "#F7F6F0", ManijeroCanvas),
-        TokenSwatch("surface", "#FFFFFF", ManijeroSurface),
-        TokenSwatch("text-primary", "#1D221B", ManijeroTextPrimary),
-        TokenSwatch("text-secondary", "#4B5149", ManijeroTextSecondary),
-        TokenSwatch("border", "#777D73", ManijeroBorder),
-        TokenSwatch("caution", "#704600", ManijeroCaution),
-        TokenSwatch("caution-surface", "#FFF2D4", ManijeroCautionSurface),
-        TokenSwatch("danger", "#A12622", ManijeroDanger),
+    val scheme = MaterialTheme.colorScheme
+    val semantic = LocalManijeroSemanticColors.current
+    val roles = listOf(
+        TokenSwatch("primary", scheme.primary),
+        TokenSwatch("onPrimary", scheme.onPrimary),
+        TokenSwatch("primaryContainer", scheme.primaryContainer),
+        TokenSwatch("onPrimaryContainer", scheme.onPrimaryContainer),
+        TokenSwatch("inversePrimary", scheme.inversePrimary),
+        TokenSwatch("secondary", scheme.secondary),
+        TokenSwatch("onSecondary", scheme.onSecondary),
+        TokenSwatch("secondaryContainer", scheme.secondaryContainer),
+        TokenSwatch("onSecondaryContainer", scheme.onSecondaryContainer),
+        TokenSwatch("tertiary", scheme.tertiary),
+        TokenSwatch("onTertiary", scheme.onTertiary),
+        TokenSwatch("tertiaryContainer", scheme.tertiaryContainer),
+        TokenSwatch("onTertiaryContainer", scheme.onTertiaryContainer),
+        TokenSwatch("background", scheme.background),
+        TokenSwatch("onBackground", scheme.onBackground),
+        TokenSwatch("surface", scheme.surface),
+        TokenSwatch("onSurface", scheme.onSurface),
+        TokenSwatch("surfaceVariant", scheme.surfaceVariant),
+        TokenSwatch("onSurfaceVariant", scheme.onSurfaceVariant),
+        TokenSwatch("surfaceTint", scheme.surfaceTint),
+        TokenSwatch("inverseSurface", scheme.inverseSurface),
+        TokenSwatch("inverseOnSurface", scheme.inverseOnSurface),
+        TokenSwatch("error", scheme.error),
+        TokenSwatch("onError", scheme.onError),
+        TokenSwatch("errorContainer", scheme.errorContainer),
+        TokenSwatch("onErrorContainer", scheme.onErrorContainer),
+        TokenSwatch("outline", scheme.outline),
+        TokenSwatch("outlineVariant", scheme.outlineVariant),
+        TokenSwatch("scrim", scheme.scrim),
+        TokenSwatch("surfaceBright", scheme.surfaceBright),
+        TokenSwatch("surfaceDim", scheme.surfaceDim),
+        TokenSwatch("surfaceContainerLowest", scheme.surfaceContainerLowest),
+        TokenSwatch("surfaceContainerLow", scheme.surfaceContainerLow),
+        TokenSwatch("surfaceContainer", scheme.surfaceContainer),
+        TokenSwatch("surfaceContainerHigh", scheme.surfaceContainerHigh),
+        TokenSwatch("surfaceContainerHighest", scheme.surfaceContainerHighest),
     )
-    val semanticColors = LocalManijeroSemanticColors.current
+    val chips = listOf(
+        TokenSwatch("Secano", scheme.secondaryContainer) to scheme.onSecondaryContainer,
+        TokenSwatch("Regadío", scheme.primaryContainer) to scheme.onPrimaryContainer,
+        TokenSwatch("Ecológico", semantic.ecoContainer) to semantic.onEcoContainer,
+        TokenSwatch("No lo sé", scheme.surfaceContainerHighest) to scheme.onSurface,
+    )
 
     Surface(
         modifier = Modifier.fillMaxSize(),
@@ -95,11 +136,11 @@ private fun ManijeroTokenBoard() {
             modifier = Modifier
                 .fillMaxSize()
                 .verticalScroll(rememberScrollState())
-                .padding(24.dp),
-            verticalArrangement = Arrangement.spacedBy(16.dp),
+                .padding(ManijeroSpacing.Medium),
+            verticalArrangement = Arrangement.spacedBy(ManijeroSpacing.Comfortable),
         ) {
             Text(
-                text = "Tokens de Manijero",
+                text = "Paleta de Manijero",
                 style = MaterialTheme.typography.headlineMedium,
                 color = MaterialTheme.colorScheme.onBackground,
             )
@@ -109,57 +150,59 @@ private fun ManijeroTokenBoard() {
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
 
-            tokens.forEach { token ->
-                Row(
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.spacedBy(12.dp),
+            SectionTitle("Roles de color")
+            roles.forEach { token -> SwatchRow(token) }
+
+            SectionTitle("Colores semánticos")
+            SwatchRow(TokenSwatch("caution", semantic.caution))
+            SwatchRow(TokenSwatch("cautionSurface", semantic.cautionSurface))
+            SwatchRow(TokenSwatch("onCaution", semantic.onCaution))
+            SwatchRow(TokenSwatch("primaryStrong", semantic.primaryStrong))
+            SwatchRow(TokenSwatch("ecoContainer", semantic.ecoContainer))
+            SwatchRow(TokenSwatch("onEcoContainer", semantic.onEcoContainer))
+
+            Surface(
+                shape = ManijeroShapes.Medium,
+                color = semantic.cautionSurface,
+                border = BorderStroke(1.dp, semantic.caution),
+            ) {
+                Column(
+                    modifier = Modifier.padding(ManijeroSpacing.Small),
+                    verticalArrangement = Arrangement.spacedBy(ManijeroSpacing.Micro),
                 ) {
-                    Box(
-                        modifier = Modifier
-                            .size(40.dp)
-                            .background(token.color)
-                            .border(1.dp, MaterialTheme.colorScheme.outline),
+                    Text(
+                        text = "Aviso",
+                        style = MaterialTheme.typography.labelLarge,
+                        color = semantic.caution,
                     )
                     Text(
-                        text = "${token.name}  ${token.hex}",
+                        text = "Revisa este dato antes de continuar.",
                         style = MaterialTheme.typography.bodyLarge,
-                        color = MaterialTheme.colorScheme.onBackground,
+                        color = semantic.caution,
                     )
                 }
             }
 
             Surface(
-                shape = RoundedCornerShape(12.dp),
-                color = semanticColors.cautionSurface,
-                border = BorderStroke(1.dp, semanticColors.caution),
+                shape = ManijeroShapes.Medium,
+                color = semantic.caution,
             ) {
-                Column(
-                    modifier = Modifier.padding(12.dp),
-                    verticalArrangement = Arrangement.spacedBy(4.dp),
-                ) {
-                    Text(
-                        text = "Aviso",
-                        style = MaterialTheme.typography.labelLarge,
-                        color = semanticColors.caution,
-                    )
-                    Text(
-                        text = "Revisa este dato antes de continuar.",
-                        style = MaterialTheme.typography.bodyLarge,
-                        color = semanticColors.caution,
-                    )
-                }
+                Text(
+                    text = "onCaution sobre caution",
+                    modifier = Modifier.padding(ManijeroSpacing.Small),
+                    style = MaterialTheme.typography.labelLarge,
+                    color = semantic.onCaution,
+                )
             }
 
+            SectionTitle("Chips de terreno")
+            chips.forEach { (chip, ink) -> ChipRow(chip, ink) }
+
+            SectionTitle("Estados")
             Text(
                 text = stringResource(Res.string.add_land_save_failed),
                 style = MaterialTheme.typography.bodyLarge,
                 color = MaterialTheme.colorScheme.error,
-            )
-
-            Text(
-                text = "Selección",
-                style = MaterialTheme.typography.titleMedium,
-                color = MaterialTheme.colorScheme.onBackground,
             )
             Row(verticalAlignment = Alignment.CenterVertically) {
                 RadioButton(selected = true, onClick = null)
@@ -167,7 +210,7 @@ private fun ManijeroTokenBoard() {
                     text = "Seleccionado",
                     style = MaterialTheme.typography.bodyLarge,
                     color = MaterialTheme.colorScheme.onBackground,
-                    modifier = Modifier.padding(start = 12.dp),
+                    modifier = Modifier.padding(start = ManijeroSpacing.Small),
                 )
             }
             Row(verticalAlignment = Alignment.CenterVertically) {
@@ -176,10 +219,59 @@ private fun ManijeroTokenBoard() {
                     text = "No seleccionado",
                     style = MaterialTheme.typography.bodyLarge,
                     color = MaterialTheme.colorScheme.onBackground,
-                    modifier = Modifier.padding(start = 12.dp),
+                    modifier = Modifier.padding(start = ManijeroSpacing.Small),
                 )
             }
         }
+    }
+}
+
+@Composable
+private fun SectionTitle(text: String) {
+    Text(
+        text = text,
+        style = MaterialTheme.typography.titleMedium,
+        color = MaterialTheme.colorScheme.onBackground,
+    )
+}
+
+@Composable
+private fun SwatchRow(token: TokenSwatch) {
+    Row(
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(ManijeroSpacing.Small),
+    ) {
+        Box(
+            modifier = Modifier
+                .size(40.dp)
+                .background(token.color)
+                .border(ManijeroLayout.BorderWidth, MaterialTheme.colorScheme.outline),
+        )
+        Text(
+            text = "${token.name}  ${token.color.hexLabel()}",
+            style = MaterialTheme.typography.bodyLarge,
+            color = MaterialTheme.colorScheme.onBackground,
+        )
+    }
+}
+
+/** A chip always shows its own text, so the pair can be judged without relying on colour alone. */
+@Composable
+private fun ChipRow(chip: TokenSwatch, ink: Color) {
+    Surface(
+        shape = ManijeroShapes.Medium,
+        color = chip.color,
+        border = BorderStroke(ManijeroLayout.BorderWidth, MaterialTheme.colorScheme.outlineVariant),
+    ) {
+        Text(
+            text = "${chip.name}  ${chip.color.hexLabel()} / ${ink.hexLabel()}",
+            modifier = Modifier.padding(
+                horizontal = ManijeroSpacing.Small,
+                vertical = ManijeroSpacing.Micro,
+            ),
+            style = MaterialTheme.typography.labelLarge,
+            color = ink,
+        )
     }
 }
 

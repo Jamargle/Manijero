@@ -18,11 +18,11 @@ Stitch mockups reference archive is indexed in [`design-references/README.md`](d
 
 ### Shared design system
 
-`shared_design_system` defines paired roles in `shared/src/commonMain`, selected automatically with the common Compose system appearance signal. No appearance setting or platform theme fork exists. The constructors explicitly map every applicable Material 3 role plus the semantic caution and emphasis colours; source values are in `ManijeroColors.kt`. Common previews cover light, dark, and enlarged text. Shape and spacing scales live in `ManijeroTokens.kt`.
+`shared_design_system` defines paired roles in `shared/src/commonMain`, selected automatically with the common Compose system appearance signal. No appearance setting or platform theme fork exists. The constructors explicitly map every applicable Material 3 role plus the semantic caution, emphasis, and Ecológico chip colours; source values are in `ManijeroColors.kt`. Common previews cover light, dark, and enlarged text. Shape and spacing scales live in `ManijeroTokens.kt`.
 
 **Typography:** the app uses the Material 3 default typography, which resolves to the platform font. Stitch's Source Serif 4 / Source Sans 3 scale is not adopted: no custom family, scale, or bundled font asset is part of the design system.
 
-**Palette status (2026-10-25).** The values below are the approved target palette. `ManijeroColors.kt` still implements the earlier `shared_design_system` values (accepted 2026-10-24) for light mode and for `outlineVariant` in dark; the planned `design_token_refresh` feature applies these and re-gates the contrast tests. Until it is accepted, running apps and screenshots show the earlier palette, and the earlier acceptance records keep their original values as history.
+**Palette status (2026-10-25).** The values below are the implemented palette: `design_token_refresh` applies them in `ManijeroColors.kt` and re-gates the contrast tests in both appearances. Earlier acceptance records keep their original values as history.
 
 ## Design intent
 
@@ -75,7 +75,7 @@ Light `background`, `surface`, and `surfaceBright` are the same `#F9FAF4`. Cards
 
 `outlineVariant` is the one documented deviation: `#757C71` and `#868E86` are the softest in-family values that still clear 3:1 on every light and dark surface. They sit close to `outline` (`#72796F` / `#8C948C`); that reduced separation is the deliberate cost of the accessibility gate.
 
-Stitch also exports expressive `*Fixed` roles, which this Material version does not expose; they are not claimed as mapped. `primaryFixed` is used only as a data value for the Ecológico chip pair below.
+Stitch also exports expressive `*Fixed` roles, which this Material version does not expose; they are not claimed as mapped. The Ecológico chip pair is exposed as the semantic `ecoContainer` / `onEcoContainer` values below because `primaryFixed` / `onPrimaryFixed` cannot be roles here.
 
 ### Manijero-only semantic colours
 
@@ -98,8 +98,8 @@ Chip colours reuse Stitch role pairs rather than introducing new hues; every pai
 |---|---|---|---|
 | Secano | `#FDC796` / `#79512A` | `#4F422E` / `#F1E5CC` | `secondaryContainer` / `onSecondaryContainer` |
 | Regadío | `#385E39` / `#ABD6A7` | `#283C29` / `#CFE8CF` | `primaryContainer` / `onPrimaryContainer` |
-| Ecológico | `#C2EEBE` / `#002106` | `#C7ECC6` / `#02210A` | `primaryFixed` / `onPrimaryFixed` |
-| Neutral / `No lo sé` | `#E2E3DD` / `#1A1C19` | `#384438` / `#E1E3DF` | `surfaceVariant` / `onSurface` |
+| Ecológico | `#C2EEBE` / `#002106` | `#C7ECC6` / `#02210A` | semantic `ecoContainer` / `onEcoContainer` |
+| Neutral / `No lo sé` | `#E2E3DD` / `#1A1C19` | `#384438` / `#E1E3DF` | `surfaceContainerHighest` / `onSurface` |
 
 Chips always carry text, never colour alone.
 
@@ -110,12 +110,13 @@ tertiary, background, surface, surface-variant, tonal containers, inverse surfac
 container) at >=4.5:1, and non-text boundaries/icons (error against background, outline against
 surface/background/surface-variant, outline-variant against background, surface, and every container
 from lowest through highest plus `surfaceDim`, primary against surface) at >=3:1. Semantic tests also
-check `caution` on `canvas` and on `cautionSurface`, `onCaution` on its filled caution colour, and
-every land-attribute chip pair.
+check `caution` on `background` in light and on `surfaceContainerLowest` in dark, `caution` on
+`cautionSurface` in both, `onCaution` on its filled caution colour, and every land-attribute chip
+pair.
 
-The ratios below are WCAG 2.x relative-luminance results calculated from the values above. They become
-assertions when `design_token_refresh` implements the palette; the test helper remains the gate, and
-any later value change must recompute them.
+The ratios below are WCAG 2.x relative-luminance results calculated from the values above. The shared
+theme tests assert them, so the test helper remains the gate, and any later value change must
+recompute them.
 
 Light:
 
@@ -137,8 +138,7 @@ Light:
 - Non-text: `outline`/background 4.28, /`surfaceContainerLowest` 4.49, /`surfaceVariant` 3.48;
   `outlineVariant`/background 4.10, /`surfaceContainerLowest` 4.31, /`surfaceContainerLow` 3.89,
   /`surfaceContainer` 3.70, /`surfaceContainerHigh` 3.53, /`surfaceContainerHighest` 3.33,
-  /`surfaceDim` 3.07; `primary`/background 10.18; `error`/background 6.16;
-  `caution`/`cautionSurface` 7.37.
+  /`surfaceDim` 3.07; `primary`/background 10.18; `error`/background 6.16.
 - Land chips: 4.56 (Secano), 4.56 (Regadío), 13.33 (Ecológico), 13.29 (Neutral).
 
 Dark:
@@ -158,8 +158,7 @@ Dark:
   `inversePrimary`/`inverseSurface` 5.02.
 - Non-text: `outline`/background 5.86, /`surfaceVariant` 3.97; `outlineVariant`/background 5.42,
   /`surfaceContainerLowest` 5.68, /`surfaceContainerLow` 5.03, /`surfaceContainer` 4.49,
-  /`surfaceContainerHigh` 3.73, /`surfaceContainerHighest` 3.03, /`surfaceDim` 4.92;
-  `primary`/background 6.91.
+  /`surfaceContainerHigh` 3.73, /`surfaceContainerHighest` 3.03, /`surfaceDim` 4.92.
 - Land chips: 7.82 (Secano), 9.10 (Regadío), 13.26 (Ecológico), 7.92 (Neutral).
 
 Checks test the full listed pair set, not every mathematically possible combination of roles.

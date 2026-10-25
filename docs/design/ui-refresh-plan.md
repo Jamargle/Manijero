@@ -707,6 +707,10 @@ Why this order:
 - Fields before lands screens, so the list/form are built once with their final content.
 - Chat before or after lands is independent once the shell exists; chat is higher risk (semantics, live regions), so do it before the larger lands restyle to keep review focused.
 
+Registration: `design_token_refresh` was added to `feature_list.json` on 2026-10-25 with
+[`docs/specs/design_token_refresh.md`](../specs/design_token_refresh.md) and its appendix; the remaining
+entries are registered one at a time, each when its spec is planned.
+
 ---
 
 ## 10. Verification and evidence
