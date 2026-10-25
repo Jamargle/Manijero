@@ -98,7 +98,7 @@ Ordered; each task ends with the stated check.
 | T4 | Add `ManijeroIcon` with required `contentDescription`, explicit size, `LocalContentColor` tint, `painterResource` loading | `design/ManijeroIcon.kt` | Preview renders 20 dp and 24 dp icons in both appearances |
 | T5 | Add `ManijeroBrandMark` (primary tint, no description parameter, 32 dp default) | `design/ManijeroBrandMark.kt` | Preview shows 28/32/48 dp, no blur, decorative |
 | T6 | Add `ManijeroOliveBranch` (`primaryContainer` halo, `onPrimaryContainer` sprig, no description/colour parameters, 180 dp default) | `design/ManijeroOliveBranch.kt` | Preview shows 160/200 dp, decorative |
-| T7 | Add the review-only `BrandVectorBoard` plus light/dark previews, labels as review identifiers only | `design/BrandVectorBoard.kt` | Board shows the mark, the illustration, and all sixteen icons at 24 dp (two at 20 dp) |
+| T7 | Add the review-only `BrandVectorBoard` in test sources (`commonTest`), labels as review identifiers only; no previews, because the wrappers already own them | `commonTest/design/BrandVectorBoard.kt` | Board shows the mark, the illustration, and all sixteen icons at 24 dp (two at 20 dp) |
 | T8 | Add the inventory test that names all eighteen resources and asserts pairwise distinctness | `commonTest/design/BrandVectorSetTest.kt` | Test fails to compile if a named vector is missing; passes on the authored set |
 | T9 | Add Desktop and Android host screenshot classes for the board in both appearances and record only the four new goldens | `jvmTest/.../BrandVectorBoardScreenshotsTest.kt`, `androidHostTest/.../BrandVectorBoardAndroidScreenshotsTest.kt`, four PNGs | `verifyScreenshots` passes; `git status` shows the twelve existing goldens unchanged |
 | T9b | `--fast` and `--verify` after the focused block | — | Full gate green with no new failures |
@@ -301,6 +301,23 @@ Re-verified after the pass: `./scripts/init.sh --feature brand_vectors` exits 0,
 `git diff --exit-code -- shared/src/jvmTest/screenshots shared/src/androidHostTest/screenshots` exits
 0, so all sixteen goldens (ten Desktop, six Android) are byte-identical.
 
+## Post-acceptance follow-up (2026-10-25)
+
+Review question raised after acceptance: why the review-only board lived in production `commonMain`. It
+has no production consumer — only the two screenshot classes import it — so it was relocated:
+
+- `shared/src/commonTest/kotlin/com/jamarglex/manijero/design/BrandVectorBoard.kt` — moved from
+  `commonMain` and unchanged apart from dropping the two `@Preview` functions (a test source set is not
+  a preview surface; the three wrappers keep their own light/dark previews).
+- `ManijeroIcon.kt`, `ManijeroBrandMark.kt`, and `ManijeroOliveBranch.kt` stay in
+  `shared/src/commonMain/kotlin/com/jamarglex/manijero/design/` because they are the shipped API the
+  contract, `DESIGN.md`, and `CONSTRAINTS.md` publish for later features to adopt; moving them to test
+  sources would hide the product API rather than remove dead code.
+
+Re-verified after the move: `./scripts/init.sh --feature brand_vectors` exits 0, and a SHA-256 snapshot
+of all sixteen goldens taken before and after the move is identical (ten Desktop, six Android), so
+nothing was re-recorded. Commit: `refactor: move brand vector board to test sources`.
+
 ## Validator checklist
 
 - [ ] Exactly eighteen vectors exist under `shared/src/commonMain/composeResources/drawable/` with the
@@ -314,8 +331,9 @@ Re-verified after the pass: `./scripts/init.sh --feature brand_vectors` exits 0,
 - [ ] `ManijeroBrandMark` and `ManijeroOliveBranch` expose no description or colour parameter, are
       decorative, and use `primary` / `primaryContainer`+`onPrimaryContainer` respectively.
 - [ ] The illustration's halo is painted in Compose, not embedded in the vector; 160–200 dp works.
-- [ ] The review-only board and its previews exist, are not referenced by any screen, and its labels are
-      not shipped copy in `strings.xml`.
+- [ ] The review-only board lives in `commonTest` (no previews, no production consumer), its labels are
+      not shipped copy in `strings.xml`, and no shipped file references it; the three wrappers stay in
+      `commonMain` as the published API.
 - [ ] `BrandVectorSetTest` names all eighteen resources, fails on a missing/renamed file, and asserts
       distinctness rather than tautologies.
 - [ ] The four new goldens exist per platform, were recorded deliberately, and the twelve existing PNGs

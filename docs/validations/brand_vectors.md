@@ -142,3 +142,18 @@ appendix's "Notes and deviations".
 
 No finding. Static Android-XML masks plus pure Compose wrappers: no network, storage, permissions,
 personal or land data, logging, or dynamic content; no new dependency, module, or runtime path.
+
+## Post-acceptance follow-up (2026-10-25)
+
+A review question was raised after acceptance: the review-only `BrandVectorBoard` sat in production
+`commonMain` although nothing in the app renders it. It was relocated to
+`shared/src/commonTest/kotlin/com/jamarglex/manijero/design/BrandVectorBoard.kt` with its two
+`@Preview` functions removed (test sources are not a preview surface; the wrappers keep their own
+previews). The three wrappers (`ManijeroIcon`, `ManijeroBrandMark`, `ManijeroOliveBranch`) stay in
+`commonMain`: they are the API this feature publishes for later adoption, so moving them to test sources
+would hide the product API instead of removing dead code.
+
+The accepted verdict above still stands because nothing behavioural changed. Re-verified at the time of
+the move: `./scripts/init.sh --feature brand_vectors` exits 0, and SHA-256 snapshots of all sixteen
+goldens before and after the move are identical (ten Desktop, six Android), so no baseline was
+re-recorded. Commit: `refactor: move brand vector board to test sources`.

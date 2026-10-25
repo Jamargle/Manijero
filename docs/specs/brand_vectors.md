@@ -33,8 +33,10 @@ slices.
   brand mark, the olive-branch illustration, and exactly sixteen `ic_*.xml` UI glyphs.
 - Three shared wrappers in a new `commonMain` package `design/`: `ManijeroIcon`, `ManijeroBrandMark`,
   `ManijeroOliveBranch`, each with light/dark previews.
-- A review-only `BrandVectorBoard` composable plus previews, used by the screenshot suites as the
-  rendering proof for every vector in both appearances.
+- A review-only `BrandVectorBoard` composable in `commonTest` (test sources, not production code), used
+  by the screenshot suites as the rendering proof for every vector in both appearances. It lives in
+  test sources because nothing in the app renders it; the three wrappers stay in `commonMain` because
+  they are the shipped API.
 - Focused tests that pin the vector inventory and the wrapper contract, plus new reviewed screenshot
   goldens for the board on both platforms.
 - Documentation that records the icon/illustration/tint rules in `DESIGN.md`, the durable asset
@@ -188,10 +190,11 @@ internal fun ManijeroOliveBranch(
   not in the vector, so appearance colours never enter an asset and the branch stays a monochrome mask.
 - Keep the wrappers free of layout policy beyond `Modifier.size(size)`: padding, minimum touch target,
   and click behaviour belong to `ui_component_library` and later features.
-- Add a review-only `BrandVectorBoard` composable (internal, not referenced by any screen) that renders
-  the mark at 28/32/48 dp, the illustration at 160/200 dp, and all sixteen icons at 24 dp (with two at
-  20 dp) under labels that are review identifiers, not shipped copy. Add `@Preview` functions for light
-  and dark.
+- Add a review-only `BrandVectorBoard` composable in `commonTest` (test-only on purpose: nothing in
+  the app renders it) that shows the 24dp grid, the shared `commonMain` wrappers, the mark at
+  28/32/48 dp, the illustration at 160/200 dp, and all sixteen icons at 24 dp (with two at 20 dp).
+  Labels are review identifiers, not shipped copy; the wrappers keep their own previews, so the board
+  needs none.
 - Reuse the accepted screenshot harness: one Desktop class and one Android host class capture the board
   at the fixed 900×1200 dp viewport in both appearances, using the existing `capture` helpers, fixed
   density/font scale, and pinned `es-ES` locale. Record the four new goldens explicitly; never re-record
@@ -202,7 +205,9 @@ internal fun ManijeroOliveBranch(
 - **Add** `shared/src/commonMain/composeResources/drawable/brand_mark.xml`,
   `olive_branch.xml`, and the sixteen `ic_*.xml` files.
 - **Add** `shared/src/commonMain/kotlin/com/jamarglex/manijero/design/ManijeroIcon.kt`,
-  `ManijeroBrandMark.kt`, `ManijeroOliveBranch.kt`, `BrandVectorBoard.kt`.
+  `ManijeroBrandMark.kt`, `ManijeroOliveBranch.kt` — the shipped wrappers — and
+  `shared/src/commonTest/kotlin/com/jamarglex/manijero/design/BrandVectorBoard.kt` — the test-only
+  review board.
 - **Add** `shared/src/commonTest/kotlin/com/jamarglex/manijero/design/BrandVectorSetTest.kt` — inventory
   and distinctness of the eighteen named resources.
 - **Add** `shared/src/jvmTest/kotlin/com/jamarglex/manijero/screenshots/BrandVectorBoardScreenshotsTest.kt`,

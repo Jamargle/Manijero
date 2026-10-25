@@ -15,11 +15,9 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.jamarglex.manijero.theme.ManijeroIconSize
 import com.jamarglex.manijero.theme.ManijeroSpacing
-import com.jamarglex.manijero.theme.ManijeroTheme
 import manijero.shared.generated.resources.Res
 import manijero.shared.generated.resources.ic_add
 import manijero.shared.generated.resources.ic_back
@@ -66,10 +64,11 @@ private val boardGlyphs = listOf(
  * Review-only board for the brand vectors: the mark at 28/32/48 dp, the illustration at 160/200 dp,
  * all sixteen icons at 24 dp, and two icons at the inline 20 dp.
  *
- * It exists so the Desktop and Android host screenshot suites can prove that every vector decodes
- * and takes its colour from the theme in both appearances. No screen references it, its labels are
- * review identifiers rather than shipped copy, and rendering it is not an accessibility, usability,
- * or device claim.
+ * It lives in `commonTest`, not in production `commonMain`, because nothing in the app renders it:
+ * its only consumers are the Desktop and Android host screenshot suites, which use it to prove that
+ * every vector decodes and takes its colour from the theme in both appearances. Its labels are review
+ * identifiers rather than shipped copy, and rendering it is not an accessibility, usability, or
+ * device claim. The three wrappers it exercises stay in `commonMain` because they are the shipped API.
  */
 @Composable
 internal fun BrandVectorBoard() {
@@ -195,16 +194,4 @@ private fun BoardCell(
             maxLines = 1,
         )
     }
-}
-
-@Preview(name = "Vectores de marca — claro", widthDp = 900, heightDp = 1200)
-@Composable
-private fun BrandVectorBoardLightPreview() {
-    ManijeroTheme(darkTheme = false) { BrandVectorBoard() }
-}
-
-@Preview(name = "Vectores de marca — oscuro", widthDp = 900, heightDp = 1200)
-@Composable
-private fun BrandVectorBoardDarkPreview() {
-    ManijeroTheme(darkTheme = true) { BrandVectorBoard() }
 }

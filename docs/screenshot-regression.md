@@ -10,10 +10,10 @@ Two screenshot suites cover the shared Compose UI in `shared/src/commonMain`:
 The app scenes are the same on both platforms and use the shared, code-owned fixtures in
 `shared/src/commonTest/kotlin/com/jamarglex/manijero/screenshots/ScreenshotFixtures.kt`: chat home
 idle (light), chat answered with a source card (dark), saved-lands list with two lands (light), and
-saved-lands empty state (dark). A fifth subject is the review-only `BrandVectorBoard` owned by
-`brand_vectors`, captured in light and dark so the eighteen brand vectors are rendered by the theme;
-it is not a product screen and makes no accessibility claim. The goldens are separate per platform
-because Desktop and Android rasterise text, fonts, and controls differently.
+saved-lands empty state (dark). A fifth subject is the review-only `BrandVectorBoard` (a `commonTest`
+composable) owned by `brand_vectors`, captured in light and dark so the eighteen brand vectors are
+rendered by the theme; it is not a product screen and makes no accessibility claim. The goldens are
+separate per platform because Desktop and Android rasterise text, fonts, and controls differently.
 
 ## Verify before committing or pushing
 
