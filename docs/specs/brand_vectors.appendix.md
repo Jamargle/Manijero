@@ -99,16 +99,17 @@ Ordered; each task ends with the stated check.
 | T5 | Add `ManijeroBrandMark` (primary tint, no description parameter, 32 dp default) | `design/ManijeroBrandMark.kt` | Preview shows 28/32/48 dp, no blur, decorative |
 | T6 | Add `ManijeroOliveBranch` (`primaryContainer` halo, `onPrimaryContainer` sprig, no description/colour parameters, 180 dp default) | `design/ManijeroOliveBranch.kt` | Preview shows 160/200 dp, decorative |
 | T7 | Add the review-only `BrandVectorBoard` in test sources (`commonTest`), labels as review identifiers only; no previews, because the wrappers already own them | `commonTest/design/BrandVectorBoard.kt` | Board shows the mark, the illustration, and all sixteen icons at 24 dp (two at 20 dp) |
-| T8 | Add the inventory test that names all eighteen resources and asserts pairwise distinctness | `commonTest/design/BrandVectorSetTest.kt` | Test fails to compile if a named vector is missing; passes on the authored set |
+| T8 | ~~Add a separate inventory test~~ — dropped as redundant: the board names all eighteen accessors, so a missing or renamed vector already fails compilation, the shell gates pin the file set and style, and the goldens render every vector. No third copy of the list is maintained. | — | Inventory, style, and rendering covered by the board references, the focused gates, and the four goldens |
 | T9 | Add Desktop and Android host screenshot classes for the board in both appearances and record only the four new goldens | `jvmTest/.../BrandVectorBoardScreenshotsTest.kt`, `androidHostTest/.../BrandVectorBoardAndroidScreenshotsTest.kt`, four PNGs | `verifyScreenshots` passes; `git status` shows the twelve existing goldens unchanged |
 | T9b | `--fast` and `--verify` after the focused block | — | Full gate green with no new failures |
 | T10 | Record the durable rules: brand vectors/iconography section in `DESIGN.md`, asset rules in `CONSTRAINTS.md`; append evidence to this appendix and write `docs/validations/brand_vectors.md` at acceptance | docs | Docs match the shipped assets and tint policy |
 
 ## Verification plan
 
-1. `./scripts/init.sh --feature brand_vectors` — runs `BrandVectorSetTest`, both screenshot suites in
-   verify mode, and the inventory/style/colour/dependency shell gates. Cheapest tier that touches the
-   feature.
+1. `./scripts/init.sh --feature brand_vectors` — runs both screenshot suites in verify mode plus the
+   inventory/style/colour/dependency shell gates. The suites compile every named accessor (a missing or
+   renamed vector breaks the build) and render all eighteen vectors in both appearances. Cheapest tier
+   that touches the feature.
 2. `./scripts/init.sh --fast` — shared host tests, contract examples, backend pytest, catalog validation,
    and offline evaluators; catches an accidental test-source regression outside the focused filter.
 3. `./scripts/init.sh --verify` — adds `:shared:testAndroidHostTest`, `:androidApp:assembleDebug`, and
@@ -153,9 +154,10 @@ baseline.
 - Review-only `BrandVectorBoard.kt` plus light/dark previews at 900×1200 dp: mark at 28/32/48 dp,
   illustration at 160/200 dp, sixteen icons at 24 dp, two at 20 dp, labels are review identifiers.
   No screen, shell, `App.kt`, theme, string, Gradle, backend, or contract file references it.
-- Tests: `BrandVectorSetTest` (4 tests: named inventory, drawable-registry cross-check, pairwise
-  distinctness, wizard placeholder excluded) and one Desktop and one Android host screenshot class
-  for the board in both appearances.
+- Rendering coverage: one Desktop and one Android host screenshot class render the board in both
+  appearances. There is no separate inventory test: the board's references make a missing or renamed
+  vector a compile error, the focused shell gates pin file count, grid, stroke, and colour, and the
+  goldens show every glyph. This keeps a single list of the eighteen names instead of three.
 - Docs: `DESIGN.md` gained a "Brand vectors and iconography" section (icon grid, sizes, tint policy,
   mark and illustration rules, asset/licence policy); `CONSTRAINTS.md` gained the four durable
   brand-vector rules.
@@ -237,9 +239,10 @@ baseline.
 - The Android board class pins `qualifiers = "es-rES-w900dp-h1200dp-mdpi"` rather than the existing
   `w360dp-h800dp` used by the ChatHome/LandList classes, because the contract fixes one 900×1200 dp
   viewport for both hosts. The other four Android goldens are untouched.
-- `BrandVectorSetTest` runs in `commonTest` with no file-system or XML access, so it pins the named
-  inventory and the drawable-registry cross-check; the per-file geometry, colour, and
-  unsupported-feature rules are enforced only by the focused shell gates.
+- The inventory is pinned by the board's own accessor references (a missing or renamed vector fails
+  compilation of `commonTest`), by the focused shell gates, and by the goldens. The earlier
+  `BrandVectorSetTest` was removed on review as a redundant third copy of the same eighteen names; the
+  per-file geometry, colour, and unsupported-feature rules were already enforced only by the shell gates.
 - No iOS target was compiled in this session (the Kotlin/Native toolchain was not exercised), so "all
   targets decode these vectors" rests on the documented Compose Multiplatform XML subset rather than
   an iOS build. Neither `--fast` nor `--verify` covers iOS, and previous features record the same gap.
@@ -318,6 +321,15 @@ Re-verified after the move: `./scripts/init.sh --feature brand_vectors` exits 0,
 of all sixteen goldens taken before and after the move is identical (ten Desktop, six Android), so
 nothing was re-recorded. Commit: `refactor: move brand vector board to test sources`.
 
+A second review question: the separate inventory test was overkill. It was removed
+(`test: remove redundant brand vector inventory test`). The coverage it claimed still exists without it:
+the board in `commonTest` references all eighteen accessors, so a missing or renamed vector is a compile
+error before any test runs; the focused shell gates pin the file count, 24 dp grid, 2 dp round stroke, the
+outline-only rule, the colour literals, and the no-`material-icons` rule; and the four goldens render
+every vector in both appearances, where an aliased or duplicated asset is visible. The only lost
+assertion is an automated pairwise-distinctness check, which the visual review of the goldens still
+covers; the trade was three copies of the eighteen-name list for one.
+
 ## Validator checklist
 
 - [ ] Exactly eighteen vectors exist under `shared/src/commonMain/composeResources/drawable/` with the
@@ -334,8 +346,8 @@ nothing was re-recorded. Commit: `refactor: move brand vector board to test sour
 - [ ] The review-only board lives in `commonTest` (no previews, no production consumer), its labels are
       not shipped copy in `strings.xml`, and no shipped file references it; the three wrappers stay in
       `commonMain` as the published API.
-- [ ] `BrandVectorSetTest` names all eighteen resources, fails on a missing/renamed file, and asserts
-      distinctness rather than tautologies.
+- [ ] No redundant inventory test exists: the board's own accessor references, the shell gates, and the
+      four goldens cover presence, style, and rendering without a third copy of the eighteen names.
 - [ ] The four new goldens exist per platform, were recorded deliberately, and the twelve existing PNGs
       are unchanged (`git diff` shows no modification to them).
 - [ ] No screen, shell, theme, string, Gradle, backend, contract, or `design-references/` file changed;

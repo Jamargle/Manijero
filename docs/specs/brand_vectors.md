@@ -37,8 +37,9 @@ slices.
   by the screenshot suites as the rendering proof for every vector in both appearances. It lives in
   test sources because nothing in the app renders it; the three wrappers stay in `commonMain` because
   they are the shipped API.
-- Focused tests that pin the vector inventory and the wrapper contract, plus new reviewed screenshot
-  goldens for the board on both platforms.
+- Focused checks that pin the vector inventory, the asset style, and the rendering: the shell gates in
+  this contract plus the Desktop and Android host screenshot suites, which cannot compile without every
+  named accessor and cannot pass without rendering every vector.
 - Documentation that records the icon/illustration/tint rules in `DESIGN.md`, the durable asset
   constraints in `CONSTRAINTS.md`, and the source geometry and licence in the appendix.
 
@@ -208,8 +209,6 @@ internal fun ManijeroOliveBranch(
   `ManijeroBrandMark.kt`, `ManijeroOliveBranch.kt` — the shipped wrappers — and
   `shared/src/commonTest/kotlin/com/jamarglex/manijero/design/BrandVectorBoard.kt` — the test-only
   review board.
-- **Add** `shared/src/commonTest/kotlin/com/jamarglex/manijero/design/BrandVectorSetTest.kt` — inventory
-  and distinctness of the eighteen named resources.
 - **Add** `shared/src/jvmTest/kotlin/com/jamarglex/manijero/screenshots/BrandVectorBoardScreenshotsTest.kt`,
   `shared/src/androidHostTest/kotlin/com/jamarglex/manijero/screenshots/BrandVectorBoardAndroidScreenshotsTest.kt`,
   and the four goldens `brand_vector_board_light.png` / `brand_vector_board_dark.png` in
@@ -255,7 +254,6 @@ dependency rules.
 
 <!-- verify:start -->
 ```sh
-./gradlew :shared:jvmTest --tests BrandVectorSetTest
 ./gradlew :shared:verifyScreenshots
 vectors="$REPO_ROOT/shared/src/commonMain/composeResources/drawable"
 test -f "$vectors/brand_mark.xml" || { echo "missing brand_mark.xml" >&2; exit 1; }

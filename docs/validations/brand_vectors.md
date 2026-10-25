@@ -157,3 +157,12 @@ The accepted verdict above still stands because nothing behavioural changed. Re-
 the move: `./scripts/init.sh --feature brand_vectors` exits 0, and SHA-256 snapshots of all sixteen
 goldens before and after the move are identical (ten Desktop, six Android), so no baseline was
 re-recorded. Commit: `refactor: move brand vector board to test sources`.
+
+Follow-up 2 (same day): the separate inventory test `BrandVectorSetTest` was removed on review as
+redundant. Presence is enforced at compile time by the board's references to all eighteen accessors; the
+file set, 24 dp grid, stroke, outline-only, colour-literal, and dependency rules are enforced by the
+focused shell gates; and the four goldens render every vector in both appearances. The focused block no
+longer runs a `jvmTest --tests` filter — `./gradlew :shared:verifyScreenshots` plus the gates is the
+focused tier. Re-verified after removal: focused block exit 0 and `./scripts/init.sh --verify` exit 0,
+with all sixteen goldens still byte-identical. Commit: `test: remove redundant brand vector inventory
+test`.

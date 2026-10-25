@@ -227,7 +227,7 @@ Operational MUST/MUST NOT rules that future features have to respect on top of
   `design_token_refresh` guarantees.
 - A new glyph MUST be authored on the 24 dp outline grid (24×24 viewport, 2 dp stroke, round caps
   and joins, no filled shape, content inside the 2–22 dp safe area) and added together with its entry
-  in `BrandVectorSetTest` and the inventory/style/colour gates in the owning spec. Reason: the set is
+  in the review board and the inventory/style/colour gates in the owning spec. Reason: the set is
   one visual weight and a fixed sixteen-name inventory, so an improvised inline path or a filled icon
   would silently break both the look and the asset gate.
 - **MUST**: the brand mark and the empty-state illustration MUST stay decorative — no
