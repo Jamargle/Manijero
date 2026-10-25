@@ -160,9 +160,10 @@ fun areaInputText(areaHectares: Double?): String =
     areaHectares?.let(::formatHectares).orEmpty()
 
 /** Formats a tree count with a plain space as the thousands separator (`85`, `1 200`). */
-fun formatTreeCount(count: Int): String {
-    val negative = count < 0
-    val digits = abs(count.toLong()).toString()
+fun formatTreeCount(count: Long): String {
+    val text = count.toString()
+    val negative = text.startsWith('-')
+    val digits = if (negative) text.substring(1) else text
     val grouped = buildString {
         digits.forEachIndexed { index, character ->
             if (index > 0 && (digits.length - index) % 3 == 0) append(' ')
@@ -171,5 +172,11 @@ fun formatTreeCount(count: Int): String {
     }
     return (if (negative) "-" else "") + grouped
 }
+
+/**
+ * The same grouping for one land's stored count. Sums are formatted through the [Long] entry
+ * point, so the app has one grouping implementation.
+ */
+fun formatTreeCount(count: Int): String = formatTreeCount(count.toLong())
 
 private fun Char.isAsciiDigit(): Boolean = this in '0'..'9'

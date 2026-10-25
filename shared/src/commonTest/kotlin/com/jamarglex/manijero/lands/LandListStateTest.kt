@@ -80,6 +80,61 @@ class LandListStateTest {
     }
 
     @Test
+    fun `changing the query keeps the lands and their order`() {
+        val lands = listOf(
+            land("land-1", "Los Olivos"),
+            land("land-2", "La Loma", municipality = "Úbeda"),
+        )
+        val loaded = LandListState().reduce(LandListAction.LandsLoaded(lands))
+
+        val searching = loaded.reduce(LandListAction.QueryChanged("loma"))
+
+        assertEquals("loma", searching.query)
+        assertEquals(lands, searching.lands)
+        assertEquals(listOf("land-1", "land-2"), searching.lands.map { it.id })
+        assertFalse(searching.loadFailed)
+        assertFalse(searching.isEmpty, "a query never empties the list of saved lands")
+    }
+
+    @Test
+    fun `a successful load after a query starts from a blank query`() {
+        val searching = LandListState()
+            .reduce(LandListAction.LandsLoaded(listOf(land("land-1", "Los Olivos"))))
+            .reduce(LandListAction.QueryChanged("zzz"))
+
+        val reloaded = searching.reduce(
+            LandListAction.LandsLoaded(listOf(land("land-1", "Los Olivos"), land("land-2", "La Loma"))),
+        )
+
+        assertEquals("", reloaded.query)
+        assertEquals(listOf("land-1", "land-2"), reloaded.lands.map { it.id })
+    }
+
+    @Test
+    fun `a failed load after a query clears the query`() {
+        val failed = LandListState()
+            .reduce(LandListAction.LandsLoaded(listOf(land("land-1", "Los Olivos"))))
+            .reduce(LandListAction.QueryChanged("olivos"))
+            .reduce(LandListAction.LoadFailed)
+
+        assertTrue(failed.loadFailed)
+        assertEquals("", failed.query)
+        assertTrue(failed.lands.isEmpty())
+    }
+
+    @Test
+    fun `a reload clears the query`() {
+        val reloaded = LandListState()
+            .reduce(LandListAction.LandsLoaded(listOf(land("land-1", "Los Olivos"))))
+            .reduce(LandListAction.QueryChanged("olivos"))
+            .reduce(LandListAction.ReloadClicked)
+
+        assertEquals("", reloaded.query)
+        assertTrue(reloaded.lands.isEmpty())
+        assertTrue(reloaded.isEmpty)
+    }
+
+    @Test
     fun `unicode long and emoji names survive verbatim`() {
         val names = listOf(
             "Olivar 😀 de la Peña",

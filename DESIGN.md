@@ -289,6 +289,16 @@ adopted by the screen refreshes.
   value is an attribute. Zone, variety, custom variety text, surface, and tree count stay on the
   device and never enter the question payload. Every saved land has a zone; clearing it blocks the
   save.
+  The list summarizes only what the person has annotated, for exactly the lands on screen: a land
+  count, `Superficie anotada` and `Olivos anotados`. The count states what it counted; both annotated
+  values carry an `x de y` caption (with the matching `encontrado` wording while a query is active) and
+  `Sin datos` instead of a zero when nobody wrote that value. A text search over name, zone,
+  municipality, variety (including the custom `Otra` text), water regime and production method
+  filters the rows as the person types, has a named clear action and never searches measures, ids,
+  notes or timestamps; the summary follows the shown matches. A query with no match shows one plain
+  sentence and a `Borrar la búsqueda` action, no cards, and the `Añadir terreno` action stays
+  above it. An empty store is the olive-branch empty state with exactly one primary `Añadir terreno`
+  action, no summary and no search.
 - **Land clarification:** when an answer materially differs by land, let the user choose one or more
   named lands and continue.
 - **Privacy and help:** explain what is stored on device and what may be sent with a question; make

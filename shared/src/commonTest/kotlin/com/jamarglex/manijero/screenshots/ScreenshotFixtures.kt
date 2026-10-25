@@ -92,4 +92,16 @@ internal object ScreenshotFixtures {
 
     /** A successful read that found no land: the empty state, never a failure. */
     val noLands = LandListState()
+
+    /**
+     * The same two saved lands with a query that matches neither, so the no-results panel renders
+     * with no summary cards above it.
+     */
+    val searchNoResults = twoLands.copy(query = "zzz")
+
+    /**
+     * The same two saved lands with a query that matches only `La Loma` (municipality `Úbeda`), so
+     * every card describes one match of two saved lands and states that ratio in its caption.
+     */
+    val searchFiltered = twoLands.copy(query = "ubeda")
 }

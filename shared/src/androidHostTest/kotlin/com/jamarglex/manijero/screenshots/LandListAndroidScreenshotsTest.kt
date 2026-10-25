@@ -25,6 +25,7 @@ class LandListAndroidScreenshotsTest : AndroidScreenshotTestSupport() {
                     onEditLand = {},
                     onRemoveLand = {},
                     onRetry = {},
+                    onQueryChange = {},
                 )
             }
         }
@@ -40,6 +41,50 @@ class LandListAndroidScreenshotsTest : AndroidScreenshotTestSupport() {
                     onEditLand = {},
                     onRemoveLand = {},
                     onRetry = {},
+                    onQueryChange = {},
+                )
+            }
+        }
+
+    /**
+     * A query that matches neither saved land, light appearance at the wide 900 x 1000 dp viewport.
+     * The class viewport is a phone, where the no-results panel falls below the fold; the per-method
+     * qualifier matches the existing rail captures so the field, the Add action and the panel share
+     * one frame.
+     */
+    @Test
+    @Config(qualifiers = "es-rES-w900dp-h1000dp-mdpi")
+    fun landListSearchNoResults() =
+        capture("land_list_search_no_results") {
+            ManijeroTheme(darkTheme = false) {
+                LandListScreen(
+                    state = ScreenshotFixtures.searchNoResults,
+                    onAddLand = {},
+                    onEditLand = {},
+                    onRemoveLand = {},
+                    onRetry = {},
+                    onQueryChange = {},
+                )
+            }
+        }
+
+    /**
+     * One match of two saved lands with the filtered summary copy, light appearance at the wide
+     * 900 x 1000 dp viewport so the scope caption, the three cards and their `x de y` captions
+     * share one frame. Uses the same per-method qualifier as the rail captures.
+     */
+    @Test
+    @Config(qualifiers = "es-rES-w900dp-h1000dp-mdpi")
+    fun landListSearchFiltered() =
+        capture("land_list_search_filtered") {
+            ManijeroTheme(darkTheme = false) {
+                LandListScreen(
+                    state = ScreenshotFixtures.searchFiltered,
+                    onAddLand = {},
+                    onEditLand = {},
+                    onRemoveLand = {},
+                    onRetry = {},
+                    onQueryChange = {},
                 )
             }
         }

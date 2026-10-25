@@ -18,6 +18,7 @@ class LandListScreenshotsTest : ScreenshotTestSupport() {
                     onEditLand = {},
                     onRemoveLand = {},
                     onRetry = {},
+                    onQueryChange = {},
                 )
             }
         }
@@ -33,6 +34,7 @@ class LandListScreenshotsTest : ScreenshotTestSupport() {
                     onEditLand = {},
                     onRemoveLand = {},
                     onRetry = {},
+                    onQueryChange = {},
                 )
             }
         }
@@ -48,6 +50,7 @@ class LandListScreenshotsTest : ScreenshotTestSupport() {
                     onEditLand = {},
                     onRemoveLand = {},
                     onRetry = {},
+                    onQueryChange = {},
                 )
             }
         }
@@ -63,6 +66,46 @@ class LandListScreenshotsTest : ScreenshotTestSupport() {
                     onEditLand = {},
                     onRemoveLand = {},
                     onRetry = {},
+                    onQueryChange = {},
+                )
+            }
+        }
+
+    /**
+     * A query that matches neither saved land, light appearance at the wide 900 x 1000 dp viewport.
+     * The phone width would push the no-results panel below the fold, so the capture would prove
+     * nothing; here the search field, the Add action and the panel share one frame.
+     */
+    @Test
+    fun landListSearchNoResults() =
+        capture(name = "land_list_search_no_results", width = LAND_WIDTH, height = LAND_HEIGHT) {
+            ManijeroTheme(darkTheme = false) {
+                LandListScreen(
+                    state = ScreenshotFixtures.searchNoResults,
+                    onAddLand = {},
+                    onEditLand = {},
+                    onRemoveLand = {},
+                    onRetry = {},
+                    onQueryChange = {},
+                )
+            }
+        }
+
+    /**
+     * One match of two saved lands, light appearance at the wide 900 x 1000 dp viewport, so the
+     * filtered scope caption, the three cards and the `x de y` filtered captions share one frame.
+     */
+    @Test
+    fun landListSearchFiltered() =
+        capture(name = "land_list_search_filtered", width = LAND_WIDTH, height = LAND_HEIGHT) {
+            ManijeroTheme(darkTheme = false) {
+                LandListScreen(
+                    state = ScreenshotFixtures.searchFiltered,
+                    onAddLand = {},
+                    onEditLand = {},
+                    onRemoveLand = {},
+                    onRetry = {},
+                    onQueryChange = {},
                 )
             }
         }

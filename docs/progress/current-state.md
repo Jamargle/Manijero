@@ -20,7 +20,9 @@ points at the per-feature records.
   Desktop and the `manijero_lands` SharedPreferences on Android. Add, list, edit, and remove all go
   through the shared repository; unknown attributes stay `UNKNOWN` and absent measures stay absent;
   only the attributes a question needs may leave the device (`chat/LandContextBuilder.kt`, pinned by
-  `privacy/LandDataDisclosure.kt`).
+  `privacy/LandDataDisclosure.kt`). The list filters those lands by text and summarizes the annotated
+  surface and olive count of the shown set; the query is in-memory only and neither the query nor the
+  summary is stored or sent.
 - **Backend.** FastAPI exposes liveness-only `/health` and a local, campaign-scoped `/ask`; no
   model provider is configured.
 - **Knowledge and offline boundaries.** `knowledge/source_catalog.json` (`source-catalog-v1`)

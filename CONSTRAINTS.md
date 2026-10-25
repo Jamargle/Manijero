@@ -86,6 +86,30 @@ Operational MUST/MUST NOT rules that future features have to respect on top of
   rounds a surface to the stored precision instead of refusing a plausible measurement or truncating it
   silently.
 
+## Land list search and summary
+
+- **MUST**: the search query and the summary MUST be display-only: derived from the in-memory
+  `LandListState` and the lands on screen, never persisted, never serialized into the store or a
+  `Land`/`LandDraft` field, never sent in an `AskRequest`/land context, and never logged. Every read
+  MUST start from a blank query. Reason: `land_search_and_summary`; a stored or transmitted query
+  would leak what the person was looking for and turn a view filter into hidden state.
+- **MUST**: the summary MUST count only annotated values, MUST state its denominator
+  (`x de y terrenos`, `x de y … encontrados` while a query is active), and MUST render `Sin datos`
+  instead of a zero when nothing is annotated — no total may be inferred from another attribute and
+  no card may render a bare number. With a query active every card MUST describe only the shown
+  matches; with no match no card may render. Reason: `land_search_and_summary`; a partial or
+  inferred total would read as a verified measurement of lands the person cannot see.
+- **MUST**: search MUST match text only — name, zone, municipality, the variety label or its custom
+  `Otra` text, the water-regime label and the production-method label — and MUST NOT match measures,
+  ids, notes or timestamps, rank, reorder, or drop a duplicate row. A query with no letters or digits
+  MUST behave like a blank one. Reason: `land_search_and_summary`; matching a measure or note would
+  reveal a value the search hint does not promise, and reordering would hide the stored order.
+- **MUST**: an empty store MUST show the shared olive-branch empty state with exactly one primary
+  `Añadir terreno` action and no summary cards and no search field, and a query with no match MUST
+  show one plain sentence with a named clear action while the `Añadir terreno` action stays
+  reachable. Reason: `land_search_and_summary`; a second Add action, or cards over zero shown lands,
+  would offer an action twice or state a total nobody can see.
+
 ## Client source cards
 
 - **MUST**: every assistant entry MUST render only the `sources` its own decoded response carried

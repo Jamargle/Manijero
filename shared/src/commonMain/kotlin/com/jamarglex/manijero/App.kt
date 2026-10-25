@@ -365,6 +365,9 @@ fun App(
                         destination = AppDestination.RemoveLand
                     },
                     onRetry = readLands,
+                    onQueryChange = { query ->
+                        landListState = landListState.reduce(LandListAction.QueryChanged(query))
+                    },
                 )
 
                 AppDestination.AddLand -> {
