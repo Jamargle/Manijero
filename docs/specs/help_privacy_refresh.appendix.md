@@ -140,13 +140,27 @@ Planning and verification detail for [`help_privacy_refresh.md`](help_privacy_re
 - Manual device route/scroll and accessibility checks remain outstanding. This screenshot change
   does not establish feature acceptance.
 
+### 2026-10-25 — user-requested full screenshot refresh
+
+- After confirming the two shell/chat mismatches were already documented in accepted prior-feature
+  evidence, re-recorded the full 34-frame Desktop and 30-frame Android host suites in a separate
+  screenshot update. The run passed all 64 captures.
+- The refreshed tracked baselines are `app_shell_help_rail_light`, `app_shell_lands_rail_dark`, and
+  `chat_clarification_light` on both hosts, plus `land_list_light` on both hosts and
+  `land_list_light_phone` on Desktop. The 24 dedicated Help/Privacy goldens are added on both hosts.
+  Every changed image was opened and reviewed; no remaining screenshot mismatch was observed.
+- `./gradlew :shared:verifyScreenshots` — PASS on Desktop and Android after the refresh.
+- The full-suite refresh updates previously mismatching baselines; it does not mean the Help/Privacy
+  product code changed Lands or Chat. Manual device, route/scroll, keyboard/focus, screen-reader and
+  owner checks remain unperformed.
+
 ## Validator checklist
 
 - [ ] Both screens use the shared frame/components and theme tokens; no duplicate insets/bars or new design primitives.
 - [ ] Coverage topics, limits and referral copy remain present and faithful to accepted contract; limits are informational, not a promise, legal claim or color-only status.
 - [ ] Privacy notice retains all accepted local-storage, sent-data, unknown/not-sent facts and exhaustive shared-land-attribute mapping; new land fields are not implied to be sent.
 - [ ] Existing privacy/coverage links, Back behavior and originating-section restoration work; no new route/external link.
-- [ ] Compact, wide, dark and large-text presentation has evidence or explicit limitations; changed images are inspected and unrelated goldens untouched.
+- [ ] Compact, wide, dark and large-text presentation has evidence or explicit limitations; every changed golden is inspected and any out-of-feature baseline refresh is explicitly authorized and documented.
 - [ ] Keyboard/screen-reader/device/owner evidence is reported honestly, never inferred from host screenshots or previews.
 - [ ] Focused checks pass or failures are scoped accurately; diff excludes routing, strings/content, land/API/backend/knowledge/contracts and platform entry points.
 - [ ] `DESIGN.md`, `CONSTRAINTS.md`, screenshot documentation and plan delivery note reflect implementation; status changes only after independent acceptance.

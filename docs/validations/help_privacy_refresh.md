@@ -19,11 +19,16 @@ design primitives, or product claims were introduced.
   the environment; the harness printed setup instructions.
 - The accepted [`lands_screens_refresh`](lands_screens_refresh.md) validation establishes that
   `appShellLandsRailDark` and `chatClarificationLight` mismatches predate this feature and are
-  unrelated. They were excluded from this feature's focused checks and left untouched.
+  unrelated. They were excluded from this feature's focused checks. After acceptance, the user
+  explicitly requested a full-suite baseline refresh; the refreshed captures are documented in the
+  feature appendix.
+- Follow-up `./gradlew :shared:verifyScreenshots` — passed all 34 Desktop and 30 Android host
+  captures after the separately committed full-suite recording.
 - `git diff --check` — passed during implementation handoff.
 
 Manual Android/Desktop route and link/back restoration, compact/wide scrolling, device smoke,
 keyboard/focus, screen-reader, and product-owner visual checks were not performed. Host screenshots
 are not evidence for those claims; these limitations remain open and are not acceptance claims.
 
-No relevant security or privacy issue was identified. No commit was created, per user instruction.
+No relevant security or privacy issue was identified. The accepted implementation and screenshot
+refresh were committed separately; see the feature branch history.
