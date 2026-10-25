@@ -217,3 +217,19 @@ reviewer does not gain any accessibility, usability, Android, or iOS assurance f
   states and the retained platform/accessibility limits, set `feature_list.json` to `accepted`, and
   add the single pointer line to `docs/progress/session-log.md`. The presenter also needs to decide
   whether a human-owner image sign-off is recorded before moving to `accepted` or shortly after.
+
+## Post-acceptance follow-up (2026-10-25)
+
+Two follow-ups landed after this acceptance record without re-running the independent validator:
+
+1. The suite was split by screen into `ChatHomeScreenshotsTest`, `LandListScreenshotsTest`, and the
+   shared `ScreenshotTestSupport`; captures, fixtures, goldens, threshold, and tasks did not change.
+2. One phone-width viewport (360×800 dp) was added, so each of the four scenes now has a desktop and
+   a narrow capture (eight goldens total). Recording used the explicit `:shared:recordScreenshots`
+   task; the original four goldens stayed byte-identical (only four `*_phone.png` files were added),
+   and all eight pass `:shared:verifyScreenshots`.
+
+The original `accept` verdict still applies to the verified mechanism, the four original images, and
+the bounded claims. The four new phone-width images still need the same human owner sign-off, and
+they remain Desktop JVM renders at a narrow size: they add no Android/iOS, accessibility, usability,
+or behavior evidence.

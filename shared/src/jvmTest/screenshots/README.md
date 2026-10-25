@@ -14,7 +14,7 @@ captures, and `ScreenshotTestSupport` holds the shared determinism harness.
 ./gradlew :shared:verifyScreenshots
 ```
 
-4 tests must pass. The task never rewrites these files. On a failure it leaves reviewable artifacts
+8 tests must pass. The task never rewrites these files. On a failure it leaves reviewable artifacts
 under `shared/build/reports/screenshot-regression/`:
 
 - `<capture>_actual.png` — what the current code rendered,
@@ -50,12 +50,21 @@ hide a regression.
 
 ## Captures
 
+The same four shared screens are captured twice: at the fixed desktop surface used for the original
+baselines and at one phone-width viewport (`360×800` dp at density 1). Both are Compose Desktop
+renders of `commonMain`, not Android or iOS renders. The phone-width captures make narrow-screen
+reflow, wrapping, and clipping visible in addition to the roomier desktop layout.
+
 | Golden | Size (dp at density 1) | Appearance | Shared state |
 |---|---|---|---|
 | `chat_home_idle_light.png` | 900×1200 | light | `ChatHomeScreen`, empty conversation, suggestions and composer |
+| `chat_home_idle_light_phone.png` | 360×800 | light | `ChatHomeScreen`, same idle state at phone width |
 | `chat_answered_source_dark.png` | 900×1200 | dark | `ChatHomeScreen`, answered reply with scope caption and one source card |
+| `chat_answered_source_dark_phone.png` | 360×800 | dark | `ChatHomeScreen`, same answered state at phone width; records the top of the page |
 | `land_list_light.png` | 900×1000 | light | `LandListScreen`, two saved lands (known and unknown attributes) |
+| `land_list_light_phone.png` | 360×800 | light | `LandListScreen`, same two lands at phone width |
 | `land_list_empty_dark.png` | 900×800 | dark | `LandListScreen`, no saved lands: empty state |
+| `land_list_empty_dark_phone.png` | 360×800 | dark | `LandListScreen`, same empty state at phone width |
 
 ## Fixed render conditions and threshold
 
@@ -75,5 +84,5 @@ hide a regression.
   `./scripts/init.sh --fast`, or the current CI gate.
 - Desktop JVM rendering of `commonMain` only. No Android, iOS, accessibility, usability, legal, or
   product-behavior claim is made by these images.
-- A passing suite proves that the four selected frames match the committed images within the
-  threshold. It does not prove that other screens or states are unchanged.
+- A passing suite proves that the eight selected frames match the committed images within the
+  threshold. It does not prove that other screens, states, or sizes are unchanged.

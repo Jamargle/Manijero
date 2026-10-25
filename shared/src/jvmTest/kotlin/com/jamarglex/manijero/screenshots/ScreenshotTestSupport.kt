@@ -110,6 +110,15 @@ abstract class ScreenshotTestSupport {
         const val EMPTY_LAND_HEIGHT = 800
 
         /**
+         * One phone-width viewport, still rendered by Compose Desktop on the JVM. It approximates
+         * a 360 dp wide phone at density 1 and is not an Android or iOS render; fonts and text
+         * metrics still come from the host. The same four states are captured at this size so a
+         * narrow-screen reflow that the 900 dp captures cannot show becomes visible.
+         */
+        const val PHONE_WIDTH = 360
+        const val PHONE_HEIGHT = 800
+
+        /**
          * A meaningful regression (a moved control, a changed colour, a wrapped line) covers far
          * more than 0.1% of the frame, while the same-host render is deterministic. The per-pixel
          * comparator (Roborazzi's default `SimpleImageComparator(maxDistance = 0.007)`) already

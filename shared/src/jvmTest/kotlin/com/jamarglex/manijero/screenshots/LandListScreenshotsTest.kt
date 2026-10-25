@@ -23,10 +23,42 @@ class LandListScreenshotsTest : ScreenshotTestSupport() {
             }
         }
 
+    /** The two-land list at the single phone-width viewport, light appearance. */
+    @Test
+    fun landListLightPhone() =
+        capture(name = "land_list_light_phone", width = PHONE_WIDTH, height = PHONE_HEIGHT) {
+            ManijeroTheme(darkTheme = false) {
+                LandListScreen(
+                    state = ScreenshotFixtures.twoLands,
+                    onAddLand = {},
+                    onEditLand = {},
+                    onRemoveLand = {},
+                    onBack = {},
+                    onRetry = {},
+                )
+            }
+        }
+
     /** The saved-lands empty state, dark appearance. */
     @Test
     fun landListEmptyDark() =
         capture(name = "land_list_empty_dark", width = LAND_WIDTH, height = EMPTY_LAND_HEIGHT) {
+            ManijeroTheme(darkTheme = true) {
+                LandListScreen(
+                    state = ScreenshotFixtures.noLands,
+                    onAddLand = {},
+                    onEditLand = {},
+                    onRemoveLand = {},
+                    onBack = {},
+                    onRetry = {},
+                )
+            }
+        }
+
+    /** The empty lands state at the single phone-width viewport, dark appearance. */
+    @Test
+    fun landListEmptyDarkPhone() =
+        capture(name = "land_list_empty_dark_phone", width = PHONE_WIDTH, height = PHONE_HEIGHT) {
             ManijeroTheme(darkTheme = true) {
                 LandListScreen(
                     state = ScreenshotFixtures.noLands,

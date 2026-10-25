@@ -189,8 +189,9 @@ the goldens a developer will touch.
   (CI workflow changes are out of scope for this feature).
 - Desktop JVM only: no Android layoutlib, emulator, or iOS runtime coverage, and no claim of
   Android/iOS visual fidelity.
-- Four captures only: a pass means these four frames match within the threshold; other screens,
-  states, text sizes, locales, or window sizes are not gated.
+- Eight captures only: the same four scenes at the desktop surface and one phone-width viewport. A
+  pass means those eight frames match within the threshold; other screens, states, text sizes,
+  locales, or window sizes are not gated.
 - No accessibility, usability, behaviour, or legal-correctness proof; the suite does not replace
   behaviour tests.
 - Baseline refresh is manual and human-reviewed; there is no automated guard beyond the review
@@ -209,6 +210,23 @@ the goldens a developer will touch.
 - The four golden SHA-256 values are unchanged by the split, and the Gradle filter
   `com.jamarglex.manijero.screenshots.*` still selects both classes. The `SharedScreenshotsTest`
   name in the earlier evidence entries above refers to the pre-split single file.
+
+### 2026-10-25 — one phone-width viewport added
+
+- Each of the four scenes now also renders at a single phone-width viewport (`360×800` dp at density
+  1, still Compose Desktop on the JVM): `chat_home_idle_light_phone`,
+  `chat_answered_source_dark_phone`, `land_list_light_phone`, and `land_list_empty_dark_phone`.
+  Harness constants `PHONE_WIDTH`/`PHONE_HEIGHT` are pinned in `ScreenshotTestSupport`; the other
+  render conditions (appearance, density, font scale, LTR, `es-ES`, fixtures) are unchanged.
+- Recorded with the explicit `./gradlew :shared:recordScreenshots --rerun-tasks`. The original four
+  goldens kept their SHA-256 values (only the four `*_phone.png` files were added), and all eight
+  images were opened at full size and reviewed: the idle chat, answered chat, two-land list, and
+  empty lands list render without blank or half-painted frames.
+- `./gradlew :shared:verifyScreenshots --rerun-tasks` → BUILD SUCCESSFUL, 8/8 passed:
+  `chatHomeIdleLight`, `chatHomeIdleLightPhone`, `chatAnsweredSourceDark`,
+  `chatAnsweredSourceDarkPhone`, `landListLight`, `landListLightPhone`, `landListEmptyDark`, and
+  `landListEmptyDarkPhone`. The phone-width frames are shared-UI renders at a narrow size, not
+  Android/iOS device evidence.
 
 ## Validator checklist
 
