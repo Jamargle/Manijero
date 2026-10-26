@@ -7,8 +7,9 @@ Routine entry point. Exact feature status lives in [`feature_list.json`](feature
 contracts, raw evidence, and acceptance records remain in their owning files. Last updated:
 2026-10-26.
 
-**Feature status** — all 50 features are accepted. The selector is the current status view; this
-page does not duplicate the feature-id list.
+**Feature status** — the original 50 features are accepted. Eight additional pilot-readiness
+features are planned and remain `not_started`; no implementation or validation evidence exists for
+them yet. The selector is the current status view; this page does not duplicate the feature-id list.
 
 **Product shape** — shared Compose chat, lands, and help surfaces in `shared/src/commonMain`, hosted
 by Android and Desktop. Land records stay on-device in the single 13-field `land-store-v1` format.
@@ -36,8 +37,18 @@ configured.
   product decisions without target-user evidence. Land-field persistence has no real-device
   upgrade/downgrade evidence; details stay in the [field validation](docs/validations/land_measurement_fields.md)
   and [search validation](docs/validations/land_search_and_summary.md).
-- Device-local land records have no backup or restore. Pilot acceptability remains unresolved; see
-  the [decision record](docs/specs/land_backup_decision.md).
+- Device-local land records still have no implemented backup or restore. The product direction is
+  local-only storage with required recovery features before the private pilot; this is not user
+  evidence that data loss is acceptable. See the [decision record](docs/specs/land_backup_decision.md).
+- A local-only recovery direction is now recorded: recover removed lands, keep bounded same-device
+  snapshots, and support a portable plaintext backup file. Those capabilities are not implemented,
+  so the pilot still has no recovery guarantee. A qualified privacy/legal review is also required
+  before the private pilot.
+- Private hosted operations and distribution are not configured. The project owner is the proposed
+  operator; owned-server readiness, tunnel/provider terms, and Android/macOS release artifacts remain
+  planned work.
+- The answer evaluation remains the existing six-case sample with known citation and critical-fact
+  misses. The planned evidence expansion has not run; no answer-quality claim is supported.
 
 **Detail on demand**
 

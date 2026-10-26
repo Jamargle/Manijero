@@ -271,7 +271,8 @@ them; feature specs own screen-specific behavior.
   visible focus. Essential instructions must not depend on hover.
 - Pair unclear icons with text. Use progressive disclosure: ask for the land name and zone first,
   then collect only details that help answer a real question or tell similar lands apart.
-- Confirm destructive deletion in plain language and identify the land being removed.
+- Confirm moving a land to `Terrenos eliminados` in plain language and identify the land. Permanent
+  deletion from that list needs a separate confirmation; a restore action must be easy to distinguish.
 - Preserve entered data after validation or recoverable network failures. Show response waiting
   state and a simple retry where appropriate.
 - Do not communicate status through color alone.
@@ -330,8 +331,10 @@ that may accompany a question. See [the feature contract](docs/specs/help_privac
 - **Lands:** use a named list and short add/edit forms, with unknown values left unknown and optional
   details visibly optional. The [field](docs/specs/land_measurement_fields.md),
   [search and summary](docs/specs/land_search_and_summary.md), and
-  [removal](docs/specs/remove_land.md) contracts own field order, filtering, summary rules, and
-  confirmation behavior.
+  [removal](docs/specs/remove_land.md), [recovery](docs/specs/recover_removed_lands.md),
+  [automatic backup](docs/specs/local_land_auto_backup.md), and
+  [portable backup](docs/specs/portable_land_backup.md) contracts own field order, filtering,
+  summary rules, lifecycle actions, and backup/restore confirmations.
 - **Clarification:** let a person choose among the lands when the answer materially differs; see the
   [land clarification contract](docs/specs/land_clarification.md).
 - **Help and privacy:** explain the reviewed coverage and the difference between local records and

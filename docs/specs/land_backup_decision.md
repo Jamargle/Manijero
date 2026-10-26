@@ -107,3 +107,23 @@ See [`land_backup_decision.appendix.md`](land_backup_decision.appendix.md) for r
 **Evidence needed / owner / trigger:** The product owner must define the proposed pilot audience and ask intended users or a relevant stakeholder about the importance and replaceability of their land records and acceptable loss/recovery behavior. Record date, method, source/participant count, findings, and limitations without unnecessary personal data. Revisit this decision before any real-user pilot is proposed, and again if audience or stored data materially changes. Until then, pilot acceptability remains undecided; no recovery capability is promised.
 
 **Residual risk:** Device loss can permanently remove locally stored land records. No mitigation beyond truthful disclosure is established by this decision.
+
+## Product direction update — 2026-10-26
+
+The product owner has now selected **local-only land storage for the private pilot**, with recovery
+capabilities required before the pilot may proceed:
+
+- A removed land stays in `Terrenos eliminados` until restored or explicitly deleted permanently.
+- The app keeps bounded automatic snapshots on the same device. They do not protect against loss of
+  the device or its app data.
+- A user-controlled plaintext backup file works on Android and macOS Desktop. Restore previews and
+  replaces the current active and removed land records after confirmation.
+- Permanent deletion removes the record from the app store and every app-managed automatic snapshot.
+  Previously exported files remain under the user's control and may reintroduce that land if
+  restored.
+
+This is a product/architecture decision, not evidence that intended users accept local data loss.
+The pilot is **not approved by this update**: the three recovery features must be implemented and
+accepted, and the qualified privacy/legal review recorded in `pilot_privacy_readiness` must pass.
+Target-user research remains explicitly deferred. Until recovery is implemented, the existing store
+can still lose records permanently and the current disclosure must remain truthful.

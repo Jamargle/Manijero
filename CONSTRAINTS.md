@@ -72,10 +72,12 @@ Operational MUST/MUST NOT rules that future features have to respect on top of
 - **MUST**: every stored land MUST have a trimmed non-blank zone of at most 80 characters, both on
   create and on edit; clearing it MUST block the save. Reason: `land_measurement_fields` made the
   zone the second required identity field.
-- **MUST**: land storage MUST use the single `land-store-v1` format (13 fields) and MUST NOT keep a
-  second decoder or migration path for an older shape. A line that cannot be decoded MUST be skipped
-  whole, and every decoded record MUST carry its zone; the Desktop file keeps its existing name.
-  Reason: no build predates this format, so dual-format code would be maintenance without data.
+- **MUST**: the current land store MUST have one canonical versioned format and decoder. The planned
+  recovery transition MUST migrate existing valid `land-store-v1` records exactly once to the new
+  aggregate format, preserving every decoded record as active; after migration, the old format is
+  input only and MUST NOT become a second ongoing write/read path. A malformed record MUST be skipped
+  whole and every migrated record MUST carry its zone. Reason: an already-shipped v1 store now needs
+  an explicit safe migration to represent active and removed lands.
 - **MUST NOT**: infer a zone, variety, surface, or tree count from a name, municipality, question, or
   another land. An absent optional value MUST stay absent in the store and MUST be omitted from the
   land details rather than shown as zero. Reason: land records must not imply knowledge or
@@ -124,13 +126,28 @@ Operational MUST/MUST NOT rules that future features have to respect on top of
 
 ## Land removal
 
-- **MUST**: removing a land MUST delete exactly one stored record, by its local id, through
-  `LandRepository.delete`; it MUST NOT rewrite, reorder, or otherwise change any other record, MUST
-  NOT call `create`/`update` from a removal path, MUST remove nothing before an explicit confirmation
-  that names the land being removed, and MUST NOT report a removal that `delete` did not confirm (a
-  `false` result or a thrown failure is never a removal). Reason: `remove_land` established that a
-  person's other lands and their local-only store must survive a removal untouched, and that a
-   permanent local action must never be claimed when it did not happen.
+- **MUST**: ordinary land removal MUST move exactly one named active record to the local removed list
+  only after explicit confirmation; it MUST preserve all other records and keep removed lands out of
+  chat context. Permanent deletion MUST require a second explicit confirmation and MUST remove that
+  record from the active/removed aggregate and every app-managed automatic snapshot. Neither action
+  may claim success after a missing-record or storage failure. User-exported files are outside this
+  deletion guarantee and MUST be described as capable of restoring their old contents. Reason: the
+  owner chose recoverability without cloud sync; removal and permanent deletion have distinct
+  consequences.
+
+- **MUST**: automatic land snapshots MUST remain on the same device and be bounded. Portable backup
+  files MUST use one versioned cross-platform schema, remain plaintext, contain only land data, and
+  be clearly described as private files. Import MUST preview then replace all current active and
+  removed lands only after confirmation; invalid input MUST not change the store. Reason: the owner
+  selected same-device automatic copies plus a user-controlled Android/macOS file, with replace-all
+  restore and no cloud or encryption feature.
+
+- **MUST**: product-improvement question/answer retention MUST be default-off and opt-in before each
+  retained question, redact text, exclude land context and stable user/device identifiers, and delete
+  records no later than 30 days. Pilot readiness MUST remain blocked until a qualified privacy/legal
+  review of the data flow, notice, retention behavior, and provider terms is recorded. No hosted LLM
+  provider is configured for the pilot. Reason: retention and provider exposure require informed
+  choice and qualified review before real users.
 
 - **MUST**: land-list Edit and Remove controls remain separate from the non-clickable row and their
   accessible names MUST include both the action and saved land name. Reason: duplicate land names
