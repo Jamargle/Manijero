@@ -7,6 +7,14 @@ description: Guide for writing, reviewing, and refactoring code following SOLID 
 
 This skill guides you to produce code that is easy to read, easy to change, and easy to test. Apply it to every piece of code you write or review in this codebase.
 
+## Manijero fit
+
+In this repository, follow [`AGENTS.md`](../../../AGENTS.md) and [`ARCHITECTURE.md`](../../../ARCHITECTURE.md)
+first. Keep reusable product behavior and Compose UI in `shared/src/commonMain`, use the existing
+feature-local state/action/reducer patterns and the matching presentation skill, and do not add
+feature modules, ViewModels, frameworks, or dependencies just because the generic examples below use
+them. The MVVM/module examples are options for other project shapes, not Manijero defaults.
+
 The goal is **maintainability with pragmatism**. Principles exist to reduce the cost of change, not to add ceremony. If applying a pattern makes a small problem more complicated, do not apply it. See "Pragmatism rules" below.
 
 ---

@@ -1,8 +1,14 @@
-# Backend Technical Discovery — Local MVP Service
+# Backend Technical Discovery — pre-implementation snapshot (2026-10-17)
+
+> **Historical discovery record.** The baseline and remaining-work tables below describe the
+> repository on 2026-10-17, before the local answer route and reviewed corpus were completed. For the
+> current service and knowledge boundary, use [`backend/README.md`](../backend/README.md),
+> [`knowledge/README.md`](../knowledge/README.md), the relevant feature specs, and
+> [`PROGRESS.md`](../PROGRESS.md).
 
 This note scopes the backend work needed to complete a local end-to-end answer service before public deployment. It complements the product-level [build brief](build-brief.md); it is discovery, not an implementation plan.
 
-## Current baseline
+## Baseline observed on 2026-10-17
 
 - `backend/app/main.py` exposes only `GET /health`, which reports process liveness.
 - `contracts/openapi.yaml` already defines `POST /ask` and the request/response contract, including `answered`, `abstained`, and `needs_land_clarification` states.
@@ -11,7 +17,7 @@ This note scopes the backend work needed to complete a local end-to-end answer s
 - `knowledge/source_catalog.json` is intentionally empty; there is no canonical reviewed passage set. The evaluators currently use synthetic fixtures and report-only metrics.
 - No model provider, deployed backend, production trace store, or feedback route is configured. The Kotlin client currently has no live `/ask` service to call.
 
-## Target local workflow
+## Proposed local workflow at discovery
 
 1. Validate the contract-shaped question and minimal land context.
 2. Retrieve only approved, current passages from the reviewed corpus, applying source eligibility, the UTC as-of/validity rules, and an explicitly configured active campaign. Do not infer campaign from date or add it to the request contract; see [`backend_campaign_validity`](specs/backend_campaign_validity.md).
@@ -21,7 +27,7 @@ This note scopes the backend work needed to complete a local end-to-end answer s
 
 The initial corpus direction is a narrow Andalusia PAC single-application slice. Current official sources determine which concrete questions can be covered. Source discovery, downloading, passage review, and critical-fact verification remain human-curated. Historical source lists and verification marks in `MasterPlanV3.md` are planning evidence, not current corpus approval.
 
-## Candidate 2026 corpus coverage
+## Candidate 2026 corpus coverage at discovery
 
 Official material reviewed on 2026-10-17 supports a small candidate slice about where to submit the Andalusian 2026 Solicitud Única, the 2026 filing deadline, and the separate deadline for modifying a submitted application. These are candidate topics for independent review; no canonical source or passage has been approved by this research note.
 
@@ -33,7 +39,7 @@ Official material reviewed on 2026-10-17 supports a small candidate slice about 
 
 Primary-source candidates and the source chronology, including the published request for a further extension that is not itself a binding deadline amendment, are recorded in [`backend_pac_corpus.appendix.md`](specs/backend_pac_corpus.appendix.md). The 2026 official campaign page points to forms and the recognized-entity list. Exact passages, source metadata, and the coverage statement must be independently reviewed before they enter `knowledge/` as approved evidence. Questions about aid eligibility, amounts, late-filing reductions, individual cases, and detailed monitoring adaptations remain outside this first slice.
 
-## Remaining plan work mapped to the repository
+## Work outstanding at discovery
 
 | Master Plan area | Current repository state | Local MVP direction |
 |---|---|---|

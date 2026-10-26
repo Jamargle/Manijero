@@ -1,8 +1,8 @@
 # 🫒 Agricultural Assistant — Master Plan v3
 
-> **Project Context Document.** Contains the product direction, architecture decisions, verified data, tasks
-> with their dependencies, and the guide for working.
-> **Version:** 3.1 · **Date:** October 9, 2026 · **Status:** Product direction updated; existing KMP scaffold present; delivery plan needs re-baselining
+> **Version:** 3.1 · **Date:** October 9, 2026 · **Status:** Archived planning record. Retained for 
+> historical rationale, research, and decisions; its status, task plan, source notes, and working 
+> rules are not current.
 > **Convention:** ✅ = data verified against official source · ⚠️ = pending verification · 🔴 =
 > critical · P0/P1/P2 = priority.
 
@@ -10,26 +10,10 @@
 
 ## 0. How to Use This Document
 
-### 0.1 Working Rules (copy into project instructions)
+### 0.1 Working rules (superseded)
 
-```text
-Project: Manijero, a Kotlin Multiplatform olive-grove assistant for people with low
-computer skills who own or manage one or more lands.
-
-PRODUCT RULES:
-1. Read the current product brief, domain model, design direction, and relevant plan sections.
-2. MVP: AI chat first, basic multiple-land management; Android and Desktop only.
-3. Implement product behavior and Compose UI in commonMain for later iOS reuse.
-4. Use all lands by default; ask the user to choose when a material answer differs by land.
-   Never infer unknown details or legal eligibility.
-5. Never invent legal deadlines, amounts, thresholds, requirements, or article numbers.
-   Trace claims to approved official sources or state that they are unverified.
-6. Prefer simple, accessible workflows and plain Spanish user-facing language.
-7. Minimize land data and explain what is stored locally and what is sent to a provider.
-8. Verify changed behavior on Android and Desktop; include land ambiguity and abstention cases.
-9. Treat this plan as technical context; the current brief and domain model own product decisions.
-10. Report changed files, evidence, and remaining risks clearly.
-```
+This plan's original working rules are retired. Do not copy them into project instructions or use
+them in place of [`AGENTS.md`](AGENTS.md), which is the current reading route and operating guide.
 
 ### 0.2 How the Document is Organized
 

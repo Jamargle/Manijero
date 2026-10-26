@@ -1,6 +1,6 @@
 ---
 name: feature-spec
-description: Create an implementation-ready specification for one feature from feature_list.json. Use when the user asks to plan a feature, create a feature spec, apply lightweight SDD/spec-driven development, prepare work for another implementation agent, or generate specs/tasks/technical plan from the feature list. If no feature id is provided, select the first dependency-ready feature in feature_list.json order that is neither passing nor accepted.
+description: Create an implementation-ready specification for one feature. Use when the user asks to plan a feature, create a feature spec, apply lightweight SDD/spec-driven development, prepare work for another implementation agent, or generate specs/tasks/technical plan. When no feature id is provided, use the repository selector and proceed only when its next role is planner.
 ---
 
 # Feature Spec
@@ -14,40 +14,39 @@ Use this skill to turn one harness feature into an implementation-ready contract
 - Do not modify application source files.
 - Do not generate specs for every feature unless the user explicitly asks after this skill finishes.
 - Create or update only the feature's two spec files by default: the contract `../../../docs/specs/<feature-id>.md` and its appendix `../../../docs/specs/<feature-id>.appendix.md`.
-- If the feature id is not provided, select the first feature in `feature_list.json` order whose status is neither `passing` nor `accepted` and whose `depends_on` prerequisites are satisfied.
-- If a feature is too broad to plan cleanly, stop and recommend splitting it in `feature_list.json` instead of producing a vague spec. Rough signal: it needs more than one data model plus one user flow, or the spec would clearly exceed the 100-250 line target.
+- If the feature id is not provided, run `./scripts/select-feature.sh --next`. Proceed only when it reports `NEXT_ROLE=planner`; otherwise report the selected role or blocker and stop. Do not select or reorder features by reading `feature_list.json` yourself.
+- If a feature is too broad to plan cleanly, stop and recommend splitting it in `feature_list.json` instead of producing a vague spec. Keep the contract near the 100–250 line target by moving research, implementation steps, and evidence to the appendix; split only when the feature contains independently usable behavior, not just because its contract is long.
 - Treat the spec as a contract between agents: planner -> implementer -> validator.
 - Prefer concrete repository findings over assumptions. If something was not inspected, say so.
 
 ## Inputs To Read First
 
 1. `../../../AGENTS.md`
-2. `../../../PROGRESS.md`
-3. `feature_list.json`
+2. The **Current state** section of `../../../PROGRESS.md`; read other sections only when the task needs them
+3. `./scripts/select-feature.sh --next` when the user has not supplied a feature id
 4. Existing feature spec if present: `../../../docs/specs/<feature-id>.md` and its appendix `../../../docs/specs/<feature-id>.appendix.md`
-5. Product/discovery docs as needed:
+5. Current product and architecture docs as needed:
    - `../../../CONTEXT.md`
-   - `../../../docs/product-brief.md`
+   - `../../../ARCHITECTURE.md`
+   - `../../../CONSTRAINTS.md`
    - `../../../docs/domain-model.md`
-   - `../../../docs/user-and-access-model.md`
-   - `../../../docs/technical-discovery.md`
-   - `../../../docs/mvp-scope.md`
    - `../../../DESIGN.md` when the selected feature has UI or visual behavior
    - `../../../docs/risks-and-open-questions.md`
-   - `../../../docs/adr/*.md`
+   - `../../../docs/build-brief.md` and `../../../docs/technical-discovery.md` only as historical rationale; current requirements live in the guides and feature specs.
+   - `../../../backend/README.md` or `../../../knowledge/README.md` for backend/knowledge work
 6. Existing application files relevant to the selected feature. Inspect enough of the repo to identify expected file changes, patterns, commands, and risks.
 
-If `feature_list.json` is missing, stop and tell the user to run the startup harness skill first.
+If the selector cannot find `feature_list.json`, stop and tell the user to run the startup harness skill first.
 
 ## Workflow
 
 ### 1. Select The Feature
 
-Use a user-provided feature id when present. Otherwise, choose the first feature in `feature_list.json` order with status other than `passing` or `accepted` whose `depends_on` prerequisites are satisfied. Prefer an `in_progress` feature over a `not_started` feature if one exists.
+Use a user-provided feature id when present. Otherwise, run `./scripts/select-feature.sh --next` and continue only when the selected role is `planner`. The selector owns feature ordering, dependency checks, and role selection.
 
-A dependency is satisfied when the referenced feature id exists and has status `accepted`. For legacy feature lists, a dependency with status `passing` may be treated as satisfied only when durable evidence shows independent validator acceptance. If `depends_on` is absent in an older feature list, treat it as `[]` for backward compatibility. If the first unfinished features are blocked by dependencies, skip them only when looking for a later dependency-ready feature; report the skipped blockers in the summary.
+Use the selector's `NEXT_FEATURE`, `NEXT_ROLE`, `NEXT_REASON`, and `NEXT_BLOCKED` as the source for readiness and dependency decisions. Do not reconstruct the selection order or dependency rules from `feature_list.json`.
 
-Before planning, verify the feature has enough scope information: `id`, `title`, and `depends_on` in `feature_list.json`, plus its user-visible behavior and verification. Read those from an existing spec's `Source metadata` section or from the discovery docs; if they are missing everywhere, improve the feature entry only if the user explicitly asked for feature-list maintenance, otherwise stop and report the missing scope. The spec the planner writes records the source behavior, verification, and notes in its own `Source metadata` section.
+Before planning, verify scope from the user's request, an existing spec's `Source metadata`, or current discovery records. If the user-visible behavior or verification is missing everywhere, stop and report the missing decision rather than inventing it. The spec records source behavior, verification, and notes in its own `Source metadata` section. Do not edit feature status as part of planning.
 
 ### 2. Research The Repository
 
@@ -65,6 +64,10 @@ Investigate how to implement the selected feature in this specific repo:
 Record inspected files in the spec. Do not pretend to have inspected files that do not exist.
 
 ### 3. Write The Contract And Its Appendix
+
+Keep the spec concise but operational. A good default target is 100-250 lines. If it grows far 
+beyond that, the feature may need splitting. Create or update `../../../docs/specs/<feature-id>.md` 
+using `references/spec-template.md`.
 
 Write two files, and do not create or edit any other spec file:
 

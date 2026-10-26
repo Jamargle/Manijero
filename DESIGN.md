@@ -169,7 +169,9 @@ The identity layer is hand-authored vector XML under
 `shared/src/commonMain/composeResources/drawable/`, drawn by thin wrappers in
 `com.jamarglex.manijero.design`. Every vector is a single-colour mask, so one asset serves both
 appearances. Names and geometry are fixed by
-[`docs/specs/brand_vectors.md`](docs/specs/brand_vectors.md); screens adopt them in later features.
+[`docs/specs/brand_vectors.md`](docs/specs/brand_vectors.md). The app shell uses the brand mark and
+the empty-land state uses the decorative branch; any other screen adoption belongs to its feature
+contract.
 
 ### Icon set
 
@@ -207,7 +209,7 @@ appearances. Names and geometry are fixed by
 
 ## Shared component layer
 
-`ui_component_library` adds the presentational blocks the screen refreshes adopt in later features:
+`ui_component_library` defines the presentational blocks used by the shell and refreshed screens:
 `ManijeroScreen`, `ManijeroCard`, `ManijeroSectionHeader`, `ManijeroCallout`, `ManijeroStatCard`,
 `ManijeroEmptyState`, `ManijeroAttributeChip`, `ManijeroChoiceCard`, `ManijeroSearchField`,
 `ManijeroDropdownField`, `ManijeroMeasureField`, and the navigation components
@@ -215,13 +217,12 @@ appearances. Names and geometry are fixed by
 `shared/src/commonMain/kotlin/com/jamarglex/manijero/design/` (navigation in `design/navigation/`),
 are `internal`, preview-backed, and take every visible string, value, icon, selection and callback
 as a parameter. The layer owns no copy, domain type, store, request or business rule and never reads
-`Res.string`. The app shell adopts the navigation components today; the remaining components are
-adopted by the screen refreshes.
+`Res.string`. The shell and refreshed chat, lands, and help surfaces use the components relevant to
+them; feature specs own screen-specific behavior.
 
 - **Page frame.** `ManijeroScreen` paints `background`, owns one vertical scroll, applies 24 dp
   horizontal padding below 840 dp and 40 dp from it, 32 dp vertical padding, and centres a 720 dp
-  content column. It owns no window insets and no bars; the shell's future `Scaffold` is the single
-  inset owner.
+  content column. It owns no window insets and no bars; `AppShell` is the single inset owner.
 - **Containers.** `ManijeroCard` has `Surface`, `Tonal`, `Outlined` and `Danger` tones (16 dp
   radius; 1 dp `outlineVariant` or `error` border where the tone defines one) and is never
   clickable: a caller puts its own button, link or choice row inside. `ManijeroSectionHeader` emits
@@ -322,41 +323,23 @@ that may accompany a question. See [the feature contract](docs/specs/help_privac
 
 ## MVP surface intent
 
-- **Welcome and home:** explain what the assistant can and cannot do; offer a clear way to ask or
-  manage lands. Do not make an empty transcript the only starting point.
-- **Chat:** distinguish user and assistant messages; keep citations close to supported claims and
-  make sources, verification date, uncertainty, and next steps easy to find.
-- **Lands:** provide a simple named list and short add/edit forms. Mark optional details and allow
-  unknown values without forcing a guess; avoid map-first or spreadsheet-style layouts.
-  The add and edit forms keep this order: name, zone (paraje), municipality, variety, custom `Otra`
-  text when chosen, surface in hectares, olive-tree count, water regime, production method, actions.
-  Name and zone say “obligatorio” in words; the rest say “opcional” and offer “No lo sé” where the
-  value is an attribute. Zone, variety, custom variety text, surface, and tree count stay on the
-  device and never enter the question payload. Every saved land has a zone; clearing it blocks the
-  save.
-  The list summarizes only what the person has annotated, for exactly the lands on screen: a land
-  count, `Superficie anotada` and `Olivos anotados`. The count states what it counted; both annotated
-  values carry an `x de y` caption (with the matching `encontrado` wording while a query is active) and
-  `Sin datos` instead of a zero when nobody wrote that value. A text search over name, zone,
-  municipality, variety (including the custom `Otra` text), water regime and production method
-  filters the rows as the person types, has a named clear action and never searches measures, ids,
-  notes or timestamps; the summary follows the shown matches. A query with no match shows one plain
-  sentence and a `Borrar la búsqueda` action, no cards, and the `Añadir terreno` action stays
-  above it. An empty store is the olive-branch empty state with exactly one primary `Añadir terreno`
-   action, no summary and no search.
-  Land rows use non-clickable outlined cards: known water, production and variety values are chips;
-  unknown attributes are stated once in plain text. Edit and remove remain separate controls, each
-  with an accessible name that includes its action and the saved land name. Add/edit forms keep
-  their established field order and group required identity fields separately from optional details;
-  neither group hides a field or choice. Removal identifies the selected record in a danger card,
-  while Cancel remains an explicit safe action.
-- **Land clarification:** when an answer materially differs by land, let the user choose one or more
-  named lands and continue.
-- **Privacy and help:** explain what is stored on device and what may be sent with a question; make
-  human-help routes and reviewed-topic coverage easy to find. Detailed coverage content belongs to
-  the [`coverage_and_help` spec](docs/specs/coverage_and_help.md).
+- **Chat:** distinguish the person from the assistant and keep sources, scope, uncertainty, and
+  recovery actions easy to find. The [chat](docs/specs/chat_screen_refresh.md),
+  [response-state](docs/specs/response_states.md), and [source-card](docs/specs/answer_source_cards.md)
+  contracts own the exact states and copy.
+- **Lands:** use a named list and short add/edit forms, with unknown values left unknown and optional
+  details visibly optional. The [field](docs/specs/land_measurement_fields.md),
+  [search and summary](docs/specs/land_search_and_summary.md), and
+  [removal](docs/specs/remove_land.md) contracts own field order, filtering, summary rules, and
+  confirmation behavior.
+- **Clarification:** let a person choose among the lands when the answer materially differs; see the
+  [land clarification contract](docs/specs/land_clarification.md).
+- **Help and privacy:** explain the reviewed coverage and the difference between local records and
+  the minimal context a question may send; see [coverage and help](docs/specs/coverage_and_help.md)
+  and [land data disclosure](docs/specs/land_data_disclosure.md).
 
-Feature-specific content and states are defined by the owning feature specs, not this summary.
+Keep cards and forms legible, actions named, status cues independent of colour, and layouts usable at
+large text. Feature-specific content and states belong to the owning contracts.
 
 ## Accessibility and validation
 

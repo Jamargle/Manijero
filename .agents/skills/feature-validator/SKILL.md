@@ -23,8 +23,8 @@ You are the validator/evaluator, not the planner and not the implementer.
 ## Inputs To Read First
 
 1. `../../../AGENTS.md`
-2. `../../../PROGRESS.md`
-3. `feature_list.json`
+2. The **Current state** section of `../../../PROGRESS.md`; read other sections only when the task needs them
+3. `./scripts/select-feature.sh --next` when the user has not supplied a feature id; inspect the named feature's status as needed.
 4. Selected feature spec: `../../../docs/specs/<feature-id>.md`
 5. Current git status and diff
 6. Durable docs if present:
@@ -34,7 +34,7 @@ You are the validator/evaluator, not the planner and not the implementer.
    - related docs under `docs/`
 7. Files changed by the implementation.
 
-If no feature id is provided, choose the feature currently `in_progress`. If none exists, choose the most recently evidenced `passing` feature. Do not choose features whose status is `accepted` unless the user explicitly asks to revalidate them. If ambiguous, ask for the feature id.
+If no feature id is provided, run `./scripts/select-feature.sh --next` and proceed only when it reports `NEXT_ROLE=validator`; otherwise report the selected role or blocker and stop. Do not choose another feature by reading `feature_list.json`. A user-named feature can be revalidated even if it is `accepted`.
 
 ## Workflow
 

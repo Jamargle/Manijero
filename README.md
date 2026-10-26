@@ -10,7 +10,7 @@ Manijero is a Kotlin Multiplatform app for people who own or manage one or more 
 
 The intended user has little experience with computers or apps. The interface and assistant should use plain Spanish, clear next steps, readable text, and source links. Land information is local by default; only the minimum context needed for a question should be sent to the answer service.
 
-See [the build brief](docs/build-brief.md), [domain model](docs/domain-model.md), [risks and open questions](docs/risks-and-open-questions.md), and [design direction](DESIGN.md) before changing any product behavior. [MasterPlanV3.md](MasterPlanV3.md) contains the broader technical and delivery plan.
+For current scope and behavior, start with [AGENTS.md](AGENTS.md), [CONTEXT.md](CONTEXT.md), and the owning feature spec. The [build brief](docs/build-brief.md) and [MasterPlanV3.md](MasterPlanV3.md) are historical planning records.
 
 ## Project structure
 
@@ -63,9 +63,9 @@ Standard verification (shared host tests + Android debug APK + Desktop build):
 
 ## Documentation
 
-- [Build brief](docs/build-brief.md): users, goals, MVP slice, constraints, and validation.
-- [Domain model](docs/domain-model.md): lands, questions, source-backed answers, and lifecycle rules.
-- [Risks and open questions](docs/risks-and-open-questions.md): unresolved decisions and mitigations.
-- [Design direction](DESIGN.md): visual and accessibility guidance for the MVP UI.
-- [Project glossary](CONTEXT.md): stable terms and product constraints.
-- [Master Plan v3](MasterPlanV3.md): RAG, knowledge operations, evaluation, and delivery notes.
+- [AGENTS.md](AGENTS.md): reading route and project rules.
+- [PROGRESS.md](PROGRESS.md): current status, limitations, open checks, and verification tiers.
+- [ARCHITECTURE.md](ARCHITECTURE.md), [CONTEXT.md](CONTEXT.md), [CONSTRAINTS.md](CONSTRAINTS.md), and [DESIGN.md](DESIGN.md): current boundaries, scope, durable rules, and UI guidance.
+- Feature behavior lives in [specs](docs/specs/); accepted evidence lives in [validations](docs/validations/).
+- [Contracts](contracts/) and [knowledge](knowledge/README.md) document the API and reviewed corpus formats.
+- The [build brief](docs/build-brief.md) and [Master Plan v3](MasterPlanV3.md) are historical planning records.

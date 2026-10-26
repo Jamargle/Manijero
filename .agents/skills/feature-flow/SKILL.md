@@ -33,7 +33,7 @@ The main agent is the orchestrator. It chooses the next role, launches the right
 ## Inputs To Read First
 
 1. `../../../AGENTS.md`
-2. `../../../PROGRESS.md`
+2. The **Current state** section of `../../../PROGRESS.md`; read other sections only when the task needs them
 3. `./scripts/select-feature.sh --next` (feature selection); read `feature_list.json` only when you must update a feature's status
 4. `docs/specs/` if present
 5. `docs/validations/` if present
