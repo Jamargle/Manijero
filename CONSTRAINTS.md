@@ -145,9 +145,13 @@ Operational MUST/MUST NOT rules that future features have to respect on top of
 - **MUST**: product-improvement question/answer retention MUST be default-off and opt-in before each
   retained question, redact text, exclude land context and stable user/device identifiers, and delete
   records no later than 30 days. Pilot readiness MUST remain blocked until a qualified privacy/legal
-  review of the data flow, notice, retention behavior, and provider terms is recorded. No hosted LLM
-  provider is configured for the pilot. Reason: retention and provider exposure require informed
-  choice and qualified review before real users.
+  review of the data flow, notice, retention behavior, and provider terms is recorded. Gemini is in
+  pilot scope but MUST remain disabled until the exact current model/tier, terms, data flow, and review
+  gate are recorded as approved. Only the minimum question and approved retrieved passages may be
+  sent; land names/notes and stable identifiers MUST NOT be sent. Every model draft MUST pass the
+  existing whole-draft verifier; citations, source arrays, notices, and abstentions remain code-owned.
+  Reason: model output is untrusted and provider exposure requires informed choice and qualified
+  review before real users.
 
 - **MUST**: land-list Edit and Remove controls remain separate from the non-clickable row and their
   accessible names MUST include both the action and saved land name. Reason: duplicate land names
@@ -356,3 +360,20 @@ Operational MUST/MUST NOT rules that future features have to respect on top of
   privacy → the section it was opened from) and MUST be absent when that target is null. Reason:
   `app_chrome_navigation` protects an unsaved draft and keeps the selected tab consistent with the
   visible screen.
+
+
+## Knowledge updates and retrieval
+
+- **MUST**: source scans and document ingestion MUST write only quarantined candidates; they MUST NOT
+  make a new or changed document answerable without human approval. Candidate records MUST preserve
+  official URL, retrieval time, original-content hash, parser/version provenance, and review status.
+  Reason: a new publication can be inapplicable, superseded, malformed, or adversarially formatted.
+- **MUST**: scheduled source checks are best-effort and MUST expose last-success time, failures, and
+  missed runs; a schedule alone MUST NOT be represented as proof that the corpus is current.
+  Reason: external schedulers and official sites can delay or fail.
+- **MUST**: a knowledge release MUST rebuild indexes from approved canonical artifacts, record artifact
+  and model versions, pass structural/grounding gates, and support rollback to the prior index.
+  Reason: generated indexes are derived data and must not drift from reviewed sources.
+- **MUST**: retrieval changes MUST be compared with the measured BM25 baseline on the reviewed cases;
+  report-only metrics MUST NOT be described as improved answer quality without sufficient reviewed
+  evidence.

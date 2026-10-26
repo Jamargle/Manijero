@@ -15,10 +15,13 @@ current implementation limits and manual checks.
 | Land context is wrong or incomplete | An answer could appear personalized while applying to the wrong land | Treat unknown as unknown; use all lands by default; ask for a land choice when answers differ; show which land context was used. Never infer eligibility from stored details. |
 | Low digital confidence blocks adoption | The intended audience may abandon setup or misread a result | Keep the first journey short, explain terms in plain Spanish, allow general questions without setup, and observe low-confidence users completing key tasks. |
 | Local device loss removes land records | Land data is deliberately local and no service-side copy exists | **Decision:** remain local-only; require same-device automatic snapshots and a portable, user-managed backup file before pilot. The features are planned, not implemented, so device loss can still permanently remove records today. Never describe the on-device snapshot as protection from device loss. See [decision record](specs/land_backup_decision.md). |
-| Sensitive farm information reaches logs or infrastructure providers | Questions and minimal land attributes transit the hosted API and tunnel; user text may identify a person or operation | Keep land names/notes out of requests and logs; no hosted LLM for pilot. Question/answer retention is planned default-off, per-question opt-in, redacted, without land context or stable IDs, and limited to 30 days. Qualified privacy/legal review and current host/tunnel terms are required before pilot. |
+| Sensitive farm information reaches logs or infrastructure providers | Questions and minimal land attributes transit the hosted API and tunnel; user text may identify a person or operation | Keep land names/notes out of requests and logs; Gemini is planned but gated off until current model terms and data flows receive qualified review; no provider call is permitted before that gate. Question/answer retention is planned default-off, per-question opt-in, redacted, without land context or stable IDs, and limited to 30 days. Qualified privacy/legal review and current host/tunnel terms are required before pilot. |
 | Unreviewed or malicious content enters the knowledge corpus | The assistant may follow misleading text or cite unreliable material | Restrict ingestion to approved sources, preserve provenance, treat document text as data, and require human review for additions or changes to critical material. |
 | Active PAC campaign is misconfigured or stale campaign artifacts remain | A valid answer could use evidence for the wrong campaign | Require explicit four-digit `MANIJERO_ACTIVE_CAMPAIGN`; rotate expired source records and passages together after review; configuration is not inferred from date or question. |
 | Free service limits or terms change | Costs, privacy, or availability can change after launch | Keep provider adapters replaceable, measure usage, define graceful rate-limit behavior, and do not promise zero ongoing cost until verified. |
+
+| Official source updates are missed or misclassified | A scheduled scan can fail, an official page can change format, or an amendment can be ambiguous | Implement allowlisted scans with run history/retries and stale-run visibility; quarantine candidates and require human approval before canonical knowledge changes.
+| Local embedding/index capacity is unknown | bge-m3 and Chroma may exceed owned-server storage or memory limits | Measure the actual deployment host and compare retrieval against BM25 before retaining the added components; keep a rollback path.
 
 ## Medium risks
 
@@ -45,15 +48,16 @@ current implementation limits and manual checks.
 | Are land recovery mechanisms ready for the private pilot? | Current app removal is permanent and there is no backup/restore. | **Decision recorded:** stay local-only; require recoverable removal, same-device snapshots, and portable plaintext backup/restore. Implementation and verification remain blocking; no real-user pilot until accepted. See `recover_removed_lands`, `local_land_auto_backup`, and `portable_land_backup`. |
 | Can the owned server support the pilot, and which managed tunnel/provider is acceptable? | Host availability, current provider terms, and privacy practices are not verified. | **Decision:** the project owner operates the service. Assess owned-server readiness and current official host/tunnel terms; choose a fallback managed host if needed. Pilot remains blocked until the review and runbook are complete. |
 | Are private release signing and artifact links ready? | Install friction and signing/provider terms affect the pilot. | **Decision:** direct private links for Android APK and macOS Desktop installer only. Public stores, Windows, Linux, and iOS are out of scope. Signing/notarization and artifact-link provider requirements remain to be verified. |
-| Is the question/answer retention design approved for real users? | Redacted free text may still contain identifying details and requires current legal/privacy review. | **Decision:** opt-in per question, default off; redacted Q/A text only, no land context or stable IDs, delete within 30 days; no hosted LLM. A qualified privacy/legal review is a hard pre-pilot gate. |
+| Is the question/answer retention design approved for real users? | Redacted free text may still contain identifying details and requires current legal/privacy review. | **Decision:** opt-in per question, default off; redacted Q/A text only, no land context or stable IDs, delete within 30 days. Gemini is planned but remains disabled until a qualified privacy/legal review approves current terms and data flow. The qualified review is a hard pre-pilot gate. |
 
 ### Conditional decisions
 
 | Decision | Trigger |
 |---|---|
 | Feedback and non-content operational trace retention | Before enabling either with real users; Q/A product-improvement retention is specified in `pilot_privacy_readiness`. |
-| Whether to use a hosted answer model | Not for this pilot. Revisit only after corpus coverage and the measured baseline are reviewed, then check current data handling, terms, limits, cost, and verifier behavior. |
-| Whether to add vector/RRF retrieval or reranking | After a source-anchored retrieval evaluation shows a measurable need. |
+| Which Gemini model/tier and whether its gate can pass | Gemini integration is planned for the private pilot, but outbound calls remain disabled until current official terms, data handling, limits/cost, and a qualified privacy/legal review are recorded. The exact model/tier is not selected. |
+| Whether local bge-m3 + Chroma/RRF improves retrieval enough to keep | Planned as a measured experiment against current BM25; retain no quality claim absent reviewed results and capacity measurements. |
+| How to operate source-update scheduling reliably | Compare owned-server scheduling with repository automation, test missed-run detection, retries, and owner alerts; scans may propose changes but canonical additions require human approval. |
 
 ### Later
 
@@ -64,6 +68,6 @@ current implementation limits and manual checks.
 | Voice, document/photo interpretation, and offline assistant use | Accessibility and privacy constraints are understood and evaluated |
 | iOS release details and native integrations | Android/Desktop MVP is stable; reuse shared logic and UI |
 | Cooperative-facing review tools or content | A cooperative agrees to participate and boundaries are clear |
-| Hosted LLM for answer generation | After corpus coverage and the first measured baseline are reviewed; check current terms, privacy, limits, cost, and verifier behavior |
+| Expanding automatic legal interpretation beyond source-change detection | Only after qualified legal review and a separately scoped approval model |
 
 Last reviewed: 2026-10-26

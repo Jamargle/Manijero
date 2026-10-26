@@ -2,11 +2,11 @@
 
 ## Source metadata
 
-- **Feature:** `hosting_provider_review` — Review hosting and tunnel provider terms (`operations`).
+- **Feature:** `hosting_provider_review` — Review hosting, tunnel, and Gemini provider terms (`operations`).
 - **Status at planning:** `not_started`; depends on accepted `backend_ask_endpoint` and `backend_campaign_validity`.
-- **Source behavior:** Record current, source-linked choices for API hosting, managed tunnel, and private artifact delivery, including terms, privacy, reliability, and cost.
+- **Source behavior:** Record current, source-linked choices for API hosting, managed tunnel, private artifact delivery, and gated Gemini generation, including terms, privacy, reliability, and cost.
 - **Feature-list verification:** A dated decision record compares the owned-server/tunnel path with a managed-host fallback using current official provider materials and states the selected path and blockers.
-- **Feature-list note:** No hosted LLM is planned for the pilot. This review covers API hosting and network tunnel providers only.
+- **Feature-list note:** Gemini generation is planned for the pilot but remains gated off until exact model terms, privacy/data flows, limits, and qualified review are documented and approved. Selecting a model or tier is deliberately unresolved.
 
 ## Goal and boundaries
 
@@ -14,7 +14,7 @@ Choose whether an owned server can reliably host the private API through a manag
 
 **In scope:** provider and service identity for hosting, managed tunnel, and private build delivery; current official terms, privacy/data processing, region, access control, TLS, logs/retention, support, limits, incident notice, cost, reliability prerequisites, and exit/rollback path; a written go/no-go decision by the project owner.
 
-**Non-goals:** deployment implementation, provider account creation, hosted LLM selection, user research, or a legal compliance certification. Qualified privacy/legal review is tracked in `pilot_privacy_readiness`.
+**Non-goals:** deployment implementation, provider account creation, activating Gemini before its review gate, user research, or a legal compliance certification. Qualified privacy/legal review is tracked in `pilot_privacy_readiness`.
 
 ## Job story
 
@@ -36,11 +36,11 @@ Given a provider's material privacy, terms, or pricing change, when the owner re
 
 ### No AI-provider implication
 
-Given the selected infrastructure, when the record describes data flow, then it states that the current API uses extractive answers and makes no hosted-LLM call.
+Given the selected infrastructure, when the record describes data flow, then it states that the current API uses extractive answers and does not call Gemini until the review gate is passed.
 
 ## Technical approach
 
-Create a dated decision record with a small comparison matrix and direct official links for the host, tunnel, and artifact-delivery options, accessed date, exact relevant sections, data-flow notes, cost assumptions, operational requirements, decision owner, review trigger, and unresolved blockers. Do not copy legal text at length or infer legal compliance. If a provider cannot be selected with official evidence, keep the pilot deployment/distribution blocked and list the missing evidence.
+Create a dated decision record with a small comparison matrix and direct official links for the host, tunnel, artifact-delivery, and Gemini options, accessed date, exact relevant sections, data-flow notes, cost assumptions, operational requirements, decision owner, review trigger, and unresolved blockers. Do not copy legal text at length or infer legal compliance. If a provider cannot be selected with official evidence, keep the affected pilot path blocked and list the missing evidence. Record Gemini model ID/revision, tier, regions, prompts/responses processing, retention, human review, limits, pricing assumptions, and an explicit disabled-by-default gate. Do not send real user data during evaluation until the qualified review approves it.
 
 ## Expected file changes
 
@@ -55,7 +55,7 @@ None.
 ## Durable documentation impact
 
 - `ARCHITECTURE.md`: update only after the chosen hosting boundary is implemented.
-- `CONSTRAINTS.md`: no new invariant; preserve no hosted-LLM and data-minimization rules.
+- `CONSTRAINTS.md`: preserve Gemini disabled-by-default until reviewed and enforce data minimization and verifier invariants.
 - `AGENTS.md`: not needed.
 - `docs/risks-and-open-questions.md`: update the hosting/tunnel decision and review trigger.
 

@@ -7,17 +7,18 @@ Routine entry point. Exact feature status lives in [`feature_list.json`](feature
 contracts, raw evidence, and acceptance records remain in their owning files. Last updated:
 2026-10-26.
 
-**Feature status** — the original 50 features are accepted. Eight additional pilot-readiness
-features are planned and remain `not_started`; no implementation or validation evidence exists for
-them yet. The selector is the current status view; this page does not duplicate the feature-id list.
+**Feature status** — the original 50 features are accepted. Nine backend RAG/knowledge-operations
+features and eight pilot-readiness features are planned and remain `not_started`; no implementation
+or validation evidence exists for these planned items yet. The selector is the current status view; this page does not duplicate the feature-id list.
 
 **Product shape** — shared Compose chat, lands, and help surfaces in `shared/src/commonMain`, hosted
 by Android and Desktop. Land records stay on-device in the single 13-field `land-store-v1` format.
 The local FastAPI service exposes liveness-only `/health` and `/ask`; Android and Desktop use
 overridable local development URLs. The reviewed corpus contains four official sources and four
 literal passages for three procedural topics in the Andalusian PAC single application for 2026.
-`/ask` requires an explicit `MANIJERO_ACTIVE_CAMPAIGN`; no hosted model or public deployment is
-configured.
+`/ask` requires an explicit `MANIJERO_ACTIVE_CAMPAIGN`; no hosted model, vector index, periodic
+official-source scanner, or public deployment is implemented. Gemini is planned but gated off pending
+current provider/privacy review.
 
 **Known limitations (do not over-claim)**
 
@@ -44,6 +45,7 @@ configured.
   snapshots, and support a portable plaintext backup file. Those capabilities are not implemented,
   so the pilot still has no recovery guarantee. A qualified privacy/legal review is also required
   before the private pilot.
+- Periodic official-source monitoring, candidate ingestion, human-reviewed knowledge updates, reproducible index rebuilds, and release automation are not implemented. New or changed legal knowledge must remain human-approved.
 - Private hosted operations and distribution are not configured. The project owner is the proposed
   operator; owned-server readiness, tunnel/provider terms, and Android/macOS release artifacts remain
   planned work.
