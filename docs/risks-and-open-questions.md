@@ -1,6 +1,10 @@
 # Risks and Open Questions — Olive Grove Assistant
 
-Resolved product direction lives in [the build brief](build-brief.md) and [domain model](domain-model.md). This register contains current risks and decisions that still need evidence. Do not keep resolved questions here.
+Current scope and terms live in [`CONTEXT.md`](../CONTEXT.md); the [domain model](domain-model.md)
+describes concepts, and feature specs hold detailed decisions and evidence. This register contains
+unresolved risks and evidence gaps. Remove resolved questions from the open tables and keep their
+record in the owning spec or acceptance record. [`PROGRESS.md`](../PROGRESS.md) summarizes the
+current implementation limits and manual checks.
 
 ## High risks
 
@@ -10,11 +14,14 @@ Resolved product direction lives in [the build brief](build-brief.md) and [domai
 | Backend legal coverage is bounded | A working route could be mistaken for broad legal coverage | Publish the approved corpus boundary, cite only reviewed source passages, and abstain outside the three-topic Andalusia PAC 2026 slice. |
 | Land context is wrong or incomplete | An answer could appear personalized while applying to the wrong land | Treat unknown as unknown; use all lands by default; ask for a land choice when answers differ; show which land context was used. Never infer eligibility from stored details. |
 | Low digital confidence blocks adoption | The intended audience may abandon setup or misread a result | Keep the first journey short, explain terms in plain Spanish, allow general questions without setup, and observe low-confidence users completing key tasks. |
-| Local device loss removes land records | Local-only data has no automatic recovery | Open: no user/pilot evidence establishes that loss is acceptable. Product owner must define the pilot audience and assess records' importance, replaceability, and acceptable recovery before any real-user pilot; until then do not imply backup or restore. See [decision record](specs/land_backup_decision.md#decision-and-evidence-2026-10-20). |
-| Sensitive farm information reaches logs or model providers | Land notes, locations, and questions may identify a person or operation | Minimize fields and request context, avoid sending names/notes by default, redact telemetry, disclose provider processing, and review current provider terms before deployment. |
+| Local device loss removes land records | Land data is deliberately local and no service-side copy exists | **Decision:** remain local-only; require same-device automatic snapshots and a portable, user-managed backup file before pilot. The features are planned, not implemented, so device loss can still permanently remove records today. Never describe the on-device snapshot as protection from device loss. See [decision record](specs/land_backup_decision.md). |
+| Sensitive farm information reaches logs or infrastructure providers | Questions and minimal land attributes transit the hosted API and tunnel; user text may identify a person or operation | Keep land names/notes out of requests and logs; Gemini is planned but gated off until current model terms and data flows receive qualified review; no provider call is permitted before that gate. Question/answer retention is planned default-off, per-question opt-in, redacted, without land context or stable IDs, and limited to 30 days. Qualified privacy/legal review and current host/tunnel terms are required before pilot. |
 | Unreviewed or malicious content enters the knowledge corpus | The assistant may follow misleading text or cite unreliable material | Restrict ingestion to approved sources, preserve provenance, treat document text as data, and require human review for additions or changes to critical material. |
 | Active PAC campaign is misconfigured or stale campaign artifacts remain | A valid answer could use evidence for the wrong campaign | Require explicit four-digit `MANIJERO_ACTIVE_CAMPAIGN`; rotate expired source records and passages together after review; configuration is not inferred from date or question. |
 | Free service limits or terms change | Costs, privacy, or availability can change after launch | Keep provider adapters replaceable, measure usage, define graceful rate-limit behavior, and do not promise zero ongoing cost until verified. |
+
+| Official source updates are missed or misclassified | A scheduled scan can fail, an official page can change format, or an amendment can be ambiguous | Implement allowlisted scans with run history/retries and stale-run visibility; quarantine candidates and require human approval before canonical knowledge changes.
+| Local embedding/index capacity is unknown | bge-m3 and Chroma may exceed owned-server storage or memory limits | Measure the actual deployment host and compare retrieval against BM25 before retaining the added components; keep a rollback path.
 
 ## Medium risks
 
@@ -27,36 +34,30 @@ Resolved product direction lives in [the build brief](build-brief.md) and [domai
 | Shared UI behaves differently on desktop and mobile | Small-screen assumptions can make desktop awkward and future iOS expensive | Keep behavior and reusable UI shared where practical; adapt layout to form factor; avoid platform-only dependencies in common code. |
 | Evaluation favors conventional, dryland users | Results may not cover irrigated, organic, or mixed cases | Record scenario coverage and gaps; label unvalidated coverage plainly and avoid overstating quality. |
 | PAC answer-evaluation sample is narrow | A report could be mistaken for broad answer quality or legal validation | Keep metrics report-only; publish the exact case/topic boundary and omissions. The report makes no quality or legal claim and does not represent untested questions. |
+| Known PAC answer-evaluation misses remain | The six-case sample contains citation and critical-fact misses | Resolve or keep each mismatch visible in the planned scope expansion. Review is author-only; report exact cases and limitations and make no independent legal validation or broad quality claim. |
 | Summary totals read as a verified or cadastral measurement | A person, or someone reading over their shoulder, could treat `Superficie anotada` / `Olivos anotados` as an official or measured figure | The wording says `anotado`, every card carries an `x de y` denominator, nothing annotated reads `Sin datos` and never `0 ha`/`0 olivos`, and the summary is never used as eligibility information. **No user test yet**: the design assumes the wording is understood; validating it with intended users, including low digital confidence, stays outstanding. |
 | Search cannot find a land the person expects | A blank or unexpected result may read as “my land is gone” instead of “this word is not in the record” | Search covers only name, zone, municipality, variety (or custom `Otra` text), water regime and production method; the hint names those fields and the results keep the stored order. Searching by surface or tree count is deliberately unsupported. **No user test yet**: expect questions about why a measure does not match. |
-| Refreshed assistant screen has only host renders and an automated interaction test | The restyle changes every chat surface and adds a hero. Robolectric/Roborazzi frames do not prove a device render, screen-reader output, or that a person with low digital confidence still finds the send action. | Run the manual Android/Desktop smoke, TalkBack/keyboard pass and owner visual sign-off that remain outstanding in [`chat_screen_refresh`](specs/chat_screen_refresh.appendix.md); on 360×800 dp with both shell bars the `Preguntar` button needs one short scroll, so confirm that cost is acceptable before release. |
+| Refreshed chat, lands, and help screens have incomplete device and user evidence | Host-rendered screenshots do not prove device behavior, screen-reader output, or that people with low digital confidence can complete the flows. | Complete the manual checks and owner review listed in [`PROGRESS.md`](../PROGRESS.md) and the relevant feature acceptance records before making usability claims. On compact chat the `Preguntar` action may require a short scroll; confirm that cost before release. |
 
-## Open questions
+## Open decisions
 
 ### Blocking next phase
 
-| Question | Why it blocks | Owner / evidence needed |
+| Decision | Why it matters | Owner / trigger |
 |---|---|---|
-| Which exact land fields are required at first setup? Is approximate area essential to an MVP question? | Defines form length, privacy notice, storage, and chat context | **Decided 2026-10-25, superseding the 2026-10-20 deferral:** name and zone/paraje are required; variety is optional from the approved shortlist with `Otra` free text; surface and tree count are optional and never inferred; all new values stay on the device and out of the question payload. Every saved land carries its zone; nothing has shipped, so no stored land predates the field. This is a product decision with **no new target-user evidence**; validate comprehension, setup time, and omitted-field impact with intended users, including low digital confidence, before claiming the setup is validated. See [decision record](specs/land_setup_fields_decision.md#superseding-decision-2026-10-25). |
-| Does the first real-user MVP need land export/backup, or is device-local storage acceptable for a limited pilot? | Data loss could remove the user's records | **Open; unresolved 2026-10-20.** Product owner: define pilot audience and gather intended-user/stakeholder evidence on record importance, replaceability, and acceptable loss/recovery; record method/date/limitations. Trigger: before proposing any real-user pilot, and on material audience/data changes. See [decision record](specs/land_backup_decision.md#decision-and-evidence-2026-10-20). |
-| Who will independently review and approve the initial official sources and critical passages? | Unreviewed text cannot support a legal answer | Resolved on 2026-10-17: Diego independently reviewed and approved the 4 official sources and 4 literal passages in `knowledge/source_catalog.json` and `knowledge/passages.json`. |
-| Which exact questions in the Andalusia PAC single-application slice are supported by current official sources, and what stays uncovered? | Coverage must remain explicit and narrow to avoid implying unsupported answers | Resolved on 2026-10-17: Diego approved the 3 supported procedural topics and explicit exclusions recorded in `knowledge/pac_coverage.md`. |
+| Are land recovery mechanisms ready for the private pilot? | Current app removal is permanent and there is no backup/restore. | **Decision recorded:** stay local-only; require recoverable removal, same-device snapshots, and portable plaintext backup/restore. Implementation and verification remain blocking; no real-user pilot until accepted. See `recover_removed_lands`, `local_land_auto_backup`, and `portable_land_backup`. |
+| Can the owned server support the pilot, and which managed tunnel/provider is acceptable? | Host availability, current provider terms, and privacy practices are not verified. | **Decision:** the project owner operates the service. Assess owned-server readiness and current official host/tunnel terms; choose a fallback managed host if needed. Pilot remains blocked until the review and runbook are complete. |
+| Are private release signing and artifact links ready? | Install friction and signing/provider terms affect the pilot. | **Decision:** direct private links for Android APK and macOS Desktop installer only. Public stores, Windows, Linux, and iOS are out of scope. Signing/notarization and artifact-link provider requirements remain to be verified. |
+| Is the question/answer retention design approved for real users? | Redacted free text may still contain identifying details and requires current legal/privacy review. | **Decision:** opt-in per question, default off; redacted Q/A text only, no land context or stable IDs, delete within 30 days. Gemini is planned but remains disabled until a qualified privacy/legal review approves current terms and data flow. The qualified review is a hard pre-pilot gate. |
 
-### Implementation-time
+### Conditional decisions
 
-| Question | Decision timing |
+| Decision | Trigger |
 |---|---|
-| Local persistence and migration format for lands | Before implementing land storage |
-| Exact rule for when all-land answers are safe versus when to ask for a specific land | Before connecting land context to retrieval/generation |
-| Whether selected land context is sent as attributes, derived filters, or both | At API contract design |
-| Evaluation size, metrics, and pass thresholds | After a measured baseline; include land-aware, ambiguous, and abstention cases |
-| Keep BM25 or add vector/RRF retrieval | After source-anchored retrieval evaluation; add complexity only for measured improvement |
-| If a hosted provider is reconsidered, what data may it process and under which current terms? | Before enabling external model requests; document the data flow, privacy, limits, and cost |
-| Who owns service operation, source refresh, rollback, and outage response? | Before public deployment or a real-user pilot |
-| Exact hosting approach | Before deployment; verify cost, terms, limits, privacy, and operational fit |
-| Retention of questions, feedback, and traces | Before enabling telemetry with real users |
-| Desktop packaging and supported operating systems | Before pilot distribution |
-| H1 (implementation verified): Do the land list/forms and privacy notice use the chat home's centred 720dp column on wide Desktop windows and available width on narrow windows without clipping? The user reports checking all five routes at both sizes, including centring/cap, overflow, scrolling, and controls, and reports them looking good. Exact host, viewport, scale, and numeric bounds were not provided; see the user-reported evidence in the feature appendix. Further visual refinement is deferred. | Closed for the MVP layout implementation; revisit visual polish later if needed. |
+| Feedback and non-content operational trace retention | Before enabling either with real users; Q/A product-improvement retention is specified in `pilot_privacy_readiness`. |
+| Which Gemini model/tier and whether its gate can pass | Gemini integration is planned for the private pilot, but outbound calls remain disabled until current official terms, data handling, limits/cost, and a qualified privacy/legal review are recorded. The exact model/tier is not selected. |
+| Whether local bge-m3 + Chroma/RRF improves retrieval enough to keep | Planned as a measured experiment against current BM25; retain no quality claim absent reviewed results and capacity measurements. |
+| How to operate source-update scheduling reliably | Compare owned-server scheduling with repository automation, test missed-run detection, retries, and owner alerts; scans may propose changes but canonical additions require human approval. |
 
 ### Later
 
@@ -67,6 +68,6 @@ Resolved product direction lives in [the build brief](build-brief.md) and [domai
 | Voice, document/photo interpretation, and offline assistant use | Accessibility and privacy constraints are understood and evaluated |
 | iOS release details and native integrations | Android/Desktop MVP is stable; reuse shared logic and UI |
 | Cooperative-facing review tools or content | A cooperative agrees to participate and boundaries are clear |
-| Hosted LLM for answer generation | After corpus coverage and the first measured baseline are reviewed; check current terms, privacy, limits, cost, and verifier behavior |
+| Expanding automatic legal interpretation beyond source-change detection | Only after qualified legal review and a separately scoped approval model |
 
-Last reviewed: 2026-10-25
+Last reviewed: 2026-10-26

@@ -56,7 +56,7 @@ Reuse lookup before any creation (read-only):
 
 Read-only. Produce the plan report only.
 
-1. Resolve inputs; read `feature_list.json`, `PROGRESS.md`, git state (`git status --porcelain`, `git rev-parse <base_branch>`, `git worktree list`, `git branch --list`) and gh state (`gh auth status`, issue and PR lookups). Never `git fetch`.
+1. Resolve inputs; read `feature_list.json`, the **Current state** section of `PROGRESS.md`, git state (`git status --porcelain`, `git rev-parse <base_branch>`, `git worktree list`, `git branch --list`) and gh state (`gh auth status`, issue and PR lookups). Read other progress sections only when needed. Never `git fetch`.
 2. Evaluate the four preconditions per feature. For blocked features, report the missing `accepted` dependency ids.
 3. Planned base SHA = current `git rev-parse <base_branch>`.
 4. For each ready feature, resolve reuse targets (issue, worktree, branch, PR) and the planned session command `opencode run --dir <worktree> ...`.

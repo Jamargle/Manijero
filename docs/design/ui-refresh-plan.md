@@ -1,6 +1,13 @@
-# UI Refresh Plan — Manijero
+# UI Refresh Plan — historical implementation plan (2026-10-25)
 
-**Status:** approved for the feature slicing below; `design_token_refresh` (P0-01…P0-06) is implemented and accepted, and the remaining slices are registered in `feature_list.json` as `not_started` work. The §3.1 palette is approved and recorded in `DESIGN.md`; the open decisions in §12 still apply to the unscheduled slices.
+> **Historical planning record.** The feature plan has since moved through specification and
+> acceptance. The status, sequencing, open questions, and checklist below describe the plan when it
+> was written; do not treat them as current work items. Use [`feature_list.json`](../../feature_list.json)
+> with [`select-feature.sh`](../../scripts/select-feature.sh) for status, [`DESIGN.md`](../../DESIGN.md)
+> for current UI guidance, and the owning specs and validations for behavior and evidence.
+
+**Status at writing:** approved feature slicing; `design_token_refresh` was accepted, while the
+remaining slices were registered as `not_started`. The palette decision is recorded in `DESIGN.md`.
 **Date:** 2026-10-25
 **Scope:** adapt the existing shared Compose UI to the Stitch references and the shared theme, screen by screen and component by component, for Android, Desktop, and iOS-reusable `commonMain`.
 **Authority:** existing feature specs own behavior. This plan proposes visual, structural, and scoped content changes; after approval it is sliced into new feature specs with their own acceptance records.
@@ -748,13 +755,12 @@ Why this order:
 - Fields before lands screens, so the list/form are built once with their final content.
 - Chat before or after lands is independent once the shell exists; chat is higher risk (semantics, live regions), so do it before the larger lands restyle to keep review focused.
 
-Registration (2026-10-25): `design_token_refresh` is accepted, with
+Registration snapshot (2026-10-25): `design_token_refresh` was accepted, with
 [`docs/specs/design_token_refresh.md`](../specs/design_token_refresh.md), its appendix, and
 [`docs/validations/design_token_refresh.md`](../validations/design_token_refresh.md). It declares
 `shared_design_system` as its prerequisite although the table lists none, because the accepted theme
-owns the files it edits. The other ten features are registered as `not_started` with reserved spec and
-validation paths; their specs and appendices do not exist yet, so `select-feature.sh` reports `planner`
-for the first dependency-ready one. `screenshot_regression_tests` is cross-cutting rather than a
+owns the files it edits. At that time, the other ten features were registered as `not_started` with
+reserved spec and validation paths. That status snapshot is historical. `screenshot_regression_tests` is cross-cutting rather than a
 P0–P2 step: it captures the screens and states that exist when it lands, and `brand_vectors` plus every
 later visual slice depends on it so an unexpected visual change is caught and approved by a human
 instead of merging silently. Sequencing stays as written: finish and validate one feature before
@@ -842,7 +848,7 @@ explicit Compose Desktop/KMP support). Scope and rules:
 
 ---
 
-## 12. Open decisions for review
+## 12. Open decisions at planning time (historical)
 
 Palette values were decided on 2026-10-25: the Stitch token block wins verbatim, with two gated `outlineVariant` corrections (§3.1). The remaining items are open; each shows the recommended choice.
 
@@ -864,7 +870,7 @@ Palette values were decided on 2026-10-25: the Stitch token block wins verbatim,
 
 ---
 
-## 13. Review checklist
+## 13. Review checklist at planning time (historical)
 
 - [ ] The confirmed decisions in §1 match your intent.
 - [x] The palette is decided (2026-10-25): Stitch token values verbatim, plus the two `outlineVariant` corrections, recorded in `DESIGN.md`.
@@ -879,7 +885,8 @@ Palette values were decided on 2026-10-25: the Stitch token block wins verbatim,
 - [ ] The verification plan is sufficient and honest.
 - [ ] The open decisions in §12 are answered or delegated.
 
-After approval, the next action is to create the first feature spec (`design_token_refresh`) and its appendix through the normal feature-spec workflow; no code is written before that spec is reviewed.
+The next-action note from planning was to create `design_token_refresh`; that work has since been
+specified and accepted. It is retained here only as part of the planning record.
 
 ---
 

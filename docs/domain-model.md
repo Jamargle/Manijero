@@ -1,6 +1,8 @@
 # Domain Model — Olive Grove Assistant
 
-This document describes MVP concepts and lifecycle rules. It is a product model, not a database schema; field names and persistence technology belong to implementation design.
+This is the current conceptual product model, not a database schema. Use [`CONTEXT.md`](../CONTEXT.md)
+for concise term definitions and the owning feature specs for exact fields, validation, persistence,
+and request behavior.
 
 ## Person and device data
 
@@ -10,7 +12,7 @@ The MVP does not require an account. A **local user** means the person using one
 
 A **land** is an olive-growing area the user owns or manages. One local user can have zero or more lands.
 
-Minimum candidate fields:
+Current land fields:
 
 | Field | Meaning | Rule |
 |---|---|---|
@@ -42,17 +44,19 @@ Search matches text only: name, zone, municipality, the variety label or custom 
 
 ```text
 No lands → Add land → Active land → Edit details
-                              └────→ Archive or delete
+                           └──────→ Confirm removal → Removed land
+                                                       ├→ Restore → Active land
+                                                       └→ Confirm permanent deletion → Deleted
 ```
 
-- A user can add multiple lands, edit them, and remove a land they no longer manage.
-- The interface must distinguish a reversible archive from permanent deletion if both are offered. For the MVP, prefer a single simple removal path with a clear confirmation and recovery/undo where practical.
+- The currently accepted app still removes a land permanently after one confirmation. The planned [`recover_removed_lands`](specs/recover_removed_lands.md) feature changes this to a recoverable removed list: removed records remain until the person explicitly restores or permanently deletes them. Permanent deletion requires a second confirmation and removes the record from app-managed automatic backups. Older exported files remain outside app control and can reintroduce their contents.
+- The planned lifecycle store must migrate existing valid `land-store-v1` records to its current aggregate format once, preserving them as active. Removed lands never appear in the active list or chat context.
 - An empty list is valid. The assistant remains usable for general questions and should explain when land details could improve an answer.
 - Deleting a land removes its local record and prevents future queries from using it. Previously saved conversations are not in MVP scope unless explicitly added later.
 
 ## Question and land context
 
-A **question** is the user's original text plus the context chosen for answering. Keep the original wording available for display and troubleshooting; do not silently change the meaning.
+A **question** is the user's original text plus the context chosen for answering. Keep the original wording for display and retry; do not silently change its meaning or log raw question text by default.
 
 Context selection rules:
 
@@ -92,13 +96,14 @@ Answered response ── cited Source(s); abstained/clarification response ─�
 
 ## Privacy and data lifecycle
 
-- MVP land data stays on the device unless a specific query needs a minimal subset for server-side answer generation.
+- Land data stays on the device; a specific question may send only the contract-approved minimal land attributes for answer processing. Planned automatic snapshots stay in the same app data area and do not protect against device loss. Planned portable backups are plaintext user-controlled files that can be moved between Android and macOS Desktop.
 - Explain that behavior in plain Spanish before first use; provide a way to inspect, edit, and remove saved lands.
 - Do not log land names, notes, precise identifiers, or raw questions by default. Define retention and deletion for operational logs before release.
+- Product-improvement retention is planned as default-off, explicit opt-in per question, redacted question/answer text only, no land context or stable identifiers, and automatic deletion within 30 days. It is not ready for real users until a qualified privacy/legal review is recorded.
 - If the user changes or removes a land, future questions use the updated list. Do not imply prior answers were recalculated.
 
 ## Deferred concepts
 
 SIGPAC geometry and references, multiple owners, shared access, cloud sync, accounts, tasks, assets, yields, expenses, aid calculations, and conversation history are outside MVP unless explicitly re-scoped.
 
-Last reviewed: 2026-10-09
+Last reviewed: 2026-10-26

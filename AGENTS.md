@@ -8,10 +8,10 @@ Read the row that matches the work in front of you; a routine feature change nee
 
 | Work in front of you | Read | On demand |
 |---|---|---|
-| Every session | [PROGRESS.md](PROGRESS.md) "Current state" — accepted set, open items, honesty limits | [docs/progress/current-state.md](docs/progress/current-state.md) for the product and architecture narrative and [docs/progress/session-log.md](docs/progress/session-log.md) for the chronological pointer index: on demand, not for routine work |
+| Every session | [PROGRESS.md](PROGRESS.md) "Current state" — status summary, open items, honesty limits; use the selector for exact feature status | [docs/progress/current-state.md](docs/progress/current-state.md) for the short product narrative and [docs/progress/session-log.md](docs/progress/session-log.md) for the chronological pointer index: on demand, not for routine work |
 | Plan, implement, or validate one feature | the spec contract [docs/specs/](docs/specs/)/`<feature-id>.md` and its acceptance record [docs/validations/](docs/validations/)/`<feature-id>.md` | the feature's appendix [docs/specs/](docs/specs/)/`<feature-id>.appendix.md` (repository research, implementation plan, validator checklist, feature evidence) and [feature_list.json](feature_list.json) for status and dependencies |
 | User-facing UI or Spanish copy | [DESIGN.md](DESIGN.md) | the spec of the feature that owns the surface |
-| A domain term, product-scope, or audience question | [CONTEXT.md](CONTEXT.md) — glossary, users, scope markers | [docs/build-brief.md](docs/build-brief.md), [docs/domain-model.md](docs/domain-model.md) |
+| A domain term, product-scope, or audience question | [CONTEXT.md](CONTEXT.md) — glossary, users and scope | [docs/domain-model.md](docs/domain-model.md) for concepts; [docs/build-brief.md](docs/build-brief.md) is the historical discovery baseline |
 | An architecture, module, dependency, or contract boundary | [ARCHITECTURE.md](ARCHITECTURE.md) — the current map | a matching [MasterPlanV3.md](MasterPlanV3.md) section is historical, not current |
 | Backend, `contracts/`, or `knowledge/` work | [ARCHITECTURE.md](ARCHITECTURE.md) plus the artifact's schema or `contracts/openapi.yaml` | `backend/README.md`, [knowledge/README.md](knowledge/README.md) |
 | A rule the change must not break | [CONSTRAINTS.md](CONSTRAINTS.md) — durable MUST/MUST NOT rules | the reason line in the spec that established the rule |
@@ -20,9 +20,7 @@ Read the row that matches the work in front of you; a routine feature change nee
 
 ## Start and verify
 
-Verify in the smallest tier that covers the change, cheapest first: `./scripts/init.sh --feature <feature-id>` runs the focused command block the feature spec publishes, `./scripts/init.sh --fast` runs the shared host tests, the contract examples, the backend tests, and the offline evaluators without any Android SDK or Desktop build, and `./scripts/init.sh --verify` is the full gate. `./scripts/init.sh` alone only checks the toolchain and prints those commands.
-
-Pick the next feature and its next role with `./scripts/select-feature.sh --next`; `./scripts/select-feature.sh --status` prints the board and each unfinished feature's readiness. Do not read or re-derive `feature_list.json` by hand for selection; read it only when you must update a feature's status.
+Use `./scripts/select-feature.sh --next` to pick the next feature and role, or `--status` for the board; do not re-derive selection from `feature_list.json`. See [PROGRESS.md](PROGRESS.md) "Start and verify" for the cheapest-first verification tiers. The bare `./scripts/init.sh` only checks the toolchain and prints the commands.
 
 ## Track the work
 

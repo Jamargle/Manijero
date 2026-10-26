@@ -23,7 +23,7 @@ You are the implementer/generator, not the planner and not the final validator.
 ## Inputs To Read First
 
 1. `../../../AGENTS.md`
-2. `../../../PROGRESS.md`
+2. The **Current state** section of `../../../PROGRESS.md`; read other sections only when the task needs them
 3. `./scripts/select-feature.sh --next` (feature selection); read `feature_list.json` only when you must update the selected feature's status
 4. Selected feature spec contract: `../../../docs/specs/<feature-id>.md`, plus its appendix `../../../docs/specs/<feature-id>.appendix.md` for repository research, the implementation plan and tasks, the validator checklist, and existing evidence.
 5. Durable docs if present and relevant:

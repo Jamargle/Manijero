@@ -60,9 +60,11 @@ from today's date or the question. Campaign-neutral and matching campaign source
 may be used. Rotate expired campaign sources and their passages out of the active
 artifacts in a reviewed update.
 
-The canonical corpus is currently empty, so `/ask` safely returns the pinned
-abstention with no sources. Fixture-backed answers in tests are synthetic and
-do not establish legal coverage. Invalid or unreadable corpus files and
+The canonical catalog contains four independently reviewed official sources
+and four approved literal passages. `/ask` supports only the three topics in
+[`knowledge/pac_coverage.md`](../knowledge/pac_coverage.md) and safely abstains
+when it cannot assemble a grounded answer. Fixture-backed answers in tests are
+synthetic and do not establish legal coverage. Invalid or unreadable corpus files and
 missing/invalid campaign configuration or unsafe corpus data returns a generic `503`; malformed JSON returns `400`,
 and valid JSON that violates the request contract returns `422`. Error responses
 do not echo question, land, file, or corpus values.

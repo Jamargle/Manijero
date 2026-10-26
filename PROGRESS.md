@@ -2,46 +2,63 @@
 
 ## Current state
 
-Routine entry point. This status board is the read budget for `PROGRESS.md`; the long-form narrative and the chronological pointer index are on demand (see "Detail on demand" below).
-Last updated: 2026-10-25.
+Routine entry point. Exact feature status lives in [`feature_list.json`](feature_list.json); use
+[`./scripts/select-feature.sh --status`](scripts/select-feature.sh) to read the board. Feature
+contracts, raw evidence, and acceptance records remain in their owning files. Last updated:
+2026-10-26.
 
-**Feature set**  source of truth `feature_list.json`.
+**Feature status** — the original 50 features are accepted. Nine backend RAG/knowledge-operations
+features and eight pilot-readiness features are planned and remain `not_started`; no implementation
+or validation evidence exists for these planned items yet. The selector is the current status view; this page does not duplicate the feature-id list.
 
-**Accepted features** — `chat_home`, `suggested_questions`, `visual_foundation`, `answer_api_contract`, `backend_health`, `source_catalog_validation`, `source_retrieval`, `grounded_answer_generation`, `safe_abstention`, `chat_question_submission`, `response_states`, `answer_source_cards`, `network_error_recovery`, `local_land_store`, `add_land`, `land_list`, `edit_land`, `remove_land`, `minimal_land_context`, `land_clarification`, `answer_land_scope`, `land_data_disclosure`, `chat_accessibility`, `land_form_accessibility`, `land_safety_evaluation`, `android_mvp_build`, `desktop_mvp_build`, `backend_ask_endpoint`, `backend_pac_corpus`, `backend_campaign_validity`, `backend_answer_evaluation`, `coverage_and_help`, `platform_ask_wiring`, `backend_citation_hardening`, `land_setup_fields_decision`, `land_backup_decision`, `desktop_land_layout_decision`, `desktop_wide_land_layout`, `shared_design_system`, `design_token_refresh`, `screenshot_regression_tests`, `brand_vectors`, `ui_component_library`, `app_chrome_navigation`, `land_measurement_fields`, `land_search_and_summary`, `chat_screen_refresh`, `lands_screens_refresh`, `help_privacy_refresh`, `ui_refresh_accessibility_audit`.
-
-**Product shape** — shared Compose chat and lands flow in `shared/src/commonMain`, rendered by Android and Desktop. The backend is FastAPI with liveness-only `/health` and local `/ask` routes. Lands are device-local (`~/.manijero/lands-v1.txt` on Desktop, `manijero_lands` SharedPreferences on Android) and use the single `land-store-v1` format (13 fields); the list filters them by text and summarizes the annotated surface and olive count of the lands currently shown. The knowledge corpus contains 4 verified official sources and 4 literal passages for the 2026 Andalusian PAC single application. `/ask` requires explicit `MANIJERO_ACTIVE_CAMPAIGN`; source retrieval is scoped to that campaign and the UTC validity date. Android and Desktop now inject a platform Ktor engine and local development base URL: Android defaults to the emulator host bridge `http://10.0.2.2:8000` and Desktop to `http://127.0.0.1:8000`, both overridable.
+**Product shape** — shared Compose chat, lands, and help surfaces in `shared/src/commonMain`, hosted
+by Android and Desktop. Land records stay on-device in the single 13-field `land-store-v1` format.
+The local FastAPI service exposes liveness-only `/health` and `/ask`; Android and Desktop use
+overridable local development URLs. The reviewed corpus contains four official sources and four
+literal passages for three procedural topics in the Andalusian PAC single application for 2026.
+`/ask` requires an explicit `MANIJERO_ACTIVE_CAMPAIGN`; no hosted model, vector index, periodic
+official-source scanner, or public deployment is implemented. Gemini is planned but gated off pending
+current provider/privacy review.
 
 **Known limitations (do not over-claim)**
 
-- The launched apps now use the local `/ask` service when it is running. Without a reachable backend or a valid campaign configuration they show the existing plain-Spanish failure notice with `Reintentar`; answered, abstained, and source-card renders were observed only against the local reviewed corpus, not as legal coverage.
-- Retrieval, generation, abstention, clarification, and safety numbers come from synthetic, implementer-authored fixtures; no metric is a release gate and none is legal-coverage evidence.
-- The canonical `/ask` answer-evaluation run is a narrow, reviewed six-case sample (campaign `2026`, as-of `2026-10-17`), not a representative benchmark: state agreement 6/6, expected-answer coverage 4/4, unexpected answers 0, citation agreement 1/4, critical-fact matches 2/4, and clarification outcomes 0. Cases cover the ordinary SGA/recognized-entity application route, 2026 filing and modification deadlines (including distinguishing 15 May filing from 15 June modification), unsupported campaign 2025, and an uncovered aid-amount question. Explicit gaps: no stale/expired-evidence case and no land-clarification case (the reviewed corpus has no genuinely different land applicability for this question slice). Report-visible mismatches: source and passage misses for `canal-sga-2026`, `fecha-modificacion-2026`, and `distingue-fechas-2026`; critical-fact misses for `fecha-modificacion-2026` and `distingue-fechas-2026`. These metrics are report-only and are neither legal proof nor evidence of answer quality.
-- Android evidence is an emulator-only debug artifact; Desktop evidence is a local run. `screenshot_regression_tests` and later UI refreshes maintain a local pixel gate: thirty-four Desktop and thirty Android host frames, including chat and land scenes, two saved-lands search states per host, the review-only `brand_vectors` board in light and dark at 900×1200 dp, four `ui_component_library` gallery captures per host, four shell captures per host, and twelve dedicated Help/Privacy captures per host under `shared/src/{jvmTest,androidHostTest}/screenshots/`. `./gradlew :shared:verifyScreenshots` verifies read-only and `:shared:recordScreenshots` records after review; the procedure is in `docs/screenshot-regression.md`. Desktop goldens are macOS host-font-pinned; Android goldens are Robolectric SDK 35 host renders. Both suites are excluded from the other tiers and the Linux CI gate, so this is a local gate with no iOS, accessibility, or device claim.
-- `ui_refresh_accessibility_audit`: accepted by the repository owner acting as validator, who reports an in-person review of the refreshed UI. The review has no per-screen artifacts in the repository; the focused JVM/screenshot checks passed separately and remain pixel-regression evidence only. Low-digital-confidence participant review remains outstanding; see [the acceptance record](docs/validations/ui_refresh_accessibility_audit.md).
-- `shared_design_system`: typography is the Material 3 default (no custom typography file, scale, or bundled font asset). The backend pytest suite needs the local virtualenv's dev requirements (`backend/requirements-dev.txt`, including `jsonschema`); with them installed it ran for `design_token_refresh` (618 tests). The iOS simulator compile and full-screen enlarged-text/keyboard-navigation audits were not performed.
-- `design_token_refresh`: the Stitch palette and token scale are implemented and contrast-gated in both appearances. No token-board preview (light, dark, or 2× text) was rendered, because the repository has no headless Compose preview renderer and this host stayed in dark appearance; board layout and 2× reflow remain manual checks. Screens are not restyled beyond the five card surfaces now on `surfaceContainerLowest`.
-- `brand_vectors`: eighteen monochrome vector assets and three decorative wrappers in `shared/src/commonMain`; no screen adopts them, so there is no user-visible surface yet. Evidence is the four review-only board goldens on the two host renderers only; no iOS build exercised the vector subset.
-- `ui_component_library`: fourteen presentational declarations in `shared/src/commonMain/.../design/` (nine component files plus two navigation files), test-only gallery, eight new review-only goldens (four per host). No screen adopts the layer, so there is no user-visible surface yet; evidence is host renders only. At 2× text the compact bottom-navigation labels wrap mid-word while remaining fully visible, recorded for `app_chrome_navigation`; the backend pytest tier was skipped because pytest is absent from the available interpreters.
-- `app_chrome_navigation`: the shell is the one frame for Android and Desktop (brand top bar, adaptive bottom bar/rail at 840 dp, tab selection in the order `Mis terrenos`, `Asistente`, `Ayuda`, single inset owner, common back rules); with a local store the app opens on `Mis terrenos`, and the chat `Mis terrenos` button plus the lands/help `Volver` controls are removed. At 2× text on a compact window the bottom-navigation labels still wrap mid-word (pre-existing `ManijeroBottomNavigation` behavior); the device and Desktop checks are manual observations, the goldens are host renders only, and product-owner sign-off on the images is still pending.
-- `land_measurement_fields`: a land now carries a required zone (paraje) plus an optional variety (approved ten-option shortlist with `Otra` free text), surface in hectares and olive-tree count; the app reads and writes the single `land-store-v1` format (13 fields), with no second shape to migrate. The new values are shown in the land rows, the removal confirmation and the clarification chooser and never enter `AskRequest`/`MinimalLandContext`. No interactive Desktop/emulator walkthrough, no screen-reader audit and no measured 2×-text device check were performed; persistence is proven by encoder/decoder and repository tests only, with no real device upgrade, downgrade or backup/restore exercised; the backend pytest tier was skipped (pytest absent) and no backend file changed; the required zone and the variety shortlist are approved product decisions with no new target-user evidence.
-- `land_search_and_summary`: the `Mis terrenos` list now filters saved lands by text (name, zone, municipality, variety label or custom `Otra` text, water regime, production method — never measures, ids, notes or timestamps) with Spanish accent/`ñ`/case folding, and summarizes `Superficie anotada` / `Olivos anotados` over exactly the shown set with `x de y` captions and `Sin datos` instead of a zero. The query is in-memory display state only (reset on every read) and the summary is derived, so no store, payload or privacy change. An empty store shows the olive-branch empty state with one Add action and no cards or search. No interactive Desktop/emulator walkthrough, no screen-reader audit and no real-device 2×-text measurement were performed, and no permanent Compose interaction test covers typing or the clear action (evidence is pure/state tests, host goldens and temporary probes); the filtered golden proves the copy renders, not that a person reads `x de y` as "of the shown set"; the `anotado` wording and search scope are approved product decisions with no user-comprehension evidence.
-- `chat_screen_refresh`: the chat surface is extracted to `chat/` and restyled with the shared components; six Desktop and four Android chat captures include abstention and clarification, with ten existing chat/shell images re-recorded. Focused/fast/full gates and the iOS common-source compile pass; the interaction test covers disabled blank send, fill-only suggestion selection and separate retry. Host screenshots and temporary 2× reviews only: Android/Desktop smoke, screen-reader and keyboard traversal, real-device rendering, and owner visual sign-off remain open. On the compact shell the `Preguntar` button needs a short scroll; confirm that cost with the owner before release. See [spec](docs/specs/chat_screen_refresh.md) and [acceptance](docs/validations/chat_screen_refresh.md).
-
-**Open items**
-
-- The remaining backend citation hardening F1 and stale `knowledge/README.md` citation wording are resolved by `backend_citation_hardening`.
-- Outstanding manual check: the low-digital-confidence comprehension check (owner `chat_accessibility`), now also covering the lands summary/search wording: that `anotado`, `Sin datos` and `x de y` (including a filtered count card that reads label `Terrenos guardados` with the match count) are read as "only what I wrote for the lands I am looking at".
-- Outstanding manual check: human owner sign-off on the current 64 screenshot images (34 Desktop and 30 Android host captures). Images are host renders, not real-device or accessibility evidence; product-owner approval is still outstanding.
-- Outstanding manual check for `chat_screen_refresh`: Android/Desktop smoke, TalkBack/keyboard traversal and owner review of the refreshed chat images; its compact-shell send action is below the initial viewport.
-- Outstanding manual check for `lands_screens_refresh`: compact/wide and large-text interaction, keyboard/screen-reader traversal, device smoke, and owner review. Its previously mismatching shell/chat baselines were refreshed in the later `help_privacy_refresh` screenshot update; see that feature's evidence appendix.
-- Outstanding manual check for `help_privacy_refresh`: Android/Desktop route and link/back restoration, compact/wide scrolling, keyboard/focus and screen-reader traversal, device smoke, and owner visual review. Host screenshot verification is not evidence for these checks.
+- Apps need a reachable local service and valid campaign configuration to answer. Without them,
+  they show the plain-Spanish failure notice and `Reintentar`. The supported legal scope is the
+  narrow reviewed corpus in [`knowledge/pac_coverage.md`](knowledge/pac_coverage.md).
+- Offline retrieval, generation, abstention, clarification, and safety metrics use synthetic
+  fixtures and are report-only. The reviewed `/ask` evaluation is a six-case sample with known
+  citation and critical-fact misses; see its [acceptance record](docs/validations/backend_answer_evaluation.md)
+  and [evidence appendix](docs/specs/backend_answer_evaluation.appendix.md) for the exact results.
+  Neither that sample nor the fixture metrics establish legal coverage or answer quality.
+- The 64 screenshot baselines (34 Desktop, 30 Android) are local host-rendered pixel checks, not
+  device, accessibility, usability, or iOS evidence. The procedure and limits are in
+  [`docs/screenshot-regression.md`](docs/screenshot-regression.md). At 2× text, compact navigation
+  labels wrap mid-word; on the compact chat screen, `Preguntar` may need a short scroll.
+- The required zone, variety shortlist, search scope, and annotated summary wording are approved
+  product decisions without target-user evidence. Land-field persistence has no real-device
+  upgrade/downgrade evidence; details stay in the [field validation](docs/validations/land_measurement_fields.md)
+  and [search validation](docs/validations/land_search_and_summary.md).
+- Device-local land records still have no implemented backup or restore. The product direction is
+  local-only storage with required recovery features before the private pilot; this is not user
+  evidence that data loss is acceptable. See the [decision record](docs/specs/land_backup_decision.md).
+- A local-only recovery direction is now recorded: recover removed lands, keep bounded same-device
+  snapshots, and support a portable plaintext backup file. Those capabilities are not implemented,
+  so the pilot still has no recovery guarantee. A qualified privacy/legal review is also required
+  before the private pilot.
+- Periodic official-source monitoring, candidate ingestion, human-reviewed knowledge updates, reproducible index rebuilds, and release automation are not implemented. New or changed legal knowledge must remain human-approved.
+- Private hosted operations and distribution are not configured. The project owner is the proposed
+  operator; owned-server readiness, tunnel/provider terms, and Android/macOS release artifacts remain
+  planned work.
+- The answer evaluation remains the existing six-case sample with known citation and critical-fact
+  misses. The planned evidence expansion has not run; no answer-quality claim is supported.
 
 **Detail on demand**
 
-- `docs/progress/current-state.md` — the product and architecture narrative.
-- `docs/progress/session-log.md` — the chronological pointer index (newest entries last); one line per event, never restated evidence.
-- `docs/specs/<feature-id>.md` — the feature's contract: goal, acceptance scenarios, expected file changes, and focused verification; its planning and verification record is the sibling `docs/specs/<feature-id>.appendix.md` (repository research, implementation plan, validator checklist, "Feature evidence").
-- `docs/validations/<feature-id>.md` — the authoritative acceptance record per accepted feature.
+- [`docs/progress/current-state.md`](docs/progress/current-state.md) — short product narrative and evidence boundaries.
+- [`docs/progress/session-log.md`](docs/progress/session-log.md) — chronological pointer index; one line per event, never repeated verification.
+- [`docs/specs/<feature-id>.md`](docs/specs/) — behavior and focused verification; the sibling appendix holds planning and implementation evidence.
+- [`docs/validations/<feature-id>.md`](docs/validations/) — acceptance evidence and limits.
+- [`docs/risks-and-open-questions.md`](docs/risks-and-open-questions.md) — unresolved risks and decisions.
 
 ## Start and verify
 
@@ -57,7 +74,3 @@ Tiers, cheapest first; `./scripts/init.sh` holds the exact commands.
 - The offline checks pin `--as-of 2026-10-13` so runs are deterministic; override with `MANIJERO_AS_OF=YYYY-MM-DD`.
 
 Evaluator flags, report-only caveats, and a feature's own commands live in its spec; the metrics stay report-only (see the limitations above).
-
-## Session log
-
-The chronological change log is [`docs/progress/session-log.md`](docs/progress/session-log.md), moved out of this file on 2026-10-17 to keep this file small; since 2026-10-17 it is a one-line pointer index. Append new entries there.
