@@ -57,7 +57,7 @@ current implementation limits and manual checks.
 | Feedback and non-content operational trace retention | Before enabling either with real users; Q/A product-improvement retention is specified in `pilot_privacy_readiness`. |
 | Which Gemini model/tier and whether its gate can pass | Gemini integration is planned for the private pilot, but outbound calls remain disabled until current official terms, data handling, limits/cost, and a qualified privacy/legal review are recorded. The exact model/tier is not selected. |
 | Whether local bge-m3 + Chroma/RRF improves retrieval enough to keep | Planned as a measured experiment against current BM25; retain no quality claim absent reviewed results and capacity measurements. |
-| How to operate source-update scheduling reliably | Compare owned-server scheduling with repository automation, test missed-run detection, retries, and owner alerts; scans may propose changes but canonical additions require human approval. |
+| Which official discovery registries cover new publications from the approved issuers, and how should they be scheduled reliably? | `official_source_discovery` inventories and verifies first-party registries for BOE, Junta/BOJA, FEGA, and MAPA; unsupported coverage stays explicit. `knowledge_update_scheduler` compares owned-server scheduling with repository automation and tests missed-run detection, retries, and owner alerts. Discovery may propose candidates, but new issuers/hosts and canonical additions require human approval. |
 
 ### Later
 

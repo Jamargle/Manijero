@@ -5,10 +5,10 @@
 Routine entry point. Exact feature status lives in [`feature_list.json`](feature_list.json); use
 [`./scripts/select-feature.sh --status`](scripts/select-feature.sh) to read the board. Feature
 contracts, raw evidence, and acceptance records remain in their owning files. Last updated:
-2026-10-26.
+2026-10-27.
 
-**Feature status** — the original 50 features are accepted. Nine backend RAG/knowledge-operations
-features and eight pilot-readiness features are planned and remain `not_started`; no implementation
+**Feature status** — the original 50 features and `official_source_monitoring` are accepted. Nine
+backend RAG/knowledge-operations features and eight pilot-readiness features remain `not_started`; no implementation
 or validation evidence exists for these planned items yet. The selector is the current status view; this page does not duplicate the feature-id list.
 
 **Product shape** — shared Compose chat, lands, and help surfaces in `shared/src/commonMain`, hosted
@@ -45,7 +45,7 @@ current provider/privacy review.
   snapshots, and support a portable plaintext backup file. Those capabilities are not implemented,
   so the pilot still has no recovery guarantee. A qualified privacy/legal review is also required
   before the private pilot.
-- Periodic official-source monitoring, candidate ingestion, human-reviewed knowledge updates, reproducible index rebuilds, and release automation are not implemented. New or changed legal knowledge must remain human-approved.
+- The manual official-feed monitor records feed response hashes and validators separately from canonical knowledge. Scheduled dispatch, official-registry discovery, document-level candidate ingestion, human-reviewed knowledge updates, reproducible index rebuilds, and release automation are not implemented. Planned discovery is limited to configured first-party registries for approved issuers and cannot guarantee completeness. New issuers, hosts, and answerable knowledge must remain human-approved; successful polling does not prove corpus currency.
 - Private hosted operations and distribution are not configured. The project owner is the proposed
   operator; owned-server readiness, tunnel/provider terms, and Android/macOS release artifacts remain
   planned work.
