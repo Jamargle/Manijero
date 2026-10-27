@@ -1,7 +1,8 @@
 # Manijero backend
 
-The local FastAPI service exposes `GET /health` and a source-grounded `POST /ask`.
-From the repository root, start it with the shared startup script:
+The local FastAPI service exposes `GET /health` (liveness), `GET /ready` (campaign and
+corpus readiness), and a source-grounded `POST /ask`. From the repository root, start it
+with the shared startup script:
 
 ```sh
 ./scripts/init.sh --backend
@@ -68,6 +69,330 @@ synthetic and do not establish legal coverage. Invalid or unreadable corpus file
 missing/invalid campaign configuration or unsafe corpus data returns a generic `503`; malformed JSON returns `400`,
 and valid JSON that violates the request contract returns `422`. Error responses
 do not echo question, land, file, or corpus values.
+
+`GET /health` is liveness only. `GET /ready` is the separate readiness check: it
+returns `200` with `{"status":"ready","service":"manijero-backend"}` only when
+`MANIJERO_ACTIVE_CAMPAIGN` is valid and the reviewed corpus can serve answers as of
+today, and `503` otherwise. Neither probe carries corpus values, and a readiness failure
+is never rendered as an answer by the clients.
+
+## Private pilot deployment and recovery (prepared, not deployed)
+
+**Status: blocked, never executed on a host.** The [2026-10-27 hosting
+decision](../docs/specs/hosting_provider_review.md) selects the owned-server path with a
+Cloudflare Tunnel as transport and keeps it conditional on owner attestation, application
+access controls, a qualified privacy/legal review, and account-time provider re-checks.
+No server, domain, tunnel, TLS edge, provider account, or real-user traffic exists. This
+section is the operator procedure for that path; the [feature
+appendix](../docs/specs/hosted_pilot_operations.appendix.md) records exactly what was
+rehearsed locally and what remains unverified.
+
+Do not route a public hostname to this service, and do not send a real user's question
+through it, until the blocking conditions in that decision are met and the
+qualified review in `pilot_privacy_readiness` has passed. Fly.io is the only evaluated
+fallback and is **not** approved.
+
+### Owner and support path
+
+- The **project owner** is the initial operator: deployment, campaign configuration,
+  corpus refresh, backup/restore, rollback, access, and outage response.
+- The support path for pilot users is the owner through the pilot invitation channel.
+  No support channel, response commitment, SLA, on-call rotation, or third-party support
+  plan has been agreed, and this runbook does not claim one.
+- **Pre-pilot item:** before the first invitation, record the concrete support address and
+  who monitors it in the pilot invitation and the operator log. Do not invent an address
+  here; until it is recorded, there is no agreed way for a pilot user to report an outage.
+- A person who cannot reach the assistant sees only the accepted plain-Spanish failure
+  notice and `Reintentar`; the app never presents a failed request as an answer.
+
+### Topology and what each layer guarantees
+
+```text
+client --TLS--> Cloudflare edge/tunnel --> cloudflared (host) --> 127.0.0.1:8000 uvicorn
+                                                               --> knowledge/ artifacts (read-only)
+```
+
+- **Application (this repository):** authenticates each client with its own bearer token,
+  applies that client's per-minute limit, rejects bodies over the configured bound,
+  validates campaign and corpus before serving traffic, exposes liveness and readiness,
+  and writes one request-metadata log line. A tunnel does not authenticate anything; these
+  checks are the access control.
+- **Tunnel:** transport and edge TLS only. It removes the public origin and requires no
+  inbound port, but it neither authenticates callers nor proves the service is healthy.
+- **Host:** OS, disk, power, network, and time. The owner attests these; the repository
+  cannot.
+
+Every runtime gate is implemented in the standard library; the only runtime
+dependencies stay `fastapi`, `uvicorn[standard]`, and `httpx`.
+
+### Deployment files
+
+| File | Purpose | Rehearsed? |
+|---|---|---|
+| `backend/scripts/serve_pilot.py` | Production-shaped launcher: pilot profile only, preflight, loopback origin, no reload, access log off. | Locally, yes |
+| `backend/scripts/pilot_ops.py` | Operator commands: preflight, backup, restore, smoke, client rotation. | Locally, yes |
+| `backend/deploy/requirements-production.txt` | Exact direct runtime pins. | Resolution checked locally |
+| `backend/deploy/pilot.env.example` | Configuration template, no secrets. | n/a |
+| `backend/deploy/systemd/manijero-pilot.service` | Service unit with preflight as `ExecStartPre`. | **No** |
+| `backend/deploy/cloudflared/config.yml.example` | Tunnel ingress to the loopback origin. | **No** |
+
+The development launcher (`./scripts/init.sh --backend`) is unchanged and is **not** a
+deployment: it enables reload, binds `0.0.0.0`, sets a campaign by default, and has no
+authentication. The pilot launcher refuses the development profile.
+
+### Configuration
+
+Read from the process environment; secrets live in an operator-owned file, never in Git.
+
+| Variable | Profile | Meaning |
+|---|---|---|
+| `MANIJERO_DEPLOYMENT_PROFILE` | both | `pilot` for the hosted service. Any other non-empty value is refused. |
+| `MANIJERO_ACTIVE_CAMPAIGN` | pilot (required) | Four-digit campaign. Never inferred; a change is a configuration change plus restart. |
+| `MANIJERO_PILOT_CLIENTS_FILE` | pilot (required) | JSON client-credentials file, digests only. `/etc/manijero` is `root:manijero 0750`; the file is owned by the service user (`manijero:manijero`) with mode `0600`. |
+| `MANIJERO_PILOT_HOST` / `--host` | pilot | Default `127.0.0.1`. A non-loopback bind also requires `MANIJERO_PILOT_ALLOW_PUBLIC_BIND=1`. |
+| `MANIJERO_PILOT_PORT` / `--port` | pilot | Default `8000`; the tunnel ingress must match. |
+| `MANIJERO_PILOT_WORKERS` / `--workers` | pilot | Default `2`, maximum `8`. Rate limits are **per worker**. |
+| `MANIJERO_PILOT_MAX_CONCURRENCY` | pilot | Default `64`, maximum `512`. A protective placeholder, not a measured capacity. |
+| `MANIJERO_MAX_REQUEST_BYTES` | both | Default `65536`, minimum `1024`, maximum `1048576`. |
+
+The client file is a closed contract:
+
+```json
+{"schema_version":"pilot-clients-v1","clients":[
+  {"client_id":"pilot-device","token_sha256":"<64 lowercase hex>","requests_per_minute":20,"enabled":true}]}
+```
+
+A token must be at least 32 characters; the runbook generates 48 random bytes. A token is
+created by the operator and shown once; only its SHA-256 digest is stored. Unknown fields,
+duplicate ids, an empty client set, a token shorter than the minimum, or a
+group/world-readable file fail closed.
+
+The file must be readable by the **service account**, not only by root. Create the
+directory and file as root, then hand the file to `manijero`:
+
+```sh
+sudo install -d -o root -g manijero -m 0750 /etc/manijero
+sudo /opt/manijero/repo/backend/.venv/bin/python \
+  /opt/manijero/repo/backend/scripts/pilot_ops.py upsert-client \
+  --clients-file /etc/manijero/pilot-clients.json \
+  --client-id pilot-device --requests-per-minute 20 --token-stdin < token.txt
+sudo chown manijero:manijero /etc/manijero/pilot-clients.json
+sudo chmod 600 /etc/manijero/pilot-clients.json
+sudo -u manijero test -r /etc/manijero/pilot-clients.json && echo "clients file readable"
+```
+
+`pilot.env` stays `root:root 0600`: systemd reads `EnvironmentFile=` before it drops to
+`User=manijero`, so the process never opens it. The clients file is different — it is
+opened by the service process, so a root-owned `0600` file is unreadable and preflight
+fails closed with `clients_unreadable`. The `chown`/`chmod` pair is required after every
+`upsert-client` run as root.
+
+### First deployment (procedure, not yet executed)
+
+1. Install the host prerequisites the owner attested: OS updates, time sync, disk-health
+   monitoring, UPS/graceful shutdown, and outbound TCP 7844 for the tunnel connector.
+2. Create the service user and checkout:
+   `git clone <reviewed origin> /opt/manijero/repo && git -C /opt/manijero/repo checkout <release tag>`.
+3. Create the virtualenv and install the pinned runtime:
+   `python3 -m venv /opt/manijero/repo/backend/.venv` then
+   `/opt/manijero/repo/backend/.venv/bin/python -m pip install -r /opt/manijero/repo/backend/deploy/requirements-production.txt`.
+4. Create `/etc/manijero` as `root:manijero 0750`
+   (`sudo install -d -o root -g manijero -m 0750 /etc/manijero`), then create
+   `/etc/manijero/pilot.env` from `backend/deploy/pilot.env.example` (root, `0600`) and fill
+   in the campaign and the clients-file path.
+5. Create the client credentials, one command per pilot client, then give the file to the
+   service user:
+   `sudo ... pilot_ops.py upsert-client --clients-file /etc/manijero/pilot-clients.json --client-id <id> --requests-per-minute 20 --token-stdin < token.txt`
+   followed by `sudo chown manijero:manijero /etc/manijero/pilot-clients.json` and
+   `sudo chmod 600 /etc/manijero/pilot-clients.json`; deliver the token over an agreed
+   private channel and delete the local copy.
+6. Validate before serving, as the service user:
+   `sudo -u manijero test -r /etc/manijero/pilot-clients.json` then
+   `sudo -u manijero /opt/manijero/repo/backend/.venv/bin/python /opt/manijero/repo/backend/scripts/serve_pilot.py --preflight-only`
+   Expected: `profile: pilot`, the campaign, the client count, and `corpus_ready: yes`; exit `0`.
+   Any `problem:` line means the service must not be started; `clients_unreadable` here means
+   the ownership or directory mode is wrong.
+7. Install the unit, `systemctl daemon-reload`, `systemctl enable --now manijero-pilot`.
+8. Install cloudflared from the provider's official instructions, create the tunnel, write
+   `/etc/cloudflared/config.yml` from the template, and run the connector as a service.
+   Keep the tunnel credentials out of the repository.
+9. Confirm both probes through the public hostname:
+   `... pilot_ops.py smoke --base-url https://<pilot host> --token-env PILOT_SMOKE_TOKEN`
+   Expected: `health_status: 200`, `ready_status: 200`, `ask_status: 200`, exit `0`.
+10. Inspect the journal: one `{"event":"request",...}` line per request with method, path,
+    status, duration, and gate only. A question, land value, or token must never appear.
+11. Record in the operator log: release revision, campaign, corpus hashes, client count,
+    timestamps, and every deviation. This repository's appendix is not a deployment log.
+
+### Campaign change
+
+`MANIJERO_ACTIVE_CAMPAIGN` is explicit configuration. Rotate expired campaign sources and
+their passages in a reviewed knowledge change, update the value, restart the service, and
+require `preflight --as-of <today>` plus `/ready` to pass again. Do not infer the campaign
+from the calendar date, a question, or a land.
+
+### Deploying an update and rolling back
+
+1. Before an update, run `pilot_ops.py backup` (see below) and record the current release
+   revision and `curl /ready`.
+2. Check out the new release, install `backend/deploy/requirements-production.txt`,
+   `serve_pilot.py --preflight-only`, then `systemctl restart manijero-pilot`.
+3. Run `pilot_ops.py smoke`. If either probe is not `200` or `/ask` is not a valid state,
+   roll back.
+4. **Code rollback:** `git -C /opt/manijero/repo checkout <previous release revision>`,
+   reinstall the pinned requirements, preflight, restart, smoke. There is no blue/green
+   deployment and no second host; a rollback is a restart with the prior files.
+5. **Corpus/config rollback:** stop the service, restore the most recent verified backup
+   (below), start it again, and re-check `preflight`, `/ready`, and `smoke`. A restored
+   corpus that is expired or campaign-mismatched restores the files but stays not-ready;
+   that is the honest outcome, not a silent failure. Never restore while
+   `manijero-pilot` is still active: the `restore` command refuses with `service_running`
+   when systemd reports the unit active.
+
+### Corpus and configuration backup and restore
+
+```sh
+backend/.venv/bin/python backend/scripts/pilot_ops.py backup \
+  --destination /var/backups/manijero --campaign 2026 \
+  --config /etc/manijero/pilot.env
+```
+
+The command writes `manijero-pilot-backup-<UTC>/` containing `source_catalog.json`,
+`passages.json`, any `--config` files under `config/`, and `backup-manifest.json` with the
+campaign, sizes, and SHA-256 of every file. It refuses a `--campaign` that is not a
+four-digit year, and a destination inside the repository `knowledge/` tree. The backup
+directory and `config/` are owner-only (`0700`) and every file in the tree is mode `0600`;
+the destination root is created `0700` if it does not already exist (an existing root is
+left as the operator set it).
+
+`--config` is a closed allowlist, not a generic copy. Only `pilot.env` and
+`pilot.env.example` may be backed up; any other basename (`pilot-clients.json`,
+`credentials-*.json`, keys, certificates) is refused with `config_file_not_allowed`, and
+an allowlisted file whose contents contain credential markers (`token_sha256`, a private
+key header, `TunnelSecret`, `AccountTag`, …) is refused with `config_file_secret`. A
+refused backup writes no tree.
+
+- **Not included:** `pilot-clients.json`, tunnel credentials, or any other secret. Back
+  those up separately in a restricted store; the manifest records hashes only.
+- Store backups outside the host as well as on it, and restrict access to them.
+- **Stop the service before restoring.** The workers read the canonical artifacts on each
+  request, so a live restore can serve a mixed pair. Restore only with the explicit flag
+  and only while the unit is stopped:
+
+```sh
+sudo systemctl stop manijero-pilot
+sudo systemctl is-active --quiet manijero-pilot \
+  && echo "STILL RUNNING — do not restore" || echo "service stopped"
+sudo /opt/manijero/repo/backend/.venv/bin/python \
+  /opt/manijero/repo/backend/scripts/pilot_ops.py restore \
+  --backup-dir /var/backups/manijero/manijero-pilot-backup-<UTC> --confirm --as-of "$(date +%F)"
+sudo -u manijero test -r /opt/manijero/repo/knowledge/source_catalog.json \
+  && sudo -u manijero test -r /opt/manijero/repo/knowledge/passages.json \
+  || { echo "RESTORED CORPUS NOT READABLE BY manijero — do not start"; exit 1; }
+sudo systemctl start manijero-pilot
+sudo -u manijero /opt/manijero/repo/backend/.venv/bin/python \
+  /opt/manijero/repo/backend/scripts/serve_pilot.py --preflight-only
+curl -fsS http://127.0.0.1:8000/ready
+/opt/manijero/repo/backend/.venv/bin/python \
+  /opt/manijero/repo/backend/scripts/pilot_ops.py smoke \
+  --base-url https://<pilot host> --token-env PILOT_SMOKE_TOKEN
+```
+
+Restore verifies every recorded hash and size, validates the catalog/passages pair
+**before** writing anything, refuses with `target_unreadable` if an existing canonical
+file cannot be read, and replaces each file atomically. Each restored canonical artifact is
+written mode `0644` (public official text), so a restore run with `sudo` still leaves a
+file readable by the `User=manijero` process; the prior owner is preserved where the
+process may `chown` it, otherwise the file is root-owned and world-readable. Backup files
+inside the backup tree stay `0600`. The command re-checks that every restored file has all
+three read bits and fails closed with `corpus_not_readable` if not, rolling the prior
+content and mode back first. That check cannot see an untraversable parent directory, so
+the explicit `sudo -u manijero test -r` lines above are part of the procedure and must
+fail the restore before starting the service. If a later write fails, it attempts to
+restore the prior bytes (including the prior mode) and reports `restore_write_failed`; it
+does not claim success. It is not a single-transaction swap of the pair: a crash between
+the two replacements can leave a mixed pair, so after a crash re-run the same verified
+restore (it is idempotent) before starting the service.
+
+Exit `1` means both files were replaced but the service would not be ready as of the
+supplied date (an expired or campaign-mismatched corpus); exit `2` means nothing was
+changed — missing confirmation, unreadable/corrupt/invalid backup, unreadable prior
+target, active service, a result the service account could not read, or a write failure
+that attempted to revert. Backed-up `--config` files are verified but **not** written back
+over the live configuration; reapply a configuration change by hand and keep the backup as
+the reference.
+
+**Restore drill:** rehearse the procedure before the pilot and after any change to this
+code, on the host or on a copy: back up, simulate a bad deploy, stop the service, restore,
+check `sudo -u manijero test -r` on both artifacts, start it, and confirm `preflight`,
+`/ready` `200`, and `smoke`. Expected result: the restored bytes match the manifest, both
+artifacts are mode `0644` and readable by the service account, and the journal shows no new
+error. Removing `--confirm`, a corrupted backup file, a shape-invalid backup, an unreadable
+prior target, a restore while the unit is active, and an expired backup are the negative
+cases to exercise.
+
+### Access and rotation
+
+- **Token handling:** create at least 32 characters with `openssl rand -base64 48`
+  (64 characters). Keep it out of shell history: `umask 077; openssl rand -base64 48 >
+  token.txt`, then `pilot_ops.py upsert-client ... --token-stdin < token.txt`; delete the
+  file immediately. `upsert-client` refuses a shorter token with `token_too_weak`.
+- Rotate one client with `upsert-client` (same `client_id`, new token), re-apply
+  `sudo chown manijero:manijero /etc/manijero/pilot-clients.json` and
+  `sudo chmod 600 /etc/manijero/pilot-clients.json`, then restart the service: credentials
+  are read at process start. Deliver the new token privately and confirm the old one gets
+  `401`.
+- Revoke with `remove-client`, then restart. `remove-client` refuses to revoke the last
+  enabled client with `last_client_refused`; stopping the service is
+  `systemctl stop manijero-pilot`, not deleting the only credential.
+- Rotate tunnel credentials and the Cloudflare account per the provider's own procedure;
+  R2 presigned links (artifact delivery only) cannot be revoked individually before expiry,
+  so keep them short-lived.
+- **Current gap:** the Android and Desktop clients have no field for a bearer token. The
+  pilot profile's authentication is implemented and tested, but a client build that can
+  present the token does not exist yet, so enabling this gate before that change would
+  make `/ask` fail (the app renders the accepted failure notice). Add client credential
+  support before routing any pilot user to the service.
+
+### Outage response
+
+1. Confirm what is failing, in this order: a pilot report; `GET /health` on the host
+   loopback; `GET /ready`; `systemctl status manijero-pilot`; the connector
+   (`systemctl status cloudflared`, tunnel metrics); the provider status page.
+2. Distinguish the cases: process down (restart and read the journal), not-ready
+   configuration/corpus (preflight, campaign validity, restore), tunnel/DNS/TLS failure
+   (provider side; the application may still be healthy on loopback), request rejected
+   (`401`/`429`/`413`: credentials, per-client limit, or body bound).
+3. If a recent deploy caused it, roll back code and/or corpus as above before debugging
+   forward.
+4. Tell pilot users through the agreed channel. This operator message is a template, not
+   shipped app copy: «El asistente no está disponible en este momento. Puedes volver a
+   intentarlo más tarde. Tus terrenos siguen guardados en tu dispositivo.» Never describe
+   the cause as a legal or answer problem, and never paste a question or land detail.
+5. Record the time, symptom, action, and result, and re-check the provider terms if the
+   cause is a provider incident.
+
+### Operational limits and honesty rules
+
+- No availability target, SLA, monitoring service, alerting, on-call rotation, or
+  measured capacity/headroom exists. The `limit_concurrency` value and per-client limits
+  are protective defaults, not measurements.
+- Rate limits and token checks are per process. With `N` workers a client's effective
+  allowance is `requests_per_minute x N`, and a restart clears the window. Do not describe
+  them as edge or cluster-wide limits.
+- Authentication failures are not rate-limited. Only a request with a valid token enters a
+  client's window, so an unauthenticated caller can make unlimited token guesses; a
+  random 48-byte token makes that infeasible, but IP/edge failure limiting is not
+  implemented and remains a pre-pilot hardening item.
+- The application writes one request-metadata line; that is not an audit trail. Provider
+  (Cloudflare) log retention and access are governed by the provider, and the decision
+  record does not assume a request-log archive.
+- Readiness depends on the canonical artifacts and today's date: an expired corpus is a
+  `503`, not a degraded answer.
+- The service has no shared store, no multi-region failover, and no second host. Losing
+  the host is an outage.
+- Everything in this section is a prepared procedure. The only executed parts are the
+  local rehearsal items in the feature appendix.
 
 ## Offline retrieval baseline
 
