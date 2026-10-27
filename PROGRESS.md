@@ -5,9 +5,9 @@
 Routine entry point. Exact feature status lives in [`feature_list.json`](feature_list.json); use
 [`./scripts/select-feature.sh --status`](scripts/select-feature.sh) to read the board. Feature
 contracts, raw evidence, and acceptance records remain in their owning files. Last updated:
-2026-10-26.
+2026-10-27.
 
-**Feature status** — the original 50 features are accepted. Nine backend RAG/knowledge-operations
+**Feature status** — the original 50 features are accepted. Ten backend RAG/knowledge-operations
 features and eight pilot-readiness features are planned and remain `not_started`; no implementation
 or validation evidence exists for these planned items yet. The selector is the current status view; this page does not duplicate the feature-id list.
 
@@ -45,7 +45,7 @@ current provider/privacy review.
   snapshots, and support a portable plaintext backup file. Those capabilities are not implemented,
   so the pilot still has no recovery guarantee. A qualified privacy/legal review is also required
   before the private pilot.
-- Periodic official-source monitoring, candidate ingestion, human-reviewed knowledge updates, reproducible index rebuilds, and release automation are not implemented. New or changed legal knowledge must remain human-approved.
+- Scheduled official-source monitoring, official-registry discovery, candidate ingestion, human-reviewed knowledge updates, reproducible index rebuilds, and release automation are not implemented. The planned discovery scope covers configured first-party registries for approved issuers; it cannot guarantee completeness. New issuers, hosts, and answerable knowledge must remain human-approved.
 - Private hosted operations and distribution are not configured. The project owner is the proposed
   operator; owned-server readiness, tunnel/provider terms, and Android/macOS release artifacts remain
   planned work.

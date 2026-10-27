@@ -3,15 +3,15 @@
 ## Source metadata
 
 - **Feature:** `official_document_candidate_ingestion` — Fetch and parse source candidates (`knowledge`).
-- **Status at planning:** `not_started`; depends on `official_source_monitoring`.
-- **Source behavior:** Fetch only allowlisted HTTPS sources, validate redirects and size/type limits, preserve original bytes and provenance hashes, and extract PDF/HTML text into quarantined candidate documents. Preserve document structure and page/section locations; OCR is a separately measured fallback. No candidate becomes answerable knowledge automatically.
+- **Status at planning:** `not_started`; depends on `official_source_monitoring`, `official_source_discovery`.
+- **Source behavior:** Fetch candidates emitted by approved monitoring/discovery inputs only when their issuer and HTTPS host pass the allowlist; validate redirects and size/type limits, preserve original bytes and provenance hashes, and extract PDF/HTML text into quarantined candidate documents. Preserve document structure and page/section locations; OCR is a separately measured fallback. No candidate becomes answerable knowledge automatically.
 - **Feature-list verification:** Implementation, operational evidence, focused verification, and limits are recorded before acceptance. No legal-coverage or answer-quality claim is implied by successful automation.
 
 ## Goal and boundaries
 
 Turn this backend capability into a reviewable, repeatable part of the bounded PAC answer service while preserving approved-source provenance and the existing safe-answer contract.
 
-**In scope:** Fetch only allowlisted HTTPS sources, validate redirects and size/type limits, preserve original bytes and provenance hashes, and extract PDF/HTML text into quarantined candidate documents. Preserve document structure and page/section locations; OCR is a separately measured fallback. No candidate becomes answerable knowledge automatically.
+**In scope:** Consume pending document candidates from `official_source_monitoring` and `official_source_discovery`; fetch only allowlisted HTTPS URLs, validate redirects and size/type limits, preserve original bytes and provenance hashes, and extract PDF/HTML text into quarantined candidate documents. Preserve document structure and page/section locations; OCR is a separately measured fallback. No candidate becomes answerable knowledge automatically.
 
 **Non-goals:** automatic legal interpretation, unreviewed canonical corpus changes, changes to the app wire contract unless explicitly required, and claims beyond the reviewed corpus/evaluation.
 
@@ -23,7 +23,7 @@ When the answer service needs this capability, I want its behavior and evidence 
 
 ### Normal operation
 
-Given a supported and configured run, when the feature executes, then it produces the documented result with source provenance, bounded resource use, and an observable status.
+Given pending candidates from configured approved registries or feeds, when the ingestion command runs, then supported documents are fetched into quarantine with registry/source provenance, bounded resource use, and an observable per-candidate status.
 
 ### Invalid, unavailable, or ambiguous input
 
@@ -35,7 +35,7 @@ Given the same pinned code, configuration, and approved inputs, when the work is
 
 ## Technical approach
 
-Fetch only allowlisted HTTPS sources, validate redirects and size/type limits, preserve original bytes and provenance hashes, and extract PDF/HTML text into quarantined candidate documents. Preserve document structure and page/section locations; OCR is a separately measured fallback. No candidate becomes answerable knowledge automatically. Inspect the current backend and knowledge schemas before implementation; preserve existing API and code-owned answer properties. Add focused fixtures for boundary and failure cases. Pin mutable dependencies and model/artifact revisions. Make resource, timing, freshness, and evaluation evidence visible.
+Consume discovery/monitor outputs, fetch only allowlisted HTTPS sources, validate redirects and size/type limits, preserve original bytes and provenance hashes, and extract PDF/HTML text into quarantined candidate documents. Preserve document structure and page/section locations; OCR is a separately measured fallback. Reject candidates without a known approved issuer/host and never make candidate content answerable automatically. Inspect the current backend and knowledge schemas before implementation; preserve existing API and code-owned answer properties. Add focused fixtures for boundary and failure cases. Pin mutable dependencies and model/artifact revisions. Make resource, timing, freshness, and evaluation evidence visible.
 
 ## Expected file changes
 
