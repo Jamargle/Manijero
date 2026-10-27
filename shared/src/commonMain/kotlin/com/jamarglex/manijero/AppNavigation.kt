@@ -10,10 +10,20 @@ package com.jamarglex.manijero
 internal enum class AppSection { Lands, Assistant, Help }
 
 /**
- * Every screen the composition root can show. `Privacy` and the three form routes are detail
- * routes, not tabs; the current [AppSection] stays selected underneath them.
+ * Every screen the composition root can show. `Privacy`, `Terrenos eliminados`, and the land form
+ * routes are detail routes, not tabs; the current [AppSection] stays selected underneath them.
  */
-internal enum class AppDestination { Chat, LandList, AddLand, EditLand, RemoveLand, Privacy, Coverage }
+internal enum class AppDestination {
+    Chat,
+    LandList,
+    AddLand,
+    EditLand,
+    RemoveLand,
+    RemovedLands,
+    PermanentlyDeleteLand,
+    Privacy,
+    Coverage,
+}
 
 /** The destinations the shell may show, in tab order. */
 internal fun availableSections(landsAvailable: Boolean): List<AppSection> =
@@ -49,6 +59,8 @@ internal fun tabForDestination(destination: AppDestination, fallback: AppSection
         AppDestination.AddLand,
         AppDestination.EditLand,
         AppDestination.RemoveLand,
+        AppDestination.RemovedLands,
+        AppDestination.PermanentlyDeleteLand,
         -> AppSection.Lands
 
         AppDestination.Coverage -> AppSection.Help
@@ -69,13 +81,15 @@ internal fun rememberedSectionAfterBack(
 }
 
 /**
- * Navigation is hidden only while a land form holds unsaved input, so a stray tab tap cannot
- * abandon a draft. Privacy keeps the bars: it is a detail route with a visible `Volver`.
+ * Navigation is hidden only while a land form holds unsaved input or a deletion waits for its second
+ * confirmation, so a stray tab tap cannot abandon a draft or a pending decision. Privacy and the
+ * removed-lands list are detail routes with a visible `Volver`, so they keep the bars.
  */
 internal fun navigationVisible(destination: AppDestination): Boolean = when (destination) {
     AppDestination.AddLand,
     AppDestination.EditLand,
     AppDestination.RemoveLand,
+    AppDestination.PermanentlyDeleteLand,
     -> false
 
     else -> true
@@ -98,6 +112,9 @@ internal fun backTarget(
     AppDestination.EditLand,
     AppDestination.RemoveLand,
     -> AppDestination.LandList
+
+    AppDestination.RemovedLands -> AppDestination.LandList
+    AppDestination.PermanentlyDeleteLand -> AppDestination.RemovedLands
 
     AppDestination.Coverage -> {
         val previous = sectionDestination(previousSection)

@@ -7,18 +7,41 @@ interface LandStorage {
     fun write(value: String)
 }
 
+/**
+ * The local land store: one aggregate of active lands and removed lands.
+ *
+ * [list] and [listRemoved] are the only read paths, and each returns its own side of one
+ * [LandSnapshot]. [list] never returns a removed record, so the land list, the clarification chooser,
+ * and every question context keep seeing exactly the lands the person is still using.
+ *
+ * Every write replaces the whole aggregate with one encoded snapshot: no operation leaves a half
+ * updated store. [moveToRemoved], [restore], and [permanentlyDelete] are the lifecycle transitions and
+ * each reports a [LandLifecycleResult], so a missing record and a refused write are never presented as
+ * a successful move. [create] and [update] keep their accepted behavior, including throwing when the
+ * device refuses the write.
+ *
+ * The store holds the current aggregate format written by [LandStoreFormat]. An existing
+ * `land-store-v1` snapshot is read once as migration input: every decoded record becomes an active land
+ * and the aggregate is written back before that read returns it, so the old shape never becomes a
+ * second ongoing read or write path. A refused migration write propagates, so the person sees a failed
+ * read and the old store stays untouched instead of being silently replaced.
+ */
 class LandRepository(
     private val storage: LandStorage,
     private val idGenerator: () -> String = { generateLandId() },
     private val nowEpochMillis: () -> Long = { 0L },
 ) {
-    fun list(): List<Land> = readRecords()
+    /** The active lands, in their stored order. Removed lands are never included. */
+    fun list(): List<Land> = readSnapshot().active
+
+    /** The removed lands, in removal order. They are not part of [list]. */
+    fun listRemoved(): List<RemovedLand> = readSnapshot().removed
 
     fun create(draft: LandDraft, now: Long = nowEpochMillis()): Land {
         val normalized = normalize(draft)
-        val existing = readRecords()
+        val snapshot = readSnapshot()
         val land = Land(
-            id = uniqueId(existing),
+            id = uniqueId(snapshot),
             name = normalized.name,
             zone = normalized.zone,
             municipality = normalized.municipality,
@@ -32,16 +55,16 @@ class LandRepository(
             createdAtEpochMillis = now,
             updatedAtEpochMillis = now,
         )
-        writeRecords(existing + land)
+        writeSnapshot(snapshot.copy(active = snapshot.active + land))
         return land
     }
 
     fun update(id: String, draft: LandDraft, now: Long = nowEpochMillis()): Land? {
         val normalized = normalize(draft)
-        val records = readRecords()
-        val index = records.indexOfFirst { it.id == id }
+        val snapshot = readSnapshot()
+        val index = snapshot.active.indexOfFirst { it.id == id }
         if (index < 0) return null
-        val old = records[index]
+        val old = snapshot.active[index]
         val updated = old.copy(
             name = normalized.name,
             zone = normalized.zone,
@@ -55,29 +78,94 @@ class LandRepository(
             notes = normalized.notes,
             updatedAtEpochMillis = now,
         )
-        writeRecords(records.toMutableList().also { it[index] = updated })
+        writeSnapshot(snapshot.copy(active = snapshot.active.toMutableList().also { it[index] = updated }))
         return updated
     }
 
-    fun delete(id: String): Boolean {
-        val records = readRecords()
-        val remaining = records.filterNot { it.id == id }
-        if (remaining.size == records.size) return false
-        writeRecords(remaining)
-        return true
+    /**
+     * Moves exactly the active record [id] to the removed list, preserving every stored field and the
+     * order of the other active lands. The removed list keeps removal order, so the newest removal is
+     * the last one.
+     */
+    fun moveToRemoved(id: String, now: Long = nowEpochMillis()): LandLifecycleResult {
+        val snapshot = readSnapshot()
+        val index = snapshot.active.indexOfFirst { it.id == id }
+        if (index < 0) return LandLifecycleResult.Missing
+        val land = snapshot.active[index]
+        return writeTransition(
+            snapshot.copy(
+                active = snapshot.active.filterIndexed { position, _ -> position != index },
+                removed = snapshot.removed + RemovedLand(land, now),
+            ),
+            land,
+        )
     }
 
-    private fun uniqueId(existing: List<Land>): String {
+    /**
+     * Returns exactly the removed record [id] to the **end** of the active list with every stored field
+     * unchanged. The other active and removed lands keep their order.
+     */
+    fun restore(id: String): LandLifecycleResult {
+        val snapshot = readSnapshot()
+        val index = snapshot.removed.indexOfFirst { it.land.id == id }
+        if (index < 0) return LandLifecycleResult.Missing
+        val land = snapshot.removed[index].land
+        return writeTransition(
+            snapshot.copy(
+                active = snapshot.active + land,
+                removed = snapshot.removed.filterIndexed { position, _ -> position != index },
+            ),
+            land,
+        )
+    }
+
+    /**
+     * Removes exactly the removed record [id] from the store for good. An active id is not a removal
+     * target, so it reports [LandLifecycleResult.Missing] and writes nothing: permanent deletion only
+     * ever follows a record the person first moved out of `Mis terrenos`.
+     */
+    fun permanentlyDelete(id: String): LandLifecycleResult {
+        val snapshot = readSnapshot()
+        val index = snapshot.removed.indexOfFirst { it.land.id == id }
+        if (index < 0) return LandLifecycleResult.Missing
+        val land = snapshot.removed[index].land
+        return writeTransition(
+            snapshot.copy(
+                removed = snapshot.removed.filterIndexed { position, _ -> position != index },
+            ),
+            land,
+        )
+    }
+
+    private fun uniqueId(snapshot: LandSnapshot): String {
+        val taken = snapshot.active.map { it.id } + snapshot.removed.map { it.land.id }
         var id = idGenerator()
-        while (existing.any { it.id == id }) id = idGenerator()
+        while (id in taken) id = idGenerator()
         return id
     }
 
-    private fun readRecords(): List<Land> = LandStoreFormat.decode(storage.read())
-
-    private fun writeRecords(records: List<Land>) {
-        storage.write(LandStoreFormat.encode(records))
+    private fun readSnapshot(): LandSnapshot {
+        val stored = storage.read()
+        val legacy = LandStoreFormat.decodeLegacy(stored)
+        if (legacy == null) return LandStoreFormat.decode(stored)
+        val migrated = LandSnapshot(active = legacy)
+        // One-time migration: the aggregate is written before it is returned, and a refused write
+        // throws here so the caller reports a failed read and the v1 store keeps its records.
+        writeSnapshot(migrated)
+        return migrated
     }
+
+    private fun writeSnapshot(snapshot: LandSnapshot) {
+        storage.write(LandStoreFormat.encode(snapshot))
+    }
+
+    private fun writeTransition(snapshot: LandSnapshot, land: Land): LandLifecycleResult =
+        try {
+            writeSnapshot(snapshot)
+            LandLifecycleResult.Done(land)
+        } catch (_: Exception) {
+            LandLifecycleResult.StorageFailed
+        }
 }
 
 /**
@@ -110,116 +198,3 @@ private fun normalize(draft: LandDraft): LandDraft {
 }
 
 private fun generateLandId(): String = "land-${Random.nextLong().toString(16)}"
-
-/**
- * The local land store.
- *
- * There is one format: the `land-store-v1` header followed by one line per land, with 13
- * `|`-separated, escaped fields:
- * `id|name|zone|municipality|waterRegime|productionMethod|variety|varietyOther|areaHectares|treeCount|notes|createdAt|updatedAt`.
- * A line that cannot be decoded is skipped whole, and a header that is not recognised yields no
- * records. No deployment predates this format, so there is no second decoder or migration path to
- * keep: changing the format later means adding a version and a reader deliberately.
- */
-internal object LandStoreFormat {
-    private const val HEADER = "land-store-v1"
-    private const val SEPARATOR = "|"
-    private const val FIELD_COUNT = 13
-
-    fun encode(records: List<Land>): String = buildString {
-        append(HEADER)
-        records.forEach { land ->
-            append('\n')
-            append(listOf(
-                land.id,
-                land.name,
-                land.zone,
-                land.municipality.orEmpty(),
-                land.waterRegime.name,
-                land.productionMethod.name,
-                land.variety.name,
-                land.varietyOther.orEmpty(),
-                land.areaHectares?.toString().orEmpty(),
-                land.treeCount?.toString().orEmpty(),
-                land.notes.orEmpty(),
-                land.createdAtEpochMillis.toString(),
-                land.updatedAtEpochMillis.toString(),
-            ).joinToString(SEPARATOR, transform = ::escape))
-        }
-    }
-
-    fun decode(value: String?): List<Land> {
-        if (value.isNullOrEmpty()) return emptyList()
-        val lines = value.lineSequence().toList()
-        if (lines.firstOrNull() != HEADER) return emptyList()
-        return lines.drop(1).mapNotNull(::decodeLine)
-    }
-
-    private fun decodeLine(line: String): Land? = runCatching {
-        val fields = line.split(SEPARATOR).map(::unescape)
-        require(fields.size == FIELD_COUNT)
-        land(
-            id = fields[0],
-            name = fields[1],
-            zone = fields[2],
-            municipality = fields[3].ifEmpty { null },
-            waterRegime = fields[4],
-            productionMethod = fields[5],
-            variety = fields[6],
-            varietyOther = fields[7].ifEmpty { null },
-            areaHectares = fields[8].ifEmpty { null }?.toDouble(),
-            treeCount = fields[9].ifEmpty { null }?.toInt(),
-            notes = fields[10].ifEmpty { null },
-            createdAtEpochMillis = fields[11].toLong(),
-            updatedAtEpochMillis = fields[12].toLong(),
-        )
-    }.getOrNull()
-
-    @Suppress("LongParameterList")
-    private fun land(
-        id: String,
-        name: String,
-        zone: String,
-        municipality: String?,
-        waterRegime: String,
-        productionMethod: String,
-        variety: String,
-        varietyOther: String?,
-        areaHectares: Double?,
-        treeCount: Int?,
-        notes: String?,
-        createdAtEpochMillis: Long,
-        updatedAtEpochMillis: Long,
-    ): Land? {
-        if (id.isEmpty() || name.isEmpty() || zone.isBlank()) return null
-        // A record whose stored area is not finite is corrupt whole, never a value to guess.
-        if (areaHectares != null && !areaHectares.isFinite()) return null
-        return Land(
-            id = id,
-            name = name,
-            zone = zone,
-            municipality = municipality,
-            waterRegime = WaterRegime.valueOf(waterRegime),
-            productionMethod = ProductionMethod.valueOf(productionMethod),
-            variety = LandVariety.valueOf(variety),
-            varietyOther = varietyOther,
-            areaHectares = areaHectares,
-            treeCount = treeCount,
-            notes = notes,
-            createdAtEpochMillis = createdAtEpochMillis,
-            updatedAtEpochMillis = updatedAtEpochMillis,
-        )
-    }
-
-    private fun escape(value: String): String = value
-        .replace("%", "%25")
-        .replace(SEPARATOR, "%7C")
-        .replace("\n", "%0A")
-        .replace("\r", "%0D")
-
-    private fun unescape(value: String): String = value
-        .replace("%0D", "\r")
-        .replace("%0A", "\n")
-        .replace("%7C", SEPARATOR)
-        .replace("%25", "%")
-}

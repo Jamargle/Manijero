@@ -7,12 +7,14 @@ Routine entry point. Exact feature status lives in [`feature_list.json`](feature
 contracts, raw evidence, and acceptance records remain in their owning files. Last updated:
 2026-10-27.
 
-**Feature status** — the original 50 features, `official_source_monitoring`, and `official_source_discovery` are accepted. Eight
-backend RAG/knowledge-operations features and eight pilot-readiness features remain `not_started`; no implementation
-or validation evidence exists for these planned items yet. The selector is the current status view; this page does not duplicate the feature-id list.
+**Feature status** — the original 50 features, `official_source_monitoring`, `official_source_discovery`, and
+`recover_removed_lands` are accepted. Eight backend RAG/knowledge-operations features, two land-recovery follow-ups, and five
+pilot/evaluation-readiness features remain `not_started`; no implementation or validation evidence exists for these planned items yet. The selector is the current status view; this page does not duplicate the feature-id list.
 
 **Product shape** — shared Compose chat, lands, and help surfaces in `shared/src/commonMain`, hosted
-by Android and Desktop. Land records stay on-device in the single 13-field `land-store-v1` format.
+by Android and Desktop. Land records stay on-device in the `land-store-v2` aggregate (active and
+removed sections), migrated once from `land-store-v1`; removed lands remain local until the user
+permanently deletes them.
 The local FastAPI service exposes liveness-only `/health` and `/ask`; Android and Desktop use
 overridable local development URLs. The reviewed corpus contains four official sources and four
 literal passages for three procedural topics in the Andalusian PAC single application for 2026.
@@ -38,13 +40,17 @@ current provider/privacy review.
   product decisions without target-user evidence. Land-field persistence has no real-device
   upgrade/downgrade evidence; details stay in the [field validation](docs/validations/land_measurement_fields.md)
   and [search validation](docs/validations/land_search_and_summary.md).
-- Device-local land records still have no implemented backup or restore. The product direction is
-  local-only storage with required recovery features before the private pilot; this is not user
-  evidence that data loss is acceptable. See the [decision record](docs/specs/land_backup_decision.md).
-- A local-only recovery direction is now recorded: recover removed lands, keep bounded same-device
-  snapshots, and support a portable plaintext backup file. Those capabilities are not implemented,
-  so the pilot still has no recovery guarantee. A qualified privacy/legal review is also required
-  before the private pilot.
+- Device-local land records have no implemented backup, export, or restore of a deleted store. Removing a
+  land is now recoverable on the device until the user confirms `Borrar para siempre`; permanent deletion
+  still purges the only aggregate copy. The product direction is local-only storage with required recovery
+  features before the private pilot; this is not user evidence that data loss is acceptable. See the
+  [decision record](docs/specs/land_backup_decision.md) and the
+  [removal acceptance record](docs/validations/recover_removed_lands.md).
+- The local-only recovery direction now has recoverable removal implemented; bounded same-device snapshots
+  and a portable plaintext backup file remain not implemented, so the pilot still has no backup recovery
+  guarantee. The new removed-list screens have no device or screen-reader evidence and no screenshot
+  goldens, and `removedAt` is stored as 0 in production because no clock is injected. A qualified
+  privacy/legal review is also required before the private pilot.
 - The manual official-feed monitor records response hashes and validators separately from canonical knowledge. BOE/BOJA manual discovery now writes pending candidates into separate review state; FEGA/MAPA registries remain explicitly unchecked, BOJA is configured per bulletin, and no completeness is guaranteed. Scheduled dispatch, document-level ingestion, human-reviewed knowledge updates, reproducible index rebuilds, and release automation are not implemented. New issuers, hosts, and answerable knowledge must remain human-approved; successful polling does not prove corpus currency.
 - Official-source discovery corrected the earlier invalid blocker conclusion: the BOE HTTP 400 resulted from the missing `Accept` header; the documented response succeeds with an explicit XML/JSON Accept type. See the feature appendix for endpoints, tests, and the local TLS smoke limitation.
 - Private hosted operations and distribution are not configured. The project owner is the proposed

@@ -72,12 +72,14 @@ Operational MUST/MUST NOT rules that future features have to respect on top of
 - **MUST**: every stored land MUST have a trimmed non-blank zone of at most 80 characters, both on
   create and on edit; clearing it MUST block the save. Reason: `land_measurement_fields` made the
   zone the second required identity field.
-- **MUST**: the current land store MUST have one canonical versioned format and decoder. The planned
-  recovery transition MUST migrate existing valid `land-store-v1` records exactly once to the new
-  aggregate format, preserving every decoded record as active; after migration, the old format is
-  input only and MUST NOT become a second ongoing write/read path. A malformed record MUST be skipped
-  whole and every migrated record MUST carry its zone. Reason: an already-shipped v1 store now needs
-  an explicit safe migration to represent active and removed lands.
+- **MUST**: the current land store MUST have one canonical versioned format (`land-store-v2`: active
+  and removed sections in one aggregate) and one current decoder. The recovery transition MUST migrate
+  existing valid `land-store-v1` records exactly once, preserving every decoded record as active;
+  after migration, the old format is input only and MUST NOT become a second ongoing write/read path.
+  A malformed record MUST be skipped whole and every migrated record MUST carry its zone. A refused
+  migration write MUST leave the v1 snapshot untouched and surface as a failed read, never as an empty
+  store. Reason: an already-shipped v1 store needs an explicit safe migration to represent active and
+  removed lands without losing or half-replacing the person's records.
 - **MUST NOT**: infer a zone, variety, surface, or tree count from a name, municipality, question, or
   another land. An absent optional value MUST stay absent in the store and MUST be omitted from the
   land details rather than shown as zero. Reason: land records must not imply knowledge or
@@ -128,12 +130,14 @@ Operational MUST/MUST NOT rules that future features have to respect on top of
 
 - **MUST**: ordinary land removal MUST move exactly one named active record to the local removed list
   only after explicit confirmation; it MUST preserve all other records and keep removed lands out of
-  chat context. Permanent deletion MUST require a second explicit confirmation and MUST remove that
-  record from the active/removed aggregate and every app-managed automatic snapshot. Neither action
-  may claim success after a missing-record or storage failure. User-exported files are outside this
-  deletion guarantee and MUST be described as capable of restoring their old contents. Reason: the
-  owner chose recoverability without cloud sync; removal and permanent deletion have distinct
-  consequences.
+  chat context. A restore MUST return exactly that removed record with its stored fields unchanged to
+  the end of the active list, and MUST NOT reorder the other active or removed records. Permanent
+  deletion MUST target only a record already in the removed list, MUST require a second explicit
+  confirmation naming it, and MUST remove that record from the active/removed aggregate and every
+  app-managed automatic snapshot. Neither action may claim success after a missing-record or storage
+  failure. User-exported files are outside this deletion guarantee and MUST be described as capable
+  of restoring their old contents. Reason: the owner chose recoverability without cloud sync; removal,
+  restore, and permanent deletion have distinct consequences.
 
 - **MUST**: automatic land snapshots MUST remain on the same device and be bounded. Portable backup
   files MUST use one versioned cross-platform schema, remain plaintext, contain only land data, and
@@ -159,17 +163,19 @@ Operational MUST/MUST NOT rules that future features have to respect on top of
 
 ## Client land context
 
-- **MUST**: the `land_context` sent with a question MUST carry every stored land whenever at least
-  one exists — `mode: all_active`, repository order, opaque local ids verbatim — and, per land, only
-  the optional attributes the question actually needs (`municipality`, `water_regime`,
+- **MUST**: the `land_context` sent with a question MUST carry every active stored land whenever at
+  least one exists — `mode: all_active`, repository order, opaque local ids verbatim — and, per land,
+  only the optional attributes the question actually needs (`municipality`, `water_regime`,
   `production_method`); it MUST NOT carry a land name, free-text note, area, timestamp, or any
   contract-unknown key, MUST send a needed but unknown stored value as `unknown` (never a guess),
   MUST omit a value it does not have (an unset `municipality`) rather than a placeholder or an empty
-  string, MUST use `mode: general` with `lands: []` only when no land is stored, and MUST NOT rewrite
-  the person's exact wording or change the attribute decision silently (a vocabulary change is a spec
-  and test change). Reason: `minimal_land_context` established that the device's private labels and
+  string, MUST use `mode: general` with `lands: []` only when no active land is stored, and MUST NOT
+  rewrite the person's exact wording or change the attribute decision silently (a vocabulary change
+  is a spec and test change). Removed-list lands MUST NOT enter `land_context`, a clarification, or
+  an answer request even when they are the only stored records; that case is `general` with
+  `lands: []`. Reason: `minimal_land_context` established that the device's private labels and
   details never leave it with a question, that omission in the payload means "not needed" and never
-  "invented", and that the current lands must be re-read at submit and retry time so an added,
+  "invented", and that the current active lands must be re-read at submit and retry time so an added,
   edited, or removed land is reflected without exposing anything new.
 
 ## Land clarification

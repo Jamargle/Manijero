@@ -23,7 +23,7 @@ class LandRepositoryTest {
     }
 
     @Test
-    fun update_and_delete_do_not_change_other_land() {
+    fun update_and_removal_do_not_change_other_land() {
         val storage = MemoryStorage()
         val repository = repository(storage)
         val first = repository.create(LandDraft("Uno", "El Llano"), 1)
@@ -36,7 +36,7 @@ class LandRepositoryTest {
         )
         assertEquals("Uno corregido", updated?.name)
         assertEquals("Dos", repository.list()[1].name)
-        assertTrue(repository.delete(first.id))
+        assertEquals(LandLifecycleResult.Done(updated!!), repository.moveToRemoved(first.id))
         assertEquals(listOf(second), repository.list())
         assertNull(repository.update(first.id, LandDraft("No existe", "El Llano"), 4))
     }
