@@ -88,3 +88,4 @@ restate evidence here.
 | 2026-10-27 | `official_document_candidate_ingestion` accepted. | [official_document_candidate_ingestion.md](../specs/official_document_candidate_ingestion.md) · [acceptance](../validations/official_document_candidate_ingestion.md) |
 | 2026-10-27 | `legal_change_impact_analysis` accepted. | [legal_change_impact_analysis.md](../specs/legal_change_impact_analysis.md) · [acceptance](../validations/legal_change_impact_analysis.md) |
 | 2026-10-27 | `knowledge_update_review_pr` accepted. | [knowledge_update_review_pr.md](../specs/knowledge_update_review_pr.md) · [acceptance](../validations/knowledge_update_review_pr.md) |
+| 2026-10-27 | `pac_evidence_expansion` accepted. | [pac_evidence_expansion.md](../specs/pac_evidence_expansion.md) · [acceptance](../validations/pac_evidence_expansion.md) |
