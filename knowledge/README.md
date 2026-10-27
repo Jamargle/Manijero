@@ -136,6 +136,47 @@ a shortcut to make a fixture pass.
 No entry may be added by an automated discovery process without that human
 review step.
 
+## Planned automated update review
+
+The source-monitoring command currently records endpoint snapshots; it does not
+create a document-candidate queue or a review request. Discovery, candidate
+fetch/extraction, change-impact analysis, review-PR preparation, scheduled
+dispatch, and reindex/release are separate planned features. Until those are
+implemented and accepted, use the manual reviewer procedure above. A monitor
+hash or successful scan is not approval and does not establish that a source is
+current or legally applicable.
+
+The planned review handoff reduces manual collection and comparison work while
+keeping approval with an identified human:
+
+1. Discovery records a candidate and where it was found. Candidate ingestion
+   fetches the document into quarantine, validates its URL/type/size, preserves
+   the original and its hash, and extracts text with page or section locations.
+2. Review preparation opens a **draft pull request** for one coherent update.
+   It includes the source and observation provenance, original/extracted hashes,
+   the old/new text diff, proposed catalog and passage changes, affected answer
+   or evaluation results, automated checks, and unresolved questions. The
+   proposal leaves unknown validity and applicability fields absent; it does
+   not infer them.
+3. A named reviewer other than the author checks that the source and extracted
+   text match, reviews the proposed source metadata and literal passages, and
+   considers the reported impact. The reviewer approves, requests changes, or
+   rejects the pull request. Review identity and decision remain in the PR
+   history.
+4. Merge requires that human approval and all required checks. A green check,
+   bot label, matching hash, or scheduler run cannot approve the change. Before
+   merge, the canonical catalog/passages and answer index stay unchanged.
+5. After merge, the separate reindex/release step publishes the approved
+   artifacts. An approved update does not certify broader legal coverage or
+   answer quality.
+
+Automated duplicate detection, unchanged-candidate closure, provenance checks,
+text extraction, diffs, schema validation, and impact reports can reduce the
+reviewer's workload. Ambiguous legal changes, conflicting sources, extraction
+uncertainty, and unknown applicability remain visible for human judgment. This
+workflow is a target design, not a currently available automation path; its
+implementation contract is [`knowledge_update_review_pr`](../docs/specs/knowledge_update_review_pr.md).
+
 ## Running the validator
 
 From the repository root:

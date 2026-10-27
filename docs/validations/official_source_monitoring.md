@@ -2,30 +2,18 @@
 
 ## Verdict
 
-**Accept** — 2026-10-27.
+**Accept** — 2026-10-27, after addressing independent validation findings.
 
 ## Independent checks
 
-- Reviewed the feature spec, implementation diff, feature index, evidence appendix,
-  operator documentation, architecture boundary, and scope.
-- Ran `MANIJERO_PYTHON=backend/.venv/bin/python ./scripts/init.sh --feature official_source_monitoring`:
-  **625 backend tests passed**, including seven source-monitor tests. One existing
-  Starlette/httpx deprecation warning was emitted.
-- Ran `./scripts/init.sh --fast`: **all nine offline checks passed**, including
-  shared JVM tests, contract examples, backend tests, source-catalog validation,
-  and the five synthetic evaluators. Evaluator evidence remains report-only.
-- Confirmed monitor input host validation, bounded response reads/timeouts,
-  same-host HTTPS redirect restriction, conditional request support, last-good
-  snapshot retention on failure, and independent state-file writes. The feature
-  does not alter canonical knowledge or answer behavior.
+- The independent validator reviewed the spec, implementation diff, tests, feature status, evidence appendix, operator documentation, and downstream review-flow documentation.
+- Ran `MANIJERO_PYTHON=backend/.venv/bin/python ./scripts/init.sh --feature official_source_monitoring`: **9 focused source-monitor tests passed**.
+- Ran `GRADLE_USER_HOME=/private/tmp/manijero-gradle-home ./scripts/init.sh --fast`: **all nine offline checks passed**, including the JVM suite, 627 backend tests, contract examples, source-catalog validation, and offline evaluators. Evaluator metrics remain synthetic/report-only.
+- `git diff --check` passed. No live BOE/BOJA upstream request was made.
+- An earlier independent review found that HTTP `206` could be treated as success and malformed nested state could escape the documented CLI error path. The implementation now rejects statuses other than `200`/handled `304`, validates persisted source records before requesting or writing, and includes regression tests for both cases. The independent validator reran the focused suite and accepted the repairs.
 
-## Limits and security assessment
+## Security assessment and limits
 
-No blocking feature-scoped security or privacy issue found. The monitor is limited
-by design to configured official hosts and does not follow feed document links.
-The BOE JSON is validated as JSON, not against an endpoint-specific schema; hashes
-cover whole feed responses, not individual documents. No live BOE/BOJA upstream
-smoke test or recurring scheduler is included. External owner-managed dispatch
-must not be treated as proof of corpus currency or legal coverage. See the
-[feature evidence appendix](../specs/official_source_monitoring.appendix.md) and
-[operator instructions](../../backend/README.md) for details.
+No blocking feature-scoped security or privacy issues remain. Configured endpoints use the exact approved HTTPS host policy; requests have a timeout and response cap; redirects cannot change host or scheme; feed item links are not fetched; failed scans retain the last-good snapshot.
+
+The BOE JSON is syntax-validated, not checked against an endpoint-specific record schema. Hashes cover whole response bytes, not individual documents. There was no live upstream smoke test and no recurring scheduler. These limitations mean successful polling does not establish source authenticity, legal currency, completeness, or answer quality. See the [feature evidence appendix](../specs/official_source_monitoring.appendix.md) and [operator instructions](../../backend/README.md).

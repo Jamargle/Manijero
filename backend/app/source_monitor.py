@@ -22,6 +22,11 @@ MAX_RESPONSE_BYTES = 5 * 1024 * 1024
 TIMEOUT_SECONDS = 15
 USER_AGENT = "Manijero-Official-Source-Monitor/1.0"
 ID_PATTERN = re.compile(r"^[a-z0-9]+(?:[-_][a-z0-9]+)*$")
+SHA256_PATTERN = re.compile(r"^[a-f0-9]{64}$")
+STATE_RECORD_KEYS = frozenset({
+    "url", "last_attempt_at", "status", "http_status", "last_success_at",
+    "etag", "last_modified", "content_sha256", "changed", "failure",
+})
 
 
 class MonitorError(ValueError):
@@ -89,7 +94,54 @@ def _read_state(path: Path) -> Dict[str, Any]:
     if (not isinstance(state, dict) or state.get("schema_version") != "source-monitor-state-v1"
             or not isinstance(state.get("sources"), dict)):
         raise MonitorError("invalid monitoring state")
+    for source_id, record in state["sources"].items():
+        if (not isinstance(source_id, str) or not ID_PATTERN.fullmatch(source_id)
+                or not isinstance(record, dict) or not set(record).issubset(STATE_RECORD_KEYS)):
+            raise MonitorError("invalid monitoring state")
+        if not {"url", "last_attempt_at", "status", "last_success_at", "etag",
+                "last_modified", "content_sha256", "changed"}.issubset(record):
+            raise MonitorError("invalid monitoring state")
+        if (not isinstance(record["url"], str) or not record["url"]
+                or not _is_timestamp(record["last_attempt_at"])
+                or record["status"] not in ("success", "failure")
+                or not _is_optional_timestamp(record["last_success_at"])
+                or not _is_optional_string(record["etag"])
+                or not _is_optional_string(record["last_modified"])
+                or not _is_optional_hash(record["content_sha256"])
+                or not isinstance(record["changed"], bool)):
+            raise MonitorError("invalid monitoring state")
+        if record["status"] == "success":
+            if (record.get("http_status") not in (200, 304)
+                    or record["last_success_at"] is None
+                    or record["content_sha256"] is None
+                    or "failure" in record):
+                raise MonitorError("invalid monitoring state")
+        elif (not isinstance(record.get("failure"), str) or not record["failure"].strip()
+                or "http_status" in record):
+            raise MonitorError("invalid monitoring state")
     return state
+
+
+def _is_timestamp(value: Any) -> bool:
+    if not isinstance(value, str):
+        return False
+    try:
+        datetime.fromisoformat(value)
+    except ValueError:
+        return False
+    return True
+
+
+def _is_optional_timestamp(value: Any) -> bool:
+    return value is None or _is_timestamp(value)
+
+
+def _is_optional_string(value: Any) -> bool:
+    return value is None or isinstance(value, str)
+
+
+def _is_optional_hash(value: Any) -> bool:
+    return value is None or (isinstance(value, str) and SHA256_PATTERN.fullmatch(value) is not None)
 
 
 def _request(source: Mapping[str, str], previous: Mapping[str, Any]) -> Tuple[int, Mapping[str, str], bytes]:
@@ -129,10 +181,12 @@ def scan(sources: Any, state_path: Path, now: Optional[datetime] = None) -> Dict
                 if not isinstance(digest, str):
                     raise MonitorError("received 304 without a prior successful snapshot")
                 changed = False
-            else:
+            elif status == 200:
                 _validate_payload(payload, source["format"])
                 digest = hashlib.sha256(payload).hexdigest()
                 changed = digest != previous.get("content_sha256")
+            else:
+                raise MonitorError("upstream returned unsupported HTTP status {}".format(status))
             etag = headers.get("ETag") or previous.get("etag")
             modified = headers.get("Last-Modified") or previous.get("last_modified")
             record.update({"status": "success", "http_status": status, "last_success_at": timestamp,
