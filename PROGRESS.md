@@ -8,8 +8,10 @@ contracts, raw evidence, and acceptance records remain in their owning files. La
 2026-10-27.
 
 **Feature status** — the original 50 features, `official_source_monitoring`, and `official_source_discovery` are accepted. Eight
-backend RAG/knowledge-operations features and eight pilot-readiness features remain `not_started`; no implementation
-or validation evidence exists for these planned items yet. The selector is the current status view; this page does not duplicate the feature-id list.
+backend RAG/knowledge-operations features remain `not_started`. Of the eight pilot-readiness
+features, `hosting_provider_review` is accepted; the other seven remain `not_started`. No
+acceptance record exists for the remaining planned items yet. The selector is the current status
+view; this page does not duplicate the feature-id list.
 
 **Product shape** — shared Compose chat, lands, and help surfaces in `shared/src/commonMain`, hosted
 by Android and Desktop. Land records stay on-device in the single 13-field `land-store-v1` format.
@@ -47,9 +49,13 @@ current provider/privacy review.
   before the private pilot.
 - The manual official-feed monitor records response hashes and validators separately from canonical knowledge. BOE/BOJA manual discovery now writes pending candidates into separate review state; FEGA/MAPA registries remain explicitly unchecked, BOJA is configured per bulletin, and no completeness is guaranteed. Scheduled dispatch, document-level ingestion, human-reviewed knowledge updates, reproducible index rebuilds, and release automation are not implemented. New issuers, hosts, and answerable knowledge must remain human-approved; successful polling does not prove corpus currency.
 - Official-source discovery corrected the earlier invalid blocker conclusion: the BOE HTTP 400 resulted from the missing `Accept` header; the documented response succeeds with an explicit XML/JSON Accept type. See the feature appendix for endpoints, tests, and the local TLS smoke limitation.
-- Private hosted operations and distribution are not configured. The project owner is the proposed
-  operator; owned-server readiness, tunnel/provider terms, and Android/macOS release artifacts remain
-  planned work.
+- Private hosted operations and distribution are not configured. The 2026-10-27
+  [hosting decision](docs/specs/hosting_provider_review.md) conditionally selects Cloudflare Tunnel
+  as transport for an owned server and R2 presigned links as the artifact candidate, but the
+  owned-server path stays blocked until the owner attests hardware, connectivity, power/backup,
+  maintenance window, capacity, and recovery. Fly.io is the only evaluated fallback and is not
+  approved; the API still has no authentication or rate limiting, and Android/macOS release
+  artifacts are not implemented.
 - The answer evaluation remains the existing six-case sample with known citation and critical-fact
   misses. The planned evidence expansion has not run; no answer-quality claim is supported.
 

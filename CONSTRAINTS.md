@@ -377,3 +377,14 @@ Operational MUST/MUST NOT rules that future features have to respect on top of
 - **MUST**: retrieval changes MUST be compared with the measured BM25 baseline on the reviewed cases;
   report-only metrics MUST NOT be described as improved answer quality without sufficient reviewed
   evidence.
+
+## Hosted pilot and provider boundaries
+
+- **MUST**: a managed tunnel is transport only; any public pilot API MUST enforce its own
+  authentication, authorization, per-client rate limiting, and request-size limits. Reason:
+  `hosting_provider_review` found that Cloudflare Tunnel removes the public origin IP but does not
+  authenticate the application, and the current OpenAPI contract declares no security scheme.
+- **MUST NOT**: let a real-user question transit a host, tunnel, or generation provider until the
+  current terms, data flow, log/retention behavior, and qualified privacy review are recorded and
+  approved. Reason: the 2026-10-27 decision keeps the owned-server path blocked on owner attestation
+  and keeps Gemini disabled by default; provider selection alone is not pilot approval.
