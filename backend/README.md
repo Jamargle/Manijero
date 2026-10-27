@@ -336,3 +336,38 @@ are allowed only to the same HTTPS host. There is no in-process recurring
 scheduler, retry loop, document ingestion, legal-change interpretation, or
 automatic canonical update. Successful polling is not evidence of legal
 coverage or corpus currency.
+
+## Manual official-publication discovery
+
+`app/source_discovery.py` scans configured registries into a separate pending
+queue; it does not fetch publication bodies or modify the canonical catalog or
+passages. BOE uses the documented daily sumario XML API; BOJA uses its
+officially documented calendar endpoint to enumerate bulletin numbers, then
+fetches each issue through the bulletin endpoint. The scan is bounded to 400
+issues and 160 MiB aggregate BOJA response bytes (5 MiB per request); exceeding
+a bound fails the registry scan without committing partial candidates.
+FEGA/MAPA first-party registries are not
+verified and are reported unchecked, not treated as empty. The registry host
+`datos.juntadeandalucia.es` is exact-configured for the API only; candidate
+publication URLs still require exact issuer-host approval.
+
+Copy `knowledge/official-discovery-config.example.json`, adjust BOE date and
+BOJA year, then run:
+
+```sh
+python3 backend/scripts/discover_official_sources.py \
+  --config /path/to/discovery-config.json \
+  --state /path/to/official-discovery-state.json
+```
+
+Exit `0` means every attempted supported registry succeeded, `1` means an
+attempt failed, and `2` means invalid config/state. The report still lists
+unconfigured registries and FEGA/MAPA as unchecked; exit `0` is not full
+coverage. Each request has a 15-second
+timeout and 5 MiB response cap; HTTPS redirects remain on the exact same host.
+Only candidate metadata and observation hashes/times are retained, not response
+content. Repeated records add no duplicate observation; changed title/URL
+versions retain prior observations. Failures preserve candidates and
+last-success timestamps. Candidates remain `pending`; a human must verify
+provenance and approve any canonical change. See
+`knowledge/official-discovery-state.schema.json`.

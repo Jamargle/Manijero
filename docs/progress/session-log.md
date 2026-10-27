@@ -82,3 +82,4 @@ restate evidence here.
 | 2026-10-25 | `chat_screen_refresh` accepted. | [chat_screen_refresh.md](../specs/chat_screen_refresh.md) · [acceptance](../validations/chat_screen_refresh.md) |
 | 2026-10-25 | `lands_screens_refresh` accepted. | [lands_screens_refresh.md](../specs/lands_screens_refresh.md) · [acceptance](../validations/lands_screens_refresh.md) |
 | 2026-10-27 | `official_source_monitoring` accepted. | [official_source_monitoring.md](../specs/official_source_monitoring.md) · [acceptance](../validations/official_source_monitoring.md) |
+| 2026-10-27 | `official_source_discovery` accepted. | [official_source_discovery.md](../specs/official_source_discovery.md) · [acceptance](../validations/official_source_discovery.md) |
