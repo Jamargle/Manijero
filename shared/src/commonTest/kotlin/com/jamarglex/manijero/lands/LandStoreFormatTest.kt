@@ -11,11 +11,51 @@ import kotlin.test.assertTrue
  */
 class LandStoreFormatTest {
     @Test
-    fun `empty and unknown stores read as no records`() {
-        assertEquals(LandSnapshot(), LandStoreFormat.decode(null))
-        assertEquals(LandSnapshot(), LandStoreFormat.decode(""))
-        assertEquals(LandSnapshot(), LandStoreFormat.decode("land-store-v0\nwhatever"))
-        assertEquals(LandSnapshot(), LandStoreFormat.decode("not a land store"))
+    fun `an absent or unknown value is not a current store`() {
+        // A damaged or foreign value must never read as an empty aggregate, because that would show
+        // the person an empty land list instead of a failed read. Only the two sections read empty.
+        assertNull(LandStoreFormat.decode(null))
+        assertNull(LandStoreFormat.decode(""))
+        assertNull(LandStoreFormat.decode("land-store-v0\nwhatever"))
+        assertNull(LandStoreFormat.decode("not a land store"))
+    }
+
+    @Test
+    fun `a truncated or repeated section marker is not a current store`() {
+        assertNull(
+            LandStoreFormat.decode("land-store-v2\nactive\nland-1|Los Olivos|El Llano||DRYLAND|ORGANIC|PICUAL||1.5|85||1|2"),
+            "a store that lost its removed marker was truncated, not emptied",
+        )
+        assertNull(
+            LandStoreFormat.decode("land-store-v2\nremoved\nactive"),
+            "the aggregate always starts with the active marker",
+        )
+        assertNull(
+            LandStoreFormat.decode("land-store-v2\nactive\nremoved\nremoved"),
+            "a repeated removed marker is damage, not a second section",
+        )
+    }
+
+    @Test
+    fun `a complete store reopens and a partially valid copy is rejected whole`() {
+        val encoded = """
+            land-store-v2
+            active
+            land-1|Los Olivos|El Llano||DRYLAND|ORGANIC|PICUAL||1.5|85||1|2
+            land-2|Campos rotos|El Llano||DRYLAND|ORGANIC|NO_EXISTE||1.5|85||3|4
+            removed
+        """.trimIndent()
+
+        val lenient = LandStoreFormat.decode(encoded)
+        assertEquals(listOf("land-1"), lenient?.active?.map { it.id })
+        assertNull(
+            LandStoreFormat.decode(encoded, requireEveryRecord = true),
+            "an automatic copy with any undecodable record is never a complete restore",
+        )
+        assertEquals(
+            LandSnapshot(),
+            LandStoreFormat.decode(LandStoreFormat.encode(LandSnapshot()), requireEveryRecord = true),
+        )
     }
 
     @Test
@@ -87,7 +127,7 @@ class LandStoreFormatTest {
             land-9|Quitado también|La Vega||UNKNOWN|UNKNOWN|UNKNOWN|||||16|17|18
         """.trimIndent()
 
-        val snapshot = LandStoreFormat.decode(encoded)
+        val snapshot = requireNotNull(LandStoreFormat.decode(encoded))
 
         assertEquals(listOf("land-1", "land-6"), snapshot.active.map { it.id })
         assertEquals(listOf("land-7", "land-9"), snapshot.removed.map { it.land.id })
@@ -114,7 +154,7 @@ class LandStoreFormatTest {
             land-3|Quitado||Martos|UNKNOWN|UNKNOWN|UNKNOWN|||||5|6|7
         """.trimIndent()
 
-        val snapshot = LandStoreFormat.decode(encoded)
+        val snapshot = requireNotNull(LandStoreFormat.decode(encoded))
 
         assertEquals(listOf("land-2"), snapshot.active.map { it.id })
         assertEquals(emptyList(), snapshot.removed)
@@ -129,7 +169,7 @@ class LandStoreFormatTest {
             removed
         """.trimIndent()
 
-        assertEquals(LandSnapshot(), LandStoreFormat.decode(encoded))
+        assertNull(LandStoreFormat.decode(encoded))
     }
 
     @Test
@@ -173,7 +213,7 @@ class LandStoreFormatTest {
             land-1|Los Olivos|El Llano||DRYLAND|ORGANIC|PICUAL||1.5|85||1|2
         """.trimIndent()
 
-        assertEquals(LandSnapshot(), LandStoreFormat.decode(encoded))
+        assertNull(LandStoreFormat.decode(encoded))
         assertTrue(LandStoreFormat.decodeLegacy(encoded)?.isNotEmpty() == true)
     }
 

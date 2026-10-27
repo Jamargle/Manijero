@@ -52,6 +52,41 @@ class LandScreenInteractionTest {
         }
 
     @Test
+    fun theRecoveryNoticeExplainsTheRestoreAndIsDismissed() =
+        runDesktopComposeUiTest(width = 900, height = 1200) {
+            var dismissed = 0
+            setContent {
+                ManijeroTheme(darkTheme = false) {
+                    LandListScreen(
+                        state = LandListState(
+                            lands = listOf(
+                                Land(
+                                    id = "first",
+                                    name = "Los Olivos",
+                                    zone = "El Llano",
+                                    createdAtEpochMillis = 0,
+                                    updatedAtEpochMillis = 0,
+                                ),
+                            ),
+                        ),
+                        onAddLand = {}, onEditLand = {}, onRemoveLand = {},
+                        onRetry = {}, onQueryChange = {},
+                        recovery = LandStoreRecovery.RESTORED_FROM_AUTOMATIC_COPY,
+                        onDismissRecovery = { dismissed++ },
+                    )
+                }
+            }
+            onNodeWithText("He recuperado tus terrenos").assertExists()
+            onNodeWithText(
+                "La copia principal no se podía leer. He usado la copia automática más reciente, " +
+                    "guardada también en este dispositivo. Revisa que estén todos tus terrenos.",
+            ).assertExists()
+            assertEquals(0, dismissed)
+            onNodeWithText("Entendido").performClick()
+            assertEquals(1, dismissed)
+        }
+
+    @Test
     fun removeConfirmationMovesTheLandOnlyAfterExplicitConfirmation() =
         runDesktopComposeUiTest(width = 900, height = 1200) {
             var removed = 0

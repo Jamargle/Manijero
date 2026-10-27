@@ -102,6 +102,10 @@ fun App(
     // empty state before a post-composition read can answer. The fold is the same guarded one used
     // by `readLands`; a failure keeps the list unreadable with its retry notice.
     var landListState by remember { mutableStateOf(initialLandListState(landRepository)) }
+    // A store read that rebuilt the primary copy from an automatic copy is reported here once. It is
+    // a recovered state, not a failure: the list below it is the restored data, and the notice is
+    // dismissed by the person without writing anything.
+    var landRecovery by remember { mutableStateOf(landRepository?.consumeRecovery()) }
     var editLandState by remember { mutableStateOf<EditLandState?>(null) }
     var removeLandState by remember { mutableStateOf<RemoveLandState?>(null) }
     var removedLandsState by remember { mutableStateOf(RemovedLandsState()) }
@@ -141,6 +145,9 @@ fun App(
                     onFailure = { LandListAction.LoadFailed },
                 ),
             )
+            // A read may have recovered the store; announce it once, and keep an older notice the
+            // person has not dismissed yet.
+            repository.consumeRecovery()?.let { landRecovery = it }
         }
     }
 
@@ -251,6 +258,8 @@ fun App(
                 AppDestination.LandList -> LandListScreen(
                     state = landListState,
                     confirmation = landConfirmation,
+                    recovery = landRecovery,
+                    onDismissRecovery = { landRecovery = null },
                     onAddLand = {
                         addLandState = AddLandState()
                         landConfirmation = null

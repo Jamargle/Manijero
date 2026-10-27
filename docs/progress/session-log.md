@@ -84,3 +84,4 @@ restate evidence here.
 | 2026-10-27 | `official_source_monitoring` accepted. | [official_source_monitoring.md](../specs/official_source_monitoring.md) · [acceptance](../validations/official_source_monitoring.md) |
 | 2026-10-27 | `official_source_discovery` accepted. | [official_source_discovery.md](../specs/official_source_discovery.md) · [acceptance](../validations/official_source_discovery.md) |
 | 2026-10-27 | `recover_removed_lands` accepted. | [recover_removed_lands.md](../specs/recover_removed_lands.md) · [acceptance](../validations/recover_removed_lands.md) |
+| 2026-10-27 | `local_land_auto_backup` accepted. | [local_land_auto_backup.md](../specs/local_land_auto_backup.md) · [acceptance](../validations/local_land_auto_backup.md) |

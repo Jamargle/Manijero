@@ -15,7 +15,8 @@ package com.jamarglex.manijero.lands
  *
  * Both section markers are always written, so an empty store is the three header lines and a reader
  * can tell a complete aggregate from a truncated one. A record line that cannot be decoded is skipped
- * whole; a store with an unrecognised header yields no records.
+ * whole, exactly as this format has always read it; a store with an unrecognised header, a missing
+ * section marker, or a repeated removed marker is not a current store at all.
  *
  * [decode] reads only this current format. [decodeLegacy] reads the pre-lifecycle `land-store-v1`
  * snapshot — the old 13-field lines after that header — as the **one-time migration input**; a v1
@@ -48,22 +49,34 @@ internal object LandStoreFormat {
         }
     }
 
-    fun decode(value: String?): LandSnapshot {
-        if (value.isNullOrEmpty()) return LandSnapshot()
+    /**
+     * Reads one complete current store, or `null` when [value] is not one.
+     *
+     * A missing header, a missing `active`/`removed` marker, or a repeated `removed` marker means the
+     * aggregate is truncated or damaged, not that a section is empty: both markers are always written.
+     * A caller must therefore recover or report a failed read instead of opening an empty store.
+     *
+     * A record line that cannot be decoded is skipped whole, as this format documents. With
+     * [requireEveryRecord] — the mode automatic copies use — any undecodable line makes the whole
+     * value `null`, so a partial copy is never restored as a complete one.
+     */
+    fun decode(value: String?, requireEveryRecord: Boolean = false): LandSnapshot? {
+        if (value.isNullOrEmpty()) return null
         val lines = value.lineSequence().toList()
-        if (lines.firstOrNull() != HEADER) return LandSnapshot()
+        if (lines.firstOrNull() != HEADER) return null
         val body = lines.drop(1)
-        if (body.firstOrNull() != ACTIVE_SECTION) return LandSnapshot()
+        if (body.firstOrNull() != ACTIVE_SECTION) return null
         val removedStart = body.indexOf(REMOVED_SECTION)
-        val activeLines = if (removedStart < 0) body.drop(1) else body.subList(1, removedStart)
-        val removedLines = if (removedStart < 0) {
-            emptyList()
-        } else {
-            body.subList(removedStart + 1, body.size)
+        if (removedStart < 0) return null
+        if (body.drop(removedStart + 1).contains(REMOVED_SECTION)) return null
+        val active = body.subList(1, removedStart).map(::decodeLand)
+        val removed = body.subList(removedStart + 1, body.size).map(::decodeRemoved)
+        if (requireEveryRecord && (active.any { it == null } || removed.any { it == null })) {
+            return null
         }
         return LandSnapshot(
-            active = activeLines.mapNotNull(::decodeLand),
-            removed = removedLines.mapNotNull(::decodeRemoved),
+            active = active.filterNotNull(),
+            removed = removed.filterNotNull(),
         )
     }
 
@@ -79,16 +92,16 @@ internal object LandStoreFormat {
     }
 
     private fun encodeLine(fields: List<String>): String =
-        fields.joinToString(SEPARATOR, transform = ::escape)
+        fields.joinToString(SEPARATOR, transform = ::escapeToken)
 
     private fun decodeLand(line: String): Land? = runCatching {
-        val fields = line.split(SEPARATOR).map(::unescape)
+        val fields = line.split(SEPARATOR).map(::unescapeToken)
         require(fields.size == FIELD_COUNT)
         decodeFields(fields)
     }.getOrNull()
 
     private fun decodeRemoved(line: String): RemovedLand? = runCatching {
-        val fields = line.split(SEPARATOR).map(::unescape)
+        val fields = line.split(SEPARATOR).map(::unescapeToken)
         require(fields.size == REMOVED_FIELD_COUNT)
         val land = decodeFields(fields.take(FIELD_COUNT)) ?: return null
         RemovedLand(land = land, removedAtEpochMillis = fields[FIELD_COUNT].toLong())
@@ -136,13 +149,14 @@ internal object LandStoreFormat {
         )
     }
 
-    private fun escape(value: String): String = value
+    /** Escapes one field/identifier of the line format. Shared with the durable purge marker. */
+    internal fun escapeToken(value: String): String = value
         .replace("%", "%25")
         .replace(SEPARATOR, "%7C")
         .replace("\n", "%0A")
         .replace("\r", "%0D")
 
-    private fun unescape(value: String): String = value
+    internal fun unescapeToken(value: String): String = value
         .replace("%0D", "\r")
         .replace("%0A", "\n")
         .replace("%7C", SEPARATOR)

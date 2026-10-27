@@ -111,6 +111,12 @@ abstract class ScreenshotTestSupport {
         const val EMPTY_LAND_HEIGHT = 800
 
         /**
+         * The recovered-state captures add one callout above the same two-row list, so they use the
+         * chat height: the callout, its action, and both rows must fit inside one frame.
+         */
+        const val RECOVERY_LAND_HEIGHT = 1200
+
+        /**
          * One phone-width viewport, still rendered by Compose Desktop on the JVM. It approximates
          * a 360 dp wide phone at density 1 and is not an Android or iOS render; fonts and text
          * metrics still come from the host. The same four states are captured at this size so a

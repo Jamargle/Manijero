@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  Android Auto Backup rules for API 29-30 (and the pre-31 device-to-device path).
+  Keep the land aggregate and its automatic copies out of every backup destination: the privacy
+  notice promises no copy on the internet or on another device. `manijero_lands.xml` is the only
+  private preferences file the app writes. Guarded by AndroidBackupExclusionGuardTest.
+-->
+<full-backup-content>
+    <exclude
+        domain="sharedpref"
+        path="manijero_lands.xml" />
+</full-backup-content>

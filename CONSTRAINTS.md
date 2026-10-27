@@ -90,6 +90,36 @@ Operational MUST/MUST NOT rules that future features have to respect on top of
   rounds a surface to the stored precision instead of refusing a plausible measurement or truncating it
   silently.
 
+## Land automatic copies
+
+- **MUST**: automatic land copies MUST stay on the same device, stay bounded (at most
+  `MAX_AUTOMATIC_LAND_SNAPSHOTS` whole-aggregate copies), and be written only after the primary
+  aggregate write succeeded. A refused copy MUST NOT turn a completed save into a reported failure;
+  the next successful write rotates a fresh copy in. No copy path may use a network API, a cloud
+  store, or an operating-system cloud-backup destination. Reason: `local_land_auto_backup` protects
+  against one damaged local write, not against device loss or uninstall; an unbounded or off-device
+  copy would silently become a different product promise.
+- **MUST**: an unreadable primary aggregate MUST be rebuilt from the newest fully valid automatic
+  copy and reported as a recovered state. With no fully valid copy the read MUST fail; it MUST NOT
+  open an empty store. A copy with damaged integrity metadata or one undecodable record MUST be
+  rejected whole, never offered as a complete restore. Reason: `local_land_auto_backup`; showing an
+  empty land list after corruption is exactly the data loss the copies exist to prevent.
+- **MUST**: permanent deletion MUST write a durable purge marker before rewriting the primary
+  aggregate, every read and every restore path MUST filter the marked ids, and the marker MUST be
+  cleared only after the primary and every retained copy are sanitized. Reason:
+  `local_land_auto_backup`; a crash between the primary write and a copy rewrite must never let an
+  older copy bring a deliberately deleted land back.
+- **MUST**: the Android host MUST keep the land data out of every operating-system backup and
+  transfer destination. Either `android:allowBackup="false"`, or `android:allowBackup="true"` with
+  both `android:fullBackupContent` and `android:dataExtractionRules` pointing at rule files that
+  exclude `domain="sharedpref" path="manijero_lands.xml"` from cloud backup and from
+  device-to-device transfer. A new preferences or file location that holds land data MUST extend
+  that exclusion in the same change. Reason: `local_land_auto_backup`; the privacy notice tells the
+  person there is no copy on the internet or on another device, and an OS backup of
+  `manijero_lands.xml` (the aggregate plus `land_store_snapshot_1..3` and `land_store_purge`) would
+  make that notice false. `AndroidBackupExclusionGuardTest` fails in `:shared:jvmTest` if the
+  declaration or either rule file regresses.
+
 ## Land list search and summary
 
 - **MUST**: the search query and the summary MUST be display-only: derived from the in-memory
@@ -213,17 +243,18 @@ Operational MUST/MUST NOT rules that future features have to respect on top of
 ## Land data disclosure
 
 - **MUST**: the on-screen data-handling notice MUST describe only the current behaviour — the lands
-  are saved device-locally, and a question sends the question as written plus, for a land-aware
-  answer, each land's opaque id and only the needed `municipality`/`water_regime`/`production_method`
-  (an unknown value sent as `unknown`; name, zone, variety, custom variety, surface, tree count,
-  notes and timestamps never sent). It MUST NOT promise
-  backup, a cloud copy, or confidentiality beyond what the answer service's own terms offer, and
-  MUST NOT name a land, an id, or make any eligibility or legal claim. Its sendable-attribute list
-  MUST stay pinned (`privacy/LandDataDisclosure.kt`) and tied to the real encoded payload by a test,
-  so adding a sendable dimension fails until the notice is updated. Reason: `land_data_disclosure`
-  established that a person must be able to trust the plain-Spanish notice to match what the app
-  actually does, so over-promising a backup or under-describing the payload is the failure to avoid;
-  `chat_accessibility` audits the surface next.
+  are saved device-locally in bounded automatic copies on the same device, and a question sends the
+  question as written plus, for a land-aware answer, each land's opaque id and only the needed
+  `municipality`/`water_regime`/`production_method` (an unknown value sent as `unknown`; name, zone,
+  variety, custom variety, surface, tree count, notes and timestamps never sent). It MUST NOT promise
+  recovery after device loss, an uninstall, a cloud copy, or confidentiality beyond what the answer
+  service's own terms offer, and MUST NOT name a land, an id, or make any eligibility or legal claim.
+  Its sendable-attribute list MUST stay pinned (`privacy/LandDataDisclosure.kt`) and tied to the real
+  encoded payload by a test, so adding a sendable dimension fails until the notice is updated.
+  Reason: `land_data_disclosure` established that a person must be able to trust the plain-Spanish
+  notice to match what the app actually does, so over-promising a backup or under-describing the
+  payload is the failure to avoid; `chat_accessibility` audits the surface next, and
+  `local_land_auto_backup` made same-device copies real.
 
 ## Chat accessibility
 
