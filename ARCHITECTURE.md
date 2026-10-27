@@ -16,6 +16,7 @@ shared ──HTTP/JSON──> backend
 - **`androidApp`** and **`desktopApp`** depend on `shared`. They provide launch/runtime wiring and platform-specific integrations; neither host depends on the other.
 - **`backend`** owns the Python service and knowledge-backed request handling; it does not import app code. It reads local knowledge artifacts and exposes `GET /health` and `POST /ask`. Endpoint behavior and operational rules belong in `backend/README.md` and the relevant feature specs.
 - **`backend/app/source_monitor.py`** polls explicitly configured official feeds and writes monitoring state separately from canonical knowledge. It is dispatched manually or by an external owner-managed scheduler; it cannot update the approved catalog or passages.
+- **`backend/app/source_discovery.py`** adapts documented BOE and BOJA registries into separate pending-candidate state. It is not an ingestion or answerability path.
 - **`contracts/`** owns the versioned, language-neutral HTTP wire contract. `contracts/openapi.yaml` is authoritative for request and response shape; examples are checked against it. Client DTOs and backend handlers conform to this contract.
 - **`knowledge/`** owns reviewed knowledge artifacts and their JSON Schema formats. Executable validators live in `backend/app/` and must remain aligned with the schemas. Test fixtures are not canonical knowledge.
 

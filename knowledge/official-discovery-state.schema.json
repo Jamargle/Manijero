@@ -1,0 +1,13 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://manijero.invalid/schemas/official-discovery-state-v1.json",
+  "title": "Official discovery review state",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema_version", "registries", "candidates"],
+  "properties": {
+    "schema_version": {"const": "official-discovery-state-v1"},
+    "registries": {"type": "object", "additionalProperties": {"type": "object"}},
+    "candidates": {"type": "object", "additionalProperties": {"type": "object", "properties": {"review_status": {"const": "pending"}, "observations": {"type": "array"}}, "required": ["review_status", "observations"]}}
+  }
+}

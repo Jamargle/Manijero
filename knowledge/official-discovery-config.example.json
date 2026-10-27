@@ -1,0 +1,7 @@
+{
+  "schema_version": "official-discovery-config-v1",
+  "registries": [
+    {"id": "boe", "issuer": "BOE", "format": "boe-xml", "url": "https://www.boe.es/datosabiertos/api/boe/sumario/20261027"},
+    {"id": "boja", "issuer": "Junta de Andalucía", "format": "boja-json", "url": "https://datos.juntadeandalucia.es/api/v0/boja/get/calendar?year=2026"}
+  ]
+}

@@ -7,7 +7,7 @@ Routine entry point. Exact feature status lives in [`feature_list.json`](feature
 contracts, raw evidence, and acceptance records remain in their owning files. Last updated:
 2026-10-27.
 
-**Feature status** — the original 50 features and `official_source_monitoring` are accepted. Nine
+**Feature status** — the original 50 features, `official_source_monitoring`, and `official_source_discovery` are accepted. Eight
 backend RAG/knowledge-operations features and eight pilot-readiness features remain `not_started`; no implementation
 or validation evidence exists for these planned items yet. The selector is the current status view; this page does not duplicate the feature-id list.
 
@@ -45,7 +45,8 @@ current provider/privacy review.
   snapshots, and support a portable plaintext backup file. Those capabilities are not implemented,
   so the pilot still has no recovery guarantee. A qualified privacy/legal review is also required
   before the private pilot.
-- The manual official-feed monitor records feed response hashes and validators separately from canonical knowledge. Scheduled dispatch, official-registry discovery, document-level candidate ingestion, human-reviewed knowledge updates, reproducible index rebuilds, and release automation are not implemented. Planned discovery is limited to configured first-party registries for approved issuers and cannot guarantee completeness. New issuers, hosts, and answerable knowledge must remain human-approved; successful polling does not prove corpus currency.
+- The manual official-feed monitor records response hashes and validators separately from canonical knowledge. BOE/BOJA manual discovery now writes pending candidates into separate review state; FEGA/MAPA registries remain explicitly unchecked, BOJA is configured per bulletin, and no completeness is guaranteed. Scheduled dispatch, document-level ingestion, human-reviewed knowledge updates, reproducible index rebuilds, and release automation are not implemented. New issuers, hosts, and answerable knowledge must remain human-approved; successful polling does not prove corpus currency.
+- Official-source discovery corrected the earlier invalid blocker conclusion: the BOE HTTP 400 resulted from the missing `Accept` header; the documented response succeeds with an explicit XML/JSON Accept type. See the feature appendix for endpoints, tests, and the local TLS smoke limitation.
 - Private hosted operations and distribution are not configured. The project owner is the proposed
   operator; owned-server readiness, tunnel/provider terms, and Android/macOS release artifacts remain
   planned work.

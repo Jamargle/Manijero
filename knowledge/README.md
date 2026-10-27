@@ -138,11 +138,16 @@ review step.
 
 ## Planned automated update review
 
-The source-monitoring command currently records endpoint snapshots; it does not
-create a document-candidate queue or a review request. Discovery, candidate
-fetch/extraction, change-impact analysis, review-PR preparation, scheduled
-dispatch, and reindex/release are separate planned features. Until those are
-implemented and accepted, use the manual reviewer procedure above. A monitor
+The source-monitoring command records endpoint snapshots. Manual source
+discovery now adapts documented BOE daily sumarios and the Junta/BOJA bulletin
+API into a separate versioned pending-candidate state; see `backend/README.md`
+and `official-discovery-config.example.json` (contract:
+`official-discovery-config.schema.json`; candidate-state contract:
+`official-discovery-state.schema.json`). FEGA/MAPA registry endpoints
+remain explicitly unchecked coverage gaps (BOE publications are not issuer
+registries). Candidate fetch/extraction, change-impact analysis, review-PR
+preparation, scheduled dispatch, and reindex/release remain separate features.
+A monitor
 hash or successful scan is not approval and does not establish that a source is
 current or legally applicable.
 
