@@ -27,8 +27,14 @@ paths:
                 $ref: '#/components/schemas/AskResponse'
         '400':
           description: Malformed request.
+        '401':
+          description: Pilot profile only. The per-client bearer token is missing or unknown; the response is generic and carries no credential detail.
+        '413':
+          description: The request body exceeds the service bound; the response is generic and echoes no request value.
         '422':
           description: Request shape or enum validation failed.
+        '429':
+          description: Pilot profile only. This client exceeded its per-minute request allowance. Limits are enforced per service process.
         '503':
           description: The local answer corpus is unavailable, unsafe, or lacks valid MANIJERO_ACTIVE_CAMPAIGN configuration. The response is generic and contains no corpus details.
 components:

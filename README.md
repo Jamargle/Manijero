@@ -34,6 +34,13 @@ The client app needs the local FastAPI service running to send questions. From t
 
 On first run, the script creates `backend/.venv` and installs the backend requirements; later runs reuse that environment and check/install requirements. It starts the API with campaign `2026` unless `MANIJERO_ACTIVE_CAMPAIGN` is already set. The backend binds to `0.0.0.0` for Android emulator access through `http://10.0.2.2:8000`; this exposes the local development API on your network, so use a trusted network or set `MANIJERO_BACKEND_HOST=127.0.0.1` to restrict access to this computer. Leave that terminal open, then run `./scripts/init.sh --android` or `./scripts/init.sh --desktop` in another terminal. Desktop uses `http://127.0.0.1:8000`. Check the service at `http://127.0.0.1:8000/health`. Stop the backend with `Ctrl+C` when finished. For a physical Android device on the same trusted LAN, build with `-PmanijeroAskBaseUrl=http://<computer-lan-ip>:8000`.
 
+This development server is **not** the hosted pilot. The private pilot has a separate,
+production-shaped launcher, configuration, backup/restore, rollback, and outage procedure
+in [`backend/README.md`](backend/README.md#private-pilot-deployment-and-recovery-prepared-not-deployed).
+That path is prepared but **blocked and never deployed**: it waits on the owner's hardware
+attestation, a qualified privacy/legal review, a domain/tunnel, and client-side token
+support. Do not expose this API to real users or route a public hostname to it yet.
+
 
 ### Running the client apps
 

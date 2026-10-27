@@ -90,3 +90,4 @@ restate evidence here.
 | 2026-10-27 | `knowledge_update_review_pr` accepted. | [knowledge_update_review_pr.md](../specs/knowledge_update_review_pr.md) · [acceptance](../validations/knowledge_update_review_pr.md) |
 | 2026-10-27 | `pac_evidence_expansion` accepted. | [pac_evidence_expansion.md](../specs/pac_evidence_expansion.md) · [acceptance](../validations/pac_evidence_expansion.md) |
 | 2026-10-27 | `hosting_provider_review` accepted. | [hosting_provider_review.md](../specs/hosting_provider_review.md) · [acceptance](../validations/hosting_provider_review.md) |
+| 2026-10-27 | `hosted_pilot_operations` accepted (prepared, not deployed). | [hosted_pilot_operations.md](../specs/hosted_pilot_operations.md) · [acceptance](../validations/hosted_pilot_operations.md) |
