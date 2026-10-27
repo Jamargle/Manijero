@@ -86,3 +86,4 @@ restate evidence here.
 | 2026-10-27 | `recover_removed_lands` accepted. | [recover_removed_lands.md](../specs/recover_removed_lands.md) · [acceptance](../validations/recover_removed_lands.md) |
 | 2026-10-27 | `local_land_auto_backup` accepted. | [local_land_auto_backup.md](../specs/local_land_auto_backup.md) · [acceptance](../validations/local_land_auto_backup.md) |
 | 2026-10-27 | `official_document_candidate_ingestion` accepted. | [official_document_candidate_ingestion.md](../specs/official_document_candidate_ingestion.md) · [acceptance](../validations/official_document_candidate_ingestion.md) |
+| 2026-10-27 | `legal_change_impact_analysis` accepted. | [legal_change_impact_analysis.md](../specs/legal_change_impact_analysis.md) · [acceptance](../validations/legal_change_impact_analysis.md) |

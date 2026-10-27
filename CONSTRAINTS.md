@@ -408,6 +408,14 @@ Operational MUST/MUST NOT rules that future features have to respect on top of
 - **MUST**: scheduled source checks are best-effort and MUST expose last-success time, failures, and
   missed runs; a schedule alone MUST NOT be represented as proof that the corpus is current.
   Reason: external schedulers and official sites can delay or fail.
+- **MUST**: change-impact analysis MUST stay read-only over approved knowledge and MUST NOT retire,
+  replace, re-approve, or re-date a source, passage, evaluation case, index, or answer. Every
+  potentially affected candidate MUST remain review-required, and an ambiguous publication,
+  amendment, repeal, or validity signal MUST NOT authorize retirement or be dropped silently: every
+  ambiguous signal, negated wording included, MUST make its candidate review-required even when it
+  links no approved source or links only a reviewed passage or evaluation case. Reason:
+  `legal_change_impact_analysis` detects wording; only an identified human can decide what a legal
+  change means for the reviewed corpus.
 - **MUST**: a knowledge release MUST rebuild indexes from approved canonical artifacts, record artifact
   and model versions, pass structural/grounding gates, and support rollback to the prior index.
   Reason: generated indexes are derived data and must not drift from reviewed sources.

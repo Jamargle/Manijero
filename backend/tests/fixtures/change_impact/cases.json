@@ -1,0 +1,78 @@
+{
+  "cases": [
+    {
+      "critical_facts": [
+        "15 de mayo de 2099"
+      ],
+      "expected_passage_ids": [
+        "fixture-pasaje-rd-2077-plazo"
+      ],
+      "expected_source_ids": [
+        "fixture-rd-2077-2099"
+      ],
+      "expected_status": "answered",
+      "id": "fixture-caso-plazo-rd",
+      "land_context": {
+        "lands": [],
+        "mode": "general"
+      },
+      "question": "¿Pregunta sintética sobre el plazo del Real Decreto 2077/2099?",
+      "review": {
+        "reviewed_by": "fixture-reviewer",
+        "reviewed_on": "2099-03-10"
+      }
+    },
+    {
+      "expected_passage_ids": [
+        "fixture-pasaje-ley-5-2098-art-3"
+      ],
+      "expected_source_ids": [
+        "fixture-ley-5-2098"
+      ],
+      "expected_status": "answered",
+      "id": "fixture-caso-cambios-ley",
+      "land_context": {
+        "lands": [],
+        "mode": "general"
+      },
+      "question": "¿Pregunta sintética sobre la comunicación de cambios?",
+      "review": {
+        "reviewed_by": "fixture-reviewer",
+        "reviewed_on": "2099-03-10"
+      }
+    },
+    {
+      "expected_passage_ids": [
+        "fixture-pasaje-res-3-2099-canal"
+      ],
+      "expected_source_ids": [
+        "fixture-res-3-2099"
+      ],
+      "expected_status": "answered",
+      "id": "fixture-caso-canal-res",
+      "land_context": {
+        "lands": [],
+        "mode": "general"
+      },
+      "question": "¿Pregunta sintética sobre cómo se presenta la solicitud?",
+      "review": {
+        "reviewed_by": "fixture-reviewer",
+        "reviewed_on": "2099-03-10"
+      }
+    },
+    {
+      "expected_status": "abstained",
+      "id": "fixture-caso-fuera-corpora",
+      "land_context": {
+        "lands": [],
+        "mode": "general"
+      },
+      "question": "¿Pregunta sintética fuera del alcance revisado?",
+      "review": {
+        "reviewed_by": "fixture-reviewer",
+        "reviewed_on": "2099-03-10"
+      }
+    }
+  ],
+  "schema_version": "pac-answer-eval-v1"
+}

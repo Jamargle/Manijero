@@ -20,7 +20,7 @@ current implementation limits and manual checks.
 | Active PAC campaign is misconfigured or stale campaign artifacts remain | A valid answer could use evidence for the wrong campaign | Require explicit four-digit `MANIJERO_ACTIVE_CAMPAIGN`; rotate expired source records and passages together after review; configuration is not inferred from date or question. |
 | Free service limits or terms change | Costs, privacy, or availability can change after launch | Keep provider adapters replaceable, measure usage, define graceful rate-limit behavior, and do not promise zero ongoing cost until verified. |
 
-| Official source updates are missed or misclassified | A scheduled scan can fail, an official page can change format, or an amendment can be ambiguous | Implement allowlisted scans with run history/retries and stale-run visibility; quarantine candidates and require human approval before canonical knowledge changes.
+| Official source updates are missed or misclassified | A scheduled scan can fail, an official page can change format, or an amendment can be ambiguous | Implement allowlisted scans with run history/retries and stale-run visibility; quarantine candidates, run the read-only change-impact analysis, and require human approval before canonical knowledge changes. The analysis only reports explicit wording, so a missed or ambiguous change remains possible and detection quality is unmeasured.
 | Local embedding/index capacity is unknown | bge-m3 and Chroma may exceed owned-server storage or memory limits | Measure the actual deployment host and compare retrieval against BM25 before retaining the added components; keep a rollback path.
 
 ## Medium risks

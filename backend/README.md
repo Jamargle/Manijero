@@ -506,3 +506,162 @@ disabling certificate verification.
 The extractor and state never log document text or upstream exception text;
 failure categories are fixed strings. Keep the quarantine and state directories
 access-controlled and back them up if review history matters.
+
+## Legal change-impact analysis
+
+`app/change_impact.py` compares the versions that candidate ingestion recorded
+and links possible impact to the approved catalog, reviewed passages, and
+reviewed answer-evaluation cases. It is read-only: it never reads or writes an
+answer path, never edits `knowledge/source_catalog.json`,
+`knowledge/passages.json`, or `knowledge/pac_answer_eval.json`, never changes a
+lifecycle or review status, and never retires, replaces, or approves a source.
+Every candidate that could touch reviewed knowledge stays for an identified
+human reviewer.
+
+**Inputs.** `--ingestion-state` and `--quarantine` are the
+`official-ingestion-state-v1` file and quarantine directory written by
+`ingest_official_documents.py`; only candidates whose state is `extracted` have
+text to analyze. `--catalog` and `--passages` are the approved
+`source-catalog-v1` and `passage-set-v1` artifacts, validated again with the
+existing validators as of `--as-of`; an invalid catalog or passage set is a
+hard error. `--cases` is optional and reads the identity and reference fields of
+a `pac-answer-eval-v1` case set (`app/answer_eval.py` remains the authoritative
+validator for the full case contract). `--as-of` is required and is the only
+date in the report.
+
+Run it from the repository root with the ingestion state and quarantine produced
+by the previous step:
+
+```sh
+backend/.venv/bin/python backend/scripts/analyze_legal_changes.py \
+  --ingestion-state /path/to/official-ingestion-state.json \
+  --quarantine /path/to/official-document-quarantine \
+  --catalog knowledge/source_catalog.json \
+  --passages knowledge/passages.json \
+  --cases knowledge/pac_answer_eval.json \
+  --as-of 2026-10-27 \
+  --report /path/to/legal-change-impact-report.json
+```
+
+Omit `--cases` when no reviewed case set is available. The command writes the
+report and prints a compact summary (counts plus the ids that need review).
+Exit `0` means no candidate needs review and no analysis failed, `1` means the
+report was written and at least one candidate needs review or failed analysis,
+and `2` means the run aborted before writing: an unreadable or invalid catalog,
+passage set, case set, or ingestion state, a missing `--as-of`, more than 1,000
+candidates, a report path inside the repository `knowledge/` directory, or an
+unexpected exception. Error output is the fixed error name only, never a path,
+exception text, or document value.
+
+**What it reports.** For each candidate: the recorded current and previous
+original hashes, whether the version is an approved copy, unchanged since
+ingestion, a new version, or has no baseline; a bounded block-level old/new text
+diff (counts plus at most five excerpts); explicit `publication`, `amendment`,
+`repeal`, and `validity` signals with page/section location and a bounded
+excerpt of at most 280 characters (at most 50 signals per candidate); and the
+potentially affected catalog sources, reviewed passages, and reviewed evaluation
+cases with the reason for each link. Reported links come from the candidate's own
+approved-source identity or URL, the candidate's `content_sha256`, instrument
+references such as `Real Decreto 1048/2022` named in the same sentence as a
+signal, passages belonging to an affected source, and passages that themselves
+cite an affected instrument. Only a title that *starts* with a numbered
+instrument (for example `Real Decreto 2200/2099, por el que se modifica …`) makes
+that instrument the candidate's own identity; an unnumbered title such as
+`Resolución de 9 de septiembre de 2099, por la que se modifica la Ley 5/2098`
+keeps the `Ley 5/2098` as a target instead of dropping the link. A passage or case
+can link a target instrument whose own source is absent from the catalog; that
+candidate is review-required with the reason `affected_passage`, so a reported
+link never coexists with `review.required: false`. The readable
+contract is `knowledge/legal-change-impact.schema.json`
+(`legal-change-impact-report-v1`).
+
+**Machine-evident versus ambiguous.** A signal is `machine_evident` only when
+the sentence states the action explicitly: an amendment or repeal that names a
+resolvable instrument in the same sentence, a validity statement with an
+explicit `d de mes de aaaa` or `dd/mm/aaaa` date, or a publication reference
+that names an official bulletin together with a number or date. Triggers are
+broad Spanish word stems, not a legal-action parser: `derog*`/`revoc*`/
+`deja sin efecto`/`pierde vigencia` for repeal; `modific*`/`modifiq*` (including
+the nouns `modificación` and `modificaciones`)/`nueva redacción`/
+`se suprime|añade|adiciona` for amendment; `entra|entrada en vigor`/`prorrog*`/
+`mantiene su vigencia`/`se extiende|amplía|prorroga|reduce … hasta` for
+validity; and bulletin names/`se publica`/`publicado en el` for publication. A
+static `el plazo … hasta …` or `la vigencia … hasta …` sentence with no change
+wording is not a validity signal at all — only change wording such as
+`se extiende/amplía/prorroga/reduce … hasta` plus an explicit date is. Because
+the stems are broad, a document-part heading or noun phrase such as
+`Disposición derogatoria única.`, `Modificaciones presupuestarias.`, or
+`La modificación de las condiciones de acceso se aprueba por resolución.` is
+reported as `ambiguous` and needs review; only a document part with no trigger
+word, such as a bare `disposición adicional`, emits no signal. Everything else
+is `ambiguous`: no named instrument, no explicit date, an incomplete publication
+reference, any `U+FFFD` replacement character, or recognised negation. Negation
+is sentence-scoped and limited to the listed phrasings:
+`no se modifica/deroga/suprime/publica`, `sin que se modifique` (and the other
+listed subjunctive verbs), `no supone/implica/conlleva una
+modificación/derogación`, `no queda/quedan derogado/modificado/sin efecto`,
+`no deja/n deja sin efecto`, `no pierde/n su vigencia`, `en ningún caso`,
+`tampoco`, and `nunca`. Other negative wording is read as positive or missed.
+Any ambiguous `publication`, `amendment`, `repeal`, or `validity` signal —
+negated wording included — makes that candidate review-required
+(`ambiguous_signal`), even when it links no approved source, so a negated
+sentence or an unlinked blanket repeal cannot pass as "nothing to review".
+Negated signals are never linked to an instrument. The rule has no
+exception for an unchanged approved copy: if the approved text itself contains
+wording this analyzer cannot read as machine-evident, the report keeps asking
+for an author instead of deciding for it. No signal of any class authorizes
+retirement; the report's `review_gate` fixes `automatic_retirement` to `false`
+and `automatic_retirement_allowed` to `false` for every candidate. A candidate
+that names an affected source stays review-required until a human resolves it in
+the reviewed-update workflow or the operator discards it from the ingestion
+state; re-running the analysis is idempotent.
+
+**Determinism.** The report carries the SHA-256 of every input, the analyzer
+version, and the supplied `as_of` date — no wall-clock timestamp. Repeated runs
+over the same pinned inputs produce byte-identical output, and the file is
+written atomically. Byte-identical reports are not a legal conclusion: they
+reproduce the same lexical reading of the same extracted text.
+
+**Failure and recovery.** A candidate whose ingestion status is `failed` or
+`rejected` has no extracted text, so it is reported as
+`version_status: no_extracted_document` with
+`analysis_failure: no_extracted_document`, an empty signal list, and no review
+reason: the field says why no text analysis exists, and retrying or fixing the
+ingestion is owned by the ingestion state (`status`, `failure`, `attempts`), not
+by this report. Per-candidate analysis failures are recorded as fixed
+categories (`missing_extracted_document`, `extracted_text_mismatch`,
+`malformed_extracted_document`, `size_limit_exceeded`, `internal_error`) and
+never abort the other candidates; that candidate's previous good report entry is
+not preserved, because the report is a derived artifact and is meant to be
+regenerated. A globally invalid input exits `2` and overwrites nothing. Bounds
+per candidate: 5,000 blocks / 2,000,000 characters of current text, 50 signals
+(each with an excerpt of at most 280 characters), five text-diff excerpts, and
+1,000 candidates per run.
+
+**Limits.** Detection is lexical Spanish matching over extracted text, not legal
+interpretation: it can miss a change phrased in unfamiliar wording, cannot
+decide legal effect, and cannot resolve a conflicting or incomplete source.
+Triggers are broad word stems, so a real document's static wording (`entrada en
+vigor`, `prórroga`, `modificación`, a `Disposición derogatoria` heading) usually
+produces an ambiguous signal: review-required may be near-universal, and that
+reviewer load is the price of not silently dropping a legal change. Negation
+recognition covers only the listed phrasings; other negative wording is read as
+positive or missed. A static deadline sentence without change wording produces
+no validity signal, so a deadline change inside such a sentence is visible only
+through the text diff and `text_changed_without_signal`. Only a version recorded
+by candidate ingestion is compared; discovery's `version_hash` covers only title
+and URL, so bytes replaced at a stable URL without a new version are invisible
+here. If the previous extracted document is missing from the quarantine, the
+diff is reported as unavailable instead of guessed. A failed or rejected
+ingestion is reported as `analysis_failure: no_extracted_document` with no
+review reason and does not raise the gate on its own; if those are the only
+unresolved candidates the CLI still exits `0`, so exit status alone does not
+report the gap and the ingestion state must be checked separately. Source,
+passage, and case links are string- and draft-digest based and do not establish
+that a passage is still an accurate answer to any question. The report contains
+bounded excerpts of official public document text for review, never an answer,
+and never personal or land data; store it with the same access control as the
+quarantine. Nothing in this command updates the corpus, so no legal-coverage or
+answer-quality claim follows from it. Only synthetic fixtures back the feature
+today; there is no live run against a published amendment and detection
+precision/recall is unmeasured.
