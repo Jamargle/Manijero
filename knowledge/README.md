@@ -38,6 +38,10 @@ measurement, not evidence about legal coverage or real user questions.
 | `passages.schema.json` | The readable versioned passage contract (`passage-set-v1`). |
 | `land_safety_eval.schema.json` | The readable versioned safety-evaluation case contract (`land-safety-eval-v1`). |
 | `pac_answer_eval.schema.json` | The readable versioned reviewed PAC answer-evaluation case contract (`pac-answer-eval-v1`). |
+| `official-discovery-config.schema.json` | The readable versioned discovery configuration contract. |
+| `official-discovery-state.schema.json` | The readable versioned pending discovery-candidate state contract. |
+| `official-ingestion-state.schema.json` | The readable versioned document-ingestion quarantine state contract (`official-ingestion-state-v1`). |
+| `official-ingestion-document.schema.json` | The readable contract for one extracted quarantined document (`official-ingestion-document-v1`). |
 | `../backend/app/source_catalog.py` | The executable catalog validator. Must stay in sync with the schema. |
 | `../backend/app/retrieval.py` | The executable passage-set validator and offline BM25 retriever. |
 | `../backend/app/generation.py` | The executable grounding verifier, extractive generator, and answer assembler. |
@@ -102,7 +106,11 @@ a shortcut to make a fixture pass.
    issuers and note the **original** publication URL (not a search page, not a
    consolidated convenience URL).
 2. Download the original text yourself and record the download date. The
-   validator does not download anything for you.
+   catalog validator does not download anything for you. The separate
+   `backend/app/document_ingestion.py` command can fetch a pending candidate
+   into quarantine and preserve the original/extracted hashes, but a human must
+   still compare both copies to the official original before proposing an
+   entry. See `backend/README.md` for that command and its extraction limits.
 3. Compute the digest of the downloaded original:
    `shasum -a 256 <file>` and keep the lowercase value.
 4. Add one entry to `sources` in `source_catalog.json` with every required
@@ -139,17 +147,21 @@ review step.
 ## Planned automated update review
 
 The source-monitoring command records endpoint snapshots. Manual source
-discovery now adapts documented BOE daily sumarios and the Junta/BOJA bulletin
-API into a separate versioned pending-candidate state; see `backend/README.md`
-and `official-discovery-config.example.json` (contract:
+discovery adapts documented BOE daily sumarios and the Junta/BOJA bulletin
+API into a separate versioned pending-candidate state; document ingestion now
+fetches those pending candidates into a separate quarantine with preserved
+original/extracted hashes and page/section locations (contracts:
+`official-ingestion-state.schema.json`,
+`official-ingestion-document.schema.json`). See `backend/README.md` and
+`official-discovery-config.example.json` (contract:
 `official-discovery-config.schema.json`; candidate-state contract:
 `official-discovery-state.schema.json`). FEGA/MAPA registry endpoints
 remain explicitly unchecked coverage gaps (BOE publications are not issuer
-registries). Candidate fetch/extraction, change-impact analysis, review-PR
-preparation, scheduled dispatch, and reindex/release remain separate features.
-A monitor
-hash or successful scan is not approval and does not establish that a source is
-current or legally applicable.
+registries). Change-impact analysis, review-PR preparation, passage extraction
+into a reviewed corpus, scheduled dispatch, and reindex/release remain separate
+features. A monitor hash, a discovery record, or an extracted quarantine
+document is not approval and does not establish that a source is current or
+legally applicable.
 
 The planned review handoff reduces manual collection and comparison work while
 keeping approval with an identified human:

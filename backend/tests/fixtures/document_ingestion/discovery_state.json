@@ -1,0 +1,31 @@
+{
+  "schema_version": "official-discovery-state-v1",
+  "registries": {
+    "boe": {
+      "status": "checked",
+      "last_attempt_at": "2026-10-27T00:00:00+00:00",
+      "last_success_at": "2026-10-27T00:00:00+00:00",
+      "failure": null
+    }
+  },
+  "candidates": {
+    "1111111111111111111111111111111111111111111111111111111111111111": {
+      "candidate_id": "1111111111111111111111111111111111111111111111111111111111111111",
+      "issuer": "BOE",
+      "registry_id": "boe",
+      "registry_url": "https://www.boe.es/datosabiertos/api/boe/sumario/20261027",
+      "publication_url": "https://www.boe.es/boe/dias/2026/10/27/pdfs/BOE-A-2026-1.pdf",
+      "title": "Resolución sintética de prueba",
+      "stable_identity": "BOE-A-2026-1",
+      "version_hash": "2222222222222222222222222222222222222222222222222222222222222222",
+      "review_status": "pending",
+      "observations": [
+        {
+          "observed_at": "2026-10-27T00:00:00+00:00",
+          "registry_url": "https://www.boe.es/datosabiertos/api/boe/sumario/20261027",
+          "version_hash": "2222222222222222222222222222222222222222222222222222222222222222"
+        }
+      ]
+    }
+  }
+}
