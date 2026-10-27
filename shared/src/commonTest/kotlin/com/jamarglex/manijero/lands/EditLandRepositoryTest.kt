@@ -184,8 +184,12 @@ class EditLandRepositoryTest {
             },
         )
 
-    private fun encodedLines(snapshot: String): List<String> =
-        snapshot.lineSequence().drop(1).toList()
+    private fun encodedLines(snapshot: String): List<String> {
+        val lines = snapshot.lineSequence().toList()
+        val start = lines.indexOf("active")
+        val end = lines.indexOf("removed")
+        return lines.subList(start + 1, end)
+    }
 
     private class MemoryStorage : LandStorage {
         var value: String? = null

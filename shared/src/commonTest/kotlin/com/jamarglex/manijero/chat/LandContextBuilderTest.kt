@@ -13,8 +13,8 @@ import kotlin.test.assertNull
 import kotlin.test.assertTrue
 
 /**
- * The land-context policy: every stored land is sent by id, only the attributes the question needs
- * are sent, an unknown value is sent as `unknown`, a value that is not stored is omitted, and the
+ * The land-context policy: every active stored land is sent by id, only the attributes the question
+ * needs are sent, an unknown value is sent as `unknown`, a value that is not stored is omitted, and the
  * accepted `general` payload is preserved when no land exists. Everything here is a pure function, so
  * the encoded body is asserted byte for byte.
  */

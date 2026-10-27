@@ -10,8 +10,10 @@ terms and durable rules.
 - Manijero targets Android and Desktop. Shared business behavior and Compose UI live in
   `shared/src/commonMain`; iOS reuse is a future direction, not an MVP release commitment.
 - The app provides Spanish chat, local land management, help, and privacy surfaces. Land data stays
-  on the device in one `land-store-v1` format. Search and summary are derived display state. Only the
-  minimum land context allowed by the request contract may be sent with a question.
+  on the device in one `land-store-v2` aggregate (active and removed sections), migrated once from
+  `land-store-v1`; removed lands stay local until permanently deleted. Search and summary are derived
+  display state. Only the minimum land context allowed by the request contract may be sent with a
+  question.
 - The local FastAPI service exposes liveness-only `/health` and `/ask`. It uses no hosted model. The
   reviewed knowledge supports three procedural topics in the 2026 Andalusian PAC single application;
   the exact boundary and exclusions are in [`knowledge/pac_coverage.md`](../../knowledge/pac_coverage.md).

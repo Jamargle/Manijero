@@ -4,10 +4,11 @@ package com.jamarglex.manijero.lands
 enum class RemoveLandFailure { WRITE_FAILED, LAND_MISSING }
 
 /**
- * Pure confirmation state for the "Eliminar terreno" flow.
+ * Pure confirmation state for the "Quitar terreno" flow.
  *
  * It identifies exactly one loaded [Land] by [landId], which is the only record this state may ever
- * delete, and repeats the known details the row shows so two same-named lands stay distinguishable.
+ * move out of `Mis terrenos`, and repeats the known details the row shows so two same-named lands
+ * stay distinguishable.
  * The name is the stored, already-trimmed name copied verbatim; an `UNKNOWN` variety or attribute
  * stays `UNKNOWN`, an absent measure stays absent, and the custom variety text is copied only
  * when it exists. [failure] records why a confirmed removal did not happen and is kept separate from

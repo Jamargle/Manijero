@@ -44,7 +44,7 @@ Building and running:
 ./scripts/init.sh --desktop    # launches the Desktop app
 ```
 When the service is running and reachable, the Android app is wired to the local service in `http://10.0.2.2:8000`; otherwise questions show the plain-Spanish failure notice with a `Reintentar` button. On Android 17, the app asks for local-network access on first launch; allow it so the app can reach the development backend.
-The Desktop app is wired to the local service in `http://127.0.0.1:8000`. Besides that, the Desktop app keeps its lands in `~/.manijero/lands-v1.txt` (the shared `land-store-v1` format); remove that file to start from an empty list.
+The Desktop app is wired to the local service in `http://127.0.0.1:8000`. Besides that, the Desktop app keeps its lands in `~/.manijero/lands-v1.txt` (the filename is historical; the file holds the shared `land-store-v2` aggregate of active and removed lands, and an older `land-store-v1` file is migrated on first read); remove that file to start from an empty list.
 
 ### Build and verification
 

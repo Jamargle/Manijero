@@ -49,10 +49,15 @@ No lands → Add land → Active land → Edit details
                                                        └→ Confirm permanent deletion → Deleted
 ```
 
-- The currently accepted app still removes a land permanently after one confirmation. The planned [`recover_removed_lands`](specs/recover_removed_lands.md) feature changes this to a recoverable removed list: removed records remain until the person explicitly restores or permanently deletes them. Permanent deletion requires a second confirmation and removes the record from app-managed automatic backups. Older exported files remain outside app control and can reintroduce their contents.
-- The planned lifecycle store must migrate existing valid `land-store-v1` records to its current aggregate format once, preserving them as active. Removed lands never appear in the active list or chat context.
+- Removing a land now moves it to the local `Terrenos eliminados` list instead of deleting it
+  ([`recover_removed_lands`](specs/recover_removed_lands.md)). The record keeps every field and stays
+  there until the person explicitly restores it or permanently deletes it. Permanent deletion requires
+  a second confirmation that names the land and removes the record from the app-managed store; older
+  exported files remain outside app control and can reintroduce their contents.
+- A restored land returns to the **end** of the active list with its stored fields unchanged; the other active and removed lands keep their order. The removed list stays in removal order, so the newest removal is last. Removed lands never appear in the active list, the land chooser, or chat context.
+- The store is the versioned aggregate `land-store-v2`, holding both the active and removed sections in one snapshot. An existing valid `land-store-v1` snapshot is migrated once on first read: every decoded record becomes active, the aggregate is written before the read returns it, and a refused migration write leaves the v1 store untouched and reports a failed read. Malformed records are skipped whole.
 - An empty list is valid. The assistant remains usable for general questions and should explain when land details could improve an answer.
-- Deleting a land removes its local record and prevents future queries from using it. Previously saved conversations are not in MVP scope unless explicitly added later.
+- Permanently deleting a land removes its local record for good and prevents future queries from using it. Ordinary removal is recoverable and does not delete the record. Previously saved conversations are not in MVP scope unless explicitly added later.
 
 ## Question and land context
 

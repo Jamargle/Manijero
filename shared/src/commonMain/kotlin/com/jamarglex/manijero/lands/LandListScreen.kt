@@ -54,6 +54,7 @@ import manijero.shared.generated.resources.land_list_municipality
 import manijero.shared.generated.resources.land_list_production
 import manijero.shared.generated.resources.land_list_remove
 import manijero.shared.generated.resources.land_list_remove_description
+import manijero.shared.generated.resources.land_list_removed_link
 import manijero.shared.generated.resources.land_list_retry
 import manijero.shared.generated.resources.land_list_surface
 import manijero.shared.generated.resources.land_list_trees
@@ -99,10 +100,14 @@ enum class LandListConfirmation { ADDED, UPDATED, REMOVED }
  * action and no summary or search. Otherwise the screen summarizes the annotated surface and olive
  * count of exactly the lands it is showing, filters them as the person types, and keeps the rows
  * non-clickable with the exact saved name plus the few known details. Each row has its own visible
- * `Editar` control, and its own `Eliminar` control whose accessible description names the exact
+ * `Editar` control, and its own `Quitar` control whose accessible description names the exact
  * saved land; selecting it opens the confirmation and writes nothing by itself. A query that
  * matches no land shows an honest panel with a named clear action, and no summary at all, so a
  * number is never stated for a land the person cannot see.
+ *
+ * `Quitar` moves the named land to `Terrenos eliminados`; when [onOpenRemovedLands] is wired the
+ * screen also offers the way into that list, in every state, so a removed land stays findable even
+ * after the active list became empty.
  */
 @Composable
 fun LandListScreen(
@@ -114,6 +119,7 @@ fun LandListScreen(
     onQueryChange: (String) -> Unit,
     modifier: Modifier = Modifier,
     confirmation: LandListConfirmation? = null,
+    onOpenRemovedLands: (() -> Unit)? = null,
 ) {
     androidx.compose.foundation.layout.BoxWithConstraints(modifier = modifier) {
             val wideWindow = maxWidth >= WideWindowBreakpoint
@@ -128,6 +134,15 @@ fun LandListScreen(
                         style = MaterialTheme.typography.bodyLarge,
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                     )
+
+                    if (onOpenRemovedLands != null) {
+                        TextButton(
+                            onClick = onOpenRemovedLands,
+                            modifier = Modifier.fillMaxWidth(),
+                        ) {
+                            Text(stringResource(Res.string.land_list_removed_link))
+                        }
+                    }
 
                     val confirmationResource = when (confirmation) {
                         LandListConfirmation.ADDED -> Res.string.add_land_saved
@@ -419,7 +434,7 @@ private fun landSearchLabels(): LandSearchLabels = LandSearchLabels(
 
 /**
  * One saved land. The name and its details are merged into a single node so assistive technology
- * reads them together, while the `Editar` and `Eliminar` controls are their own labelled buttons
+ * reads them together, while the `Editar` and `Quitar` controls are their own labelled buttons
  * whose accessible description names the exact saved land. The row card itself is not clickable:
  * reading a row never navigates, and neither control writes anything by itself.
  */

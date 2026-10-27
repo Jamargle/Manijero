@@ -32,11 +32,12 @@ import manijero.shared.generated.resources.remove_land_title
 import org.jetbrains.compose.resources.stringResource
 
 /**
- * Confirmation step for removing one land. It renders whatever [state] it receives and reports the
- * two deliberate choices through [onRemove] and [onCancel]; the deletion happens in the caller and
- * only ever targets [RemoveLandState.landId]. The screen names the exact saved land and repeats the
- * same known details the list row shows, so two same-named lands stay distinguishable, and it
- * shows no id or notes.
+ * Confirmation step for moving one land out of `Mis terrenos` into `Terrenos eliminados`. It renders
+ * whatever [state] it receives and reports the two deliberate choices through [onRemove] and
+ * [onCancel]; the move happens in the caller and only ever targets [RemoveLandState.landId]. The
+ * screen names the exact saved land and repeats the same known details the list row shows, so two
+ * same-named lands stay distinguishable, and it shows no id or notes. Nothing is deleted here: the
+ * land stays recoverable until the person confirms permanent deletion in the removed list.
  */
 @Composable
 fun RemoveLandScreen(
