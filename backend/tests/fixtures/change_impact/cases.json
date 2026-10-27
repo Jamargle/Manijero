@@ -1,6 +1,7 @@
 {
   "cases": [
     {
+      "area": "fixture-tema-plazo",
       "critical_facts": [
         "15 de mayo de 2099"
       ],
@@ -19,10 +20,12 @@
       "question": "¿Pregunta sintética sobre el plazo del Real Decreto 2077/2099?",
       "review": {
         "reviewed_by": "fixture-reviewer",
-        "reviewed_on": "2099-03-10"
+        "reviewed_on": "2099-03-10",
+        "role": "author_only"
       }
     },
     {
+      "area": "fixture-tema-plazo",
       "expected_passage_ids": [
         "fixture-pasaje-ley-5-2098-art-3"
       ],
@@ -38,10 +41,12 @@
       "question": "¿Pregunta sintética sobre la comunicación de cambios?",
       "review": {
         "reviewed_by": "fixture-reviewer",
-        "reviewed_on": "2099-03-10"
+        "reviewed_on": "2099-03-10",
+        "role": "author_only"
       }
     },
     {
+      "area": "fixture-tema-plazo",
       "expected_passage_ids": [
         "fixture-pasaje-res-3-2099-canal"
       ],
@@ -57,10 +62,12 @@
       "question": "¿Pregunta sintética sobre cómo se presenta la solicitud?",
       "review": {
         "reviewed_by": "fixture-reviewer",
-        "reviewed_on": "2099-03-10"
+        "reviewed_on": "2099-03-10",
+        "role": "author_only"
       }
     },
     {
+      "area": "fixture-tema-plazo",
       "expected_status": "abstained",
       "id": "fixture-caso-fuera-corpora",
       "land_context": {
@@ -70,9 +77,23 @@
       "question": "¿Pregunta sintética fuera del alcance revisado?",
       "review": {
         "reviewed_by": "fixture-reviewer",
-        "reviewed_on": "2099-03-10"
+        "reviewed_on": "2099-03-10",
+        "role": "author_only"
       }
     }
   ],
-  "schema_version": "pac-answer-eval-v1"
+  "coverage": {
+    "areas": [
+      {
+        "id": "fixture-tema-plazo",
+        "kind": "topic",
+        "label": "Fixture synthetic deadline topic"
+      }
+    ],
+    "omissions": [
+      "fixture omission: eligibility"
+    ],
+    "reviewed_against": "backend/tests/fixtures/change_impact/passages.json"
+  },
+  "schema_version": "pac-answer-eval-v2"
 }

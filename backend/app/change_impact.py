@@ -46,7 +46,7 @@ INGESTION_STATE_VERSION = "official-ingestion-state-v1"
 EXTRACTED_DOCUMENT_VERSION = "official-ingestion-document-v1"
 CATALOG_VERSION = "source-catalog-v1"
 PASSAGE_SET_VERSION = "passage-set-v1"
-EVALUATION_CASES_VERSION = "pac-answer-eval-v1"
+EVALUATION_CASES_VERSION = "pac-answer-eval-v2"
 
 MAX_CANDIDATES = 1000
 MAX_BLOCKS = 5000
