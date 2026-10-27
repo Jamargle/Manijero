@@ -106,9 +106,12 @@ The default and only enabled generator is the code-composed extractive one; a
 draft is re-checked by `verify_draft` before assembly, so a citation marker that
 resolves to nothing, an uncited sentence, a figure or date absent from the cited
 passage, a non-literal `critical` claim, or an eligibility assertion
-(`tienes derecho a`) rejects the whole draft. The pipeline then returns a
-`NotAnswered` reason code and no text; `safe_abstention` owns the user-facing
-limitation and next step.
+(`tienes derecho a`) rejects the whole draft. The extractive generator writes
+each claim on its own line before verification, and a line break is a claim
+boundary, so an excerpt without terminal punctuation cannot merge with the next
+candidate's claim and inherit its figure or critical-literal rules. The pipeline
+then returns a `NotAnswered` reason code and no text; `safe_abstention` owns the
+user-facing limitation and next step.
 
 Run the report-only grounded-generation tool against the synthetic fixtures:
 
@@ -274,25 +277,40 @@ enforcement is a later, separately agreed change.
 
 ## Offline PAC answer evaluation
 
-`app/answer_eval.py` validates `knowledge/pac_answer_eval.json` and calculates a
-deterministic, report-only comparison of reviewed cases through the local
-`/ask` route. From the repository root:
+`app/answer_eval.py` validates the `pac-answer-eval-v2`
+`knowledge/pac_answer_eval.json` artifact and calculates a deterministic,
+report-only evaluation of its cases through the local `/ask` route. The artifact
+declares its reviewed coverage areas (3 topics and 5 boundaries), the out-of-scope
+omissions, and an `author_only` review role on every case. The report includes
+assertion denominators (`answered_cases`, `abstention_cases`,
+`clarification_cases`), per-area counts, author-review metadata, the omissions,
+and per-case missing expected source/passage IDs or critical facts. Run it with
+the pinned inputs:
 
 ```sh
 backend/.venv/bin/python backend/scripts/evaluate_pac_answers.py \
   --catalog knowledge/source_catalog.json \
   --passages knowledge/passages.json \
   --cases knowledge/pac_answer_eval.json \
-  --active-campaign 2026 --as-of 2026-10-17 --k 5
+  --active-campaign 2026 --as-of 2026-10-26 --k 5
 ```
 
-The report includes per-case expected/actual state, source and passage matches,
-critical literal checks, clarification IDs, and aggregate counts. Citation
-matching uses exactly the catalog and passages supplied to the command. Repeat
-identical inputs for deterministic output. Integrity/input/runtime errors exit
-nonzero; outcome mismatches and coverage metrics do not. The sample is limited
-to the explicitly reviewed Andalusia PAC 2026 questions and does not establish
-answer quality, legal correctness, or coverage beyond those cases.
+All 14 cases are synthetic, source-anchored, and reviewed only by the project
+author (recorded as `author_only`); this is **not** independent legal review and
+does not establish answer quality or coverage beyond the listed cases. The
+current result is 13/14 expected states, 11/11 expected-answer cases answered,
+8/11 answering cases with the expected source and passage, 9/11 with the expected
+critical literal, and 2/3 expected abstentions. The report keeps known gaps
+visible: `canal-sga-2026`, `fecha-modificacion-2026`, and
+`distingue-fechas-2026` cite a different reviewed passage, and
+`reclamacion-fuera-de-alcance` answers an out-of-scope reclamación with the
+modification deadline. The exact matrix and case-level limits are in
+`knowledge/pac_coverage.md`.
+
+Citation matching uses exactly the catalog and passages supplied to the command.
+Repeat identical inputs for byte-identical output. Integrity/input/runtime errors
+exit nonzero; outcome mismatches and coverage metrics do not. There is no numeric
+quality threshold.
 
 Tests:
 

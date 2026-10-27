@@ -37,7 +37,7 @@ measurement, not evidence about legal coverage or real user questions.
 | `source_catalog.schema.json` | The readable versioned field contract (`source-catalog-v1`). |
 | `passages.schema.json` | The readable versioned passage contract (`passage-set-v1`). |
 | `land_safety_eval.schema.json` | The readable versioned safety-evaluation case contract (`land-safety-eval-v1`). |
-| `pac_answer_eval.schema.json` | The readable versioned reviewed PAC answer-evaluation case contract (`pac-answer-eval-v1`). |
+| `pac_answer_eval.schema.json` | The readable versioned reviewed PAC answer-evaluation case contract (`pac-answer-eval-v2`), including declared coverage areas, omissions, and the author-only review role. |
 | `../backend/app/source_catalog.py` | The executable catalog validator. Must stay in sync with the schema. |
 | `../backend/app/retrieval.py` | The executable passage-set validator and offline BM25 retriever. |
 | `../backend/app/generation.py` | The executable grounding verifier, extractive generator, and answer assembler. |
@@ -68,12 +68,17 @@ abstention behavior applies to uncovered questions. Research and chronology are
 documented in `docs/specs/backend_pac_corpus.appendix.md`.
 
 `pac_answer_eval.json` is a separate, reviewed sample of end-to-end `/ask`
-questions for that bounded slice. It reports state, citation/passage matching,
-literal critical-fact checks, and clarification outcomes. Its case coverage and
-all metrics are report-only: they are not a legal correctness certificate,
-quality guarantee, or evidence about questions outside the listed cases. The
-CLI receives explicit catalog and passage files, and citation matching uses
-those same supplied artifacts.
+questions for that bounded slice. The `pac-answer-eval-v2` artifact declares
+three coverage topics, five boundaries, the out-of-scope omissions, and an
+`author_only` review role on every case. It reports state, citation/passage
+matching, literal critical-fact checks, clarification outcomes, per-area counts,
+and the missing expected references for every mismatch. Its 14 cases, exact
+matrix, case-level gaps, and author-review limitation are in
+[`pac_coverage.md`](pac_coverage.md). Its case coverage and all metrics are
+report-only: they are not a legal correctness certificate, quality guarantee, or
+evidence about questions outside the listed cases. The CLI receives explicit
+catalog and passage files, and citation matching uses those same supplied
+artifacts.
 
 ## Approved issuers and hosts
 
@@ -312,6 +317,11 @@ What the pipeline guarantees:
   (deadlines, amounts, thresholds), the claim must be a literal substring of the
   cited excerpt after whitespace/case/diacritic normalization, so a critical
   figure is copied, never paraphrased.
+- **Claim boundaries are explicit.** The extractive generator separates its
+  claims with a line break before verification, and the verifier treats a line
+  break as a claim boundary. A reviewed excerpt that does not end with a period
+  therefore cannot merge with the next candidate's claim and inherit that
+  passage's figure or critical-literal rules.
 - **No eligibility, no personalized legal advice.** A claim asserting the
   person's legal status (starter phrase list, such as `tienes derecho a`) is
   rejected. Land attributes never produce a legal conclusion.

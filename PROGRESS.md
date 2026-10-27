@@ -7,9 +7,11 @@ Routine entry point. Exact feature status lives in [`feature_list.json`](feature
 contracts, raw evidence, and acceptance records remain in their owning files. Last updated:
 2026-10-27.
 
-**Feature status** — the original 50 features, `official_source_monitoring`, and `official_source_discovery` are accepted. Eight
-backend RAG/knowledge-operations features and eight pilot-readiness features remain `not_started`; no implementation
-or validation evidence exists for these planned items yet. The selector is the current status view; this page does not duplicate the feature-id list.
+**Feature status** — 53 of 68 features are accepted, including the original 50, `official_source_monitoring`,
+`official_source_discovery`, and `pac_evidence_expansion`. Fifteen remain `not_started` (backend RAG/knowledge
+operations, land recovery, hosted operations, privacy, and release); no implementation or validation evidence
+exists for these planned items yet. The selector is the current status view; this page does not duplicate the
+feature-id list.
 
 **Product shape** — shared Compose chat, lands, and help surfaces in `shared/src/commonMain`, hosted
 by Android and Desktop. Land records stay on-device in the single 13-field `land-store-v1` format.
@@ -26,10 +28,14 @@ current provider/privacy review.
   they show the plain-Spanish failure notice and `Reintentar`. The supported legal scope is the
   narrow reviewed corpus in [`knowledge/pac_coverage.md`](knowledge/pac_coverage.md).
 - Offline retrieval, generation, abstention, clarification, and safety metrics use synthetic
-  fixtures and are report-only. The reviewed `/ask` evaluation is a six-case sample with known
-  citation and critical-fact misses; see its [acceptance record](docs/validations/backend_answer_evaluation.md)
-  and [evidence appendix](docs/specs/backend_answer_evaluation.appendix.md) for the exact results.
-  Neither that sample nor the fixture metrics establish legal coverage or answer quality.
+  fixtures and are report-only. The reviewed `/ask` evaluation is a 14-case sample over the three
+  approved topics and five boundaries, reviewed only by the project author. Its exact result is
+  13/14 expected states, 11/11 expected-answer cases answered, 8/11 with the expected source and
+  passage, 9/11 with the expected critical literal, and 2/3 expected abstentions. Known gaps stay
+  visible in [`knowledge/pac_coverage.md`](knowledge/pac_coverage.md): `canal-sga-2026`,
+  `fecha-modificacion-2026`, and `distingue-fechas-2026` cite a different reviewed passage, and
+  `reclamacion-fuera-de-alcance` answers an out-of-scope reclamación. Neither that sample nor the
+  fixture metrics are independent legal review or evidence of general accuracy.
 - The 64 screenshot baselines (34 Desktop, 30 Android) are local host-rendered pixel checks, not
   device, accessibility, usability, or iOS evidence. The procedure and limits are in
   [`docs/screenshot-regression.md`](docs/screenshot-regression.md). At 2× text, compact navigation
@@ -50,8 +56,11 @@ current provider/privacy review.
 - Private hosted operations and distribution are not configured. The project owner is the proposed
   operator; owned-server readiness, tunnel/provider terms, and Android/macOS release artifacts remain
   planned work.
-- The answer evaluation remains the existing six-case sample with known citation and critical-fact
-  misses. The planned evidence expansion has not run; no answer-quality claim is supported.
+- The answer evidence expansion now covers 14 cases and the three approved topics plus five
+  boundaries, but review is author-only. Four case-level gaps remain visible in the report; three
+  are the earlier citation/critical-fact misses and one is a newly measured out-of-scope
+  reclamación answer. No answer-quality, legal-correctness, or independent-review claim is
+  supported.
 
 **Detail on demand**
 

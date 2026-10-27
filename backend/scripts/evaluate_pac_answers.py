@@ -14,7 +14,11 @@ from app.main import app
 from app.ask_api import get_as_of_date, get_active_campaign, get_corpus_documents, get_retrieval_k, CorpusDocuments
 from app.source_catalog import load_catalog
 from app.retrieval import load_passage_set
-from app.answer_eval import AnswerEvalError, evaluate, load_cases
+from app.answer_eval import (
+    AnswerEvalError,
+    evaluate,
+    load_case_document,
+)
 
 
 def main() -> int:
@@ -29,7 +33,7 @@ def main() -> int:
     try:
         catalog = load_catalog(args.catalog)
         passages = load_passage_set(args.passages)
-        cases = load_cases(args.cases, catalog, passages)
+        cases, coverage = load_case_document(args.cases, catalog, passages)
         docs = CorpusDocuments(catalog=catalog, passages=passages)
         app.dependency_overrides[get_corpus_documents] = lambda: docs
         app.dependency_overrides[get_as_of_date] = lambda: args.as_of
@@ -37,7 +41,14 @@ def main() -> int:
         app.dependency_overrides[get_retrieval_k] = lambda: args.k
         if args.k < 1 or args.k > 100:
             raise AnswerEvalError("--k must be between 1 and 100")
-        report = evaluate(cases, TestClient(app), catalog, passages, args.k)
+        report = evaluate(
+            cases,
+            TestClient(app),
+            catalog,
+            passages,
+            args.k,
+            coverage=coverage,
+        )
         report.update({"active_campaign": args.active_campaign, "as_of": args.as_of.isoformat(), "k": args.k,
                        "quality_metrics_are_report_only": True})
         print(json.dumps(report, ensure_ascii=False, sort_keys=True, separators=(",", ":")))
