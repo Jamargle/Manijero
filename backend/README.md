@@ -665,3 +665,187 @@ quarantine. Nothing in this command updates the corpus, so no legal-coverage or
 answer-quality claim follows from it. Only synthetic fixtures back the feature
 today; there is no live run against a published amendment and detection
 precision/recall is unmeasured.
+
+## Human-reviewed knowledge update packages
+
+`app/review_package.py` turns one reviewed proposal over quarantined candidates
+into a bounded draft review package. It is standard-library only, offline, and
+read-only over `knowledge/`: `prepare` and `decide` write only under the
+operator's workspace. `merge` is the only function that writes canonical
+artifacts, and only after a named requested reviewer other than the author
+approves and every required check still passes.
+
+**This is a local draft, not a hosting-platform pull request.** The package is
+an inspectable directory (`package.json`, `REVIEW.md`, and after review
+`decisions.json`, `DECISION.md`, `merge.json`) that an operator can attach to a
+real repository PR. This repository has no Git/hosting API integration, so
+GitHub branch protection is **not** enforced here; the controlled `merge`
+command independently verifies the recorded approval. Direct filesystem writes
+to `knowledge/` remain possible for anyone with access, so keep the workspace
+and canonical files access-controlled and reviewable in Git.
+
+### Prepare
+
+Run it from the repository root with the ingestion state and quarantine produced
+by the preceding pipeline, the current approved catalog/passages, a reviewed
+proposal, and at least one named reviewer:
+
+```sh
+backend/.venv/bin/python backend/scripts/knowledge_review.py prepare \
+  --ingestion-state /path/to/official-ingestion-state.json \
+  --quarantine /path/to/official-document-quarantine \
+  --catalog knowledge/source_catalog.json \
+  --passages knowledge/passages.json \
+  --proposal /path/to/knowledge-update-proposal.json \
+  --cases knowledge/pac_answer_eval.json \
+  --reviewer "Nombre Revisor" \
+  --as-of 2026-10-27 \
+  --workspace /path/to/review-workspace
+```
+
+Omit `--cases` only when the proposal makes no catalog or passage change: a
+proposal that changes the reviewed corpus requires the reviewed case set. With
+`--cases`, preparation validates both the current and the **after-state**
+catalog/passages against it, records the case-set digest in the package, and
+blocks readiness with `proposal_evaluation_impact: orphaned_cases:<ids>` when a
+removal or replacement would leave a reviewed case without its expected source
+or passage. Without `--cases`, any change is blocked with
+`proposal_evaluation_impact: cases_unavailable`; a no-op proposal still passes.
+`--workspace` must stay outside the repository `knowledge/` directory. `prepare`
+writes `<workspace>/<package_id>/package.json` and `REVIEW.md`; canonical
+knowledge is byte-identical afterwards. It exits `0` when `merge_readiness` is
+`ready_for_review`, `1` when any automated check failed
+(`needs_human_attention`), and `2` on invalid input, a non-human/self reviewer,
+a reviewer outside the requested set, or another refused gate.
+
+The proposal contract is `knowledge-update-proposal-v1`: `summary`, 1–20
+`candidates` (each a 64-character id from the ingestion state, with optional
+`resolution` `{findings, note}` and `unknown_fields`), `catalog` and `passages`
+sections `{add, update, remove}`, optional `author` (defaults to the preparer
+automation identity), `links` mapping every added, updated, or removed catalog
+source and every passage change to its selected candidate, and optional
+`unresolved_questions`. A proposal cannot exceed the candidate bound, link to a
+candidate it did not select, or introduce an unknown field outside `validity`
+and `applicability`. A passage edit or removal without exactly one
+source-to-candidate link fails `proposal_provenance`.
+
+The package records source URL/issuer/registry provenance, observation and
+retrieval times, original and extracted hashes and locations, page/section
+counts, a bounded old/new text diff and signal excerpts, proposed catalog and
+passage changes, affected sources/passages/evaluation cases, every automated
+check, unresolved questions, and explicit limits. Source document text is
+rendered only as fenced evidence, never as instructions. Unknown validity and
+applicability stay absent; a proposal that writes a literal unknown value,
+omits provenance, links a different candidate hash/URL, misstates the extracted
+digest, or leaves an ambiguous impact finding unresolved becomes
+`needs_human_attention` and cannot be approved.
+
+The package also binds the evaluation-case digest and the after-state check
+result (`proposal.evaluation`), and its after hashes use the catalog/passages'
+existing field order for entries the proposal does not rewrite rather than
+sorting every entry; a newly added or rewritten entry follows the proposal's
+own serialization. The readable contracts
+are `knowledge/knowledge-update-review.schema.json` (package) and
+`knowledge/knowledge-update-review-decisions.schema.json` (decision history).
+An orphaned evaluation case blocks readiness. Affected and rewritten cases are
+embedded as **report-only**: they are not re-run and are not a pass/fail gate or
+a quality claim.
+
+### Decide
+
+A named human other than the proposal author records one decision:
+
+```sh
+backend/.venv/bin/python backend/scripts/knowledge_review.py decide \
+  --package-dir /path/to/review-workspace/<package_id> \
+  --reviewer "Nombre Revisor" \
+  --decision approve \
+  --decided-on 2026-10-28 \
+  --note "Original y texto extraído comparados."
+```
+
+`--decision` is `approve`, `request_changes`, or `reject`. Approval is refused
+for a known automation/CI identity (`reviewer_not_human`: `ci`, `cd`, `ci/cd`,
+`actions`, `github-actions`, `workflow`, `pipeline`, `automation-*`,
+`service-account`, `preparer`, bot names), a reviewer the package did not
+request (`reviewer_not_requested`), the proposal author (`self_approval`), a
+package with failing checks or `needs_human_attention` (`approval_blocked`), or
+a stale package/check digest (`stale_approval`). A green CI result, label, or
+matching hash is never approval. The identity list is a denial list, not
+authentication: local records cannot prove who typed a name. Every decision is
+appended to `decisions.json` and `DECISION.md`; a later `request_changes` or
+`reject` revokes an earlier approval. A revised proposal produces a new package
+id with new checks and no inherited approval.
+`decide` exits `0` on a recorded decision, `2` on any refusal; after a merge it
+refuses with `already_merged`.
+
+### Merge
+
+```sh
+backend/.venv/bin/python backend/scripts/knowledge_review.py merge \
+  --package-dir /path/to/review-workspace/<package_id> \
+  --catalog knowledge/source_catalog.json \
+  --passages knowledge/passages.json \
+  --cases knowledge/pac_answer_eval.json
+```
+
+`merge` writes canonical artifacts only when the effective decision is
+`approved`, the checks digest still matches, the approver is a named requested
+human other than the author, readiness is `ready_for_review`, and the current
+canonical bytes still match the package's recorded `before` hashes. When the
+package recorded a case-set digest, `--cases` is mandatory (`cases_required`)
+and the file must still hash to that digest (`evaluation_cases_drift`);
+`merge` then revalidates the after-state against those cases, so editing the
+cases after preparation cannot bypass the gate. It revalidates the resulting
+catalog/passages as of the **approval date**, recomputes `after` hashes without
+reordering entries, writes both files atomically, and records `merge.json` with
+`reindex_required: true`, `reindexed: false`, and `released: false`. Canonical
+drift, a tampered package/decision, an expired source, changed cases, or an
+invalid result refuses with exit `2` and writes nothing. A second merge is
+refused (`already_merged`). A no-op proposal leaves both canonical files
+byte-identical.
+
+**Merge is not release.** It never reindexes, releases, or deploys. The separate
+reindex/release feature owns index rebuilds, artifact/model versions, rollback,
+and the plainly stated corpus boundary. An approved bounded update is not
+legal-coverage or answer-quality certification.
+
+### Limits
+
+- The local package is not a hosted PR, so host-enforced merge protection and
+  reviewer assignment do not exist; the `merge` command is the procedural gate.
+- Reviewer identity and decisions are plain local records, not cryptographic
+  signatures. The commands refuse known automation identities and
+  self-approval, require an approver from the package's `requested_reviewers`,
+  and bind decisions to the package/checks digest, but identities are not
+  authenticated and a malicious operator can still edit the workspace or
+  canonical files directly.
+- Original-byte verification requires the quarantined original to still exist.
+  A missing copy is a reviewer question, not an automated comparison; only a
+  person can compare the extracted text with the official original.
+- A proposal that changes the reviewed corpus requires the reviewed evaluation
+  case set, and merge must receive the same digest-bound file. Evaluation cases
+  are validated for references, not re-run; removing or rewriting a referenced
+  source/passage blocks readiness until a human updates the cases in a separate
+  reviewed change. A no-op proposal is allowed without cases.
+- Review display is bounded (at most 40 change entries and truncated field
+  values/excerpts); open large documents in the quarantine for a full reading.
+- Canonical after hashes and merge writes preserve the catalog/passages' field
+  order. A proposal input is normalized through the package's sorted JSON, so a
+  newly added entry's own keys are sorted while every existing entry keeps its
+  reviewed order. Only a real change alters the file; an empty proposal leaves
+  it byte-identical.
+- Extraction inherits the standard-library PDF/HTML limits above (no OCR,
+  encrypted/scanned documents fail closed, subset-font maps can leave `U+FFFD`).
+- Workspace, decisions, and quarantine evidence are retained by the operator
+  and are never garbage-collected. Deleting them makes an old package's
+  evidence unrecoverable.
+- Merge writes the catalog and passages atomically one file at a time, not as a
+  single transaction. An OS failure between the two writes (or before
+  `merge.json` is written) can leave the pair inconsistent; the package then
+  refuses with `canonical_drift`. Restore both Git-tracked files or reapply the
+  approved merge before retrying.
+- Review turnaround and reviewer availability are manual; nothing expires an
+  unapproved package. A pending package simply never merges.
+- Only synthetic fixtures back this flow today; there is no live run against a
+  real published update.

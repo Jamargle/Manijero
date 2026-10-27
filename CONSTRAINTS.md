@@ -416,6 +416,21 @@ Operational MUST/MUST NOT rules that future features have to respect on top of
   links no approved source or links only a reviewed passage or evaluation case. Reason:
   `legal_change_impact_analysis` detects wording; only an identified human can decide what a legal
   change means for the reviewed corpus.
+- **MUST**: canonical catalog and passage changes MUST go through the controlled merge that verifies
+  an explicit approval by a named requested reviewer other than the proposal author, a matching
+  package/checks/case digest, all required checks passing, and current canonical bytes matching the
+  reviewed baseline. A proposal that changes the reviewed corpus MUST supply the reviewed
+  answer-evaluation case set; preparation MUST validate the **after-state** and block readiness with
+  the orphaned case ids, and merge MUST require the same digest-bound case set and revalidate it.
+  Without cases, a catalog/passage change MUST be blocked (a no-op proposal may pass). A bot, CI
+  status, label, or matching hash MUST NOT count as approval; the commands refuse known automation
+  identities but identities are not authenticated; a rejected or changes-requested package MUST
+  leave canonical knowledge byte-identical; and merge MUST NOT reindex, release, or deploy. Canonical
+  after hashes and writes MUST preserve the field order of entries the proposal does not rewrite, so a
+  no-op merge is byte-identical; a newly added or rewritten entry may take the proposal's own
+  serialization.
+  Reason: `knowledge_update_review_pr` keeps approval with a person and separates a bounded reviewed
+  merge from publication; an unreviewed case set or a reordered file would hide corpus drift.
 - **MUST**: a knowledge release MUST rebuild indexes from approved canonical artifacts, record artifact
   and model versions, pass structural/grounding gates, and support rollback to the prior index.
   Reason: generated indexes are derived data and must not drift from reviewed sources.
