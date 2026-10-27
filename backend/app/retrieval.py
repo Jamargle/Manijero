@@ -472,6 +472,16 @@ class Retriever:
 
         return self._excluded_passage_count
 
+    def indexed_documents(self) -> Tuple[Tuple[str, str], ...]:
+        """Return ``(passage_id, text)`` for every document this instance indexes.
+
+        The pairs are ordered by ``passage_id`` and contain only passages that
+        already passed the catalog and passage admission gates, so a consumer
+        that embeds them does not re-implement eligibility.
+        """
+
+        return tuple((record.passage_id, record.excerpt) for record in self._records)
+
     def search(self, question: str, k: int = DEFAULT_K) -> Tuple[RetrievedPassage, ...]:
         """Return up to ``k`` candidate passages ranked best-first.
 

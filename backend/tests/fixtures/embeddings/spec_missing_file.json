@@ -1,0 +1,35 @@
+{
+  "batch_size": 2,
+  "dtype": "float32",
+  "embedding_dimension": 4,
+  "files": [
+    {
+      "path": "config.json",
+      "sha256": "50156e0f9a7ec5e6ad3316ad42495320d427cda025afad908b5358700b87e2ae",
+      "size": 87
+    },
+    {
+      "path": "1_Pooling/config.json",
+      "sha256": "10222042f7f283d1aad0cbf90d17cda1a3cb6028d699c0a764cc0e3d23ab838a",
+      "size": 112
+    },
+    {
+      "path": "weights.bin",
+      "sha256": "a19a06ac16d7a6027e13c8d40348259a9336c51b5c71cf6dd7df497891c469be",
+      "size": 26
+    },
+    {
+      "path": "missing.bin",
+      "sha256": "1111111111111111111111111111111111111111111111111111111111111111",
+      "size": 0
+    }
+  ],
+  "license": "MIT",
+  "max_tokens": 8,
+  "model_id": "fixture/embedding-model",
+  "model_revision": "0123456789abcdef0123456789abcdef01234567",
+  "normalize": true,
+  "pooling": "cls",
+  "schema_version": "embedding-model-v1",
+  "source_url": "https://example.test/fixture-model"
+}

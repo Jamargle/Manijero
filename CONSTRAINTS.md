@@ -21,6 +21,29 @@ Operational MUST/MUST NOT rules that future features have to respect on top of
   ranks cannot be exposed as response indexes, and the notice is a fixed
   orientative line, not generated prose.
 
+## Local embeddings
+
+- **MUST**: no embedding model may run on the `/ask` path until a separately
+  reviewed change composes it there, and the default answer behavior MUST stay
+  the accepted BM25 retrieval with every code-owned answer property unchanged. A
+  missing optional runtime, a missing/invalid artifact, or a stale derived index
+  MUST NOT alter an answer, citation, abstention, or land clarification. Reason:
+  `local_bge_m3_embeddings` added an optional capability, not a new answer
+  authority; silently swapping retrieval on a host without the model would
+  weaken grounding without review.
+- **MUST**: an embedding model may load only from a local artifact directory
+  whose immutable upstream revision and every per-file SHA-256 match the pinned
+  configuration, with hub/network access forced off. A model name, branch, or
+  tag MUST NOT be loaded directly. A changed pin is a new reviewed configuration,
+  never an edited checksum. Reason: an unpinned model silently changes vectors,
+  storage, and results, and no download belongs on the answer-service host.
+- **MUST**: a derived embedding index MUST be written outside `knowledge/`, MUST
+  NOT contain passage text, and MUST NOT be treated as reviewed canonical
+  knowledge. It MUST record the model pin and its catalog/passages/`as_of`/
+  campaign inputs, and MUST be reported stale instead of reused when any of them
+  change. Reason: the index is reproducible derived data; promoting it into the
+  reviewed corpus would create a second, unreviewed answer source.
+
 ## Client request failure
 
 - **MUST**: a request that failed or never reached the answer service MUST NOT be rendered as an

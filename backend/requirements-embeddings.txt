@@ -1,0 +1,17 @@
+# Optional local embedding runtime, pinned for reproducibility.
+#
+# Install this only when you need to embed text or measure the model:
+#
+#   python3 -m venv backend/.venv-embeddings
+#   backend/.venv-embeddings/bin/python -m pip install -r backend/requirements-embeddings.txt
+#
+# The default backend runtime and test suite deliberately do not include these
+# packages: embeddings are off by default, and `torch` is large. The pins are
+# exact because pooling, tokenization, and float arithmetic must reproduce the
+# measured behavior; a different version is a new pin, not an upgrade.
+torch==2.14.1
+transformers==5.21.0
+tokenizers==0.23.3
+huggingface-hub==2.3.0
+safetensors==0.8.0
+numpy==2.5.4

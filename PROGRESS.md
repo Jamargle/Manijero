@@ -7,10 +7,11 @@ Routine entry point. Exact feature status lives in [`feature_list.json`](feature
 contracts, raw evidence, and acceptance records remain in their owning files. Last updated:
 2026-10-27.
 
-**Feature status** — 59 of 68 features are accepted: the original 50, `official_source_monitoring`,
+**Feature status** — 60 of 68 features are accepted: the original 50, `official_source_monitoring`,
 `official_source_discovery`, `official_document_candidate_ingestion`, `legal_change_impact_analysis`,
 `knowledge_update_review_pr`, `pac_evidence_expansion`, `recover_removed_lands`,
-`local_land_auto_backup`, and `hosting_provider_review`. Nine remain `not_started`: the
+`local_land_auto_backup`, `hosting_provider_review`, and `local_bge_m3_embeddings`. Eight remain
+`not_started`: the
 retrieval/generation chain, the hosted pilot and release chain, and `portable_land_backup`. The
 selector is the current status view; this page does not duplicate the feature-id list.
 
@@ -21,9 +22,10 @@ permanently deletes them.
 The local FastAPI service exposes liveness-only `/health` and `/ask`; Android and Desktop use
 overridable local development URLs. The reviewed corpus contains four official sources and four
 literal passages for three procedural topics in the Andalusian PAC single application for 2026.
-`/ask` requires an explicit `MANIJERO_ACTIVE_CAMPAIGN`; no hosted model, vector index, periodic
-official-source scanner, or public deployment is implemented. Gemini is planned but gated off pending
-current provider/privacy review.
+`/ask` requires an explicit `MANIJERO_ACTIVE_CAMPAIGN`; no hosted model, periodic
+official-source scanner, or public deployment is implemented. A pinned local `BAAI/bge-m3` artifact
+and a derived passage-embedding index now exist, but stay off the answer path: `/ask` still uses the
+reviewed BM25 retrieval. Gemini is planned but gated off pending current provider/privacy review.
 
 **Known limitations (do not over-claim)**
 
@@ -81,6 +83,17 @@ current provider/privacy review.
   maintenance window, capacity, and recovery. Fly.io is the only evaluated fallback and is not
   approved; the API still has no authentication or rate limiting, and Android/macOS release
   artifacts are not implemented.
+- Local embeddings are implemented but **off the answer path**: a pinned `BAAI/bge-m3` revision
+  (`5617a9f…`, MIT), per-file SHA-256 verification, a derived `passage-embedding-index-v1` file
+  outside `knowledge/`, and a rebuild/staleness check. Only this development Mac (Apple M1 Max,
+  32 GiB, CPU `float32`, 8 threads) was measured: a 2,293,315,747-byte artifact, a 928 MB optional
+  runtime, 1,943 MB peak RSS, about 77 ms for a two-text probe, `0.0` repeated-run difference, and a
+  0.621 s index rebuild over the four approved passages. That is not owned-server capacity, not a
+  per-passage latency budget, and not a BM25 comparison; the hybrid/retrieval-quality decision stays
+  in `chroma_hybrid_retrieval`. The model is CPU-only, `torch`/`transformers` stay optional, the
+  artifact is not committed, and the operator owns its storage and backup. No Spanish legal
+  retrieval, answer-quality, or license-review claim follows. See the
+  [feature appendix](docs/specs/local_bge_m3_embeddings.appendix.md).
 - The answer evidence expansion now covers 14 cases and the three approved topics plus five
   boundaries, but review is author-only. Four case-level gaps remain visible in the report; three
   are the earlier citation/critical-fact misses and one is a newly measured out-of-scope
