@@ -16,6 +16,12 @@ legally applicable. They never fetch a URL, follow a redirect, or inspect the
 document body, and they make no legal conclusion. A validated entry means "this
 metadata is complete and traceable", not "this rule is the law today".
 
+The separate `backend/app/source_monitor.py` tool polls only explicitly
+configured endpoints on approved exact hosts and records feed response
+hashes/validators as operational state. It does not fetch feed-linked documents
+or edit this directory's canonical artifacts. A detected change is only a
+candidate for subsequent human review, not approved legal knowledge.
+
 Retrieval over passages is **lexical and offline** as well. It ranks reviewed
 excerpts by word overlap (BM25) and never downloads, parses, or chunks a
 document, never reaches a model or the network, and never invents a passage.

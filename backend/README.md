@@ -299,3 +299,40 @@ Tests:
 ```sh
 cd backend && python -m pytest
 ```
+
+## Manual official-source monitoring
+
+`app/source_monitor.py` polls only explicitly configured HTTPS endpoints on the
+exact approved official-host allowlist. It supports RSS/Atom XML and JSON
+responses, including the BOJA RSS and BOE Open Data API endpoints; it does not
+interpret response contents or fetch linked documents. A successful snapshot
+stores retrieval time, URL, HTTP status, ETag/Last-Modified when supplied, and
+SHA-256 of the exact response bytes. A changed feed is a review candidate only;
+the scanner never writes `knowledge/source_catalog.json` or `knowledge/passages.json`.
+
+Create an owner-reviewed configuration file, for example:
+
+```json
+{"sources":[
+  {"id":"boe-api","url":"https://www.boe.es/datosabiertos/api/api.php","format":"json"},
+  {"id":"boja-rss","url":"https://www.juntadeandalucia.es/boja/distribucion/s51.xml","format":"rss"}
+]}
+```
+
+Dispatch manually (or call this command from an owner-managed scheduler):
+
+```sh
+cd backend
+python scripts/scan_official_sources.py --config source-monitor.json --state var/source-monitor-state.json
+```
+
+Exit `0` means each configured endpoint succeeded; `1` means at least one
+endpoint failed (the JSON report includes actionable failure categories and
+retains its last good hash/time); `2` means config/state could not be read or
+validated. Use a durable, access-controlled local state path and back it up if
+operational history matters. Conditional requests are sent when validators are
+available. Requests have a 15-second timeout and 5 MiB response cap; redirects
+are allowed only to the same HTTPS host. There is no in-process recurring
+scheduler, retry loop, document ingestion, legal-change interpretation, or
+automatic canonical update. Successful polling is not evidence of legal
+coverage or corpus currency.

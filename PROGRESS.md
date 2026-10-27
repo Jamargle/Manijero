@@ -45,7 +45,7 @@ current provider/privacy review.
   snapshots, and support a portable plaintext backup file. Those capabilities are not implemented,
   so the pilot still has no recovery guarantee. A qualified privacy/legal review is also required
   before the private pilot.
-- Periodic official-source monitoring, candidate ingestion, human-reviewed knowledge updates, reproducible index rebuilds, and release automation are not implemented. New or changed legal knowledge must remain human-approved.
+- A manually dispatched official-feed monitor now records feed response hashes and validators separately from canonical knowledge. Recurring dispatch, document-level candidate ingestion, human-reviewed knowledge updates, reproducible index rebuilds, and release automation are not implemented. New or changed legal knowledge must remain human-approved; successful polling does not prove corpus currency.
 - Private hosted operations and distribution are not configured. The project owner is the proposed
   operator; owned-server readiness, tunnel/provider terms, and Android/macOS release artifacts remain
   planned work.
