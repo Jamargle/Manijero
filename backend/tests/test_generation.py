@@ -246,6 +246,33 @@ def test_split_sentences_handles_text_without_terminal_punctuation() -> None:
     assert split_sentences("   ") == ()
 
 
+def test_split_sentences_treats_a_line_break_as_a_claim_boundary() -> None:
+    assert split_sentences("Frase sin punto final [1]\nOtra frase sin punto [2]") == (
+        "Frase sin punto final [1]",
+        "Otra frase sin punto [2]",
+    )
+
+
+def test_extractive_claims_do_not_merge_across_an_excerpt_without_a_period() -> None:
+    first = make_passage("Extracto literal sin punto final", rank=1)
+    second = make_passage(
+        PLAZO_EXCERPT,
+        passage_id="fixture-gen-plazo-2",
+        rank=2,
+        critical=True,
+    )
+    numbered = ((1, first), (2, second))
+
+    draft = ExtractiveGroundingGenerator(max_claims=2).generate(
+        PLAZO_QUESTION, numbered
+    )
+    report = verify_draft(draft, numbered)
+
+    assert "\n" in draft.answer
+    assert report.ok, report.codes()
+    assert [claim.markers for claim in report.claims] == [(1,), (2,)]
+
+
 def test_strip_markers_removes_markers_without_gluing_words() -> None:
     assert strip_markers("texto final. [1]") == "texto final."
     assert strip_markers("uno [1] dos") == "uno dos"

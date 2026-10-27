@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  Android 12+ data extraction rules: neither cloud backup nor device-to-device transfer may carry
+  the land aggregate or its automatic copies. The app's privacy notice promises no copy on the
+  internet or on another device. `manijero_lands.xml` is the only private preferences file the app
+  writes. Guarded by AndroidBackupExclusionGuardTest.
+-->
+<data-extraction-rules>
+    <cloud-backup>
+        <exclude
+            domain="sharedpref"
+            path="manijero_lands.xml" />
+    </cloud-backup>
+    <device-transfer>
+        <exclude
+            domain="sharedpref"
+            path="manijero_lands.xml" />
+    </device-transfer>
+</data-extraction-rules>

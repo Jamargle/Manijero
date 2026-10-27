@@ -8,7 +8,8 @@ import kotlin.test.assertTrue
 
 /**
  * Desktop integration check for the composition root: the same file-backed store the Desktop app
- * injects must remove exactly one land and keep the other record after the app is reopened.
+ * injects must move exactly one land to the removed list and keep the other record after the app is
+ * reopened.
  */
 class RemoveLandDesktopStoreTest {
     @Test
@@ -32,33 +33,49 @@ class RemoveLandDesktopStoreTest {
             )
 
             val removedId = removed.toRemoveLandState().landId
-            assertTrue(LandRepository(FileLandStorage(path)).delete(removedId))
+            assertEquals(
+                LandLifecycleResult.Done(removed),
+                LandRepository(FileLandStorage(path)).moveToRemoved(removedId, now = 3),
+            )
 
-            val fileText = Files.readString(path)
-            assertFalse(fileText.contains(removedId), "the removed record must leave the file")
-            assertFalse(fileText.contains("Los Olivos"), "the removed name must leave the file")
+            assertTrue(Files.readString(path).startsWith("land-store-v2\nactive\n"))
+            assertTrue(
+                directory.toFile().listFiles()?.map { it.name }.orEmpty().none { it.endsWith(".tmp") },
+                "an atomic write must leave no temporary file behind",
+            )
 
-            val reopened = LandRepository(FileLandStorage(path)).list()
-            assertEquals(listOf(kept), reopened, "the other land must keep every stored value")
+            val reopened = LandRepository(FileLandStorage(path))
+            assertEquals(listOf(kept), reopened.list(), "the other land must keep every stored value")
+            assertFalse(
+                reopened.list().any { it.id == removedId },
+                "the removed record must leave the active list",
+            )
+            assertEquals(
+                listOf(RemovedLand(removed, 3)),
+                reopened.listRemoved(),
+                "the removed record stays recoverable with every stored value",
+            )
         } finally {
-            Files.deleteIfExists(path)
+            directory.toFile().listFiles()?.forEach { it.delete() }
             Files.deleteIfExists(directory)
         }
     }
 
     @Test
-    fun removing_the_last_land_leaves_a_reopenable_empty_store() {
+    fun removing_the_last_land_leaves_a_reopenable_empty_active_store() {
         val directory = Files.createTempDirectory("manijero-remove-land-empty")
         val path = directory.resolve("lands-v1.txt")
         try {
             val writer = LandRepository(FileLandStorage(path))
             val only = writer.create(LandDraft("Los Olivos", "El Llano"), now = 1)
 
-            assertTrue(LandRepository(FileLandStorage(path)).delete(only.id))
+            LandRepository(FileLandStorage(path)).moveToRemoved(only.id, now = 2)
 
-            assertEquals(emptyList(), LandRepository(FileLandStorage(path)).list())
+            val reopened = LandRepository(FileLandStorage(path))
+            assertEquals(emptyList(), reopened.list())
+            assertEquals(listOf(only), reopened.listRemoved().map { it.land })
         } finally {
-            Files.deleteIfExists(path)
+            directory.toFile().listFiles()?.forEach { it.delete() }
             Files.deleteIfExists(directory)
         }
     }

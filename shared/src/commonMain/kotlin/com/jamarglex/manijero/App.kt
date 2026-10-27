@@ -21,11 +21,20 @@ import com.jamarglex.manijero.lands.EditLandFailure
 import com.jamarglex.manijero.lands.EditLandScreen
 import com.jamarglex.manijero.lands.EditLandState
 import com.jamarglex.manijero.lands.Land
+import com.jamarglex.manijero.lands.LandLifecycleResult
 import com.jamarglex.manijero.lands.LandListAction
 import com.jamarglex.manijero.lands.LandListConfirmation
 import com.jamarglex.manijero.lands.LandListScreen
 import com.jamarglex.manijero.lands.LandListState
 import com.jamarglex.manijero.lands.LandRepository
+import com.jamarglex.manijero.lands.PermanentlyDeleteFailure
+import com.jamarglex.manijero.lands.PermanentlyDeleteLandAction
+import com.jamarglex.manijero.lands.PermanentlyDeleteLandScreen
+import com.jamarglex.manijero.lands.PermanentlyDeleteLandState
+import com.jamarglex.manijero.lands.RemovedLandsAction
+import com.jamarglex.manijero.lands.RemovedLandsFailure
+import com.jamarglex.manijero.lands.RemovedLandsScreen
+import com.jamarglex.manijero.lands.RemovedLandsState
 import com.jamarglex.manijero.lands.RemoveLandAction
 import com.jamarglex.manijero.lands.RemoveLandFailure
 import com.jamarglex.manijero.lands.RemoveLandScreen
@@ -33,6 +42,7 @@ import com.jamarglex.manijero.lands.RemoveLandState
 import com.jamarglex.manijero.lands.reduce
 import com.jamarglex.manijero.lands.toDraftOrNull
 import com.jamarglex.manijero.lands.toEditLandState
+import com.jamarglex.manijero.lands.toPermanentlyDeleteLandState
 import com.jamarglex.manijero.lands.toRemoveLandState
 import com.jamarglex.manijero.privacy.PrivacyScreen
 import com.jamarglex.manijero.theme.ManijeroTheme
@@ -92,8 +102,16 @@ fun App(
     // empty state before a post-composition read can answer. The fold is the same guarded one used
     // by `readLands`; a failure keeps the list unreadable with its retry notice.
     var landListState by remember { mutableStateOf(initialLandListState(landRepository)) }
+    // A store read that rebuilt the primary copy from an automatic copy is reported here once. It is
+    // a recovered state, not a failure: the list below it is the restored data, and the notice is
+    // dismissed by the person without writing anything.
+    var landRecovery by remember { mutableStateOf(landRepository?.consumeRecovery()) }
     var editLandState by remember { mutableStateOf<EditLandState?>(null) }
     var removeLandState by remember { mutableStateOf<RemoveLandState?>(null) }
+    var removedLandsState by remember { mutableStateOf(RemovedLandsState()) }
+    var permanentlyDeleteLandState by remember {
+        mutableStateOf<PermanentlyDeleteLandState?>(null)
+    }
     var landConfirmation by remember { mutableStateOf<LandListConfirmation?>(null) }
 
     // The clarification chooser reads the local lands exactly once when a clarification appears, and
@@ -125,6 +143,25 @@ fun App(
                 runCatching { repository.list() }.fold(
                     onSuccess = { LandListAction.LandsLoaded(it) },
                     onFailure = { LandListAction.LoadFailed },
+                ),
+            )
+            // A read may have recovered the store; announce it once, and keep an older notice the
+            // person has not dismissed yet.
+            repository.consumeRecovery()?.let { landRecovery = it }
+        }
+    }
+
+    // The same guarded read for the removed list: on opening `Terrenos eliminados`, on retry, and
+    // after a restore or a permanent deletion. A failed read shows the retry notice and never an
+    // empty removed list, and the throwable is neither logged nor shown.
+    val readRemovedLands: () -> Unit = {
+        removedLandsState = removedLandsState.reduce(RemovedLandsAction.ReloadClicked)
+        val repository = landRepository
+        if (repository != null) {
+            removedLandsState = removedLandsState.reduce(
+                runCatching { repository.listRemoved() }.fold(
+                    onSuccess = { RemovedLandsAction.LandsLoaded(it) },
+                    onFailure = { RemovedLandsAction.LoadFailed },
                 ),
             )
         }
@@ -166,6 +203,10 @@ fun App(
                 addLandState = AddLandState()
                 editLandState = null
                 removeLandState = null
+                permanentlyDeleteLandState = null
+            }
+            if (systemBackTarget == AppDestination.RemovedLands) {
+                permanentlyDeleteLandState = null
             }
             destination = systemBackTarget
             // Back to a top-level tab also makes it the remembered section, so a later `Ayuda`
@@ -217,6 +258,8 @@ fun App(
                 AppDestination.LandList -> LandListScreen(
                     state = landListState,
                     confirmation = landConfirmation,
+                    recovery = landRecovery,
+                    onDismissRecovery = { landRecovery = null },
                     onAddLand = {
                         addLandState = AddLandState()
                         landConfirmation = null
@@ -235,6 +278,11 @@ fun App(
                     onRetry = readLands,
                     onQueryChange = { query ->
                         landListState = landListState.reduce(LandListAction.QueryChanged(query))
+                    },
+                    onOpenRemovedLands = {
+                        landConfirmation = null
+                        readRemovedLands()
+                        destination = AppDestination.RemovedLands
                     },
                 )
 
@@ -311,10 +359,12 @@ fun App(
                 }
 
                 // One record, and only that record: the removal targets the confirmation state's own id
-                // and runs `delete` only on the person's explicit `Eliminar el terreno`. Opening or
-                // cancelling the confirmation writes nothing. A `false` result means the id is no longer
-                // stored and a thrown failure means storage refused, so neither is ever presented as a
-                // removal: both keep the confirmation on screen with a distinct plain-Spanish message.
+                // and runs `moveToRemoved` only on the person's explicit `Quitar el terreno`. Opening or
+                // cancelling the confirmation writes nothing. A `Missing` result means the id is no
+                // longer active and a refused or thrown write means storage did not accept it, so neither
+                // is ever presented as a removal: both keep the confirmation on screen with a distinct
+                // plain-Spanish message. Nothing is deleted for good here; that second step lives in
+                // `Terrenos eliminados`.
                 AppDestination.RemoveLand -> removeLandState?.let { renderedState ->
                     val repository = landRepository
                     RemoveLandScreen(
@@ -324,16 +374,18 @@ fun App(
                                 .reduce(RemoveLandAction.RemoveClicked)
                             removeLandState = cleared
                             if (repository != null) {
-                                val result = runCatching { repository.delete(cleared.landId) }
-                                when {
-                                    result.getOrNull() == true -> {
+                                val result = runCatching {
+                                    repository.moveToRemoved(cleared.landId)
+                                }
+                                when (result.getOrNull()) {
+                                    is LandLifecycleResult.Done -> {
                                         removeLandState = null
                                         landConfirmation = LandListConfirmation.REMOVED
                                         readLands()
                                         destination = AppDestination.LandList
                                     }
 
-                                    result.getOrNull() == false -> removeLandState = cleared.reduce(
+                                    LandLifecycleResult.Missing -> removeLandState = cleared.reduce(
                                         RemoveLandAction.RemoveFailed(RemoveLandFailure.LAND_MISSING),
                                     )
 
@@ -346,6 +398,95 @@ fun App(
                         onCancel = {
                             removeLandState = null
                             destination = AppDestination.LandList
+                        },
+                    )
+                }
+
+                // The recoverable side of removal. Restoring returns exactly the named record to the
+                // active list and re-reads both lists, so `Mis terrenos` already shows it on `Volver`.
+                AppDestination.RemovedLands -> {
+                    val repository = landRepository
+                    RemovedLandsScreen(
+                        state = removedLandsState,
+                        onBack = { destination = AppDestination.LandList },
+                        onRestore = { removed ->
+                            removedLandsState =
+                                removedLandsState.reduce(RemovedLandsAction.RestoreClicked)
+                            if (repository != null) {
+                                val result = runCatching { repository.restore(removed.land.id) }
+                                when (result.getOrNull()) {
+                                    is LandLifecycleResult.Done -> {
+                                        readRemovedLands()
+                                        readLands()
+                                        removedLandsState =
+                                            removedLandsState.reduce(RemovedLandsAction.Restored)
+                                    }
+
+                                    LandLifecycleResult.Missing ->
+                                        removedLandsState = removedLandsState.reduce(
+                                            RemovedLandsAction.RestoreFailed(
+                                                RemovedLandsFailure.LAND_MISSING,
+                                            ),
+                                        )
+
+                                    else -> removedLandsState = removedLandsState.reduce(
+                                        RemovedLandsAction.RestoreFailed(
+                                            RemovedLandsFailure.WRITE_FAILED,
+                                        ),
+                                    )
+                                }
+                            }
+                        },
+                        onDeletePermanently = { removed ->
+                            permanentlyDeleteLandState = removed.toPermanentlyDeleteLandState()
+                            destination = AppDestination.PermanentlyDeleteLand
+                        },
+                        onRetry = readRemovedLands,
+                    )
+                }
+
+                // The second confirmation: the only path that removes a record from the device for
+                // good. It targets the confirmation state's own id, so no other land can be touched,
+                // and a missing record or a refused write keeps the confirmation with its own message.
+                AppDestination.PermanentlyDeleteLand -> permanentlyDeleteLandState?.let { renderedState ->
+                    val repository = landRepository
+                    PermanentlyDeleteLandScreen(
+                        state = renderedState,
+                        onDelete = {
+                            val cleared = (permanentlyDeleteLandState ?: renderedState)
+                                .reduce(PermanentlyDeleteLandAction.DeleteClicked)
+                            permanentlyDeleteLandState = cleared
+                            if (repository != null) {
+                                val result = runCatching {
+                                    repository.permanentlyDelete(cleared.landId)
+                                }
+                                when (result.getOrNull()) {
+                                    is LandLifecycleResult.Done -> {
+                                        permanentlyDeleteLandState = null
+                                        readRemovedLands()
+                                        removedLandsState =
+                                            removedLandsState.reduce(RemovedLandsAction.Deleted)
+                                        destination = AppDestination.RemovedLands
+                                    }
+
+                                    LandLifecycleResult.Missing ->
+                                        permanentlyDeleteLandState = cleared.reduce(
+                                            PermanentlyDeleteLandAction.DeleteFailed(
+                                                PermanentlyDeleteFailure.LAND_MISSING,
+                                            ),
+                                        )
+
+                                    else -> permanentlyDeleteLandState = cleared.reduce(
+                                        PermanentlyDeleteLandAction.DeleteFailed(
+                                            PermanentlyDeleteFailure.WRITE_FAILED,
+                                        ),
+                                    )
+                                }
+                            }
+                        },
+                        onCancel = {
+                            permanentlyDeleteLandState = null
+                            destination = AppDestination.RemovedLands
                         },
                     )
                 }

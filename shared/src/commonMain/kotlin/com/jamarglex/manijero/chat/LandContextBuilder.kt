@@ -74,11 +74,13 @@ fun minimalLandContext(land: Land, needs: LandContextNeeds): MinimalLandContext 
 )
 
 /**
- * The `land_context` for one question. Every stored land is sent (`all_active`) in repository order
- * with its id verbatim whenever at least one land exists, so the service can answer across the
+ * The `land_context` for one question. Every active stored land is sent (`all_active`) in repository
+ * order with its id verbatim whenever at least one exists, so the service can answer across the
  * person's operation or ask for a choice later; `general` with an empty list is used only when no
- * land is stored. No topic classifier gates the mode: a missed keyword must never silently drop the
- * lands, and a question needing no attribute still sends the ids alone.
+ * active land is stored. Callers pass only the active list, so removed-list lands cannot enter a
+ * clarification or an answer request even when they are the only stored records. No topic classifier
+ * gates the mode: a missed keyword must never silently drop the lands, and a question needing no
+ * attribute still sends the ids alone.
  */
 fun landContextFor(question: String, lands: List<Land>): LandContext {
     if (lands.isEmpty()) {
@@ -92,9 +94,10 @@ fun landContextFor(question: String, lands: List<Land>): LandContext {
 }
 
 /**
- * The request for one question with the current local lands. It preserves the person's exact wording
- * and never sends more than [landContextFor] allows. With no land stored it delegates to the accepted
- * [generalAskRequest], so the no-land payload stays byte-identical to the accepted one.
+ * The request for one question with the current local active lands. It preserves the person's exact
+ * wording and never sends more than [landContextFor] allows. With no active land stored it delegates
+ * to the accepted [generalAskRequest], so the no-land payload stays byte-identical to the accepted
+ * one.
  */
 fun askRequestFor(question: String, lands: List<Land>): AskRequest {
     if (lands.isEmpty()) return generalAskRequest(question)

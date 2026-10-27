@@ -1,0 +1,21 @@
+{
+  "blocks": [
+    {
+      "kind": "text",
+      "page": null,
+      "section": "Documento",
+      "text": "Resolución de 3 de marzo de 2099, de la Dirección General competente, por la que se convoca el procedimiento (documento sintético)"
+    },
+    {
+      "kind": "text",
+      "page": null,
+      "section": "Resuelve primero",
+      "text": "La solicitud se presenta por medios electrónicos."
+    }
+  ],
+  "candidate_id": "2f79016f2fa8b0e8234faa448e89621e0233b957ce68912079e50e720e93f382",
+  "extractor": "manijero-document-extractor-v1",
+  "media_type": "html",
+  "schema_version": "official-ingestion-document-v1",
+  "title": null
+}

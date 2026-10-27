@@ -1,0 +1,161 @@
+{
+  "candidates": {
+    "2f79016f2fa8b0e8234faa448e89621e0233b957ce68912079e50e720e93f382": {
+      "attempts": [
+        {
+          "attempted_at": "2099-10-01T09:00:00+00:00",
+          "failure": null,
+          "original_sha256": "b77df231b1a4394cbec80221f1db67ad226ad3c1d753e0a1cdeae5f5164c9cbe",
+          "status": "extracted"
+        }
+      ],
+      "block_count": 4,
+      "byte_size": 4096,
+      "candidate_id": "2f79016f2fa8b0e8234faa448e89621e0233b957ce68912079e50e720e93f382",
+      "declared_content_type": "text/html",
+      "extracted_path": "2f79016f2fa8b0e8234faa448e89621e0233b957ce68912079e50e720e93f382/extracted-b77df231b1a4394cbec80221f1db67ad226ad3c1d753e0a1cdeae5f5164c9cbe.json",
+      "extracted_text_sha256": "0ac19fac779354ab46fff0679ee8f849da17955fc5f8de4ddfcb400ddfd66422",
+      "extractor": "manijero-document-extractor-v1",
+      "failure": null,
+      "issuer": "Junta de Andalucía",
+      "last_attempt_at": "2099-10-01T09:00:00+00:00",
+      "last_success_at": "2099-10-01T09:00:00+00:00",
+      "media_type": "html",
+      "original_path": "2f79016f2fa8b0e8234faa448e89621e0233b957ce68912079e50e720e93f382/original-b77df231b1a4394cbec80221f1db67ad226ad3c1d753e0a1cdeae5f5164c9cbe.html",
+      "original_sha256": "b77df231b1a4394cbec80221f1db67ad226ad3c1d753e0a1cdeae5f5164c9cbe",
+      "page_count": null,
+      "publication_url": "https://www.juntadeandalucia.es/boja/2099/50/2",
+      "registry_id": "boja",
+      "registry_url": "https://www.boe.es/datosabiertos/api/boe/sumario/20991001",
+      "review_status": "pending",
+      "stable_identity": "BOJA2099-00050-02",
+      "status": "extracted",
+      "title": "Resolución de 3 de marzo de 2099, de la Dirección General competente, por la que se convoca el procedimiento (documento sintético)",
+      "version_hash": "28d24331831de006f3998f87e464482cb78ba21035d034a1f7ed33c0c3d7c7e1"
+    },
+    "4a71fd5898590605faadfedc1300cd75df1ff15da461d12ad357da6b67ed23ab": {
+      "attempts": [
+        {
+          "attempted_at": "2099-10-01T09:00:00+00:00",
+          "failure": "no_extractable_text",
+          "status": "failed"
+        }
+      ],
+      "candidate_id": "4a71fd5898590605faadfedc1300cd75df1ff15da461d12ad357da6b67ed23ab",
+      "failure": "no_extractable_text",
+      "issuer": "BOE",
+      "last_attempt_at": "2099-10-01T09:00:00+00:00",
+      "last_success_at": null,
+      "publication_url": "https://www.boe.es/boe/dias/2099/10/01/pdfs/BOE-A-2099-09999.pdf",
+      "registry_id": "boe",
+      "registry_url": "https://www.boe.es/datosabiertos/api/boe/sumario/20991001",
+      "review_status": "pending",
+      "stable_identity": "BOE-A-2099-09999",
+      "status": "failed",
+      "title": "Documento sintético sin texto extraíble",
+      "version_hash": "733e075c839b8eac479c7559022e1d7f62e4a8fd1eb029015d72f703bdc50d7f"
+    },
+    "6fe24ce64b69be1726cd3306283e56e369c9f41011fbd01d60df47a78b6d0857": {
+      "attempts": [
+        {
+          "attempted_at": "2099-10-01T09:00:00+00:00",
+          "failure": null,
+          "original_sha256": "5a85587448cde64b5b0aaf79d3cb0bcf3a9825caac68d2699a0ba2132391e484",
+          "status": "extracted"
+        }
+      ],
+      "block_count": 4,
+      "byte_size": 4096,
+      "candidate_id": "6fe24ce64b69be1726cd3306283e56e369c9f41011fbd01d60df47a78b6d0857",
+      "declared_content_type": "text/html",
+      "extracted_path": "6fe24ce64b69be1726cd3306283e56e369c9f41011fbd01d60df47a78b6d0857/extracted-5a85587448cde64b5b0aaf79d3cb0bcf3a9825caac68d2699a0ba2132391e484.json",
+      "extracted_text_sha256": "b10dc0f09e85b8ac496f89eab4a7ba6cd8ade66d23b95f30cbb6475bccf71a65",
+      "extractor": "manijero-document-extractor-v1",
+      "failure": null,
+      "issuer": "Junta de Andalucía",
+      "last_attempt_at": "2099-10-01T09:00:00+00:00",
+      "last_success_at": "2099-10-01T09:00:00+00:00",
+      "media_type": "html",
+      "original_path": "6fe24ce64b69be1726cd3306283e56e369c9f41011fbd01d60df47a78b6d0857/original-5a85587448cde64b5b0aaf79d3cb0bcf3a9825caac68d2699a0ba2132391e484.html",
+      "original_sha256": "5a85587448cde64b5b0aaf79d3cb0bcf3a9825caac68d2699a0ba2132391e484",
+      "page_count": null,
+      "previous_original_sha256": "3152194450356627778008d27a59dd07d85f30da0806e49202768db197af47f4",
+      "publication_url": "https://www.juntadeandalucia.es/boja/2099/10/1",
+      "registry_id": "boja",
+      "registry_url": "https://www.boe.es/datosabiertos/api/boe/sumario/20991001",
+      "review_status": "pending",
+      "stable_identity": "BOJA2099-00010-01",
+      "status": "extracted",
+      "title": "Decreto-ley 2/2099, de 1 de febrero, por el que se adoptan medidas urgentes en materia agraria (documento sintético)",
+      "version_hash": "c6fd996df505b1b62443778a45854973eccca1693162d8f3c97c4812d73c5af9"
+    },
+    "7825dfd2af88508fc05c2e393052def95604929145ccd2f2771f71bb30936814": {
+      "attempts": [
+        {
+          "attempted_at": "2099-10-01T09:00:00+00:00",
+          "failure": null,
+          "original_sha256": "24c25307e40d949c5e8f528f4d790025bc842cf60a9d79993a8219271bdfc433",
+          "status": "extracted"
+        }
+      ],
+      "block_count": 4,
+      "byte_size": 4096,
+      "candidate_id": "7825dfd2af88508fc05c2e393052def95604929145ccd2f2771f71bb30936814",
+      "declared_content_type": "text/html",
+      "extracted_path": "7825dfd2af88508fc05c2e393052def95604929145ccd2f2771f71bb30936814/extracted-24c25307e40d949c5e8f528f4d790025bc842cf60a9d79993a8219271bdfc433.json",
+      "extracted_text_sha256": "e992b28d6e99887777de700318cfb14a22821230ba83c6fe1c267a2017d378e8",
+      "extractor": "manijero-document-extractor-v1",
+      "failure": null,
+      "issuer": "BOE",
+      "last_attempt_at": "2099-10-01T09:00:00+00:00",
+      "last_success_at": "2099-10-01T09:00:00+00:00",
+      "media_type": "html",
+      "original_path": "7825dfd2af88508fc05c2e393052def95604929145ccd2f2771f71bb30936814/original-24c25307e40d949c5e8f528f4d790025bc842cf60a9d79993a8219271bdfc433.html",
+      "original_sha256": "24c25307e40d949c5e8f528f4d790025bc842cf60a9d79993a8219271bdfc433",
+      "page_count": null,
+      "previous_original_sha256": "ff10865d2504f59460d5ca6430ef3cbfefd24a368981040d713665554011c263",
+      "publication_url": "https://www.boe.es/boe/dias/2099/10/01/pdfs/BOE-A-2099-04444.pdf",
+      "registry_id": "boe",
+      "registry_url": "https://www.boe.es/datosabiertos/api/boe/sumario/20991001",
+      "review_status": "pending",
+      "stable_identity": "BOE-A-2099-04444",
+      "status": "extracted",
+      "title": "Real Decreto 2200/2099, de 1 de octubre, por el que se modifica el Real Decreto 2077/2099, de 1 de enero (documento sintético)",
+      "version_hash": "9bfc70f9cee05ffef9a9b7b5044d5a1407fde8fb7aafd18c846baca44b5fb43d"
+    },
+    "969726a996db7748190df3ea5695b57f24007010b1d69997ec13069ff31d8748": {
+      "attempts": [
+        {
+          "attempted_at": "2099-10-01T09:00:00+00:00",
+          "failure": null,
+          "original_sha256": "dfa68d9ba3c50df0eb09437acf9f8e6cccaeb9091e3dd75e74be9856e9bdb2ba",
+          "status": "extracted"
+        }
+      ],
+      "block_count": 4,
+      "byte_size": 4096,
+      "candidate_id": "969726a996db7748190df3ea5695b57f24007010b1d69997ec13069ff31d8748",
+      "declared_content_type": "text/html",
+      "extracted_path": "969726a996db7748190df3ea5695b57f24007010b1d69997ec13069ff31d8748/extracted-dfa68d9ba3c50df0eb09437acf9f8e6cccaeb9091e3dd75e74be9856e9bdb2ba.json",
+      "extracted_text_sha256": "c23dff280cffb09e7df8266f9c6f2b63af724c7e5b51c33b58ed99bf7694ae4c",
+      "extractor": "manijero-document-extractor-v1",
+      "failure": null,
+      "issuer": "Junta de Andalucía",
+      "last_attempt_at": "2099-10-01T09:00:00+00:00",
+      "last_success_at": "2099-10-01T09:00:00+00:00",
+      "media_type": "html",
+      "original_path": "969726a996db7748190df3ea5695b57f24007010b1d69997ec13069ff31d8748/original-dfa68d9ba3c50df0eb09437acf9f8e6cccaeb9091e3dd75e74be9856e9bdb2ba.html",
+      "original_sha256": "dfa68d9ba3c50df0eb09437acf9f8e6cccaeb9091e3dd75e74be9856e9bdb2ba",
+      "page_count": null,
+      "publication_url": "https://www.juntadeandalucia.es/boja/2099/60/1",
+      "registry_id": "boja",
+      "registry_url": "https://www.boe.es/datosabiertos/api/boe/sumario/20991001",
+      "review_status": "pending",
+      "stable_identity": "BOJA2099-00060-01",
+      "status": "extracted",
+      "title": "Resolución de 9 de septiembre de 2099, de la Dirección General competente (documento sintético)",
+      "version_hash": "cf59bb6aa1834b99893b2b0ae1a9e98766edf80e852d8fa47e9485d241492686"
+    }
+  },
+  "schema_version": "official-ingestion-state-v1"
+}

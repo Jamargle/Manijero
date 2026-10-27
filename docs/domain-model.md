@@ -49,10 +49,17 @@ No lands → Add land → Active land → Edit details
                                                        └→ Confirm permanent deletion → Deleted
 ```
 
-- The currently accepted app still removes a land permanently after one confirmation. The planned [`recover_removed_lands`](specs/recover_removed_lands.md) feature changes this to a recoverable removed list: removed records remain until the person explicitly restores or permanently deletes them. Permanent deletion requires a second confirmation and removes the record from app-managed automatic backups. Older exported files remain outside app control and can reintroduce their contents.
-- The planned lifecycle store must migrate existing valid `land-store-v1` records to its current aggregate format once, preserving them as active. Removed lands never appear in the active list or chat context.
+- Removing a land now moves it to the local `Terrenos eliminados` list instead of deleting it
+  ([`recover_removed_lands`](specs/recover_removed_lands.md)). The record keeps every field and stays
+  there until the person explicitly restores it or permanently deletes it. Permanent deletion requires
+  a second confirmation that names the land and removes the record from the app-managed store and every
+  app-managed automatic copy of it; older exported files remain outside app control and can reintroduce
+  their contents.
+- A restored land returns to the **end** of the active list with its stored fields unchanged; the other active and removed lands keep their order. The removed list stays in removal order, so the newest removal is last. Removed lands never appear in the active list, the land chooser, or chat context.
+- The store is the versioned aggregate `land-store-v2`, holding both the active and removed sections in one snapshot. An existing valid `land-store-v1` snapshot is migrated once on first read: every decoded record becomes active, the aggregate is written before the read returns it, and a refused migration write leaves the v1 store untouched and reports a failed read. Malformed records are skipped whole.
+- Next to the aggregate the app keeps up to three **same-device automatic copies**, one after each committed change, each a whole aggregate with its own integrity metadata ([`local_land_auto_backup`](specs/local_land_auto_backup.md)). An unreadable aggregate is rebuilt from the newest fully valid copy and the app says so plainly; with no valid copy the read fails instead of showing an empty store. A partially readable copy is never treated as a complete restore. The copies live in the same app data area, use no network and no operating-system backup or device-transfer destination (the Android host excludes the land preferences from both), and do not protect against losing the device or uninstalling the app. Permanent deletion writes a durable purge marker before rewriting the store, filters the marked records from every read and restore, and clears the marker only after the aggregate and all retained copies are clean.
 - An empty list is valid. The assistant remains usable for general questions and should explain when land details could improve an answer.
-- Deleting a land removes its local record and prevents future queries from using it. Previously saved conversations are not in MVP scope unless explicitly added later.
+- Permanently deleting a land removes its local record for good and prevents future queries from using it. Ordinary removal is recoverable and does not delete the record. Previously saved conversations are not in MVP scope unless explicitly added later.
 
 ## Question and land context
 
@@ -96,7 +103,7 @@ Answered response ── cited Source(s); abstained/clarification response ─�
 
 ## Privacy and data lifecycle
 
-- Land data stays on the device; a specific question may send only the contract-approved minimal land attributes for answer processing. Planned automatic snapshots stay in the same app data area and do not protect against device loss. Planned portable backups are plaintext user-controlled files that can be moved between Android and macOS Desktop.
+- Land data stays on the device; a specific question may send only the contract-approved minimal land attributes for answer processing. Up to three automatic copies of the land aggregate stay in the same app data area and do not protect against device loss. Planned portable backups are plaintext user-controlled files that can be moved between Android and macOS Desktop.
 - Explain that behavior in plain Spanish before first use; provide a way to inspect, edit, and remove saved lands.
 - Do not log land names, notes, precise identifiers, or raw questions by default. Define retention and deletion for operational logs before release.
 - Product-improvement retention is planned as default-off, explicit opt-in per question, redacted question/answer text only, no land context or stable identifiers, and automatic deletion within 30 days. It is not ready for real users until a qualified privacy/legal review is recorded.

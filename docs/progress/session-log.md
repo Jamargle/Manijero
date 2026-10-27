@@ -83,3 +83,10 @@ restate evidence here.
 | 2026-10-25 | `lands_screens_refresh` accepted. | [lands_screens_refresh.md](../specs/lands_screens_refresh.md) · [acceptance](../validations/lands_screens_refresh.md) |
 | 2026-10-27 | `official_source_monitoring` accepted. | [official_source_monitoring.md](../specs/official_source_monitoring.md) · [acceptance](../validations/official_source_monitoring.md) |
 | 2026-10-27 | `official_source_discovery` accepted. | [official_source_discovery.md](../specs/official_source_discovery.md) · [acceptance](../validations/official_source_discovery.md) |
+| 2026-10-27 | `recover_removed_lands` accepted. | [recover_removed_lands.md](../specs/recover_removed_lands.md) · [acceptance](../validations/recover_removed_lands.md) |
+| 2026-10-27 | `local_land_auto_backup` accepted. | [local_land_auto_backup.md](../specs/local_land_auto_backup.md) · [acceptance](../validations/local_land_auto_backup.md) |
+| 2026-10-27 | `official_document_candidate_ingestion` accepted. | [official_document_candidate_ingestion.md](../specs/official_document_candidate_ingestion.md) · [acceptance](../validations/official_document_candidate_ingestion.md) |
+| 2026-10-27 | `legal_change_impact_analysis` accepted. | [legal_change_impact_analysis.md](../specs/legal_change_impact_analysis.md) · [acceptance](../validations/legal_change_impact_analysis.md) |
+| 2026-10-27 | `knowledge_update_review_pr` accepted. | [knowledge_update_review_pr.md](../specs/knowledge_update_review_pr.md) · [acceptance](../validations/knowledge_update_review_pr.md) |
+| 2026-10-27 | `pac_evidence_expansion` accepted. | [pac_evidence_expansion.md](../specs/pac_evidence_expansion.md) · [acceptance](../validations/pac_evidence_expansion.md) |
+| 2026-10-27 | `hosting_provider_review` accepted. | [hosting_provider_review.md](../specs/hosting_provider_review.md) · [acceptance](../validations/hosting_provider_review.md) |

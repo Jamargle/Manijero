@@ -81,6 +81,8 @@ class AppNavigationTest {
                 AppDestination.AddLand,
                 AppDestination.EditLand,
                 AppDestination.RemoveLand,
+                AppDestination.RemovedLands,
+                AppDestination.PermanentlyDeleteLand,
             ).forEach { destination ->
                 assertEquals(remembered, rememberedSectionAfterBack(destination, remembered))
             }
@@ -116,6 +118,14 @@ class AppNavigationTest {
             tabForDestination(AppDestination.RemoveLand, AppSection.Assistant),
         )
         assertEquals(
+            AppSection.Lands,
+            tabForDestination(AppDestination.RemovedLands, AppSection.Assistant),
+        )
+        assertEquals(
+            AppSection.Lands,
+            tabForDestination(AppDestination.PermanentlyDeleteLand, AppSection.Assistant),
+        )
+        assertEquals(
             AppSection.Help,
             tabForDestination(AppDestination.Coverage, AppSection.Assistant),
         )
@@ -138,13 +148,15 @@ class AppNavigationTest {
     }
 
     @Test
-    fun `only the land forms hide the navigation bars`() {
+    fun `only the land forms and the deletion confirmation hide the navigation bars`() {
         assertFalse(navigationVisible(AppDestination.AddLand))
         assertFalse(navigationVisible(AppDestination.EditLand))
         assertFalse(navigationVisible(AppDestination.RemoveLand))
+        assertFalse(navigationVisible(AppDestination.PermanentlyDeleteLand))
 
         assertTrue(navigationVisible(AppDestination.Chat))
         assertTrue(navigationVisible(AppDestination.LandList))
+        assertTrue(navigationVisible(AppDestination.RemovedLands))
         assertTrue(navigationVisible(AppDestination.Coverage))
         assertTrue(navigationVisible(AppDestination.Privacy))
     }
@@ -169,6 +181,18 @@ class AppNavigationTest {
                 backTarget(form, AppSection.Lands, AppDestination.Chat),
             )
         }
+    }
+
+    @Test
+    fun `the removed list returns to the lands list and its confirmation to the removed list`() {
+        assertEquals(
+            AppDestination.LandList,
+            backTarget(AppDestination.RemovedLands, AppSection.Lands, AppDestination.Chat),
+        )
+        assertEquals(
+            AppDestination.RemovedLands,
+            backTarget(AppDestination.PermanentlyDeleteLand, AppSection.Lands, AppDestination.Chat),
+        )
     }
 
     @Test

@@ -239,9 +239,14 @@ class ExtractiveGroundingGenerator:
             markers.append(rank)
         if not claims:
             return DraftAnswer(status="abstained", answer="", source_markers=())
+        # One claim per line: a reviewed excerpt need not end with a terminal
+        # mark, and joining with a space would let the claim splitter merge two
+        # candidates into one sentence (and attach another passage's rules to
+        # the first claim). The assembled user-facing answer still joins the
+        # verified claims with a space.
         return DraftAnswer(
             status="answered",
-            answer=" ".join(claims),
+            answer="\n".join(claims),
             source_markers=tuple(markers),
         )
 
@@ -259,15 +264,29 @@ def normalize_text(text: str) -> str:
 
 
 def split_sentences(text: str) -> Tuple[str, ...]:
-    """Split text into sentences, keeping a trailing marker with its sentence.
+    """Split text into claims, keeping a trailing marker with its claim.
 
-    A citation marker follows the sentence it cites (``... fin. [1]``), so a
-    marker immediately after terminal punctuation is attached to the preceding
-    sentence instead of starting a new one.
+    A terminal mark (``.!?``) ends a claim: a citation marker follows the claim
+    it cites (``... fin. [1]``), so a marker immediately after terminal
+    punctuation is attached to the preceding claim instead of starting a new
+    one. A line break is always a claim boundary, because the code-composed
+    extractive generator emits one claim per line: a reviewed excerpt need not
+    end with a terminal mark, and joining two excerpts on one line would merge
+    them into a single claim that borrows the other passage's critical and
+    figure rules.
     """
 
     if not isinstance(text, str):
         return ()
+    sentences: List[str] = []
+    for line in text.splitlines():
+        sentences.extend(_split_line(line))
+    return tuple(sentence for sentence in sentences if sentence)
+
+
+def _split_line(text: str) -> Tuple[str, ...]:
+    """Split one line into claims at terminal punctuation."""
+
     source = text.strip()
     if not source:
         return ()

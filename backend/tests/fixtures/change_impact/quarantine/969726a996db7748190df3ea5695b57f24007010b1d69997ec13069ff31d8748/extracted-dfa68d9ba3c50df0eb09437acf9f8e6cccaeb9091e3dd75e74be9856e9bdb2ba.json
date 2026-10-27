@@ -1,0 +1,27 @@
+{
+  "blocks": [
+    {
+      "kind": "text",
+      "page": null,
+      "section": "Página 1",
+      "text": "Resolución de 9 de septiembre de 2099, de la Dirección General competente, por la que se modifica la Ley 5/2098, de 1 de diciembre (documento sintético)."
+    },
+    {
+      "kind": "text",
+      "page": null,
+      "section": "Página 1",
+      "text": "Se modifica el artículo 3 de la Ley 5/2098, de 1 de diciembre, en materia de comunicación de cambios."
+    },
+    {
+      "kind": "text",
+      "page": null,
+      "section": "Página 2",
+      "text": "Esta resolución entrará en vigor el 1 de enero de 2100."
+    }
+  ],
+  "candidate_id": "969726a996db7748190df3ea5695b57f24007010b1d69997ec13069ff31d8748",
+  "extractor": "manijero-document-extractor-v1",
+  "media_type": "html",
+  "schema_version": "official-ingestion-document-v1",
+  "title": null
+}

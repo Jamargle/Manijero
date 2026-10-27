@@ -72,12 +72,14 @@ Operational MUST/MUST NOT rules that future features have to respect on top of
 - **MUST**: every stored land MUST have a trimmed non-blank zone of at most 80 characters, both on
   create and on edit; clearing it MUST block the save. Reason: `land_measurement_fields` made the
   zone the second required identity field.
-- **MUST**: the current land store MUST have one canonical versioned format and decoder. The planned
-  recovery transition MUST migrate existing valid `land-store-v1` records exactly once to the new
-  aggregate format, preserving every decoded record as active; after migration, the old format is
-  input only and MUST NOT become a second ongoing write/read path. A malformed record MUST be skipped
-  whole and every migrated record MUST carry its zone. Reason: an already-shipped v1 store now needs
-  an explicit safe migration to represent active and removed lands.
+- **MUST**: the current land store MUST have one canonical versioned format (`land-store-v2`: active
+  and removed sections in one aggregate) and one current decoder. The recovery transition MUST migrate
+  existing valid `land-store-v1` records exactly once, preserving every decoded record as active;
+  after migration, the old format is input only and MUST NOT become a second ongoing write/read path.
+  A malformed record MUST be skipped whole and every migrated record MUST carry its zone. A refused
+  migration write MUST leave the v1 snapshot untouched and surface as a failed read, never as an empty
+  store. Reason: an already-shipped v1 store needs an explicit safe migration to represent active and
+  removed lands without losing or half-replacing the person's records.
 - **MUST NOT**: infer a zone, variety, surface, or tree count from a name, municipality, question, or
   another land. An absent optional value MUST stay absent in the store and MUST be omitted from the
   land details rather than shown as zero. Reason: land records must not imply knowledge or
@@ -87,6 +89,36 @@ Operational MUST/MUST NOT rules that future features have to respect on top of
   least one. Raw text MUST stay on screen after an invalid save. Reason: the approved validation table
   rounds a surface to the stored precision instead of refusing a plausible measurement or truncating it
   silently.
+
+## Land automatic copies
+
+- **MUST**: automatic land copies MUST stay on the same device, stay bounded (at most
+  `MAX_AUTOMATIC_LAND_SNAPSHOTS` whole-aggregate copies), and be written only after the primary
+  aggregate write succeeded. A refused copy MUST NOT turn a completed save into a reported failure;
+  the next successful write rotates a fresh copy in. No copy path may use a network API, a cloud
+  store, or an operating-system cloud-backup destination. Reason: `local_land_auto_backup` protects
+  against one damaged local write, not against device loss or uninstall; an unbounded or off-device
+  copy would silently become a different product promise.
+- **MUST**: an unreadable primary aggregate MUST be rebuilt from the newest fully valid automatic
+  copy and reported as a recovered state. With no fully valid copy the read MUST fail; it MUST NOT
+  open an empty store. A copy with damaged integrity metadata or one undecodable record MUST be
+  rejected whole, never offered as a complete restore. Reason: `local_land_auto_backup`; showing an
+  empty land list after corruption is exactly the data loss the copies exist to prevent.
+- **MUST**: permanent deletion MUST write a durable purge marker before rewriting the primary
+  aggregate, every read and every restore path MUST filter the marked ids, and the marker MUST be
+  cleared only after the primary and every retained copy are sanitized. Reason:
+  `local_land_auto_backup`; a crash between the primary write and a copy rewrite must never let an
+  older copy bring a deliberately deleted land back.
+- **MUST**: the Android host MUST keep the land data out of every operating-system backup and
+  transfer destination. Either `android:allowBackup="false"`, or `android:allowBackup="true"` with
+  both `android:fullBackupContent` and `android:dataExtractionRules` pointing at rule files that
+  exclude `domain="sharedpref" path="manijero_lands.xml"` from cloud backup and from
+  device-to-device transfer. A new preferences or file location that holds land data MUST extend
+  that exclusion in the same change. Reason: `local_land_auto_backup`; the privacy notice tells the
+  person there is no copy on the internet or on another device, and an OS backup of
+  `manijero_lands.xml` (the aggregate plus `land_store_snapshot_1..3` and `land_store_purge`) would
+  make that notice false. `AndroidBackupExclusionGuardTest` fails in `:shared:jvmTest` if the
+  declaration or either rule file regresses.
 
 ## Land list search and summary
 
@@ -128,12 +160,14 @@ Operational MUST/MUST NOT rules that future features have to respect on top of
 
 - **MUST**: ordinary land removal MUST move exactly one named active record to the local removed list
   only after explicit confirmation; it MUST preserve all other records and keep removed lands out of
-  chat context. Permanent deletion MUST require a second explicit confirmation and MUST remove that
-  record from the active/removed aggregate and every app-managed automatic snapshot. Neither action
-  may claim success after a missing-record or storage failure. User-exported files are outside this
-  deletion guarantee and MUST be described as capable of restoring their old contents. Reason: the
-  owner chose recoverability without cloud sync; removal and permanent deletion have distinct
-  consequences.
+  chat context. A restore MUST return exactly that removed record with its stored fields unchanged to
+  the end of the active list, and MUST NOT reorder the other active or removed records. Permanent
+  deletion MUST target only a record already in the removed list, MUST require a second explicit
+  confirmation naming it, and MUST remove that record from the active/removed aggregate and every
+  app-managed automatic snapshot. Neither action may claim success after a missing-record or storage
+  failure. User-exported files are outside this deletion guarantee and MUST be described as capable
+  of restoring their old contents. Reason: the owner chose recoverability without cloud sync; removal,
+  restore, and permanent deletion have distinct consequences.
 
 - **MUST**: automatic land snapshots MUST remain on the same device and be bounded. Portable backup
   files MUST use one versioned cross-platform schema, remain plaintext, contain only land data, and
@@ -159,17 +193,19 @@ Operational MUST/MUST NOT rules that future features have to respect on top of
 
 ## Client land context
 
-- **MUST**: the `land_context` sent with a question MUST carry every stored land whenever at least
-  one exists — `mode: all_active`, repository order, opaque local ids verbatim — and, per land, only
-  the optional attributes the question actually needs (`municipality`, `water_regime`,
+- **MUST**: the `land_context` sent with a question MUST carry every active stored land whenever at
+  least one exists — `mode: all_active`, repository order, opaque local ids verbatim — and, per land,
+  only the optional attributes the question actually needs (`municipality`, `water_regime`,
   `production_method`); it MUST NOT carry a land name, free-text note, area, timestamp, or any
   contract-unknown key, MUST send a needed but unknown stored value as `unknown` (never a guess),
   MUST omit a value it does not have (an unset `municipality`) rather than a placeholder or an empty
-  string, MUST use `mode: general` with `lands: []` only when no land is stored, and MUST NOT rewrite
-  the person's exact wording or change the attribute decision silently (a vocabulary change is a spec
-  and test change). Reason: `minimal_land_context` established that the device's private labels and
+  string, MUST use `mode: general` with `lands: []` only when no active land is stored, and MUST NOT
+  rewrite the person's exact wording or change the attribute decision silently (a vocabulary change
+  is a spec and test change). Removed-list lands MUST NOT enter `land_context`, a clarification, or
+  an answer request even when they are the only stored records; that case is `general` with
+  `lands: []`. Reason: `minimal_land_context` established that the device's private labels and
   details never leave it with a question, that omission in the payload means "not needed" and never
-  "invented", and that the current lands must be re-read at submit and retry time so an added,
+  "invented", and that the current active lands must be re-read at submit and retry time so an added,
   edited, or removed land is reflected without exposing anything new.
 
 ## Land clarification
@@ -207,17 +243,18 @@ Operational MUST/MUST NOT rules that future features have to respect on top of
 ## Land data disclosure
 
 - **MUST**: the on-screen data-handling notice MUST describe only the current behaviour — the lands
-  are saved device-locally, and a question sends the question as written plus, for a land-aware
-  answer, each land's opaque id and only the needed `municipality`/`water_regime`/`production_method`
-  (an unknown value sent as `unknown`; name, zone, variety, custom variety, surface, tree count,
-  notes and timestamps never sent). It MUST NOT promise
-  backup, a cloud copy, or confidentiality beyond what the answer service's own terms offer, and
-  MUST NOT name a land, an id, or make any eligibility or legal claim. Its sendable-attribute list
-  MUST stay pinned (`privacy/LandDataDisclosure.kt`) and tied to the real encoded payload by a test,
-  so adding a sendable dimension fails until the notice is updated. Reason: `land_data_disclosure`
-  established that a person must be able to trust the plain-Spanish notice to match what the app
-  actually does, so over-promising a backup or under-describing the payload is the failure to avoid;
-  `chat_accessibility` audits the surface next.
+  are saved device-locally in bounded automatic copies on the same device, and a question sends the
+  question as written plus, for a land-aware answer, each land's opaque id and only the needed
+  `municipality`/`water_regime`/`production_method` (an unknown value sent as `unknown`; name, zone,
+  variety, custom variety, surface, tree count, notes and timestamps never sent). It MUST NOT promise
+  recovery after device loss, an uninstall, a cloud copy, or confidentiality beyond what the answer
+  service's own terms offer, and MUST NOT name a land, an id, or make any eligibility or legal claim.
+  Its sendable-attribute list MUST stay pinned (`privacy/LandDataDisclosure.kt`) and tied to the real
+  encoded payload by a test, so adding a sendable dimension fails until the notice is updated.
+  Reason: `land_data_disclosure` established that a person must be able to trust the plain-Spanish
+  notice to match what the app actually does, so over-promising a backup or under-describing the
+  payload is the failure to avoid; `chat_accessibility` audits the surface next, and
+  `local_land_auto_backup` made same-device copies real.
 
 ## Chat accessibility
 
@@ -371,9 +408,43 @@ Operational MUST/MUST NOT rules that future features have to respect on top of
 - **MUST**: scheduled source checks are best-effort and MUST expose last-success time, failures, and
   missed runs; a schedule alone MUST NOT be represented as proof that the corpus is current.
   Reason: external schedulers and official sites can delay or fail.
+- **MUST**: change-impact analysis MUST stay read-only over approved knowledge and MUST NOT retire,
+  replace, re-approve, or re-date a source, passage, evaluation case, index, or answer. Every
+  potentially affected candidate MUST remain review-required, and an ambiguous publication,
+  amendment, repeal, or validity signal MUST NOT authorize retirement or be dropped silently: every
+  ambiguous signal, negated wording included, MUST make its candidate review-required even when it
+  links no approved source or links only a reviewed passage or evaluation case. Reason:
+  `legal_change_impact_analysis` detects wording; only an identified human can decide what a legal
+  change means for the reviewed corpus.
+- **MUST**: canonical catalog and passage changes MUST go through the controlled merge that verifies
+  an explicit approval by a named requested reviewer other than the proposal author, a matching
+  package/checks/case digest, all required checks passing, and current canonical bytes matching the
+  reviewed baseline. A proposal that changes the reviewed corpus MUST supply the reviewed
+  answer-evaluation case set; preparation MUST validate the **after-state** and block readiness with
+  the orphaned case ids, and merge MUST require the same digest-bound case set and revalidate it.
+  Without cases, a catalog/passage change MUST be blocked (a no-op proposal may pass). A bot, CI
+  status, label, or matching hash MUST NOT count as approval; the commands refuse known automation
+  identities but identities are not authenticated; a rejected or changes-requested package MUST
+  leave canonical knowledge byte-identical; and merge MUST NOT reindex, release, or deploy. Canonical
+  after hashes and writes MUST preserve the field order of entries the proposal does not rewrite, so a
+  no-op merge is byte-identical; a newly added or rewritten entry may take the proposal's own
+  serialization.
+  Reason: `knowledge_update_review_pr` keeps approval with a person and separates a bounded reviewed
+  merge from publication; an unreviewed case set or a reordered file would hide corpus drift.
 - **MUST**: a knowledge release MUST rebuild indexes from approved canonical artifacts, record artifact
   and model versions, pass structural/grounding gates, and support rollback to the prior index.
   Reason: generated indexes are derived data and must not drift from reviewed sources.
 - **MUST**: retrieval changes MUST be compared with the measured BM25 baseline on the reviewed cases;
   report-only metrics MUST NOT be described as improved answer quality without sufficient reviewed
   evidence.
+
+## Hosted pilot and provider boundaries
+
+- **MUST**: a managed tunnel is transport only; any public pilot API MUST enforce its own
+  authentication, authorization, per-client rate limiting, and request-size limits. Reason:
+  `hosting_provider_review` found that Cloudflare Tunnel removes the public origin IP but does not
+  authenticate the application, and the current OpenAPI contract declares no security scheme.
+- **MUST NOT**: let a real-user question transit a host, tunnel, or generation provider until the
+  current terms, data flow, log/retention behavior, and qualified privacy review are recorded and
+  approved. Reason: the 2026-10-27 decision keeps the owned-server path blocked on owner attestation
+  and keeps Gemini disabled by default; provider selection alone is not pilot approval.

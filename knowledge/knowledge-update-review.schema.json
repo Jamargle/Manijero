@@ -1,0 +1,416 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://manijero.invalid/schemas/knowledge-update-review-package-v1.json",
+  "title": "Manijero knowledge-update review package",
+  "description": "Draft, human-reviewable knowledge-update package prepared from quarantined official-document candidates. It is not canonical knowledge, carries no approval, and is never merged automatically. The readable contract; backend/app/review_package.py is the executable producer and must stay in sync with it.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "package_id",
+    "preparer",
+    "prepared_on",
+    "author",
+    "review",
+    "package_kind",
+    "summary",
+    "candidates",
+    "proposal",
+    "affected",
+    "checks",
+    "check_summary",
+    "merge_readiness",
+    "blocking_reasons",
+    "unresolved_questions",
+    "limits"
+  ],
+  "properties": {
+    "schema_version": {"const": "knowledge-update-review-package-v1"},
+    "package_id": {"$ref": "#/$defs/sha256"},
+    "preparer": {"type": "string", "minLength": 1},
+    "prepared_on": {"$ref": "#/$defs/iso_date"},
+    "author": {"$ref": "#/$defs/author"},
+    "review": {"$ref": "#/$defs/review"},
+    "package_kind": {"enum": ["single_update", "coherent_batch"]},
+    "summary": {"type": "string", "minLength": 1},
+    "candidates": {
+      "type": "array",
+      "minItems": 1,
+      "maxItems": 20,
+      "items": {"$ref": "#/$defs/candidate"}
+    },
+    "proposal": {"$ref": "#/$defs/proposal"},
+    "affected": {"$ref": "#/$defs/affected"},
+    "checks": {
+      "type": "array",
+      "minItems": 1,
+      "items": {"$ref": "#/$defs/check"}
+    },
+    "check_summary": {"$ref": "#/$defs/check_summary"},
+    "merge_readiness": {"enum": ["ready_for_review", "needs_human_attention"]},
+    "blocking_reasons": {
+      "type": "array",
+      "items": {"type": "string", "minLength": 1}
+    },
+    "unresolved_questions": {
+      "type": "array",
+      "maxItems": 51,
+      "items": {"type": "string", "minLength": 1}
+    },
+    "limits": {
+      "type": "array",
+      "minItems": 1,
+      "items": {"type": "string", "minLength": 1}
+    }
+  },
+  "$defs": {
+    "sha256": {"type": "string", "pattern": "^[a-f0-9]{64}$"},
+    "iso_date": {"type": "string", "pattern": "^\\d{4}-\\d{2}-\\d{2}$"},
+    "nullable_string": {"type": ["string", "null"]},
+    "author": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["identity", "kind"],
+      "properties": {
+        "identity": {"type": "string", "minLength": 1},
+        "kind": {"enum": ["human", "automation"]}
+      }
+    },
+    "review": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "requires_human_review",
+        "draft",
+        "requested_reviewers",
+        "independent_reviewer_required",
+        "bot_or_ci_is_not_approval",
+        "merge_protection"
+      ],
+      "properties": {
+        "requires_human_review": {"const": true},
+        "draft": {"const": true},
+        "requested_reviewers": {
+          "type": "array",
+          "minItems": 1,
+          "items": {"type": "string", "minLength": 1}
+        },
+        "independent_reviewer_required": {"const": true},
+        "bot_or_ci_is_not_approval": {"const": true},
+        "merge_protection": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["hosting_platform_enforced", "controlled_merge_verifies_approval"],
+          "properties": {
+            "hosting_platform_enforced": {"const": false},
+            "controlled_merge_verifies_approval": {"const": true}
+          }
+        }
+      }
+    },
+    "candidate": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "candidate_id",
+        "issuer",
+        "title",
+        "stable_identity",
+        "publication_url",
+        "registry",
+        "observation",
+        "integrity",
+        "documents",
+        "ingestion_status",
+        "version_status",
+        "text_diff",
+        "signals",
+        "potentially_affected",
+        "resolution",
+        "declared_unknowns"
+      ],
+      "properties": {
+        "candidate_id": {"$ref": "#/$defs/sha256"},
+        "issuer": {"type": ["string", "null"]},
+        "title": {"type": ["string", "null"]},
+        "stable_identity": {"type": ["string", "null"]},
+        "publication_url": {"type": ["string", "null"]},
+        "registry": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["id", "url"],
+          "properties": {
+            "id": {"$ref": "#/$defs/nullable_string"},
+            "url": {"$ref": "#/$defs/nullable_string"}
+          }
+        },
+        "observation": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["attempted_at", "succeeded_at", "version_hash"],
+          "properties": {
+            "attempted_at": {"$ref": "#/$defs/nullable_string"},
+            "succeeded_at": {"$ref": "#/$defs/nullable_string"},
+            "version_hash": {"$ref": "#/$defs/nullable_string"}
+          }
+        },
+        "integrity": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "original_sha256",
+            "previous_original_sha256",
+            "extracted_text_sha256",
+            "extractor",
+            "media_type",
+            "declared_content_type",
+            "byte_size",
+            "page_count",
+            "block_count"
+          ],
+          "properties": {
+            "original_sha256": {"$ref": "#/$defs/nullable_string"},
+            "previous_original_sha256": {"$ref": "#/$defs/nullable_string"},
+            "extracted_text_sha256": {"$ref": "#/$defs/nullable_string"},
+            "extractor": {"$ref": "#/$defs/nullable_string"},
+            "media_type": {"$ref": "#/$defs/nullable_string"},
+            "declared_content_type": {"$ref": "#/$defs/nullable_string"},
+            "byte_size": {"type": ["integer", "null"], "minimum": 0},
+            "page_count": {"type": ["integer", "null"], "minimum": 1},
+            "block_count": {"type": ["integer", "null"], "minimum": 0}
+          }
+        },
+        "documents": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["original_path", "extracted_path", "sections", "replacement_characters"],
+          "properties": {
+            "original_path": {"$ref": "#/$defs/nullable_string"},
+            "extracted_path": {"$ref": "#/$defs/nullable_string"},
+            "sections": {
+              "type": "array",
+              "items": {"type": "string", "minLength": 1}
+            },
+            "replacement_characters": {"type": ["integer", "null"], "minimum": 0}
+          }
+        },
+        "ingestion_status": {"type": "string", "minLength": 1},
+        "version_status": {"type": "string", "minLength": 1},
+        "text_diff": {
+          "anyOf": [{"$ref": "#/$defs/text_diff"}, {"type": "null"}]
+        },
+        "signals": {
+          "type": "array",
+          "items": {"$ref": "#/$defs/signal"}
+        },
+        "potentially_affected": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["sources", "passages", "evaluation_cases"],
+          "properties": {
+            "sources": {"type": "array", "items": {"$ref": "#/$defs/linked_item"}},
+            "passages": {"type": "array", "items": {"$ref": "#/$defs/linked_item"}},
+            "evaluation_cases": {"type": "array", "items": {"$ref": "#/$defs/linked_item"}}
+          }
+        },
+        "resolution": {
+          "anyOf": [{"$ref": "#/$defs/resolution"}, {"type": "null"}]
+        },
+        "declared_unknowns": {
+          "type": "array",
+          "items": {"enum": ["validity", "applicability"]}
+        }
+      }
+    },
+    "linked_item": {
+      "type": "object",
+      "additionalProperties": true,
+      "required": ["id"],
+      "properties": {"id": {"type": "string", "minLength": 1}}
+    },
+    "resolution": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["findings", "note"],
+      "properties": {
+        "findings": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "enum": ["ambiguous_signal", "conflicting_signals", "text_changed_without_signal"]
+          }
+        },
+        "note": {"type": "string", "minLength": 1}
+      }
+    },
+    "text_diff": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["blocks_added", "blocks_removed", "locations_changed", "text_changed", "excerpts"],
+      "properties": {
+        "blocks_added": {"type": "integer", "minimum": 0},
+        "blocks_removed": {"type": "integer", "minimum": 0},
+        "locations_changed": {"type": "integer", "minimum": 0},
+        "text_changed": {"type": "boolean"},
+        "excerpts": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["change", "page", "section", "excerpt"],
+            "properties": {
+              "change": {"enum": ["added", "removed"]},
+              "page": {"type": ["integer", "null"], "minimum": 1},
+              "section": {"type": "string", "minLength": 1},
+              "excerpt": {"type": "string", "minLength": 1, "maxLength": 280}
+            }
+          }
+        }
+      }
+    },
+    "signal": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["kind", "classification", "reason", "page", "section", "excerpt", "instrument_keys"],
+      "properties": {
+        "kind": {"enum": ["repeal", "amendment", "validity", "publication"]},
+        "classification": {"enum": ["machine_evident", "ambiguous"]},
+        "reason": {"type": "string", "minLength": 1},
+        "page": {"type": ["integer", "null"], "minimum": 1},
+        "section": {"type": "string", "minLength": 1},
+        "excerpt": {"type": "string", "minLength": 1, "maxLength": 280},
+        "instrument_keys": {
+          "type": "array",
+          "items": {"type": "string", "minLength": 1}
+        }
+      }
+    },
+    "proposal": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "input",
+        "before",
+        "after",
+        "differences",
+        "differences_truncated",
+        "evaluation"
+      ],
+      "properties": {
+        "input": {"type": "object"},
+        "before": {"$ref": "#/$defs/digests"},
+        "after": {"$ref": "#/$defs/digests"},
+        "differences": {
+          "type": "array",
+          "items": {"$ref": "#/$defs/difference"}
+        },
+        "differences_truncated": {"type": "boolean"},
+        "evaluation": {"$ref": "#/$defs/evaluation"}
+      }
+    },
+    "evaluation": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "cases_available",
+        "cases_sha256",
+        "case_count",
+        "validated_against",
+        "orphaned_case_ids",
+        "rewritten_case_ids"
+      ],
+      "properties": {
+        "cases_available": {"type": "boolean"},
+        "cases_sha256": {
+          "anyOf": [{"$ref": "#/$defs/sha256"}, {"type": "null"}]
+        },
+        "case_count": {"type": "integer", "minimum": 0},
+        "validated_against": {"const": "after"},
+        "orphaned_case_ids": {
+          "type": "array",
+          "items": {"type": "string", "minLength": 1}
+        },
+        "rewritten_case_ids": {
+          "type": "array",
+          "items": {"type": "string", "minLength": 1}
+        }
+      }
+    },
+    "digests": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["catalog_sha256", "passages_sha256"],
+      "properties": {
+        "catalog_sha256": {"$ref": "#/$defs/sha256"},
+        "passages_sha256": {"$ref": "#/$defs/sha256"}
+      }
+    },
+    "difference": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["target", "change", "id", "fields"],
+      "properties": {
+        "target": {"enum": ["catalog", "passages"]},
+        "change": {"enum": ["added", "updated", "removed"]},
+        "id": {"type": ["string", "null"]},
+        "fields": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["name", "before", "after", "truncated"],
+            "properties": {
+              "name": {"type": "string", "minLength": 1},
+              "before": {"$ref": "#/$defs/nullable_string"},
+              "after": {"$ref": "#/$defs/nullable_string"},
+              "truncated": {"type": "boolean"}
+            }
+          }
+        }
+      }
+    },
+    "affected": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "sources",
+        "passages",
+        "evaluation_cases",
+        "evaluation_report_only",
+        "evaluation_statement"
+      ],
+      "properties": {
+        "sources": {"type": "array", "items": {"$ref": "#/$defs/linked_item"}},
+        "passages": {"type": "array", "items": {"$ref": "#/$defs/linked_item"}},
+        "evaluation_cases": {"type": "array", "items": {"$ref": "#/$defs/linked_item"}},
+        "evaluation_report_only": {"const": true},
+        "evaluation_statement": {"type": "string", "minLength": 1}
+      }
+    },
+    "check": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "candidate_id", "status", "detail"],
+      "properties": {
+        "id": {"type": "string", "minLength": 1},
+        "candidate_id": {"type": ["string", "null"]},
+        "status": {"enum": ["pass", "fail", "report_only"]},
+        "detail": {"type": "string", "minLength": 1}
+      }
+    },
+    "check_summary": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["passed", "failed", "report_only", "failed_checks"],
+      "properties": {
+        "passed": {"type": "integer", "minimum": 0},
+        "failed": {"type": "integer", "minimum": 0},
+        "report_only": {"type": "integer", "minimum": 0},
+        "failed_checks": {
+          "type": "array",
+          "items": {"type": "string", "minLength": 1}
+        }
+      }
+    }
+  }
+}
