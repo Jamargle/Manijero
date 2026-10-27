@@ -371,3 +371,138 @@ versions retain prior observations. Failures preserve candidates and
 last-success timestamps. Candidates remain `pending`; a human must verify
 provenance and approve any canonical change. See
 `knowledge/official-discovery-state.schema.json`.
+
+## Manual official-document candidate ingestion
+
+`app/document_ingestion.py` fetches the pending publication candidates produced
+by discovery into a local **quarantine**. It is the only command in this
+repository that downloads a publication body, and it is still not an
+answerability path: it never reads or writes `knowledge/source_catalog.json`,
+`knowledge/passages.json`, or any index, and every ingested record stays
+`review_status: pending`. A human must review, extract approved passages, and
+merge a canonical change separately.
+
+**Admission rules.** A candidate is fetched only when its declared issuer is one
+of the approved catalog issuers and its `publication_url` uses HTTPS on that
+issuer's exact approved host, including the approved `www.` alias where listed
+(no subdomain or suffix matching), with no credentials, non-443 port, site root,
+or fragment. Anything else is rejected before a request is made. Redirects are
+followed only when every hop stays on HTTPS and on an exact host approved for
+the same issuer, at most three hops; any other redirect, a final URL outside
+that host set, or a non-200 response fails the candidate. FEGA and MAPA
+publications still need a BOE host unless the URL host is one of their own
+approved hosts.
+
+**Inputs.** `--discovery-state` is the `official-discovery-state-v1` file.
+`--monitor-state` is optional. Monitoring deliberately retains only feed
+response metadata, not linked document URLs, so it contributes **zero**
+candidates and each monitored source is reported as
+`unchecked / no_document_candidates`; the command does not guess documents from
+a feed.
+
+Run it from the repository root with an operator-owned state and quarantine
+path outside `knowledge/`:
+
+```sh
+backend/.venv/bin/python backend/scripts/ingest_official_documents.py \
+  --discovery-state /path/to/official-discovery-state.json \
+  --monitor-state /path/to/source-monitor-state.json \
+  --state /path/to/official-ingestion-state.json \
+  --quarantine /path/to/official-document-quarantine
+```
+
+Omit `--monitor-state` when no monitoring state exists. The JSON report lists
+one outcome per candidate (`extracted`, `unchanged`, `failed`, `rejected`) with
+fixed failure categories and the preserved provenance hashes. Exit `0` means no
+candidate failed or was rejected, `1` means at least one did (the run still
+persists every other outcome), and `2` means the run aborted before producing a
+report: an unreadable or invalid config/state file, a discovery state over 1,000
+candidates, a state/quarantine path inside the repository `knowledge/`
+directory, or an unexpected exception. Those pre-fetch rejections make no
+request. Exit `0` is not coverage evidence: the report still shows the
+monitoring gap and any rejected candidate.
+
+**Bounds.** One candidate is requested once per run with no retry loop. Each
+request has a 15-second timeout, a 10 MiB response cap, and at most three
+same-issuer redirects; exceeding any of these fails that candidate. Per-candidate
+PDF/text bounds are 20 MiB decompressed, 500 pages, 20,000 objects, 200 fonts per
+page, 65,536 CMap entries, and 5,000 blocks / 2,000,000 characters; exceeding one
+fails that candidate closed. A discovery state containing more than 1,000
+candidates aborts the whole run as exit `2` before any fetch. Only
+`application/pdf`, `text/html`, and `application/xhtml+xml` declared types are
+accepted, and the body must have the matching PDF/HTML signature.
+
+**What is preserved.** For each accepted candidate the quarantine directory
+`<quarantine>/<candidate_id>/` holds the exact original bytes
+(`original-<sha256>.<pdf|html>`) and the extracted structure
+(`extracted-<sha256>.json`), named by content hash so a changed version does
+not overwrite the prior copy. The state records the discovery provenance
+(issuer, registry URL, publication URL, stable identity, observation version
+hash), retrieval time, declared/content type, byte size, original SHA-256,
+extractor version, extracted-text SHA-256, page/block counts, previous original
+hash, and a bounded attempt history. HTML blocks carry a heading path as their
+`section`; PDF blocks carry `Página N`. The readable contracts are
+`knowledge/official-ingestion-state.schema.json` and
+`knowledge/official-ingestion-document.schema.json`.
+
+**Failure and recovery.** A failed or rejected attempt leaves any previous good
+extraction and its files untouched, records the fixed failure category, and
+keeps the last-success time. Re-running the same discovery state retries failed
+candidates and skips an unchanged successfully ingested candidate (same version
+hash, current extractor version/media type, and files present). A changed
+discovery version hash re-fetches
+and re-extracts, preserving the old hashed files and recording
+`previous_original_sha256`. Duplicate candidate URLs and duplicate document
+bytes inside one run are rejected (`duplicate_candidate`, `duplicate_content`)
+rather than ingested twice. If the ingestion state file is invalid, the command
+exits `2` and overwrites nothing. To start over, stop the command, move the
+state file and quarantine directory aside, and run again; the deleted quarantine
+is not recoverable from the service.
+
+**Refreshing extraction.** A stored `extractor` value that differs from the
+current `manijero-document-extractor-v1` makes the candidate eligible for a
+re-fetch and re-extraction on the next run. Original bytes stay hashed per
+version and are not deleted, but when the bytes are unchanged the same-named
+`extracted-<sha256>.json` is replaced by the new extraction, so keep your own
+copy if you need to compare parser outputs. Because discovery's `version_hash`
+covers only title and URL, a publisher replacing bytes at the same stable URL
+without changing either is not detected as a new version. To force a refetch,
+remove that candidate's state record (or use a fresh state file) and keep the
+old quarantine files for comparison.
+
+**Operational limits.** `page_count` counts PDF pages that produced at least one
+text block, not the PDF's declared page count. The quarantine grows with every
+changed version and is never garbage-collected. The command has no lock: run one
+ingestion process per state/quarantine pair at a time. The state is validated
+structurally and file-presence paths must stay inside the candidate's quarantine
+directory, but the remaining provenance values in the state file are trusted
+operator input.
+
+**Extraction limits.** PDF extraction is standard-library and handles
+uncompressed or Flate-compressed content streams with literal/hex strings,
+UTF-16BE/LE string BOMs, PDF 1.5 object streams, multiple page content streams,
+and embedded-font `ToUnicode` CMaps (`bfchar`/`bfrange`, including array
+ranges). It does **not** decode LZW/ASCII85/encrypted PDFs, scanned images, or
+glyphs missing from an incomplete subset-font map. Such documents fail as
+`unsupported_pdf_encoding`, `malformed_document`, or `no_extractable_text`, or
+leave `U+FFFD` placeholders where a map omits a used code; blocks containing
+only replacement characters are dropped. OCR is not implemented or measured.
+
+Live smoke checks on 2026-10-27 fetched and parsed one BOE PDF (2 pages, 4,179
+characters, no replacement characters) and one BOJA PDF whose HTTP `307`
+redirect stayed on the same issuer (35 pages, 80,388 characters, about 6.3%
+replacement characters because subset fonts omitted glyph mappings). That is
+not a general accuracy measurement: a reviewer must still compare the original
+and extracted text, especially for BOJA subset fonts, before proposing a
+canonical update. HTML parsing skips
+`script`/`style`/`template`/`noscript` and preserves heading hierarchy, but it
+is not a full-text browser rendering.
+
+The fetch uses the platform CA trust store. If `urllib` raises
+`CERTIFICATE_VERIFY_FAILED` while `curl` succeeds, set `SSL_CERT_FILE` to a CA
+bundle (for example the `certifi` bundle inside `backend/.venv`) rather than
+disabling certificate verification.
+
+The extractor and state never log document text or upstream exception text;
+failure categories are fixed strings. Keep the quarantine and state directories
+access-controlled and back them up if review history matters.

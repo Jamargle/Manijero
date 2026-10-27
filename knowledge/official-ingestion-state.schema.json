@@ -1,0 +1,75 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://manijero.invalid/schemas/official-ingestion-state-v1.json",
+  "title": "Official document candidate ingestion quarantine state",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema_version", "candidates"],
+  "properties": {
+    "schema_version": {"const": "official-ingestion-state-v1"},
+    "candidates": {
+      "type": "object",
+      "additionalProperties": {"$ref": "#/$defs/record"}
+    }
+  },
+  "$defs": {
+    "attempt": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["attempted_at", "status", "failure"],
+      "properties": {
+        "attempted_at": {"type": "string", "minLength": 1},
+        "status": {"enum": ["extracted", "failed", "rejected"]},
+        "failure": {"type": ["string", "null"]},
+        "original_sha256": {"type": "string", "pattern": "^[a-f0-9]{64}$"}
+      }
+    },
+    "record": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "candidate_id",
+        "issuer",
+        "registry_id",
+        "registry_url",
+        "publication_url",
+        "title",
+        "stable_identity",
+        "version_hash",
+        "review_status",
+        "status",
+        "failure",
+        "last_attempt_at",
+        "last_success_at",
+        "attempts"
+      ],
+      "properties": {
+        "candidate_id": {"type": "string", "pattern": "^[a-f0-9]{64}$"},
+        "issuer": {"type": "string", "minLength": 1},
+        "registry_id": {"type": "string", "minLength": 1},
+        "registry_url": {"type": "string", "pattern": "^https://"},
+        "publication_url": {"type": "string", "pattern": "^https://"},
+        "title": {"type": "string", "minLength": 1},
+        "stable_identity": {"type": "string", "minLength": 1},
+        "version_hash": {"type": "string", "pattern": "^[a-f0-9]{64}$"},
+        "review_status": {"const": "pending"},
+        "status": {"enum": ["extracted", "failed", "rejected"]},
+        "failure": {"type": ["string", "null"]},
+        "last_attempt_at": {"type": ["string", "null"]},
+        "last_success_at": {"type": ["string", "null"]},
+        "original_sha256": {"type": "string", "pattern": "^[a-f0-9]{64}$"},
+        "byte_size": {"type": "integer", "minimum": 1},
+        "declared_content_type": {"type": "string", "minLength": 1},
+        "media_type": {"enum": ["pdf", "html"]},
+        "extractor": {"type": "string", "minLength": 1},
+        "extracted_text_sha256": {"type": "string", "pattern": "^[a-f0-9]{64}$"},
+        "page_count": {"type": ["integer", "null"], "minimum": 1},
+        "block_count": {"type": "integer", "minimum": 1},
+        "original_path": {"type": "string", "minLength": 1},
+        "extracted_path": {"type": "string", "minLength": 1},
+        "previous_original_sha256": {"type": "string", "pattern": "^[a-f0-9]{64}$"},
+        "attempts": {"type": "array", "items": {"$ref": "#/$defs/attempt"}}
+      }
+    }
+  }
+}

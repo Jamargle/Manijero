@@ -85,3 +85,4 @@ restate evidence here.
 | 2026-10-27 | `official_source_discovery` accepted. | [official_source_discovery.md](../specs/official_source_discovery.md) · [acceptance](../validations/official_source_discovery.md) |
 | 2026-10-27 | `recover_removed_lands` accepted. | [recover_removed_lands.md](../specs/recover_removed_lands.md) · [acceptance](../validations/recover_removed_lands.md) |
 | 2026-10-27 | `local_land_auto_backup` accepted. | [local_land_auto_backup.md](../specs/local_land_auto_backup.md) · [acceptance](../validations/local_land_auto_backup.md) |
+| 2026-10-27 | `official_document_candidate_ingestion` accepted. | [official_document_candidate_ingestion.md](../specs/official_document_candidate_ingestion.md) · [acceptance](../validations/official_document_candidate_ingestion.md) |
