@@ -1,0 +1,18 @@
+# Exact runtime pins for the private pilot service.
+#
+# Why this file exists: the development launcher installs requirements.txt, which allows
+# a range and is refreshed from the network on every start. A hosted service needs the
+# runtime it was checked with, and an update should be a deliberate, reviewable bump.
+#
+# Install into the service virtualenv:
+#   python3 -m venv /opt/manijero/repo/backend/.venv
+#   /opt/manijero/repo/backend/.venv/bin/python -m pip install --upgrade pip
+#   /opt/manijero/repo/backend/.venv/bin/python -m pip install -r backend/deploy/requirements-production.txt
+#
+# These are direct dependencies only. Transitive versions are resolved at install time and
+# are not hash-pinned; record `pip freeze` output with the deployed revision if an exact
+# transitive set has to be reproducible. The pins below are the versions this feature was
+# verified with on Python 3.14.5.
+fastapi==0.162.0
+uvicorn[standard]==0.54.0
+httpx==0.28.1

@@ -110,12 +110,19 @@ def get_retrieval_k() -> int:
     return 5
 
 
-def load_corpus_documents() -> CorpusDocuments:
-    """Read canonical repository artifacts; failures are translated by the route."""
+def load_corpus_documents(
+    catalog_path: Path | None = None,
+    passages_path: Path | None = None,
+) -> CorpusDocuments:
+    """Read canonical repository artifacts; failures are translated by the route.
+
+    The optional paths are an operator-tool seam (preflight and restore verification);
+    the request path always uses the canonical artifact locations.
+    """
 
     try:
-        catalog = load_catalog(CATALOG_PATH)
-        passages = json.loads(PASSAGES_PATH.read_text(encoding="utf-8"))
+        catalog = load_catalog(catalog_path or CATALOG_PATH)
+        passages = json.loads((passages_path or PASSAGES_PATH).read_text(encoding="utf-8"))
     except (CatalogReadError, OSError, json.JSONDecodeError):
         return CorpusDocuments(catalog=None, passages=None, load_error=True)
     return CorpusDocuments(catalog=catalog, passages=passages)
