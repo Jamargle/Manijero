@@ -7,10 +7,10 @@ Routine entry point. Exact feature status lives in [`feature_list.json`](feature
 contracts, raw evidence, and acceptance records remain in their owning files. Last updated:
 2026-10-27.
 
-**Feature status** — 55 of 68 features are accepted: the original 50, `official_source_monitoring`,
+**Feature status** — 59 of 68 features are accepted: the original 50, `official_source_monitoring`,
 `official_source_discovery`, `official_document_candidate_ingestion`, `legal_change_impact_analysis`,
 `knowledge_update_review_pr`, `pac_evidence_expansion`, `recover_removed_lands`,
-`local_land_auto_backup`, and `hosting_provider_review`. Eight remain `not_started`: the
+`local_land_auto_backup`, and `hosting_provider_review`. Nine remain `not_started`: the
 retrieval/generation chain, the hosted pilot and release chain, and `portable_land_backup`. The
 selector is the current status view; this page does not duplicate the feature-id list.
 
