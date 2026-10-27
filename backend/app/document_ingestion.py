@@ -457,6 +457,16 @@ def _destination_failure(candidate: Dict[str, Any]) -> Optional[str]:
     return None
 
 
+def candidate_admission_issue(candidate: Dict[str, Any]) -> Optional[str]:
+    """Return the fixed admission failure for a candidate record, if any.
+
+    Public, network-free seam: review preparation reuses the one approved-host
+    admission policy instead of duplicating the allowlist. This function never
+    fetches anything.
+    """
+    return _destination_failure(candidate)
+
+
 def _fetch(publication_url: str, allowed_hosts: Iterable[str]) -> FetchedDocument:
     """Fetch one allowed URL, following only bounded same-issuer HTTPS redirects."""
     allowed = frozenset(allowed_hosts)
