@@ -7,11 +7,11 @@ Routine entry point. Exact feature status lives in [`feature_list.json`](feature
 contracts, raw evidence, and acceptance records remain in their owning files. Last updated:
 2026-10-27.
 
-**Feature status** — 60 of 68 features are accepted. The eight remaining `not_started` features
-are `knowledge_update_scheduler`, `local_bge_m3_embeddings`, `chroma_hybrid_retrieval`,
-`gemini_generation_provider`, `knowledge_reindex_release`, `portable_land_backup`,
-`pilot_privacy_readiness`, and `private_pilot_distribution`. `feature_list.json` and the
-selector remain the status authority; this page does not duplicate the feature-id list.
+**Feature status** — 61 of 68 features are accepted. The seven remaining `not_started` features are
+`knowledge_update_scheduler`, `chroma_hybrid_retrieval`, `gemini_generation_provider`,
+`knowledge_reindex_release`, `portable_land_backup`, `pilot_privacy_readiness`, and
+`private_pilot_distribution`. `feature_list.json` and the selector remain the status authority;
+this page does not duplicate the feature-id list.
 
 **Product shape** — shared Compose chat, lands, and help surfaces in `shared/src/commonMain`, hosted
 by Android and Desktop. Land records stay on-device in the `land-store-v2` aggregate (active and
@@ -23,9 +23,10 @@ per-worker rate limiting, a bounded request body, and metadata-only logging. And
 Desktop use overridable local development URLs; no client can send a pilot bearer token yet.
 The reviewed corpus contains four official sources and four literal passages for three topics
 in the Andalusian PAC single application for 2026. `/ready` and `/ask` require an explicit
-`MANIJERO_ACTIVE_CAMPAIGN`; no hosted model, vector index, periodic official-source scanner, or
-public deployment is implemented. Gemini is planned but gated off pending current
-provider/privacy review.
+`MANIJERO_ACTIVE_CAMPAIGN`; no hosted model, periodic official-source scanner, or public
+deployment is implemented. A pinned local `BAAI/bge-m3` artifact and a derived
+passage-embedding index now exist, but stay off the answer path: `/ask` still uses the reviewed
+BM25 retrieval. Gemini is planned but gated off pending current provider/privacy review.
 
 **Known limitations (do not over-claim)**
 
@@ -93,6 +94,17 @@ provider/privacy review.
   first-deploy credential ownership path, the stop/restore/start sequence, and the
   service-readable `0644` restore mode are repaired and exercised locally, but not on a
   host or through systemd.
+- Local embeddings are implemented but **off the answer path**: a pinned `BAAI/bge-m3` revision
+  (`5617a9f…`, MIT), per-file SHA-256 verification, a derived `passage-embedding-index-v1` file
+  outside `knowledge/`, and a rebuild/staleness check. Only this development Mac (Apple M1 Max,
+  32 GiB, CPU `float32`, 8 threads) was measured: a 2,293,315,747-byte artifact, a 928 MB optional
+  runtime, 1,943 MB peak RSS, about 77 ms for a two-text probe, `0.0` repeated-run difference, and a
+  0.621 s index rebuild over the four approved passages. That is not owned-server capacity, not a
+  per-passage latency budget, and not a BM25 comparison; the hybrid/retrieval-quality decision stays
+  in `chroma_hybrid_retrieval`. The model is CPU-only, `torch`/`transformers` stay optional, the
+  artifact is not committed, and the operator owns its storage and backup. No Spanish legal
+  retrieval, answer-quality, or license-review claim follows. See the
+  [feature appendix](docs/specs/local_bge_m3_embeddings.appendix.md).
 - The answer evidence expansion now covers 14 cases and the three approved topics plus five
   boundaries, but review is author-only. Four case-level gaps remain visible in the report; three
   are the earlier citation/critical-fact misses and one is a newly measured out-of-scope

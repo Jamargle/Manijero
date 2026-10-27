@@ -418,6 +418,183 @@ numbers come from a small synthetic fixture corpus, not from real user questions
 or legal documents. See `knowledge/README.md` for the passage-set contract and
 the eligibility rules.
 
+## Local multilingual embeddings (optional, pinned, off the answer path)
+
+`app/embeddings.py` owns one pinned local model behind the narrow
+`EmbeddingModel` protocol, and `app/embedding_index.py` owns its derived,
+rebuildable passage index. `backend/scripts/manage_embeddings.py` is the operator
+entry point. **`/ask` imports and reads neither**: the default and only answer
+retrieval remains the reviewed BM25 path, so a missing model, a missing optional
+runtime, or an invalid artifact cannot change an answer, citation, abstention, or
+land clarification. Nothing in this path downloads a file, opens a network
+socket, or reads a mutable model name.
+
+`torch` and `transformers` are not part of `requirements.txt`. Install the
+pinned optional runtime in a separate environment when you need to embed text or
+measure the model:
+
+```sh
+python3 -m venv backend/.venv-embeddings
+backend/.venv-embeddings/bin/python -m pip install -r backend/requirements-embeddings.txt
+```
+
+### Pin
+
+`backend/config/bge_m3_embedding.json` is the reviewed expectation, not a
+preference file. It records the upstream model and immutable revision, license,
+dense dimension, pooling, normalization, dtype, token bound, batch size, and one
+SHA-256 plus byte size for every required artifact file:
+
+| Field | Pinned value |
+|---|---|
+| Model | `BAAI/bge-m3` (`https://huggingface.co/BAAI/bge-m3`) |
+| Revision | `5617a9f61b028005a4858fdac845db406aefb181` (3 July 2024) |
+| License | `MIT` (from the repository at that revision) |
+| Dense embedding | 1024 dimensions, CLS pooling, L2-normalized |
+| Runtime arithmetic | CPU, `float32`, 8192-token bound, batch 8 |
+| Artifact | 9 files, 2,293,315,747 bytes total |
+
+A branch or tag name is rejected: only a 40-character commit id can pin the
+artifact. A changed file, a different revision, or an extra declared field fails
+closed. The license and revision are recorded provenance, not a legal review.
+
+### Download and verify
+
+Download the exact revision into an operator-owned directory outside this
+repository (the artifact is about 2.1 GiB and must not be committed):
+
+```sh
+MODEL_DIR="$HOME/models/bge-m3"
+mkdir -p "$MODEL_DIR/1_Pooling"
+for file in config.json tokenizer.json tokenizer_config.json \
+  special_tokens_map.json sentencepiece.bpe.model 1_Pooling/config.json \
+  modules.json config_sentence_transformers.json pytorch_model.bin; do
+  curl -fL --retry 3 -o "$MODEL_DIR/$file" \
+    "https://huggingface.co/BAAI/bge-m3/resolve/5617a9f61b028005a4858fdac845db406aefb181/$file"
+done
+```
+
+Verification needs only the standard library plus the backend runtime:
+
+```sh
+backend/.venv/bin/python backend/scripts/manage_embeddings.py verify \
+  --config backend/config/bge_m3_embedding.json \
+  --artifact "$MODEL_DIR"
+```
+
+It prints the model id, revision, license, configuration digest, verified file
+count/bytes, ignored extra files, and any mismatch. Exit `0` means every pinned
+file matched; `1` means the artifact differs from the pin; `2` means the
+configuration was unreadable or refused. To observe this host:
+
+```sh
+backend/.venv-embeddings/bin/python backend/scripts/manage_embeddings.py verify \
+  --config backend/config/bge_m3_embedding.json \
+  --artifact "$MODEL_DIR" --measure --json
+```
+
+`--measure` loads the model once and reports load time, dimension, thread count,
+three repeated embedding runs over two fixed short Spanish sentences (median,
+p95, min, max), peak process RSS, and the maximum absolute difference between
+repeated runs. It prints no question, passage, or personal value. These are host
+observations, not retrieval-quality evidence.
+
+Measured on 2026-10-27 with the pin above on an Apple M1 Max (32 GiB,
+CPU, 8 torch threads, Python 3.14.5):
+
+| Observation | Result |
+|---|---|
+| Verified artifact | 9 files, 2,293,315,747 bytes (`du` 2.1 GiB) |
+| Optional runtime environment | 928 MB (separate `.venv-embeddings`) |
+| Peak process RSS while embedding | 1,943 MB (process max 2,037,841,920 bytes) |
+| Model load | 4.91 s warm page cache / 9.51 s cold |
+| Embedding 2 short texts | 76.74 ms median, 77.00 ms p95 over 3 runs |
+| Repeated-run determinism | maximum absolute difference `0.0` |
+| Index rebuild over the 4 approved passages | 0.621 s, index file 124,691 bytes |
+
+These numbers are **not** an owned-server capacity measurement, not a
+per-passage or per-answer latency budget, and not a comparison against BM25.
+Long passages cost many more tokens than the two sentence probe.
+
+### Build and check the derived index
+
+```sh
+backend/.venv-embeddings/bin/python backend/scripts/manage_embeddings.py build \
+  --config backend/config/bge_m3_embedding.json \
+  --artifact "$MODEL_DIR" \
+  --catalog knowledge/source_catalog.json \
+  --passages knowledge/passages.json \
+  --as-of 2026-10-27 --active-campaign 2026 \
+  --index "$HOME/manijero/embedding-index.json"
+
+backend/.venv/bin/python backend/scripts/manage_embeddings.py check \
+  --config backend/config/bge_m3_embedding.json \
+  --catalog knowledge/source_catalog.json \
+  --passages knowledge/passages.json \
+  --as-of 2026-10-27 --active-campaign 2026 \
+  --index "$HOME/manijero/embedding-index.json"
+```
+
+`build` embeds only the passages a validated `Retriever` already found eligible
+(approved, current, unexpired, campaign-matching). It does not re-implement
+eligibility, does not write `knowledge/`, and replaces the target atomically. The
+`passage-embedding-index-v1` file records the model pin, the catalog/passages
+SHA-256, `as_of`, the active campaign, passage count, and one 1024-float vector
+per opaque passage id — **no passage text, question, or score**. `check` needs no
+model runtime and exits `0` only for `up_to_date`; `1` for a missing, stale, or
+invalid index; `2` for an unreadable/invalid configuration or corpus. Staleness
+reasons name what changed (`catalog_changed`, `passages_changed`,
+`as_of_changed`, `active_campaign_changed`, `model_revision_changed`,
+`model_config_changed`, `dimension_changed`, `pooling_changed`,
+`normalization_changed`, `model_id_changed`).
+
+### Rebuild and failure recovery
+
+- **Rebuild** = re-run `build` with the same pin; vectors are derived, so the
+  index can be deleted and regenerated at any time. Rerun it after any approved
+  catalog/passage change or a new model pin, then `check` before using it.
+- **Artifact mismatch** (`checksum_mismatch`, `size_mismatch`, `file_missing`,
+  `dimension_mismatch`, `pooling_mismatch`, `context_too_small`,
+  `directory_missing`, `path_escape`, `not_a_regular_file`): re-download the
+  pinned revision and verify again. Do not edit a checksum to make a mismatch
+  pass; a new artifact is a new reviewed pin.
+- **`runtime_unavailable`**: install `backend/requirements-embeddings.txt` in the
+  optional environment; the default backend and tests keep working without it.
+- **`model_load_failed` / `encode_failed`**: the artifact verified but the pinned
+  runtime could not load or run it. Check the runtime pins and platform, then
+  rebuild the artifact from the pinned revision. Messages contain a fixed code,
+  never the text being embedded.
+- **`unsafe_index_path`**: choose a derived-artifact path outside `knowledge/`.
+- **`index_write_failed`**: the parent directory is not writable; nothing is
+  replaced atomically, so the previous index (if any) is unchanged.
+
+### Limits
+
+- Supported and measured configuration is CPU `float32` only. `dtype` is closed
+  to `float32`; a GPU or half-precision path is a separate, measured change.
+- Latency, RAM, and index size scale with hardware, thread count, and token
+  count. Only this local Mac host and four approved passages were observed; the
+  owned server, long documents, and the future Chroma/hybrid path are unmeasured.
+- Reproducibility means the same pinned code, runtime, artifact, input digests,
+  and host produce the same vectors (`0.0` difference measured). Float arithmetic
+  can differ across BLAS libraries and hardware; no cross-platform bit-identity
+  is claimed.
+- No retrieval-quality, Spanish legal-coverage, or answer-quality claim follows
+  from successful verification or from a `0.0` determinism result. Comparing
+  bge-m3 (and Chroma/RRF) with the accepted BM25 baseline belongs to
+  `chroma_hybrid_retrieval`.
+- Embeddings stay off the answer path until a later reviewed change composes them
+  with retrieval and revalidates the code-owned answer properties. The derived
+  index is not canonical knowledge, is not encrypted, and is owned/backed up by
+  the operator.
+- `1_Pooling/config.json`, `modules.json`, and `config_sentence_transformers.json`
+  are pinned so a silent pooling or pipeline change is visible, even though the
+  loader composes pooling and normalization itself.
+- Verification counts but does not delete extra files in the artifact directory.
+  Because the loader points `transformers` at that directory, keep it to the
+  pinned files: an unpinned file whose name the library recognizes would be
+  outside this pin.
+
 ## Offline grounded answer generation
 
 `app/generation.py` turns retrieval candidates into a plain-Spanish answer whose
