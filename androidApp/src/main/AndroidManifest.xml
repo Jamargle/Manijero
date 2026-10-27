@@ -4,9 +4,18 @@
     <!-- Needed to reach the local backend -->
     <uses-permission android:name="android.permission.ACCESS_LOCAL_NETWORK" />
 
+    <!--
+      Land data must never leave the device through an operating-system backup: the privacy notice
+      promises there is no copy on the internet or on another device. Both rule files exclude the
+      single private preferences file that holds the land aggregate (`manijero_lands.xml`) and its
+      automatic copies; `shared/src/jvmTest/.../platform/AndroidBackupExclusionGuardTest.kt` keeps
+      this in place. Do not widen or drop these rules without changing that promise.
+    -->
     <application
         android:usesCleartextTraffic="${usesCleartextTraffic}"
         android:allowBackup="true"
+        android:dataExtractionRules="@xml/data_extraction_rules"
+        android:fullBackupContent="@xml/backup_rules"
         android:icon="@mipmap/ic_launcher"
         android:label="@string/app_name"
         android:roundIcon="@mipmap/ic_launcher_round"

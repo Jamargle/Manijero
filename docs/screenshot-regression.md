@@ -4,8 +4,8 @@ Two screenshot suites cover the shared Compose UI in `shared/src/commonMain`:
 
 | Platform | Renderer | Goldens | Captures |
 |---|---|---|---|
-| Desktop | Compose Desktop on the JVM target | `shared/src/jvmTest/screenshots/` | 6 chat states (idle light, answered dark, abstention dark, clarification light; idle and answered also at 360×800) + 6 lands states (list light and empty dark, each at 900×1200 and 360×800, plus search no results and one match at 900×1000) + board in 2 appearances + component gallery in 4 configurations + app shell in 4 configurations + dedicated coverage/privacy screens in 2 appearances each at 900 dp and 4 configurations each at 360×800 (1× and 2× text) = 34 |
-| Android | Compose UI rendered by Robolectric on the JVM (no emulator/device) | `shared/src/androidHostTest/screenshots/` | 4 chat states at 360×800 dp + 4 lands states (list light and empty dark at 360×800, search no results and one match at 900×1000) + board at 900×1200 dp in 2 appearances + component gallery in 4 configurations + app shell in 4 configurations + dedicated coverage/privacy screens in 2 appearances each at 900 dp and 4 configurations each at 360×800 (1× and 2× text) = 30 |
+| Desktop | Compose Desktop on the JVM target | `shared/src/jvmTest/screenshots/` | 6 chat states (idle light, answered dark, abstention dark, clarification light; idle and answered also at 360×800) + 10 lands states (list light and empty dark, each at 900×1200 and 360×800, plus search no results and one match at 900×1000, plus the recovered-store callout light and dark at 900×1200 and 360×800) + board in 2 appearances + component gallery in 4 configurations + app shell in 4 configurations + dedicated coverage/privacy screens in 2 appearances each at 900 dp and 4 configurations each at 360×800 (1× and 2× text) = 38 |
+| Android | Compose UI rendered by Robolectric on the JVM (no emulator/device) | `shared/src/androidHostTest/screenshots/` | 4 chat states at 360×800 dp + 8 lands states (list light and empty dark at 360×800, search no results and one match at 900×1000, plus the recovered-store callout light and dark at 900×1200 and at 360×800) + board at 900×1200 dp in 2 appearances + component gallery in 4 configurations + app shell in 4 configurations + dedicated coverage/privacy screens in 2 appearances each at 900 dp and 4 configurations each at 360×800 (1× and 2× text) = 34 |
 
 The land-screen refresh changes the populated-list row treatment; if its list or filtered-list
 captures differ, only those land captures may be recorded after visual inspection. Shell and chat
@@ -108,7 +108,10 @@ Android:
   so both hosts show the same compositions. The shell class uses the same 360×800 dp compact
   viewport and overrides the two rail captures per method with `es-rES-w900dp-h1000dp-mdpi`, which is
   also the per-method qualifier of the lands class's `land_list_search_no_results` and
-  `land_list_search_filtered` captures; its
+  `land_list_search_filtered` captures; that class's `land_list_recovery_light` and
+  `land_list_recovery_dark` captures override it with `es-rES-w900dp-h1200dp-mdpi`, while its
+  `land_list_recovery_light_phone` and `land_list_recovery_dark_phone` captures use the class
+  viewport; its
   large-text capture nests `Density(1f, fontScale = 2f)` around the shell frame;
 - the same explicit `ManijeroTheme(darkTheme = ...)`, density 1, and font scale 1, with the gallery's
   large-text captures nesting `Density(1f, fontScale = 2f)` around the gallery only;

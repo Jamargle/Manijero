@@ -39,9 +39,8 @@ class RemoveLandDesktopStoreTest {
             )
 
             assertTrue(Files.readString(path).startsWith("land-store-v2\nactive\n"))
-            assertEquals(
-                listOf("lands-v1.txt"),
-                directory.toFile().listFiles()?.map { it.name },
+            assertTrue(
+                directory.toFile().listFiles()?.map { it.name }.orEmpty().none { it.endsWith(".tmp") },
                 "an atomic write must leave no temporary file behind",
             )
 
@@ -57,7 +56,7 @@ class RemoveLandDesktopStoreTest {
                 "the removed record stays recoverable with every stored value",
             )
         } finally {
-            Files.deleteIfExists(path)
+            directory.toFile().listFiles()?.forEach { it.delete() }
             Files.deleteIfExists(directory)
         }
     }
@@ -76,7 +75,7 @@ class RemoveLandDesktopStoreTest {
             assertEquals(emptyList(), reopened.list())
             assertEquals(listOf(only), reopened.listRemoved().map { it.land })
         } finally {
-            Files.deleteIfExists(path)
+            directory.toFile().listFiles()?.forEach { it.delete() }
             Files.deleteIfExists(directory)
         }
     }

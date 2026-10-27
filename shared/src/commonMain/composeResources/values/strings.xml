@@ -98,6 +98,9 @@
     <string name="land_list_production">Producción: %1$s</string>
     <string name="land_list_load_failed">No se han podido leer los terrenos guardados. Puedes intentarlo otra vez.</string>
     <string name="land_list_retry">Reintentar</string>
+    <string name="land_list_recovery_title">He recuperado tus terrenos</string>
+    <string name="land_list_recovery_body">La copia principal no se podía leer. He usado la copia automática más reciente, guardada también en este dispositivo. Revisa que estén todos tus terrenos.</string>
+    <string name="land_list_recovery_dismiss">Entendido</string>
     <string name="land_list_edit">Editar</string>
     <string name="land_list_edit_description">Editar el terreno «%1$s»</string>
     <string name="land_list_remove">Quitar</string>
@@ -176,7 +179,7 @@
     <string name="privacy_local_title">Qué se guarda en este dispositivo</string>
     <string name="privacy_local_body_1">Los terrenos que añades se guardan en este mismo dispositivo. No hace falta crear ninguna cuenta.</string>
     <string name="privacy_local_body_2">Guardo lo que escribes en la ficha de cada terreno: su nombre, la zona o paraje, la variedad, la superficie, el número de olivos y los demás datos que rellenes, como el municipio, el riego y la producción. Puedes verlos, editarlos o eliminarlos cuando quieras.</string>
-    <string name="privacy_local_body_3">No se copian solos a internet. Si pierdes el dispositivo, podrías perderlos, porque no hay copia de seguridad automática.</string>
+    <string name="privacy_local_body_3">No se copian solos a internet. La app guarda varias copias automáticas en este mismo dispositivo, pero no en otro sitio: si pierdes el dispositivo o borras la app, podrías perderlas.</string>
     <string name="privacy_sent_title">Qué se envía cuando preguntas</string>
     <string name="privacy_sent_body_1">Para preparar la respuesta, se envía tu pregunta tal como la escribes.</string>
     <string name="privacy_sent_lead">Si la respuesta usa tus terrenos, también se envía el identificador de cada terreno y solo los datos que la pregunta necesite:</string>
@@ -186,7 +189,7 @@
     <string name="privacy_sent_unknown">Si un dato no lo sabes, se envía como «no lo sé».</string>
     <string name="privacy_sent_not_sent">El nombre, la zona o paraje, la variedad, la superficie, el número de olivos y tus notas no se envían: se quedan solo en este dispositivo.</string>
     <string name="privacy_promise_title">Lo que no puedo prometer</string>
-    <string name="privacy_promise_body_1">No hay copia de seguridad ni recuperación automática de tus terrenos: viven solo en este dispositivo.</string>
+    <string name="privacy_promise_body_1">Las copias automáticas no protegen si pierdes el dispositivo o borras la app: no hay copia en internet ni en otro aparato.</string>
     <string name="privacy_promise_body_2">La respuesta se prepara con ayuda de un servicio externo. No puedo prometer que ese servicio proteja tus datos más de lo que digan sus propias condiciones.</string>
     <string name="privacy_help_title">Dónde pedir ayuda</string>
     <string name="privacy_help_body">Para dudas sobre ayudas o trámites que la app no pueda responder, habla con tu oficina comarcal agraria o con tu cooperativa.</string>

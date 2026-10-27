@@ -45,7 +45,7 @@ class EditLandDesktopStoreTest {
             assertEquals(ProductionMethod.UNKNOWN, reopened[0].productionMethod)
             assertEquals(known, reopened[1], "the other land must keep every stored value")
         } finally {
-            Files.deleteIfExists(path)
+            directory.toFile().listFiles()?.forEach { it.delete() }
             Files.deleteIfExists(directory)
         }
     }
@@ -79,7 +79,7 @@ class EditLandDesktopStoreTest {
             assertEquals(WaterRegime.UNKNOWN, reopened.waterRegime)
             assertEquals(ProductionMethod.UNKNOWN, reopened.productionMethod)
         } finally {
-            Files.deleteIfExists(path)
+            directory.toFile().listFiles()?.forEach { it.delete() }
             Files.deleteIfExists(directory)
         }
     }

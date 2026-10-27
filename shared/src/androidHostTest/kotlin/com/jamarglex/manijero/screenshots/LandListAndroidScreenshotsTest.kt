@@ -1,6 +1,7 @@
 package com.jamarglex.manijero.screenshots
 
 import com.jamarglex.manijero.lands.LandListScreen
+import com.jamarglex.manijero.lands.LandStoreRecovery
 import com.jamarglex.manijero.theme.ManijeroTheme
 import kotlin.test.Test
 import org.junit.runner.RunWith
@@ -85,6 +86,81 @@ class LandListAndroidScreenshotsTest : AndroidScreenshotTestSupport() {
                     onRemoveLand = {},
                     onRetry = {},
                     onQueryChange = {},
+                )
+            }
+        }
+
+    /**
+     * The recovered state after a damaged primary store was rebuilt from the newest automatic copy:
+     * the neutral callout, its `Entendido` action, and the unchanged two-row list, light appearance
+     * at the 900 x 1200 dp viewport (the class viewport is a phone, where the callout pushes rows
+     * below the fold).
+     */
+    @Test
+    @Config(qualifiers = "es-rES-w900dp-h1200dp-mdpi")
+    fun landListRecoveryLight() =
+        capture("land_list_recovery_light") {
+            ManijeroTheme(darkTheme = false) {
+                LandListScreen(
+                    state = ScreenshotFixtures.twoLands,
+                    onAddLand = {},
+                    onEditLand = {},
+                    onRemoveLand = {},
+                    onRetry = {},
+                    onQueryChange = {},
+                    recovery = LandStoreRecovery.RESTORED_FROM_AUTOMATIC_COPY,
+                )
+            }
+        }
+
+    /** The same recovered state, dark appearance at the 900 x 1200 dp viewport. */
+    @Test
+    @Config(qualifiers = "es-rES-w900dp-h1200dp-mdpi")
+    fun landListRecoveryDark() =
+        capture("land_list_recovery_dark") {
+            ManijeroTheme(darkTheme = true) {
+                LandListScreen(
+                    state = ScreenshotFixtures.twoLands,
+                    onAddLand = {},
+                    onEditLand = {},
+                    onRemoveLand = {},
+                    onRetry = {},
+                    onQueryChange = {},
+                    recovery = LandStoreRecovery.RESTORED_FROM_AUTOMATIC_COPY,
+                )
+            }
+        }
+
+    /** The recovered state at the class phone viewport, light appearance. */
+    @Test
+    fun landListRecoveryLightPhone() =
+        capture("land_list_recovery_light_phone") {
+            ManijeroTheme(darkTheme = false) {
+                LandListScreen(
+                    state = ScreenshotFixtures.twoLands,
+                    onAddLand = {},
+                    onEditLand = {},
+                    onRemoveLand = {},
+                    onRetry = {},
+                    onQueryChange = {},
+                    recovery = LandStoreRecovery.RESTORED_FROM_AUTOMATIC_COPY,
+                )
+            }
+        }
+
+    /** The recovered state at the class phone viewport, dark appearance. */
+    @Test
+    fun landListRecoveryDarkPhone() =
+        capture("land_list_recovery_dark_phone") {
+            ManijeroTheme(darkTheme = true) {
+                LandListScreen(
+                    state = ScreenshotFixtures.twoLands,
+                    onAddLand = {},
+                    onEditLand = {},
+                    onRemoveLand = {},
+                    onRetry = {},
+                    onQueryChange = {},
+                    recovery = LandStoreRecovery.RESTORED_FROM_AUTOMATIC_COPY,
                 )
             }
         }

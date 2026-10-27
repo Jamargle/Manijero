@@ -7,9 +7,12 @@ Routine entry point. Exact feature status lives in [`feature_list.json`](feature
 contracts, raw evidence, and acceptance records remain in their owning files. Last updated:
 2026-10-27.
 
-**Feature status** — the original 50 features, `official_source_monitoring`, `official_source_discovery`, and
-`recover_removed_lands` are accepted. Eight backend RAG/knowledge-operations features, two land-recovery follow-ups, and five
-pilot/evaluation-readiness features remain `not_started`; no implementation or validation evidence exists for these planned items yet. The selector is the current status view; this page does not duplicate the feature-id list.
+**Feature status** — the original 50 features, `official_source_monitoring`, `official_source_discovery`,
+`recover_removed_lands`, and `local_land_auto_backup` are accepted.
+Eight backend RAG/knowledge-operations features, one land follow-up
+(`portable_land_backup`, the portable plaintext backup file), and five pilot/evaluation-readiness features
+remain `not_started`; no implementation or validation evidence exists for those planned items yet. The
+selector is the current status view; this page does not duplicate the feature-id list.
 
 **Product shape** — shared Compose chat, lands, and help surfaces in `shared/src/commonMain`, hosted
 by Android and Desktop. Land records stay on-device in the `land-store-v2` aggregate (active and
@@ -32,7 +35,7 @@ current provider/privacy review.
   citation and critical-fact misses; see its [acceptance record](docs/validations/backend_answer_evaluation.md)
   and [evidence appendix](docs/specs/backend_answer_evaluation.appendix.md) for the exact results.
   Neither that sample nor the fixture metrics establish legal coverage or answer quality.
-- The 64 screenshot baselines (34 Desktop, 30 Android) are local host-rendered pixel checks, not
+- The 72 screenshot baselines (38 Desktop, 34 Android) are local host-rendered pixel checks, not
   device, accessibility, usability, or iOS evidence. The procedure and limits are in
   [`docs/screenshot-regression.md`](docs/screenshot-regression.md). At 2× text, compact navigation
   labels wrap mid-word; on the compact chat screen, `Preguntar` may need a short scroll.
@@ -40,17 +43,27 @@ current provider/privacy review.
   product decisions without target-user evidence. Land-field persistence has no real-device
   upgrade/downgrade evidence; details stay in the [field validation](docs/validations/land_measurement_fields.md)
   and [search validation](docs/validations/land_search_and_summary.md).
-- Device-local land records have no implemented backup, export, or restore of a deleted store. Removing a
-  land is now recoverable on the device until the user confirms `Borrar para siempre`; permanent deletion
-  still purges the only aggregate copy. The product direction is local-only storage with required recovery
-  features before the private pilot; this is not user evidence that data loss is acceptable. See the
-  [decision record](docs/specs/land_backup_decision.md) and the
-  [removal acceptance record](docs/validations/recover_removed_lands.md).
-- The local-only recovery direction now has recoverable removal implemented; bounded same-device snapshots
-  and a portable plaintext backup file remain not implemented, so the pilot still has no backup recovery
-  guarantee. The new removed-list screens have no device or screen-reader evidence and no screenshot
-  goldens, and `removedAt` is stored as 0 in production because no clock is injected. A qualified
-  privacy/legal review is also required before the private pilot.
+- Device-local land records have no implemented export or portable restore of a deleted store. Removing a
+  land is recoverable on the device until the user confirms `Borrar para siempre`; the app also keeps up to
+  three bounded same-device automatic copies of the whole aggregate and recovers a damaged primary from the
+  newest fully valid one. Those copies live in the same app data area, so losing the device or uninstalling
+  the app still loses the records; permanent deletion purges the aggregate and every app-managed copy. The
+  product direction is local-only storage with required recovery features before the private pilot; this is
+  not user evidence that data loss is acceptable. See the
+  [decision record](docs/specs/land_backup_decision.md), the
+  [removal acceptance record](docs/validations/recover_removed_lands.md), and the
+  [automatic-copy evidence](docs/specs/local_land_auto_backup.appendix.md). The shipped privacy
+  statement that there is no copy on the internet or on another device is now backed on Android: the
+  host manifest excludes the land preferences from Auto Backup and device transfer.
+- That Android exclusion is verified by manifest, rule-file, and packaged-APK inspection only, not by
+  an emulator or device backup round-trip; OEM backup behaviour and OS/disk-level copies outside the
+  app remain unverified.
+- Recoverable removal and bounded same-device automatic copies are implemented and accepted; the portable
+  plaintext backup file remains not implemented, so the pilot still has
+  no copy that survives device loss. The removed-list screens have no device or screen-reader evidence, the
+  automatic-copy recovery notice has host-rendered light/dark goldens at two viewports but no device
+  interaction or screen-reader evidence, and `removedAt` is stored as 0 in production because no clock is
+  injected. A qualified privacy/legal review is also required before the private pilot.
 - The manual official-feed monitor records response hashes and validators separately from canonical knowledge. BOE/BOJA manual discovery now writes pending candidates into separate review state; FEGA/MAPA registries remain explicitly unchecked, BOJA is configured per bulletin, and no completeness is guaranteed. Scheduled dispatch, document-level ingestion, human-reviewed knowledge updates, reproducible index rebuilds, and release automation are not implemented. New issuers, hosts, and answerable knowledge must remain human-approved; successful polling does not prove corpus currency.
 - Official-source discovery corrected the earlier invalid blocker conclusion: the BOE HTTP 400 resulted from the missing `Accept` header; the documented response succeeds with an explicit XML/JSON Accept type. See the feature appendix for endpoints, tests, and the local TLS smoke limitation.
 - Private hosted operations and distribution are not configured. The project owner is the proposed

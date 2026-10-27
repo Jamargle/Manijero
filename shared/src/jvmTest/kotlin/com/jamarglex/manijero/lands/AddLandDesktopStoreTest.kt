@@ -39,7 +39,7 @@ class AddLandDesktopStoreTest {
             assertEquals(ProductionMethod.ORGANIC, reopened[1].productionMethod)
             assertEquals("Martos", reopened[1].municipality)
         } finally {
-            Files.deleteIfExists(path)
+            directory.toFile().listFiles()?.forEach { it.delete() }
             Files.deleteIfExists(directory)
         }
     }

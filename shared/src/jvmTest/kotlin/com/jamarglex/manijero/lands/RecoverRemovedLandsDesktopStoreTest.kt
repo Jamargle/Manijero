@@ -64,9 +64,14 @@ class RecoverRemovedLandsDesktopStoreTest {
             val afterDeletion = LandRepository(FileLandStorage(path))
             assertEquals(listOf(first), afterDeletion.list())
             assertEquals(emptyList(), afterDeletion.listRemoved())
+            val fileNames = directory.toFile().listFiles()?.map { it.name }.orEmpty()
             assertTrue(
-                directory.toFile().listFiles()?.map { it.name } == listOf("lands-v1.txt"),
+                fileNames.none { it.endsWith(".tmp") },
                 "no temporary file may survive a completed write",
+            )
+            assertTrue(
+                fileNames.all { it == "lands-v1.txt" || it.startsWith("lands-v1.txt.") },
+                "the store directory holds only the primary file and its same-device copies",
             )
         } finally {
             deleteRecursively(directory)

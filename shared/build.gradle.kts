@@ -151,6 +151,14 @@ val jvmTestTask = tasks.named<Test>("jvmTest") {
         // See the comment above: the host-pinned screenshot suite has its own explicit tasks.
         excludeTestsMatching("com.jamarglex.manijero.screenshots.*")
     }
+    // AndroidBackupExclusionGuardTest reads the checked-in Android manifest and backup rule files
+    // (it needs no Android SDK), so declare them as inputs: editing them must rerun the guard
+    // locally, not only on a clean CI build.
+    inputs.files(
+        file("../androidApp/src/main/AndroidManifest.xml"),
+        file("../androidApp/src/main/res/xml"),
+    ).withPropertyName("androidBackupConfiguration")
+        .withPathSensitivity(org.gradle.api.tasks.PathSensitivity.RELATIVE)
 }
 
 tasks.withType<Test>().matching { it.name == "testAndroidHostTest" }.configureEach {
