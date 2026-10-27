@@ -1,0 +1,61 @@
+{
+  "schema_version": "source-catalog-v1",
+  "sources": [
+    {
+      "content_sha256": "818df75305455cdf4bd3c376240daadaa21244dc011e8a1f7caf204ab618645a",
+      "downloaded_on": "2099-03-01",
+      "id": "fixture-rd-2077-2099",
+      "issuing_body": "BOE",
+      "lifecycle_status": "current",
+      "original_url": "https://www.boe.es/buscar/doc.php?id=BOE-A-2099-00001",
+      "published_on": "2099-01-02",
+      "review_status": "approved",
+      "reviewed_by": "fixture-reviewer",
+      "reviewed_on": "2099-03-01",
+      "title": "Real Decreto 2077/2099, de 1 de enero, sobre el procedimiento de solicitud (documento sintético)",
+      "verified_on": "2099-03-02"
+    },
+    {
+      "content_sha256": "5d05867ddb5e551b3c192d5657ca90149d2793e5244f996acd75b3a1c2c752cd",
+      "downloaded_on": "2099-03-01",
+      "id": "fixture-dl-2-2099",
+      "issuing_body": "Junta de Andalucía",
+      "lifecycle_status": "current",
+      "original_url": "https://www.juntadeandalucia.es/boja/2099/10/1",
+      "published_on": "2099-02-02",
+      "review_status": "approved",
+      "reviewed_by": "fixture-reviewer",
+      "reviewed_on": "2099-03-01",
+      "title": "Decreto-ley 2/2099, de 1 de febrero, por el que se adoptan medidas urgentes en materia agraria (documento sintético)",
+      "verified_on": "2099-03-02"
+    },
+    {
+      "content_sha256": "44e396853a9c124ed0e6031d46e9d9be952bf02784ffd733ccd3f512e3bd4210",
+      "downloaded_on": "2099-03-01",
+      "id": "fixture-ley-5-2098",
+      "issuing_body": "BOE",
+      "lifecycle_status": "current",
+      "original_url": "https://www.boe.es/buscar/doc.php?id=BOE-A-2098-00005",
+      "published_on": "2098-12-02",
+      "review_status": "approved",
+      "reviewed_by": "fixture-reviewer",
+      "reviewed_on": "2099-03-01",
+      "title": "Ley 5/2098, de 1 de diciembre, sobre comunicación de cambios en la explotación (documento sintético)",
+      "verified_on": "2099-03-02"
+    },
+    {
+      "content_sha256": "b77df231b1a4394cbec80221f1db67ad226ad3c1d753e0a1cdeae5f5164c9cbe",
+      "downloaded_on": "2099-03-05",
+      "id": "fixture-res-3-2099",
+      "issuing_body": "Junta de Andalucía",
+      "lifecycle_status": "current",
+      "original_url": "https://www.juntadeandalucia.es/boja/2099/50/2",
+      "published_on": "2099-03-04",
+      "review_status": "approved",
+      "reviewed_by": "fixture-reviewer",
+      "reviewed_on": "2099-03-05",
+      "title": "Resolución de 3 de marzo de 2099, de la Dirección General competente, por la que se convoca el procedimiento (documento sintético)",
+      "verified_on": "2099-03-06"
+    }
+  ]
+}

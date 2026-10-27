@@ -1,0 +1,33 @@
+{
+  "blocks": [
+    {
+      "kind": "text",
+      "page": null,
+      "section": "Página 1",
+      "text": "Real Decreto 2200/2099, de 1 de octubre, por el que se modifica el Real Decreto 2077/2099, de 1 de enero. Documento sintético de prueba; no describe ninguna norma real."
+    },
+    {
+      "kind": "text",
+      "page": null,
+      "section": "Página 1",
+      "text": "Publicado en el Boletín Oficial del Estado núm. 236, de 1 de octubre de 2099."
+    },
+    {
+      "kind": "text",
+      "page": null,
+      "section": "Página 2",
+      "text": "Se modifica el artículo 12 del Real Decreto 2077/2099, de 1 de enero."
+    },
+    {
+      "kind": "text",
+      "page": null,
+      "section": "Página 2",
+      "text": "El plazo de presentación de la solicitud se extiende hasta el 20 de mayo de 2099."
+    }
+  ],
+  "candidate_id": "7825dfd2af88508fc05c2e393052def95604929145ccd2f2771f71bb30936814",
+  "extractor": "manijero-document-extractor-v1",
+  "media_type": "html",
+  "schema_version": "official-ingestion-document-v1",
+  "title": null
+}

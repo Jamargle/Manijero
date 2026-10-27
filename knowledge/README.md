@@ -42,11 +42,13 @@ measurement, not evidence about legal coverage or real user questions.
 | `official-discovery-state.schema.json` | The readable versioned pending discovery-candidate state contract. |
 | `official-ingestion-state.schema.json` | The readable versioned document-ingestion quarantine state contract (`official-ingestion-state-v1`). |
 | `official-ingestion-document.schema.json` | The readable contract for one extracted quarantined document (`official-ingestion-document-v1`). |
+| `legal-change-impact.schema.json` | The readable contract for the derived change-impact report (`legal-change-impact-report-v1`). It is not canonical knowledge. |
 | `../backend/app/source_catalog.py` | The executable catalog validator. Must stay in sync with the schema. |
 | `../backend/app/retrieval.py` | The executable passage-set validator and offline BM25 retriever. |
 | `../backend/app/generation.py` | The executable grounding verifier, extractive generator, and answer assembler. |
 | `../backend/app/land_safety_eval.py` | The executable safety-evaluation case-set validator and offline harness. |
 | `../backend/app/answer_eval.py` | The executable PAC answer-evaluation validator and report calculation. |
+| `../backend/app/change_impact.py` | The executable change-impact analyzer over quarantined candidates. |
 | `../backend/scripts/validate_source_catalog.py` | The offline catalog command-line wrapper. |
 | `../backend/scripts/evaluate_retrieval.py` | The offline retrieval baseline command-line wrapper. |
 | `../backend/scripts/evaluate_generation.py` | The offline grounded-generation report command-line wrapper. |
@@ -157,11 +159,21 @@ original/extracted hashes and page/section locations (contracts:
 `official-discovery-config.schema.json`; candidate-state contract:
 `official-discovery-state.schema.json`). FEGA/MAPA registry endpoints
 remain explicitly unchecked coverage gaps (BOE publications are not issuer
-registries). Change-impact analysis, review-PR preparation, passage extraction
-into a reviewed corpus, scheduled dispatch, and reindex/release remain separate
-features. A monitor hash, a discovery record, or an extracted quarantine
-document is not approval and does not establish that a source is current or
-legally applicable.
+registries). Change-impact analysis now exists as a separate read-only report
+(module row above; operator steps in `backend/README.md`). It never writes this
+directory: it reports wording-based signals, links them to approved sources,
+passages, and evaluation cases, and treats any ambiguous publication,
+amendment, repeal, or validity wording — negated wording included, and a signal
+linked only to a reviewed passage or case — as a review item even when it links
+no approved source. Static document wording can therefore produce an ambiguous,
+review-requiring signal. A candidate whose ingestion produced no text is
+reported as `no_extracted_document` with `analysis_failure:
+no_extracted_document`; retrying that ingestion stays with the ingestion state,
+not with this report. Review-PR
+preparation, passage extraction into a reviewed corpus, scheduled dispatch, and
+reindex/release remain separate features. A monitor hash, a discovery record, or
+an extracted quarantine document is not approval and does not establish that a
+source is current or legally applicable.
 
 The planned review handoff reduces manual collection and comparison work while
 keeping approval with an identified human:

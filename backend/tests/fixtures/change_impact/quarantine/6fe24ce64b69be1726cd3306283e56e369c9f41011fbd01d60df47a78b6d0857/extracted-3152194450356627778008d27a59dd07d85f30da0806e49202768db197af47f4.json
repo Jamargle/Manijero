@@ -1,0 +1,21 @@
+{
+  "blocks": [
+    {
+      "kind": "text",
+      "page": null,
+      "section": "Página 1",
+      "text": "Decreto-ley 2/2099, de 1 de febrero, por el que se adoptan medidas urgentes en materia agraria. Documento sintético de prueba; no describe ninguna norma real."
+    },
+    {
+      "kind": "text",
+      "page": null,
+      "section": "Página 1",
+      "text": "El presente decreto-ley no altera los plazos existentes."
+    }
+  ],
+  "candidate_id": "6fe24ce64b69be1726cd3306283e56e369c9f41011fbd01d60df47a78b6d0857",
+  "extractor": "manijero-document-extractor-v1",
+  "media_type": "html",
+  "schema_version": "official-ingestion-document-v1",
+  "title": null
+}
