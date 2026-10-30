@@ -143,6 +143,8 @@
     <string name="chat_home_question_label">Escribe tu pregunta</string>
     <string name="chat_home_question_hint">Por ejemplo: ¿Qué necesito preparar para la solicitud única?</string>
     <string name="chat_home_ask">Preguntar</string>
+    <string name="chat_home_retention_label">Permitir guardar esta pregunta y su respuesta para mejorar Manijero</string>
+    <string name="chat_home_retention_detail">Solo para la próxima pregunta que envíes. Se guarda sin los datos de tus terrenos y se borra sola en 30 días como máximo. Si no marcas la casilla, Manijero no guarda tu pregunta ni la respuesta.</string>
     <string name="chat_home_lands">Mis terrenos</string>
     <string name="chat_speaker_you">Tú</string>
     <string name="chat_speaker_assistant">Asistente</string>
@@ -188,6 +190,12 @@
     <string name="privacy_attribute_production_method">La producción: convencional, ecológica o una parte de cada una.</string>
     <string name="privacy_sent_unknown">Si un dato no lo sabes, se envía como «no lo sé».</string>
     <string name="privacy_sent_not_sent">El nombre, la zona o paraje, la variedad, la superficie, el número de olivos y tus notas no se envían: se quedan solo en este dispositivo.</string>
+    <string name="privacy_retention_title">Si permites guardar una pregunta</string>
+    <string name="privacy_retention_body_1">Debajo de la pregunta hay una casilla que empieza sin marcar. Si no la marcas, Manijero no guarda tu pregunta ni la respuesta.</string>
+    <string name="privacy_retention_body_2">Si la marcas, vale solo para la próxima pregunta que envíes: después se desmarca sola. Se guarda la pregunta y la respuesta para mejorar Manijero, sin los datos de tus terrenos ni nada que identifique tu dispositivo.</string>
+    <string name="privacy_retention_body_3">Antes de guardarlas se quitan los datos personales que se pueden reconocer, como teléfonos, correos o números de documento. Alguno podría no reconocerse, así que es mejor no escribir datos personales en la pregunta.</string>
+    <string name="privacy_retention_body_4">Si la pregunta lleva el nombre, la zona, el municipio o las notas de uno de tus terrenos, no se guarda aunque marques la casilla.</string>
+    <string name="privacy_retention_body_5">Lo guardado se borra solo en 30 días como máximo. No se guarda quién lo escribió, así que no se puede encontrar una pregunta concreta tuya para borrarla antes.</string>
     <string name="privacy_promise_title">Lo que no puedo prometer</string>
     <string name="privacy_promise_body_1">Las copias automáticas no protegen si pierdes el dispositivo o borras la app: no hay copia en internet ni en otro aparato.</string>
     <string name="privacy_promise_body_2">La respuesta se prepara con ayuda de un servicio externo. No puedo prometer que ese servicio proteja tus datos más de lo que digan sus propias condiciones.</string>

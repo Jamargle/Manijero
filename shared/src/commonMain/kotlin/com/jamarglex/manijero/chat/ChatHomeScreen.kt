@@ -2,6 +2,9 @@ package com.jamarglex.manijero.chat
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.selection.toggleable
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Spacer
@@ -12,6 +15,7 @@ import androidx.compose.foundation.relocation.BringIntoViewRequester
 import androidx.compose.foundation.relocation.bringIntoViewRequester
 import androidx.compose.material3.AssistChip
 import androidx.compose.material3.Button
+import androidx.compose.material3.Checkbox
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
@@ -19,7 +23,9 @@ import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.remember
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.LiveRegionMode
 import androidx.compose.ui.semantics.heading
 import androidx.compose.ui.semantics.semantics
@@ -44,6 +50,8 @@ import manijero.shared.generated.resources.chat_home_privacy_summary
 import manijero.shared.generated.resources.chat_home_question_hint
 import manijero.shared.generated.resources.chat_home_question_label
 import manijero.shared.generated.resources.chat_home_question_too_long
+import manijero.shared.generated.resources.chat_home_retention_detail
+import manijero.shared.generated.resources.chat_home_retention_label
 import manijero.shared.generated.resources.chat_home_suggestion_condicionalidad
 import manijero.shared.generated.resources.chat_home_suggestion_sigpac
 import manijero.shared.generated.resources.chat_home_suggestion_solicitud_unica
@@ -213,7 +221,10 @@ private fun SuggestedQuestions(onAction: (ChatHomeAction) -> Unit) {
     }
 }
 
-/** The question field plus the one visible primary action of the surface. */
+/**
+ * The question field, the separate retention choice, and the one visible primary action of the
+ * surface. The choice is its own control: ticking it never sends, and sending resets it.
+ */
 @Composable
 private fun ChatComposer(state: ChatHomeState, onAction: (ChatHomeAction) -> Unit) {
     Column(
@@ -236,6 +247,11 @@ private fun ChatComposer(state: ChatHomeState, onAction: (ChatHomeAction) -> Uni
             maxLines = 6,
         )
 
+        RetentionChoice(
+            checked = state.retainNextQuestion,
+            onCheckedChange = { onAction(ChatHomeAction.RetentionChoiceChanged(it)) },
+        )
+
         // The label is visible on purpose: a person with little computer experience must never have
         // to infer the action from a lone arrow, and the send glyph stays decorative.
         Button(
@@ -251,6 +267,43 @@ private fun ChatComposer(state: ChatHomeState, onAction: (ChatHomeAction) -> Uni
             Spacer(modifier = Modifier.width(ManijeroSpacing.Compact))
             Text(stringResource(Res.string.chat_home_ask))
         }
+    }
+}
+
+/**
+ * The per-question permission to keep the redacted question and answer. It is unchecked by
+ * default, the whole labelled row is one 48 dp checkbox target (box plus visible text, announced
+ * as a checkbox with its state), and the plain detail below states the scope, the exclusion of land
+ * data, and the 30-day deletion. Nothing here is colour-only.
+ */
+@Composable
+private fun RetentionChoice(checked: Boolean, onCheckedChange: (Boolean) -> Unit) {
+    Column(
+        modifier = Modifier.fillMaxWidth(),
+        verticalArrangement = Arrangement.spacedBy(ManijeroSpacing.Micro),
+    ) {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .toggleable(
+                    value = checked,
+                    role = Role.Checkbox,
+                    onValueChange = onCheckedChange,
+                ),
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            Checkbox(checked = checked, onCheckedChange = null)
+            Text(
+                text = stringResource(Res.string.chat_home_retention_label),
+                style = MaterialTheme.typography.bodyLarge,
+                modifier = Modifier.padding(start = ManijeroSpacing.Small),
+            )
+        }
+        Text(
+            text = stringResource(Res.string.chat_home_retention_detail),
+            style = MaterialTheme.typography.bodyMedium,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+        )
     }
 }
 

@@ -5,12 +5,11 @@
 Routine entry point. Exact feature status lives in [`feature_list.json`](feature_list.json); use
 [`./scripts/select-feature.sh --status`](scripts/select-feature.sh) to read the board. Feature
 contracts, raw evidence, and acceptance records remain in their owning files. Last updated:
-2026-10-27.
+2026-10-31.
 
-**Feature status** — 61 of 68 features are accepted. The seven remaining `not_started` features are
+**Feature status** — 62 of 68 features are accepted. The six remaining `not_started` features are
 `knowledge_update_scheduler`, `chroma_hybrid_retrieval`, `gemini_generation_provider`,
-`knowledge_reindex_release`, `portable_land_backup`, `pilot_privacy_readiness`, and
-`private_pilot_distribution`. `feature_list.json` and the selector remain the status authority;
+`knowledge_reindex_release`, `portable_land_backup`, and `private_pilot_distribution`. `feature_list.json` and the selector remain the status authority;
 this page does not duplicate the feature-id list.
 
 **Product shape** — shared Compose chat, lands, and help surfaces in `shared/src/commonMain`, hosted
@@ -71,6 +70,12 @@ BM25 retrieval. Gemini is planned but gated off pending current provider/privacy
   automatic-copy recovery notice has host-rendered light/dark goldens at two viewports but no device
   interaction or screen-reader evidence, and `removedAt` is stored as 0 in production because no clock is
   injected. A qualified privacy/legal review is also required before the private pilot.
+- Pilot privacy gates are implemented but **closed**: `backend/config/pilot_privacy_review.json` is
+  `pending`, so `pilot_ops.py privacy-gate` and the pilot preflight block and Gemini stays disabled.
+  Per-question, default-off redacted Q/A retention (deleted within 30 days) is tested locally only; redaction
+  is pattern-based on synthetic text. No qualified review, participant privacy/incident contact, or
+  per-person early deletion exists yet. See [`docs/pilot-privacy.md`](docs/pilot-privacy.md) and the
+  [acceptance record](docs/validations/pilot_privacy_readiness.md).
 - The manual official-feed monitor records response hashes and validators separately from canonical knowledge. BOE/BOJA manual discovery now writes pending candidates into separate review state; FEGA/MAPA registries remain explicitly unchecked, BOJA is configured per bulletin, and no completeness is guaranteed. Document-level ingestion now fetches allowlisted pending candidates into a separate quarantine with preserved original/extracted hashes and page/section text, follows only bounded HTTPS redirects within the same issuer's approved hosts, and does not use monitoring feeds as document candidates. Human-reviewed update packages can now prepare a local draft and provide a controlled merge that verifies recorded approval; scheduled dispatch, hosting-platform PR/merge-protection integration, reproducible index rebuilds, and release automation are not implemented. New issuers, hosts, and answerable knowledge must remain human-approved; successful polling does not prove corpus currency.
 - Quarantined document extraction is standard-library PDF/HTML text extraction without OCR. It decodes embedded-font `ToUnicode` maps when present, but incomplete subset-font maps can leave `U+FFFD` placeholders or omit glyphs, and scanned, encrypted, or unsupported-filter PDFs fail closed. Live smoke checks parsed BOE and BOJA PDFs; the BOJA sample retained about 6.3% replacement characters, so extraction accuracy is not a general guarantee and a reviewer must compare both copies. Nothing extracted becomes answerable without later human review; no legal-coverage claim follows.
 - Document ingestion keeps `page_count` as the number of pages that yielded text (not total pages), keeps each original-bytes version without garbage collection (re-extracting unchanged bytes replaces the previous extracted text), and assumes a single writer for each state/quarantine pair. It also depends on discovery metadata: `version_hash` covers only title and URL, so a changed file behind an unchanged URL is not detected without a re-fetch, and an extractor upgrade re-fetches rather than reprocessing stored text.

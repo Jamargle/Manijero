@@ -106,7 +106,7 @@ Answered response ── cited Source(s); abstained/clarification response ─�
 - Land data stays on the device; a specific question may send only the contract-approved minimal land attributes for answer processing. Up to three automatic copies of the land aggregate stay in the same app data area and do not protect against device loss. Planned portable backups are plaintext user-controlled files that can be moved between Android and macOS Desktop.
 - Explain that behavior in plain Spanish before first use; provide a way to inspect, edit, and remove saved lands.
 - Do not log land names, notes, precise identifiers, or raw questions by default. Define retention and deletion for operational logs before release.
-- Product-improvement retention is planned as default-off, explicit opt-in per question, redacted question/answer text only, no land context or stable identifiers, and automatic deletion within 30 days. It is not ready for real users until a qualified privacy/legal review is recorded.
+- Product-improvement retention is implemented as default-off, explicit opt-in per question (`retain_for_improvement`), redacted question/answer text only, no land context or stable identifiers, and automatic deletion no later than 30 days. A **retained record** is a redacted question, a redacted final answer, its answer state, and UTC creation and expiry dates; it identifies no person, device, or land, so it cannot be deleted per person. It is not ready for real users: the qualified privacy/legal review is still pending. See [`pilot-privacy.md`](pilot-privacy.md).
 - If the user changes or removes a land, future questions use the updated list. Do not imply prior answers were recalculated.
 
 ## Deferred concepts

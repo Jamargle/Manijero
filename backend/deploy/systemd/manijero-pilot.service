@@ -45,7 +45,8 @@ Group=manijero
 WorkingDirectory=/opt/manijero/repo
 EnvironmentFile=/etc/manijero/pilot.env
 
-# Preflight runs the explicit campaign, credentials, and corpus readiness checks before
+# Preflight runs the explicit campaign, credentials, corpus readiness, and recorded
+# privacy/legal review gate checks before
 # the service is allowed to accept traffic. A failed preflight fails the start.
 ExecStartPre=/opt/manijero/repo/backend/.venv/bin/python /opt/manijero/repo/backend/scripts/serve_pilot.py --preflight-only
 ExecStart=/opt/manijero/repo/backend/.venv/bin/python /opt/manijero/repo/backend/scripts/serve_pilot.py
@@ -65,6 +66,8 @@ PrivateTmp=true
 ProtectSystem=strict
 ProtectHome=true
 ReadOnlyPaths=/opt/manijero
+# Only when product-improvement retention is configured (MANIJERO_RETENTION_DB):
+# ReadWritePaths=/var/lib/manijero/retention
 RestrictAddressFamilies=AF_INET AF_INET6
 RestrictNamespaces=true
 LockPersonality=true

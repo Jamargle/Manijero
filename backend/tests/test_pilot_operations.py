@@ -58,6 +58,11 @@ CATALOG = FIXTURES / "catalog.json"
 PASSAGES = FIXTURES / "passages.json"
 FIXED_DAY = date(2026, 10, 13)
 TOKEN = "synthetic-pilot-token-0123456789abcdef"
+# A clearly labelled synthetic record: it lets the readiness path be exercised without any
+# real review existing. The committed record stays pending (see test_privacy_retention.py).
+SYNTHETIC_APPROVED_REVIEW = (
+    Path(__file__).resolve().parent / "fixtures" / "privacy" / "synthetic_approved_review.json"
+)
 TOKEN_TWO = "second-synthetic-token-0123456789abcdef"
 TOKEN_THREE = "third-synthetic-token-0123456789abcdef"
 SHORT_TOKEN = "too-short"
@@ -329,10 +334,23 @@ def test_preflight_requires_the_pilot_profile_and_a_ready_corpus(tmp_path: Path)
     )
     assert pilot_without_clients.problems == ("clients_missing",)
 
-    ready = run_preflight(
+    blocked = run_preflight(
         _pilot_env(tmp_path), as_of=FIXED_DAY, catalog_path=CATALOG, passages_path=PASSAGES
     )
+    assert blocked.ok is False
+    assert "privacy_review_pending" in blocked.problems
+    assert blocked.privacy_review_passed is False
+
+    ready = run_preflight(
+        _pilot_env(tmp_path),
+        as_of=FIXED_DAY,
+        catalog_path=CATALOG,
+        passages_path=PASSAGES,
+        privacy_review_path=SYNTHETIC_APPROVED_REVIEW,
+    )
+    assert ready.problems == ()
     assert ready.ok is True
+    assert ready.privacy_review_passed is True
     assert ready.campaign == "2026"
     assert ready.configured_clients == 1
 

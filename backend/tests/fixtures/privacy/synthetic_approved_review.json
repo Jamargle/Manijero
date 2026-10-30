@@ -1,0 +1,31 @@
+{
+  "schema_version": "pilot-privacy-review-v1",
+  "pilot_review": {
+    "status": "approved_with_conditions",
+    "reviewed_on": "2026-10-01",
+    "reviewer_qualification": "SYNTHETIC TEST FIXTURE: not a real review, reviewer, or approval",
+    "scope": [
+      "data_flow",
+      "notice",
+      "opt_in",
+      "redaction_limits",
+      "retention_deletion",
+      "access_controls",
+      "incident_and_contact",
+      "host_terms",
+      "tunnel_terms"
+    ],
+    "conditions": ["synthetic condition for tests only"],
+    "evidence_reference": "synthetic-test-fixture"
+  },
+  "gemini_review": {
+    "status": "approved",
+    "reviewed_on": "2026-10-01",
+    "reviewer_qualification": "SYNTHETIC TEST FIXTURE: not a real review, reviewer, or approval",
+    "scope": ["model_terms", "data_flow", "data_sent", "retention_by_provider"],
+    "conditions": [],
+    "evidence_reference": "synthetic-test-fixture",
+    "model": "synthetic-model-for-tests",
+    "data_sent": ["question", "approved_passages"]
+  }
+}

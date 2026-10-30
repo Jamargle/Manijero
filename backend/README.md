@@ -134,6 +134,7 @@ dependencies stay `fastapi`, `uvicorn[standard]`, and `httpx`.
 | `backend/deploy/requirements-production.txt` | Exact direct runtime pins. | Resolution checked locally |
 | `backend/deploy/pilot.env.example` | Configuration template, no secrets. | n/a |
 | `backend/deploy/systemd/manijero-pilot.service` | Service unit with preflight as `ExecStartPre`. | **No** |
+| `backend/deploy/systemd/manijero-retention-purge.{service,timer}` | Daily purge plus overdue check for the optional retention store. | **No** |
 | `backend/deploy/cloudflared/config.yml.example` | Tunnel ingress to the loopback origin. | **No** |
 
 The development launcher (`./scripts/init.sh --backend`) is unchanged and is **not** a
@@ -154,6 +155,9 @@ Read from the process environment; secrets live in an operator-owned file, never
 | `MANIJERO_PILOT_WORKERS` / `--workers` | pilot | Default `2`, maximum `8`. Rate limits are **per worker**. |
 | `MANIJERO_PILOT_MAX_CONCURRENCY` | pilot | Default `64`, maximum `512`. A protective placeholder, not a measured capacity. |
 | `MANIJERO_MAX_REQUEST_BYTES` | both | Default `65536`, minimum `1024`, maximum `1048576`. |
+| `MANIJERO_RETENTION_DB` | both (optional) | Unset = product-improvement retention off. Otherwise an owner-only SQLite path outside the repository (see "Product-improvement retention and the privacy gate"). |
+| `MANIJERO_GENERATION_PROVIDER` | both (optional) | `extractive` (default) or `gemini`. `gemini` stays on the extractive path: no client exists and its review gate is closed. Any other value is a preflight problem. |
+| `MANIJERO_GEMINI_MODEL` | both (optional) | The exact model the Gemini review approved; only read by the gate. |
 
 The client file is a closed contract:
 
@@ -393,6 +397,53 @@ cases to exercise.
   the host is an outage.
 - Everything in this section is a prepared procedure. The only executed parts are the
   local rehearsal items in the feature appendix.
+
+## Product-improvement retention and the privacy gate
+
+The data-flow inventory, the exact retention rules, the redaction limits, and the review
+procedure are in [`docs/pilot-privacy.md`](../docs/pilot-privacy.md). **No qualified
+privacy/legal review has been recorded**: `config/pilot_privacy_review.json` is `pending`,
+so the pilot preflight fails with `privacy_review_*` blockers and `serve_pilot.py` refuses
+to start in the pilot profile. Do not edit that record without a real, dated review.
+
+```sh
+backend/.venv/bin/python backend/scripts/pilot_ops.py privacy-gate   # exit 1 while blocked
+```
+
+Retention is off unless `MANIJERO_RETENTION_DB` is set; then a question is retained only
+when its request carries `retain_for_improvement: true`. Prepare the store (example path):
+
+```sh
+sudo install -d -o manijero -g manijero -m 0700 /var/lib/manijero/retention
+# pilot.env: MANIJERO_RETENTION_DB=/var/lib/manijero/retention/qa-retention.sqlite3
+# manijero-pilot.service: uncomment ReadWritePaths=/var/lib/manijero/retention
+```
+
+The directory must have no group/other permissions and must be outside the repository;
+the file is created `0600`. A configured but unsafe location leaves retention off at run
+time and is a preflight problem (`retention_store_permissions`,
+`retention_store_inside_repository`, `retention_store_directory_missing`, …).
+
+Owner commands (run as the service user; output is counts and fixed codes only):
+
+| Command | Purpose | Exit |
+|---|---|---|
+| `retention-status [--as-of D]` | Record count, overdue count, oldest creation date | `1` and `alert: retention_overdue` when any record is past its expiry |
+| `retention-purge [--as-of D]` | Delete records whose expiry date is today or earlier | `1` with `error: retention_*` on failure |
+| `retention-export --destination F` | Write unexpired redacted records to a new `0600` file outside the repository | `1` on failure |
+| `retention-delete-all --confirm` | Delete every retained record | `2` without `--confirm` |
+
+Schedule the purge daily with the `manijero-retention-purge` timer template in
+`deploy/systemd/`; a record is due on its creation date plus 29 days, so a daily purge keeps
+every record under 30 days. The purge also runs before each write. An export is outside the
+automatic purge: delete it within the same window. Treat a non-zero `retention-status` or
+purge exit as an incident: fix the store, purge, and record what happened without copying
+any retained text.
+
+Limits: redaction is pattern-based and can miss personal details (see the doc); records
+have no identifier of a person, so one person's record cannot be deleted early; the
+retention store is not backed up by `pilot_ops.py backup` and must not be. Nothing here is a
+compliance claim.
 
 ## Offline retrieval baseline
 
