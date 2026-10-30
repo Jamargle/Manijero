@@ -88,3 +88,6 @@ __pycache__/
 .pytest_cache/
 .venv/
 .venv-*/
+
+# Claude Code per-user settings
+.claude/settings.local.json
