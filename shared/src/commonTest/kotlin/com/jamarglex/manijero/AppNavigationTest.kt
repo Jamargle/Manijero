@@ -83,6 +83,7 @@ class AppNavigationTest {
                 AppDestination.RemoveLand,
                 AppDestination.RemovedLands,
                 AppDestination.PermanentlyDeleteLand,
+                AppDestination.LandBackup,
             ).forEach { destination ->
                 assertEquals(remembered, rememberedSectionAfterBack(destination, remembered))
             }
@@ -124,6 +125,10 @@ class AppNavigationTest {
         assertEquals(
             AppSection.Lands,
             tabForDestination(AppDestination.PermanentlyDeleteLand, AppSection.Assistant),
+        )
+        assertEquals(
+            AppSection.Lands,
+            tabForDestination(AppDestination.LandBackup, AppSection.Assistant),
         )
         assertEquals(
             AppSection.Help,
@@ -193,6 +198,15 @@ class AppNavigationTest {
             AppDestination.RemovedLands,
             backTarget(AppDestination.PermanentlyDeleteLand, AppSection.Lands, AppDestination.Chat),
         )
+    }
+
+    @Test
+    fun `the backup screen is a lands detail route that keeps the bars and returns to the list`() {
+        assertEquals(
+            AppDestination.LandList,
+            backTarget(AppDestination.LandBackup, AppSection.Lands, AppDestination.Chat),
+        )
+        assertTrue(navigationVisible(AppDestination.LandBackup))
     }
 
     @Test

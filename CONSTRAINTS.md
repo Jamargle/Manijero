@@ -199,6 +199,8 @@ Operational MUST/MUST NOT rules that future features have to respect on top of
   selected same-device automatic copies plus a user-controlled Android/macOS file, with replace-all
   restore and no cloud or encryption feature.
 
+- **MUST**: the portable land backup MUST stay one plaintext JSON schema (`manijero-land-backup`, `version` integer) separate from the private store codec; a schema change MUST bump `version` and keep reading every earlier version or refuse it as unsupported, never misread it. Import MUST validate the whole file before any preview or repository call, and an invalid file MUST NOT call the repository at all. Restore MUST replace both lists (no merge) only through `LandRepository.replaceAll`, which MUST keep a same-device automatic copy of the current aggregate before rewriting it and MUST NOT overwrite a store it cannot read. The exporter MUST NOT produce a file the importer would refuse (same value rules, same size limit), and the file MUST contain only land data. Copy MUST say the file is unencrypted and that the app cannot delete exported copies. Reason: `portable_land_backup`; a file the person keeps outside the app must stay readable on both platforms and a bad file must never cost them their current lands.
+
 - **MUST**: product-improvement question/answer retention MUST be default-off and opt-in before each
   retained question, redact text, exclude land context and stable user/device identifiers, and delete
   records no later than 30 days. Pilot readiness MUST remain blocked until a qualified privacy/legal

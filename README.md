@@ -53,6 +53,8 @@ Building and running:
 When the service is running and reachable, the Android app is wired to the local service in `http://10.0.2.2:8000`; otherwise questions show the plain-Spanish failure notice with a `Reintentar` button. On Android 17, the app asks for local-network access on first launch; allow it so the app can reach the development backend.
 The Desktop app is wired to the local service in `http://127.0.0.1:8000`. Besides that, the Desktop app keeps its lands in `~/.manijero/lands-v1.txt` (the filename is historical; the file holds the shared `land-store-v2` aggregate of active and removed lands, and an older `land-store-v1` file is migrated on first read); remove that file to start from an empty list.
 
+**Portable land backup.** In `Mis terrenos` → `Copia en un archivo`, Android (system document picker) and Desktop (native file dialog) save every active and removed land to one plaintext JSON file (`manijero-land-backup`, version 1) and restore it on either platform. Restoring shows a preview first and then replaces **all** current active and removed lands after explicit confirmation; a same-device automatic copy of the previous state is kept first. The file is **not encrypted**: it contains land names, zones, notes and other details. You choose where it is saved and how many copies exist; the app cannot delete exported files, and an older file can bring back lands deleted later. Nothing is uploaded or synced.
+
 ### Build and verification
 
 Standard verification (shared host tests + Android debug APK + Desktop build):

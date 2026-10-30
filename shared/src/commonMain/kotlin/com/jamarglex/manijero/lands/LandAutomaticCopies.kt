@@ -83,8 +83,6 @@ class LandStoreUnreadableException :
 internal object LandSnapshotFormat {
     private const val HEADER = "manijero-land-snapshot-1"
     private const val CHECKSUM_PREFIX = "checksum="
-    private const val OFFSET_BASIS = -3750763034362895579L // FNV-1a 64-bit
-    private const val PRIME = 1099511628211L
 
     /** Wraps one encoded aggregate as a complete automatic copy. */
     fun wrap(store: String): String = buildString {
@@ -109,14 +107,23 @@ internal object LandSnapshotFormat {
         return LandStoreFormat.decode(store, requireEveryRecord = true)
     }
 
-    private fun checksum(value: String): String {
-        var hash = OFFSET_BASIS
-        value.forEach { character ->
-            hash = hash xor character.code.toLong()
-            hash *= PRIME
-        }
-        return hash.toULong().toString(16)
+    private fun checksum(value: String): String = fnv1a64Hex(value)
+}
+
+private const val FNV_OFFSET_BASIS = -3750763034362895579L // FNV-1a 64-bit
+private const val FNV_PRIME = 1099511628211L
+
+/**
+ * FNV-1a 64 over the UTF-16 code units of [value], as lowercase hex. It detects accidental damage,
+ * not tampering: it is shared by the automatic copies and the portable backup file.
+ */
+internal fun fnv1a64Hex(value: String): String {
+    var hash = FNV_OFFSET_BASIS
+    value.forEach { character ->
+        hash = hash xor character.code.toLong()
+        hash *= FNV_PRIME
     }
+    return hash.toULong().toString(16)
 }
 
 /**

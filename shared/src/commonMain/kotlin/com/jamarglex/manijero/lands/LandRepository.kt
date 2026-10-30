@@ -174,6 +174,50 @@ class LandRepository(
         }
     }
 
+    /**
+     * The whole aggregate, active and removed lands in their stored order, read once so a portable
+     * backup sees one consistent state. A failed read throws exactly like [list].
+     */
+    fun snapshot(): LandSnapshot = readSnapshot()
+
+    /**
+     * Replaces **both** lists with [replacement] in one aggregate write: the restore of a validated
+     * portable backup. Nothing is merged; every current active and removed land is replaced.
+     *
+     * The current aggregate is read first and kept as one more same-device automatic copy before the
+     * primary store is rewritten, so the state the person had just before the restore stays
+     * recoverable on this device. A current store that cannot be read is never overwritten
+     * ([LandReplaceResult.CurrentUnreadable]); a refused copy or primary write reports
+     * [LandReplaceResult.StorageFailed] and leaves the primary aggregate unchanged.
+     *
+     * A backup may deliberately bring back a land deleted for good after it was exported. If such an
+     * id is still held by a pending purge marker, that earlier deletion is completed first (primary and
+     * copies sanitized, marker cleared) so the restored record is not filtered out by the marker.
+     */
+    fun replaceAll(replacement: LandSnapshot): LandReplaceResult {
+        val ids = replacement.active.map { it.id } + replacement.removed.map { it.land.id }
+        require(ids.size == ids.toSet().size) { "A replacement must not repeat a land id" }
+        val current = try {
+            readSnapshot()
+        } catch (_: Exception) {
+            return LandReplaceResult.CurrentUnreadable
+        }
+        return try {
+            val purged = purgedIds()
+            if (ids.any { it in purged }) {
+                // `current` is already filtered by the marker, so writing it completes the deletion.
+                storage.write(LandStoreFormat.encode(current))
+                if (!sanitizeSnapshots(purged)) return LandReplaceResult.StorageFailed
+                automaticSnapshots?.writePurgeMarker(null)
+            }
+            automaticSnapshots?.writeSnapshot(LandSnapshotFormat.wrap(LandStoreFormat.encode(current)))
+            writeSnapshot(replacement)
+            LandReplaceResult.Replaced
+        } catch (_: Exception) {
+            LandReplaceResult.StorageFailed
+        }
+    }
+
     private fun uniqueId(snapshot: LandSnapshot): String {
         val taken = snapshot.active.map { it.id } + snapshot.removed.map { it.land.id }
         var id = idGenerator()
