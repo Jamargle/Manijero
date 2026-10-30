@@ -21,6 +21,7 @@ internal enum class AppDestination {
     RemoveLand,
     RemovedLands,
     PermanentlyDeleteLand,
+    LandBackup,
     Privacy,
     Coverage,
 }
@@ -61,6 +62,7 @@ internal fun tabForDestination(destination: AppDestination, fallback: AppSection
         AppDestination.RemoveLand,
         AppDestination.RemovedLands,
         AppDestination.PermanentlyDeleteLand,
+        AppDestination.LandBackup,
         -> AppSection.Lands
 
         AppDestination.Coverage -> AppSection.Help
@@ -114,6 +116,7 @@ internal fun backTarget(
     -> AppDestination.LandList
 
     AppDestination.RemovedLands -> AppDestination.LandList
+    AppDestination.LandBackup -> AppDestination.LandList
     AppDestination.PermanentlyDeleteLand -> AppDestination.RemovedLands
 
     AppDestination.Coverage -> {

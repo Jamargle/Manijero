@@ -14,6 +14,8 @@ import io.ktor.client.engine.android.Android
 import com.jamarglex.manijero.chat.answerHttpClient
 import com.jamarglex.manijero.platform.androidAskBaseUrl
 import com.jamarglex.manijero.chat.KtorAnswerService
+import com.jamarglex.manijero.lands.AndroidLandBackupFiles
+import com.jamarglex.manijero.lands.ContentResolverBackupDocuments
 import com.jamarglex.manijero.lands.LandRepository
 import com.jamarglex.manijero.lands.SharedPreferencesLandStorage
 
@@ -28,6 +30,25 @@ class MainActivity : ComponentActivity() {
         LandRepository(SharedPreferencesLandStorage(applicationContext))
     }
 
+    // The portable land backup goes through the system document picker: the person chooses where
+    // the file lives, and no storage permission is requested. Any file type can be picked because a
+    // shared backup may arrive with a generic type; the shared validator refuses anything else.
+    private val createBackupDocument = registerForActivityResult(
+        ActivityResultContracts.CreateDocument("application/json"),
+    ) { uri -> landBackupFiles.onCreateDocumentResult(uri) }
+
+    private val openBackupDocument = registerForActivityResult(
+        ActivityResultContracts.OpenDocument(),
+    ) { uri -> landBackupFiles.onOpenDocumentResult(uri) }
+
+    private val landBackupFiles: AndroidLandBackupFiles by lazy {
+        AndroidLandBackupFiles(
+            documents = ContentResolverBackupDocuments(contentResolver),
+            launchCreateDocument = { name -> createBackupDocument.launch(name) },
+            launchOpenDocument = { openBackupDocument.launch(arrayOf("*/*")) },
+        )
+    }
+
     override fun onCreate(savedInstanceState: Bundle?) {
         enableEdgeToEdge()
         super.onCreate(savedInstanceState)
@@ -39,7 +60,7 @@ class MainActivity : ComponentActivity() {
         }
 
         setContent {
-            App(landRepository, answerService)
+            App(landRepository, answerService, landBackupFiles)
         }
     }
 

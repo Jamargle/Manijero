@@ -3,6 +3,8 @@ package com.jamarglex.manijero
 import androidx.compose.runtime.remember
 import androidx.compose.ui.window.Window
 import androidx.compose.ui.window.application
+import com.jamarglex.manijero.lands.AwtBackupFileChooser
+import com.jamarglex.manijero.lands.DesktopLandBackupFiles
 import com.jamarglex.manijero.lands.FileLandStorage
 import com.jamarglex.manijero.lands.LandRepository
 import java.nio.file.Path
@@ -29,7 +31,9 @@ fun main() = application {
         onCloseRequest = { answerClient.close(); exitApplication() },
         title = "Manijero",
     ) {
-        App(landRepository, answerService)
+        // The portable backup uses the native file dialog, owned by this window so it opens on top.
+        val landBackupFiles = remember(window) { DesktopLandBackupFiles(AwtBackupFileChooser(window)) }
+        App(landRepository, answerService, landBackupFiles)
     }
 }
 

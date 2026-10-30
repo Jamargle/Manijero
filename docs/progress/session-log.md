@@ -93,3 +93,4 @@ restate evidence here.
 | 2026-10-27 | `hosted_pilot_operations` accepted (prepared, not deployed). | [hosted_pilot_operations.md](../specs/hosted_pilot_operations.md) · [acceptance](../validations/hosted_pilot_operations.md) |
 | 2026-10-27 | `local_bge_m3_embeddings` accepted. | [local_bge_m3_embeddings.md](../specs/local_bge_m3_embeddings.md) · [acceptance](../validations/local_bge_m3_embeddings.md) |
 | 2026-10-31 | `pilot_privacy_readiness` accepted (gates closed; qualified review pending). | [pilot_privacy_readiness.md](../specs/pilot_privacy_readiness.md) · [acceptance](../validations/pilot_privacy_readiness.md) |
+| 2026-10-31 | `portable_land_backup` accepted. | [portable_land_backup.md](../specs/portable_land_backup.md) · [acceptance](../validations/portable_land_backup.md) |

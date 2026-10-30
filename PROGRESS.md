@@ -7,9 +7,9 @@ Routine entry point. Exact feature status lives in [`feature_list.json`](feature
 contracts, raw evidence, and acceptance records remain in their owning files. Last updated:
 2026-10-31.
 
-**Feature status** — 62 of 68 features are accepted. The six remaining `not_started` features are
+**Feature status** — 63 of 68 features are accepted. The five remaining `not_started` features are
 `knowledge_update_scheduler`, `chroma_hybrid_retrieval`, `gemini_generation_provider`,
-`knowledge_reindex_release`, `portable_land_backup`, and `private_pilot_distribution`. `feature_list.json` and the selector remain the status authority;
+`knowledge_reindex_release`, and `private_pilot_distribution`. `feature_list.json` and the selector remain the status authority;
 this page does not duplicate the feature-id list.
 
 **Product shape** — shared Compose chat, lands, and help surfaces in `shared/src/commonMain`, hosted
@@ -49,11 +49,13 @@ BM25 retrieval. Gemini is planned but gated off pending current provider/privacy
   product decisions without target-user evidence. Land-field persistence has no real-device
   upgrade/downgrade evidence; details stay in the [field validation](docs/validations/land_measurement_fields.md)
   and [search validation](docs/validations/land_search_and_summary.md).
-- Device-local land records have no implemented export or portable restore of a deleted store. Removing a
+- Device-local land records can be exported to, and restored from, one plaintext portable file
+  (`Mis terrenos` → `Copia en un archivo`, replace-all after a preview); see the
+  [acceptance record](docs/validations/portable_land_backup.md). Removing a
   land is recoverable on the device until the user confirms `Borrar para siempre`; the app also keeps up to
   three bounded same-device automatic copies of the whole aggregate and recovers a damaged primary from the
-  newest fully valid one. Those copies live in the same app data area, so losing the device or uninstalling
-  the app still loses the records; permanent deletion purges the aggregate and every app-managed copy. The
+  newest fully valid one. Those copies live in the same app data area, so without an exported file, losing the device or
+  uninstalling the app still loses the records; permanent deletion purges the aggregate and every app-managed copy. The
   product direction is local-only storage with required recovery features before the private pilot; this is
   not user evidence that data loss is acceptable. See the
   [decision record](docs/specs/land_backup_decision.md), the
@@ -64,9 +66,9 @@ BM25 retrieval. Gemini is planned but gated off pending current provider/privacy
 - That Android exclusion is verified by manifest, rule-file, and packaged-APK inspection only, not by
   an emulator or device backup round-trip; OEM backup behaviour and OS/disk-level copies outside the
   app remain unverified.
-- Recoverable removal and bounded same-device automatic copies are implemented and accepted; the portable
-  plaintext backup file remains not implemented, so the pilot still has
-  no copy that survives device loss. The removed-list screens have no device or screen-reader evidence, the
+- Recoverable removal, bounded same-device automatic copies, and the portable plaintext backup file are
+  accepted. The backup file has no real-device SAF picker, real macOS `FileDialog`, or physical
+  Android-to-Mac transfer evidence; it is unencrypted and its copies are the person's responsibility. The removed-list screens have no device or screen-reader evidence, the
   automatic-copy recovery notice has host-rendered light/dark goldens at two viewports but no device
   interaction or screen-reader evidence, and `removedAt` is stored as 0 in production because no clock is
   injected. A qualified privacy/legal review is also required before the private pilot.

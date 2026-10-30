@@ -21,6 +21,9 @@ import com.jamarglex.manijero.lands.EditLandFailure
 import com.jamarglex.manijero.lands.EditLandScreen
 import com.jamarglex.manijero.lands.EditLandState
 import com.jamarglex.manijero.lands.Land
+import com.jamarglex.manijero.lands.LandBackupController
+import com.jamarglex.manijero.lands.LandBackupFiles
+import com.jamarglex.manijero.lands.LandBackupScreen
 import com.jamarglex.manijero.lands.LandLifecycleResult
 import com.jamarglex.manijero.lands.LandListAction
 import com.jamarglex.manijero.lands.LandListConfirmation
@@ -67,6 +70,9 @@ internal fun initialLandListState(repository: LandRepository?): LandListState =
  * lands destination is omitted instead of creating a platform-specific store in common code, and
  * the assistant is the launch screen.
  *
+ * [landBackupFiles] is the platform file picker for the portable backup. `Copia en un archivo` is
+ * offered only when both it and [landRepository] are injected (Android and Desktop).
+ *
  * Every destination renders inside the one [AppShell]; the route table itself is pure and lives in
  * `AppNavigation.kt`.
  */
@@ -76,6 +82,7 @@ internal fun initialLandListState(repository: LandRepository?): LandListState =
 fun App(
     landRepository: LandRepository? = null,
     answerService: AnswerService = UnavailableAnswerService,
+    landBackupFiles: LandBackupFiles? = null,
 ) {
     val scope = rememberCoroutineScope()
     // The chat reads the land list at submit time and again on every retry, so a land added, edited
@@ -164,6 +171,26 @@ fun App(
                     onFailure = { RemovedLandsAction.LoadFailed },
                 ),
             )
+        }
+    }
+
+    // The portable backup flow. After a confirmed restore both lists are re-read, so `Mis terrenos`
+    // and `Terrenos eliminados` show the restored data on `Volver`.
+    val landBackup = remember(landRepository, landBackupFiles, scope) {
+        val repository = landRepository
+        val files = landBackupFiles
+        if (repository != null && files != null) {
+            LandBackupController(
+                repository = repository,
+                files = files,
+                scope = scope,
+                onRestored = {
+                    readLands()
+                    readRemovedLands()
+                },
+            )
+        } else {
+            null
         }
     }
 
@@ -284,7 +311,27 @@ fun App(
                         readRemovedLands()
                         destination = AppDestination.RemovedLands
                     },
+                    onOpenBackup = landBackup?.let { controller ->
+                        {
+                            landConfirmation = null
+                            controller.reset()
+                            destination = AppDestination.LandBackup
+                        }
+                    },
                 )
+
+                // Export and restore through the platform picker. Choosing a file only previews it;
+                // the replace-all write happens on the explicit confirmation and nowhere else.
+                AppDestination.LandBackup -> landBackup?.let { controller ->
+                    LandBackupScreen(
+                        state = controller.state,
+                        onExport = controller::export,
+                        onChooseFile = controller::chooseFile,
+                        onConfirmRestore = controller::confirmRestore,
+                        onCancelPreview = controller::dismissPreview,
+                        onBack = { destination = AppDestination.LandList },
+                    )
+                }
 
                 AppDestination.AddLand -> {
                     val repository = landRepository
