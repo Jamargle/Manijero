@@ -51,6 +51,16 @@ components:
           description: Original user wording; do not silently rewrite it.
         land_context:
           $ref: '#/components/schemas/LandContext'
+        retain_for_improvement:
+          type: boolean
+          default: false
+          description: >-
+            Explicit permission, given for this one question, to keep the redacted question
+            and final answer for product improvement. Absent means false. It never changes
+            the answer. When the service has retention configured, only a conservatively
+            redacted question and answer are kept, without land context, land IDs, or
+            client/device identifiers, and they are deleted no later than 30 days later.
+            Clarification responses are never retained.
     LandContext:
       type: object
       additionalProperties: false

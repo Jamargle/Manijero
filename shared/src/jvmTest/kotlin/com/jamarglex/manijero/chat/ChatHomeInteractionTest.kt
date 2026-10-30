@@ -6,6 +6,10 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.test.ExperimentalTestApi
 import androidx.compose.ui.test.assertIsEnabled
 import androidx.compose.ui.test.assertIsNotEnabled
+import androidx.compose.ui.test.assertIsOff
+import androidx.compose.ui.test.assertIsOn
+import androidx.compose.ui.test.hasText
+import androidx.compose.ui.test.isToggleable
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.performScrollTo
@@ -93,5 +97,33 @@ class ChatHomeInteractionTest {
             onNodeWithText("Reintentar").performScrollTo().assertIsEnabled().performClick()
 
             assertEquals(listOf<ChatHomeAction>(ChatHomeAction.RetryClicked), actions)
+        }
+
+    @Test
+    fun retentionChoiceIsUncheckedSeparateAndNeverSubmits() =
+        runDesktopComposeUiTest(width = 900, height = 1200) {
+            val actions = mutableListOf<ChatHomeAction>()
+            var state by mutableStateOf(ChatHomeState(question = "¿Puedo regar hoy?"))
+            setContent {
+                ManijeroTheme(darkTheme = false) {
+                    ChatHomeScreen(
+                        state = state,
+                        onAction = { action ->
+                            actions += action
+                            if (action is ChatHomeAction.RetentionChoiceChanged) {
+                                state = state.copy(retainNextQuestion = action.allowed)
+                            }
+                        },
+                    )
+                }
+            }
+
+            val label = "Permitir guardar esta pregunta y su respuesta para mejorar Manijero"
+            onNode(hasText(label) and isToggleable()).performScrollTo().assertIsOff().performClick()
+
+            assertEquals(listOf<ChatHomeAction>(ChatHomeAction.RetentionChoiceChanged(true)), actions)
+            onNode(hasText(label) and isToggleable()).assertIsOn()
+            onNodeWithText("se borra sola en 30 días como máximo", substring = true).assertExists()
+            onNodeWithText("Preguntar").assertIsEnabled()
         }
 }

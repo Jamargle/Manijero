@@ -10,6 +10,7 @@ import com.jamarglex.manijero.chat.askRequestFor
 import com.jamarglex.manijero.chat.generalAskRequest
 import com.jamarglex.manijero.chat.selectedAskRequest
 import com.jamarglex.manijero.lands.Land
+import com.jamarglex.manijero.privacy.retentionAllowedFor
 
 /**
  * Presentation state for one chat home screen. It is intentionally pure data: the only
@@ -29,6 +30,12 @@ data class ChatHomeState(
     val failure: RequestFailure? = null,
     val failedQuestion: String? = null,
     val clarificationQuestion: String? = null,
+    /**
+     * The person's explicit permission to keep the **next** sent question and its answer for
+     * product improvement. Unchecked by default, never set by sending, and reset to `false` by every
+     * send (ask, retry, or land choice), so each retained question needs its own fresh choice.
+     */
+    val retainNextQuestion: Boolean = false,
 ) {
     val canAsk: Boolean
         get() = phase == SubmissionPhase.IDLE &&
@@ -81,6 +88,9 @@ sealed interface ChatHomeAction {
     data class RequestFailed(val failure: RequestFailure) : ChatHomeAction
     data object RetryClicked : ChatHomeAction
 
+    /** The person ticked or unticked the retention box. It never submits anything. */
+    data class RetentionChoiceChanged(val allowed: Boolean) : ChatHomeAction
+
     /**
      * The person chose one or more of the lands offered by a clarification. The original question is
      * resubmitted with `mode: selected` and no second user message (exactly the [RetryClicked]
@@ -90,10 +100,23 @@ sealed interface ChatHomeAction {
 }
 
 sealed interface ChatEffect {
-    data class Submit(val question: String) : ChatEffect
+    /** The exact wording to send. */
+    val question: String
+
+    /** Whether the person explicitly allowed retention for this one send. */
+    val retainForImprovement: Boolean
+
+    data class Submit(
+        override val question: String,
+        override val retainForImprovement: Boolean = false,
+    ) : ChatEffect
 
     /** The chosen lands to resubmit the retained question over, without a second user message. */
-    data class SubmitSelected(val question: String, val landIds: List<String>) : ChatEffect
+    data class SubmitSelected(
+        override val question: String,
+        val landIds: List<String>,
+        override val retainForImprovement: Boolean = false,
+    ) : ChatEffect
 }
 
 data class ChatReduction(val state: ChatHomeState, val effect: ChatEffect? = null)
@@ -129,6 +152,9 @@ fun ChatHomeState.reduce(action: ChatHomeAction): ChatReduction = when (action) 
             ),
         )
 
+    is ChatHomeAction.RetentionChoiceChanged ->
+        ChatReduction(copy(retainNextQuestion = action.allowed))
+
     ChatHomeAction.AskClicked -> {
         if (!canAsk) ChatReduction(this) else {
             val originalQuestion = question
@@ -144,8 +170,10 @@ fun ChatHomeState.reduce(action: ChatHomeAction): ChatReduction = when (action) 
                     failedQuestion = null,
                     // A fresh question is not a clarification: drop any retained wording.
                     clarificationQuestion = null,
+                    // The permission covered this one question only.
+                    retainNextQuestion = false,
                 ),
-                effect = ChatEffect.Submit(originalQuestion),
+                effect = ChatEffect.Submit(originalQuestion, retainNextQuestion),
             )
         }
     }
@@ -214,8 +242,9 @@ fun ChatHomeState.reduce(action: ChatHomeAction): ChatReduction = when (action) 
                     submittedQuestion = wording,
                     // messages stay untouched: a retry never appends a second user message.
                     failure = null,
+                    retainNextQuestion = false,
                 ),
-                effect = ChatEffect.Submit(wording),
+                effect = ChatEffect.Submit(wording, retainNextQuestion),
             )
         }
     }
@@ -239,9 +268,10 @@ fun ChatHomeState.reduce(action: ChatHomeAction): ChatReduction = when (action) 
                     submittedQuestion = wording,
                     failure = null,
                     failedQuestion = null,
+                    retainNextQuestion = false,
                     // messages untouched, exactly like RetryClicked.
                 ),
-                effect = ChatEffect.SubmitSelected(wording, action.selectedLandIds),
+                effect = ChatEffect.SubmitSelected(wording, action.selectedLandIds, retainNextQuestion),
             )
         }
     }
@@ -261,5 +291,13 @@ fun ChatEffect.request(lands: List<Land>) = when (this) {
     is ChatEffect.SubmitSelected -> {
         val chosen = lands.filter { land -> land.id in landIds }
         if (chosen.isEmpty()) generalAskRequest(question) else selectedAskRequest(question, chosen)
+    }
+}.let { request ->
+    // Retention is requested only with the person's explicit choice for this send, and never when
+    // the wording contains a saved land's private label (see `retentionAllowedFor`).
+    if (retainForImprovement && retentionAllowedFor(question, lands)) {
+        request.copy(retain_for_improvement = true)
+    } else {
+        request
     }
 }

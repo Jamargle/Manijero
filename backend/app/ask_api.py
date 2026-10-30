@@ -10,7 +10,7 @@ from typing import Annotated, Any, Dict, Literal
 from fastapi import APIRouter, Depends, HTTPException, Request
 from fastapi.exceptions import RequestValidationError
 from fastapi.responses import JSONResponse
-from pydantic import AnyHttpUrl, BaseModel, ConfigDict, Field, StrictStr, model_validator
+from pydantic import AnyHttpUrl, BaseModel, ConfigDict, Field, StrictBool, StrictStr, model_validator
 
 from app.abstention import (
     Abstention,
@@ -23,6 +23,8 @@ from app.clarification import (
     to_clarification_response,
 )
 from app.generation import Answered, to_answer_response
+from app.pilot_logging import operational_log
+from app.retention import RetentionStore, retain_if_opted_in
 from app.retrieval import CatalogRejectedError, PassageSetError, Retriever, validate_passage_set
 from app.source_catalog import CatalogReadError, load_catalog, validate_catalog
 
@@ -67,6 +69,9 @@ class LandContext(ClosedModel):
 class AskRequest(ClosedModel):
     question: StrictStr = Field(min_length=1, max_length=2000)
     land_context: LandContext
+    # Explicit, per-question permission to keep the redacted question and final answer for
+    # product improvement. Absent means false; it never changes the answer.
+    retain_for_improvement: StrictBool = False
 
 
 class AnswerSource(ClosedModel):
@@ -134,6 +139,12 @@ def get_corpus_documents() -> CorpusDocuments:
     return load_corpus_documents()
 
 
+def get_retention_store(request: Request) -> RetentionStore | None:
+    """The product-improvement store built by ``create_app``; ``None`` keeps retention off."""
+
+    return getattr(request.app.state, "retention_store", None)
+
+
 router = APIRouter()
 
 
@@ -154,9 +165,33 @@ def ask_question(
     as_of: date = Depends(get_as_of_date),
     active_campaign: str = Depends(get_active_campaign),
     retrieval_k: int = Depends(get_retrieval_k),
+    retention_store: RetentionStore | None = Depends(get_retention_store),
 ) -> Dict[str, Any]:
-    """Run accepted corpus and answer decisions without exposing internal errors."""
+    """Run accepted corpus and answer decisions, then the separate opt-in retention step."""
 
+    response = _answer(request, corpus_documents, as_of, active_campaign, retrieval_k)
+    # Retention runs after the answer exists and cannot change or fail it. Only a fixed
+    # outcome code is logged, and only when something was attempted.
+    outcome = retain_if_opted_in(
+        retention_store,
+        opted_in=request.retain_for_improvement,
+        question=request.question,
+        land_context=request.land_context.model_dump(exclude_none=True),
+        response=response,
+        today=as_of,
+    )
+    if outcome in {"redaction_failed", "store_failed"}:
+        operational_log("retention_skipped", outcome=outcome)
+    return response
+
+
+def _answer(
+    request: AskRequest,
+    corpus_documents: CorpusDocuments,
+    as_of: date,
+    active_campaign: str,
+    retrieval_k: int,
+) -> Dict[str, Any]:
     try:
         years = set(re.findall(r"(?<!\d)\d{4}(?!\d)", request.question))
         if len(years) > 1 or (years and years != {active_campaign}):

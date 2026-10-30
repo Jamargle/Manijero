@@ -38,7 +38,14 @@ from app.pilot_config import (
     token_sha256,
     validate_clients_document,
 )
+from app.privacy_review import (
+    decide_generation_provider,
+    evaluate_pilot_review,
+    generation_provider_problem,
+    load_review_record,
+)
 from app.readiness import ReadinessResult, evaluate_readiness
+from app.retention import RetentionError, load_retention_store
 
 BACKEND_ROOT = Path(__file__).resolve().parents[1]
 REPOSITORY_ROOT = BACKEND_ROOT.parent
@@ -102,6 +109,10 @@ class PreflightReport:
     max_request_bytes: int
     readiness: ReadinessResult | None
     problems: Tuple[str, ...] = ()
+    privacy_review_passed: bool = False
+    retention_configured: bool = False
+    gemini_configured: bool = False
+    generation_provider: str = "extractive"
 
     @property
     def ok(self) -> bool:
@@ -148,8 +159,13 @@ def run_preflight(
     as_of: date | None = None,
     catalog_path: Path | None = None,
     passages_path: Path | None = None,
+    privacy_review_path: Path | None = None,
 ) -> PreflightReport:
-    """Validate the pilot profile, explicit campaign, credentials, and corpus."""
+    """Validate the pilot profile, campaign, credentials, corpus, and privacy gates.
+
+    The pilot cannot be prepared for real users until a dated qualified privacy/legal
+    review is recorded: a pending, rejected, or incomplete review is a blocking problem.
+    """
 
     checked_on = as_of or date.today()
     try:
@@ -169,6 +185,19 @@ def run_preflight(
     documents = _load_documents(catalog_path, passages_path)
     readiness = evaluate_readiness(documents, checked_on, config.active_campaign)
     problems.extend(readiness.problems)
+    source = os.environ if env is None else env
+    record = load_review_record(privacy_review_path)
+    review = evaluate_pilot_review(record, as_of=checked_on)
+    problems.extend(review.blockers)
+    retention_configured = False
+    try:
+        retention_configured = load_retention_store(source) is not None
+    except RetentionError as error:
+        problems.append(error.code)
+    provider_problem = generation_provider_problem(source)
+    if provider_problem:
+        problems.append(provider_problem)
+    decision = decide_generation_provider(source, record=record, as_of=checked_on)
     return PreflightReport(
         profile=config.profile,
         campaign=config.active_campaign,
@@ -176,6 +205,10 @@ def run_preflight(
         max_request_bytes=config.max_request_bytes,
         readiness=readiness,
         problems=tuple(problems),
+        privacy_review_passed=review.passed,
+        retention_configured=retention_configured,
+        gemini_configured=decision.gemini_configured,
+        generation_provider=decision.provider,
     )
 
 

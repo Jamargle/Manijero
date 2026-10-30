@@ -68,10 +68,16 @@ fun answerHttpClient(
     }
 }
 
+/**
+ * [retain_for_improvement] is the explicit, per-question permission to keep the redacted question
+ * and answer for product improvement. It defaults to `false`, and `answerJson` does not encode
+ * defaults, so a question without permission sends no retention key at all.
+ */
 @Serializable
 data class AskRequest(
     val question: String,
     val land_context: LandContext,
+    val retain_for_improvement: Boolean = false,
 )
 
 @Serializable

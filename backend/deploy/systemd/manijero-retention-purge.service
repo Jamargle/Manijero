@@ -1,0 +1,21 @@
+# Daily purge of expired product-improvement records — TEMPLATE, NOT REHEARSED.
+# Only needed when MANIJERO_RETENTION_DB is set. Install with the matching .timer.
+# A failed purge exits 1, so `systemctl --failed` shows it; treat that as an incident.
+
+[Unit]
+Description=Manijero retention purge (records past their 30-day limit)
+
+[Service]
+Type=oneshot
+User=manijero
+Group=manijero
+WorkingDirectory=/opt/manijero/repo
+EnvironmentFile=/etc/manijero/pilot.env
+ExecStart=/opt/manijero/repo/backend/.venv/bin/python /opt/manijero/repo/backend/scripts/pilot_ops.py retention-purge
+ExecStartPost=/opt/manijero/repo/backend/.venv/bin/python /opt/manijero/repo/backend/scripts/pilot_ops.py retention-status
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=strict
+ProtectHome=true
+ReadOnlyPaths=/opt/manijero
+ReadWritePaths=/var/lib/manijero/retention

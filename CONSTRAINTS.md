@@ -210,6 +210,21 @@ Operational MUST/MUST NOT rules that future features have to respect on top of
   Reason: model output is untrusted and provider exposure requires informed choice and qualified
   review before real users.
 
+- **MUST**: retention MUST run only after the answer is produced, through
+  `backend/app/retention.py::retain_if_opted_in`, and MUST NOT change, delay-fail, or replace the
+  answer; a redaction or storage failure retains nothing and logs only a fixed outcome code. The
+  retained row MUST stay exactly `created_on`, `expires_on`, `answer_status`, `question_redacted`,
+  `answer_redacted` (dates, no time; no client, device, land, or network identifier), the store MUST
+  live outside the repository in an owner-only directory, and every read or export MUST exclude a
+  record whose `expires_on` (creation + 29 days) has arrived. The client MUST send
+  `retain_for_improvement: true` only from the unchecked-by-default checkbox for that one send, MUST
+  reset it on every send, and MUST drop it when the wording contains a saved land's name, zone,
+  municipality, custom variety, or notes. `backend/config/pilot_privacy_review.json` MUST only be
+  changed to an approved state by a reviewed change carrying a real dated qualified review; tests use
+  the labelled synthetic fixture. Reason: `pilot_privacy_readiness`; the server never sees land
+  names, so only the device can exclude them, and a widened row or an in-repo store would turn
+  short-lived redacted text into durable, joinable personal data.
+
 - **MUST**: land-list Edit and Remove controls remain separate from the non-clickable row and their
   accessible names MUST include both the action and saved land name. Reason: duplicate land names
   are permitted; an action announced without its target can remove or edit the wrong record.

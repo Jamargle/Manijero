@@ -6,8 +6,11 @@ Run from the repository root with the backend virtualenv, for example:
     backend/.venv/bin/python backend/scripts/pilot_ops.py preflight
 
 Commands cover the runbook's repeatable steps: preflight, corpus/config backup, verified
-restore, a deployment smoke check, and client-credential rotation. Output contains fixed
-codes and hashes only, never a question, answer, land value, or bearer token.
+restore, a deployment smoke check, client-credential rotation, the privacy review gate,
+and the owner's product-improvement retention operations (status, daily purge, export,
+delete-all). Output contains fixed codes, counts, and hashes only, never a question,
+answer, land value, or bearer token; only ``retention-export`` writes redacted retained
+text, and only to an owner-only file outside the repository.
 
 Exit codes: 0 success, 1 a check failed, 2 refused input or configuration.
 """
@@ -22,6 +25,17 @@ ROOT = Path(__file__).resolve().parents[2]
 sys.path.insert(0, str(ROOT / "backend"))
 
 from app.pilot_config import parse_campaign, token_sha256  # noqa: E402
+from app.privacy_review import (  # noqa: E402
+    decide_generation_provider,
+    evaluate_pilot_review,
+    load_review_record,
+)
+from app.retention import (  # noqa: E402
+    RetentionError,
+    export_records,
+    load_retention_store,
+    today_utc,
+)
 from app.pilot_ops import (  # noqa: E402
     PilotOperationError,
     create_backup,
@@ -70,12 +84,32 @@ def main(argv: list[str] | None = None) -> int:
 
     commands.add_parser("hash-token", help="print the digest stored for a token from stdin")
 
+    gate = commands.add_parser("privacy-gate", help="report the pilot and Gemini review gates")
+    gate.add_argument("--as-of", type=date.fromisoformat, default=None)
+
+    for name, help_text in (
+        ("retention-status", "count retained records and report overdue ones"),
+        ("retention-purge", "delete retained records at or past their expiry date"),
+    ):
+        command = commands.add_parser(name, help=help_text)
+        command.add_argument("--as-of", type=date.fromisoformat, default=None)
+
+    export = commands.add_parser("retention-export", help="export unexpired redacted records")
+    export.add_argument("--destination", type=Path, required=True)
+
+    delete_all = commands.add_parser("retention-delete-all", help="delete every retained record")
+    delete_all.add_argument("--confirm", action="store_true")
+
     args = parser.parse_args(argv)
     try:
         return _dispatch(args)
     except PilotOperationError as error:
         print(f"error: {error.code}", file=sys.stderr)
         return error.exit_code
+    except RetentionError as error:
+        # A failed purge or export is an alert for the operator: exit 1, fixed code only.
+        print(f"error: {error.code}", file=sys.stderr)
+        return 1
 
 
 def _dispatch(args: argparse.Namespace) -> int:
@@ -104,6 +138,56 @@ def _dispatch(args: argparse.Namespace) -> int:
     if args.command == "hash-token":
         print(token_sha256(_read_token(argparse.Namespace(token_stdin=True))))
         return 0
+    if args.command == "privacy-gate":
+        return _privacy_gate(args)
+    if args.command.startswith("retention-"):
+        return _retention(args)
+    raise PilotOperationError("unknown_command")
+
+
+def _privacy_gate(args: argparse.Namespace) -> int:
+    as_of = args.as_of or today_utc()
+    record = load_review_record()
+    review = evaluate_pilot_review(record, as_of=as_of)
+    decision = decide_generation_provider(record=record, as_of=as_of)
+    print(f"pilot_privacy_review: {'passed' if review.passed else 'blocked'}")
+    print(f"generation_provider: {decision.provider}")
+    print(f"gemini_configured: {'yes' if decision.gemini_configured else 'no'}")
+    print("gemini_requests: disabled")
+    for blocker in review.blockers:
+        print(f"blocker: {blocker}", file=sys.stderr)
+    if decision.gemini_configured:
+        for blocker in decision.gemini_gate.blockers:
+            print(f"gemini_blocker: {blocker}", file=sys.stderr)
+    return 0 if review.passed else 1
+
+
+def _retention(args: argparse.Namespace) -> int:
+    store = load_retention_store()
+    if store is None:
+        print("retention: not_configured")
+        return 0
+    today = getattr(args, "as_of", None) or today_utc()
+    if args.command == "retention-status":
+        status = store.status(today=today)
+        print(f"records: {status.records}")
+        print(f"overdue: {status.overdue}")
+        print(f"oldest_created_on: {status.oldest_created_on or 'none'}")
+        if status.overdue:
+            print("alert: retention_overdue", file=sys.stderr)
+            return 1
+        return 0
+    if args.command == "retention-purge":
+        print(f"purged: {store.purge_expired(today=today)}")
+        return 0
+    if args.command == "retention-export":
+        print(f"exported: {export_records(store, args.destination, today=today)}")
+        return 0
+    if args.command == "retention-delete-all":
+        if not args.confirm:
+            raise PilotOperationError("confirmation_required")
+        print(f"deleted: {store.delete_all()}")
+        return 0
     raise PilotOperationError("unknown_command")
 
 
@@ -114,6 +198,9 @@ def _preflight(args: argparse.Namespace) -> int:
     print(f"configured_clients: {report.configured_clients}")
     print(f"max_request_bytes: {report.max_request_bytes}")
     print(f"corpus_ready: {'yes' if report.readiness and report.readiness.ready else 'no'}")
+    print(f"privacy_review: {'passed' if report.privacy_review_passed else 'blocked'}")
+    print(f"retention: {'configured' if report.retention_configured else 'off'}")
+    print(f"generation_provider: {report.generation_provider}")
     for problem in report.problems:
         print(f"problem: {problem}", file=sys.stderr)
     return 0 if report.ok else 1
