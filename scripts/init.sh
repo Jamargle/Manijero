@@ -3,26 +3,18 @@ set -euo pipefail
 
 # The backend is independent of the Android/Gradle toolchain. Handle it before
 # the Android SDK and Java setup below, so it can be started on its own.
+if [[ "${1:-}" == "--setup-python" ]]; then
+  shift
+  exec "$(dirname -- "${BASH_SOURCE[0]}")/python-env.sh" "$@"
+fi
+
 if [[ "${1:-}" == "--backend" ]]; then
   REPO_ROOT="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")/.." && pwd)"
   BACKEND_DIR="$REPO_ROOT/backend"
-  PYTHON="${MANIJERO_PYTHON:-}"
-  if [[ -z "$PYTHON" ]]; then
-    if command -v python3 >/dev/null 2>&1; then
-      PYTHON="$(command -v python3)"
-    elif command -v python >/dev/null 2>&1; then
-      PYTHON="$(command -v python)"
-    else
-      printf 'Python 3 is required to run the backend. Install Python 3 and rerun ./scripts/init.sh --backend.\n' >&2
-      exit 1
-    fi
-  fi
-
   VENV="$BACKEND_DIR/.venv"
   if [[ ! -x "$VENV/bin/python" ]]; then
-    "$PYTHON" -m venv "$VENV"
+    MANIJERO_BASE_PYTHON="${MANIJERO_BASE_PYTHON:-${MANIJERO_PYTHON:-}}" "$REPO_ROOT/scripts/python-env.sh" dev
   fi
-  "$VENV/bin/python" -m pip install -r "$BACKEND_DIR/requirements.txt"
   cd "$BACKEND_DIR"
   export MANIJERO_ACTIVE_CAMPAIGN="${MANIJERO_ACTIVE_CAMPAIGN:-2026}"
   # Android emulators reach the host through 10.0.2.2, not the host's loopback
@@ -66,7 +58,7 @@ AS_OF="${MANIJERO_AS_OF:-2026-10-13}"
 
 usage() {
   cat <<'EOF'
-Usage: ./scripts/init.sh [--check|--fast|--verify|--feature <id>|--backend-tests [targets]|--backend|--android|--android-run|--desktop|--help]
+Usage: ./scripts/init.sh [--check|--fast|--verify|--feature <id>|--backend-tests [targets]|--setup-python [dev|hybrid]|--backend|--android|--android-run|--desktop|--help]
 
   --check                   Check Java and the Gradle wrapper, then print standard commands (default)
   --fast                    Shared host tests, contract examples, backend unit tests, and the five
@@ -76,7 +68,9 @@ Usage: ./scripts/init.sh [--check|--fast|--verify|--feature <id>|--backend-tests
                             builds (--full is an alias)
   --feature <id>            Run the focused verification published in docs/specs/<id>.md
   --backend-tests [target]  Run the backend pytest suite, or only the given targets, from backend/
-  --backend                 Create/update the backend virtualenv and launch the local API
+  --setup-python [profile]  Build or reuse the shared backend virtualenv (dev, or hybrid for
+                            torch/chromadb) and link it as backend/.venv (or backend/.venv-hybrid)
+  --backend                 Link the shared backend virtualenv if needed and launch the local API
   --android                 Build the Android debug APK
   --android-run             Build, start an emulator if needed, install, and launch the app
   --desktop                 Launch the Desktop app
@@ -187,10 +181,8 @@ pytest_python() {
 }
 
 backend_pytest_hint() {
-  printf 'Backend unit tests need pytest. Install it in a local virtualenv and point the harness at it:\n\n'
-  printf '  python3 -m venv "${TMPDIR:-/tmp}/manijero-venv"\n'
-  printf '  "${TMPDIR:-/tmp}/manijero-venv/bin/pip" install -r backend/requirements-dev.txt\n'
-  printf '  MANIJERO_PYTHON="${TMPDIR:-/tmp}/manijero-venv/bin/python" ./scripts/init.sh --verify\n'
+  printf 'Backend unit tests need pytest. Build the shared backend virtualenv once (it is reused by every worktree):\n\n'
+  printf '  ./scripts/init.sh --setup-python\n'
 }
 
 # run_backend_tests <required 0|1> [pytest targets...]
@@ -198,6 +190,10 @@ run_backend_tests() {
   local required="$1"
   shift
   local py
+  # A worktree created after the shared environment was built only needs the link.
+  if [[ -z "${MANIJERO_PYTHON:-}" && ! -e "$REPO_ROOT/backend/.venv" ]]; then
+    "$REPO_ROOT/scripts/python-env.sh" dev --if-present >/dev/null 2>&1 || true
+  fi
   if py="$(pytest_python)"; then
     if [[ "$py" != /* ]] && [[ "$py" == */* ]]; then
       py="$REPO_ROOT/$py"
@@ -356,6 +352,7 @@ Verification tiers:
   ./scripts/init.sh --verify        # --fast + Android host tests + Android debug APK + Desktop build
 
 Build and run:
+  ./scripts/init.sh --setup-python # build or reuse the shared backend virtualenv (once per requirements change)
   ./scripts/init.sh --backend    # start the local API (Ctrl+C to stop)
   ./scripts/init.sh --android    # androidApp/build/outputs/apk/debug/androidApp-debug.apk
   ./scripts/init.sh --android-run # build and launch on an Android emulator

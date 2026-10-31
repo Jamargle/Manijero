@@ -8,8 +8,8 @@ with the shared startup script:
 ./scripts/init.sh --backend
 ```
 
-The script creates `backend/.venv` when needed, installs/updates the runtime
-requirements, sets `MANIJERO_ACTIVE_CAMPAIGN=2026` unless already configured,
+The script links `backend/.venv` to the shared development environment (see
+"Shared Python environments" below), building it first if needed, sets `MANIJERO_ACTIVE_CAMPAIGN=2026` unless already configured,
 and launches Uvicorn with reload enabled, bound to `0.0.0.0` so the Android
 emulator can reach the host through `10.0.2.2`. This also makes the development
 server reachable from your local network; use a trusted network/firewall, or set
@@ -34,12 +34,28 @@ address as the Android endpoint when building, for example
 `./gradlew :androidApp:assembleDebug -PmanijeroAskBaseUrl=http://192.168.1.20:8000`.
 The emulator default remains `http://10.0.2.2:8000`.
 
-For backend tests and artifact validation, install the development dependencies
-in a virtual environment instead:
+### Shared Python environments
+
+The backend needs Python 3.10 or newer. From the repository root, build (or reuse)
+the development environment once:
 
 ```sh
-python -m pip install -r requirements-dev.txt
+./scripts/init.sh --setup-python          # runtime + pytest/jsonschema, linked as backend/.venv
+./scripts/init.sh --setup-python hybrid   # adds torch/transformers/chromadb, linked as backend/.venv-hybrid
 ```
+
+Each environment is built once under the repository's git common directory
+(`.git/manijero-venvs/<profile>-py<version>-<hash>`) and keyed by its requirement
+files and interpreter version, so the base checkout and every worktree share it
+and a rebuild happens only when a requirements file changes. `backend/.venv` and
+`backend/.venv-hybrid` are symlinks to it, so commands such as
+`MANIJERO_PYTHON=backend/.venv/bin/python ./scripts/init.sh --backend-tests` work
+unchanged; the test runners link an already-built environment automatically.
+An existing local `backend/.venv` directory is never replaced: rename or remove
+it to switch to the shared one. Set `MANIJERO_BASE_PYTHON` to choose the
+interpreter (it must live outside the repository) and `MANIJERO_VENV_ROOT` to move
+the environments. Superseded environments are not deleted automatically; remove
+old directories under `.git/manijero-venvs/` when they are no longer linked.
 
 The runtime requirements intentionally do not include `pytest` or `jsonschema`;
 the latter is used by the focused PAC answer-evaluation test tier to validate
@@ -720,8 +736,7 @@ rrf(d) = Σ over lists L containing d of 1 / (rrf_k + rank_L(d))
 ### Install the optional runtime
 
 ```sh
-python3 -m venv backend/.venv-hybrid
-backend/.venv-hybrid/bin/python -m pip install -r backend/requirements-hybrid.txt
+./scripts/init.sh --setup-python hybrid
 ```
 
 `requirements-hybrid.txt` adds `chromadb==1.5.9` (exact pin) on top of the

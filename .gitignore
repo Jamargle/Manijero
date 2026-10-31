@@ -86,8 +86,9 @@ Carthage/Build/
 __pycache__/
 *.py[cod]
 .pytest_cache/
-.venv/
-.venv-*/
+# No trailing slash: backend/.venv may be a symlink to the shared environment.
+.venv
+.venv-*
 
 # Claude Code per-user settings
 .claude/settings.local.json
