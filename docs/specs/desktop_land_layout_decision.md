@@ -76,4 +76,4 @@ python3 -c 'from pathlib import Path; p=Path("docs/specs/desktop_land_layout_dec
 
 ## Appendix
 
-Research, implementation handoff, verification plan, evidence, and validator checklist are in [`desktop_land_layout_decision.appendix.md`](desktop_land_layout_decision.appendix.md).
+Research, implementation handoff, verification plan, evidence, and validator checklist are in [`desktop_land_layout_decision.appendix.md`](../archive/specs/desktop_land_layout_decision.appendix.md).

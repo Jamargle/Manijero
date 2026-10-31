@@ -87,7 +87,7 @@ This feature changes the shared theme foundation from the currently shipped ligh
 | `ARCHITECTURE.md` | Not needed unless ownership changes | Theme stays in existing shared `commonMain`; no new module or boundary. |
 | `CONSTRAINTS.md` | Not needed | Existing accessibility and shared-source constraints remain sufficient. |
 | `AGENTS.md` | Not needed | Existing shared UI and platform rules apply. |
-| `CONTEXT.md`, `docs/build-brief.md`, `docs/domain-model.md` | Not needed | This is a presentation foundation, not a product/domain change. |
+| `CONTEXT.md`, `docs/archive/build-brief.md`, `docs/domain-model.md` | Not needed | This is a presentation foundation, not a product/domain change. |
 | `feature_list.json`, `PROGRESS.md`, `docs/progress/session-log.md` | Update after implementation and independent acceptance | Keep status and evidence honest; planning must not mark the feature passing/accepted. |
 
 ## Focused verification
@@ -102,4 +102,4 @@ This is the cheapest focused check that exercises the shared theme contract. The
 
 ## Appendix
 
-See [`docs/specs/shared_design_system.appendix.md`](shared_design_system.appendix.md) for repository research, ordered implementation tasks, verification detail, evidence, risks, and validator checklist.
+See [`docs/archive/specs/shared_design_system.appendix.md`](../archive/specs/shared_design_system.appendix.md) for repository research, ordered implementation tasks, verification detail, evidence, risks, and validator checklist.

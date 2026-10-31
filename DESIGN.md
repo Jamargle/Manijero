@@ -369,7 +369,7 @@ the repository owner, who reports personally checking the refreshed UI in person
 host tests/screenshots, fast and full build gates, and iOS common-source compile are separate
 automated evidence; host screenshots do not establish live-device or screen-reader behavior. The
 owner's review has no per-screen artifacts in the repository, and low-digital-confidence participant
-review remains outstanding. See the [`ui_refresh_accessibility_audit`](docs/specs/ui_refresh_accessibility_audit.appendix.md)
+review remains outstanding. See the [`ui_refresh_accessibility_audit`](docs/archive/specs/ui_refresh_accessibility_audit.appendix.md)
 record and [acceptance](docs/validations/ui_refresh_accessibility_audit.md).
 
 ## Platform consistency

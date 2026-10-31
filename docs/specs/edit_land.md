@@ -359,7 +359,7 @@ validators should treat them as scope, not regression:
 - `CONSTRAINTS.md`: **update**; add the “Land editing” MUST rule above (it is exactly the durable
   guarantee this feature introduces: one targeted record, preserved untouched attributes, no false
   confirmation).
-- `DESIGN.md`, `docs/domain-model.md`, `CONTEXT.md`, `docs/build-brief.md`, `AGENTS.md`: **not
+- `DESIGN.md`, `docs/domain-model.md`, `CONTEXT.md`, `docs/archive/build-brief.md`, `AGENTS.md`: **not
   needed**; this implements the existing surface-5 (add/edit form) and land-lifecycle decisions.
 - `docs/specs/land_list.md` and `docs/specs/add_land.md`: **do not modify**; the intended routing and
   affordance changes are recorded in this spec's cross-feature section.
@@ -397,5 +397,5 @@ changed; `./scripts/init.sh --verify` remains the full gate.
 The planning and verification record for this feature — repository research, implementation
 plan and tasks, verification plan, evidence to capture, implementation findings, validator
 checklist, and the feature evidence — moved verbatim to
-[`docs/specs/edit_land.appendix.md`](edit_land.appendix.md) on 2026-10-17 to keep this contract short.
+[`docs/archive/specs/edit_land.appendix.md`](../archive/specs/edit_land.appendix.md) on 2026-10-17 to keep this contract short.
 `docs/validations/edit_land.md` remains the authoritative acceptance record.

@@ -39,7 +39,7 @@ attributes the question actually needs, and **never** a name, free-text note, ar
   (`land_data_disclosure`), or any new UI, string, preview, or layout. This feature adds **no**
   visible control and **no** copy.
 - Backend work: no `/ask` route, no applicability matching of passages against land attributes
-  (`MasterPlanV3.md` B13), no retrieval/generation/abstention change, and no `contracts/` change.
+  (`docs/archive/MasterPlanV3.md` B13), no retrieval/generation/abstention change, and no `contracts/` change.
   B13's "clarification-needed when context changes the answer" belongs to `land_clarification`.
 - An "active/archived" flag, land detail screens, search/sort/dedupe, telemetry, cloud, accounts,
   or a new module, dependency, ViewModel, or navigation framework.
@@ -198,8 +198,8 @@ receives the minimum land context (and `answer_land_scope` will make the scope v
   question is settled as contract attributes, but the "exact rule for when all-land answers are safe
   versus when to ask for a specific land" stays open and stays with `land_clarification`; do not
   delete or rewrite that row in this slice.
-- `AGENTS.md`, `CONTEXT.md`, `docs/domain-model.md`, `docs/build-brief.md`, `DESIGN.md`,
-  `MasterPlanV3.md`: **not needed**; this implements their existing rules without changing a product
+- `AGENTS.md`, `CONTEXT.md`, `docs/domain-model.md`, `docs/archive/build-brief.md`, `DESIGN.md`,
+  `docs/archive/MasterPlanV3.md`: **not needed**; this implements their existing rules without changing a product
   decision.
 - `ARCHITECTURE.md`: **not needed** (the file does not exist and this narrow request-building slice
   does not justify creating it).
@@ -237,5 +237,5 @@ python3 contracts/validate_examples.py
 The planning and verification record for this feature — repository research, implementation
 plan and tasks, verification plan, evidence to capture, implementation findings, validator
 checklist, and the feature evidence — moved verbatim to
-[`docs/specs/minimal_land_context.appendix.md`](minimal_land_context.appendix.md) on 2026-10-17 to keep this contract short.
+[`docs/archive/specs/minimal_land_context.appendix.md`](../archive/specs/minimal_land_context.appendix.md) on 2026-10-17 to keep this contract short.
 `docs/validations/minimal_land_context.md` remains the authoritative acceptance record.

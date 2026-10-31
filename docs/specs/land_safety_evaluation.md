@@ -140,7 +140,7 @@ None. This is an offline backend/knowledge evaluation harness; it adds no Compos
 - `knowledge/land_safety_eval.schema.json`: create; the durable, versioned case format.
 - `backend/README.md`: update; the durable backend boundary document now lists the safety-evaluation harness and the not-enforced gate stance.
 - `CONSTRAINTS.md`: update; the "reviewed cases, no unmeasured gate" mechanism rule is durable.
-- `AGENTS.md`, `CONTEXT.md`, `docs/build-brief.md`, `docs/domain-model.md`, `DESIGN.md`, `MasterPlanV3.md`, `docs/risks-and-open-questions.md`: no update; they already state the evaluation and grounding principles.
+- `AGENTS.md`, `CONTEXT.md`, `docs/archive/build-brief.md`, `docs/domain-model.md`, `DESIGN.md`, `docs/archive/MasterPlanV3.md`, `docs/risks-and-open-questions.md`: no update; they already state the evaluation and grounding principles.
 - `ARCHITECTURE.md`: not needed; absent, and a focused offline evaluation boundary does not establish a broader runtime architecture.
 - `PROGRESS.md` and `feature_list.json`: update after verification, recording the measured baseline and stating plainly that it is synthetic, not a legal-coverage or legal-correctness claim.
 
@@ -168,5 +168,5 @@ python3 backend/scripts/evaluate_land_safety.py --catalog backend/tests/fixtures
 The planning and verification record for this feature — repository research, implementation
 plan and tasks, verification plan, evidence to capture, implementation findings, validator
 checklist, and the feature evidence — moved verbatim to
-[`docs/specs/land_safety_evaluation.appendix.md`](land_safety_evaluation.appendix.md) on 2026-10-17 to keep this contract short.
+[`docs/archive/specs/land_safety_evaluation.appendix.md`](../archive/specs/land_safety_evaluation.appendix.md) on 2026-10-17 to keep this contract short.
 `docs/validations/land_safety_evaluation.md` remains the authoritative acceptance record.

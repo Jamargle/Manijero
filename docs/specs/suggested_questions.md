@@ -83,7 +83,7 @@ Use the current calm Material surface and theme colors; no new palette or icon i
 ## Durable documentation impact
 
 - `AGENTS.md`: **not needed**; its shared-UI, Spanish, accessibility, and source-grounding rules already apply.
-- `CONTEXT.md`, `docs/build-brief.md`, `docs/domain-model.md`, `DESIGN.md`, and `MasterPlanV3.md`: **not needed**; this implements their existing example-prompt direction without changing product policy.
+- `CONTEXT.md`, `docs/archive/build-brief.md`, `docs/domain-model.md`, `DESIGN.md`, and `docs/archive/MasterPlanV3.md`: **not needed**; this implements their existing example-prompt direction without changing product policy.
 - `ARCHITECTURE.md` and `CONSTRAINTS.md`: **not needed**; neither exists and this feature adds no architecture/constraint.
 - `PROGRESS.md` and `feature_list.json`: **update after verified implementation only** with result/evidence; do not update as part of planning.
 
@@ -104,5 +104,5 @@ changed; `./scripts/init.sh --verify` remains the full gate.
 The planning and verification record for this feature — repository research, implementation
 plan and tasks, verification plan, evidence to capture, implementation findings, validator
 checklist, and the feature evidence — moved verbatim to
-[`docs/specs/suggested_questions.appendix.md`](suggested_questions.appendix.md) on 2026-10-17 to keep this contract short.
+[`docs/archive/specs/suggested_questions.appendix.md`](../archive/specs/suggested_questions.appendix.md) on 2026-10-17 to keep this contract short.
 `docs/validations/suggested_questions.md` remains the authoritative acceptance record.

@@ -8,7 +8,7 @@ restate evidence here.
 
 | Date | Event | Record |
 |---|---|---|
-| 2026-10-05 | Build brief initiated from the user's olive-grove-manager description. | `docs/build-brief.md` |
+| 2026-10-05 | Build brief initiated from the user's olive-grove-manager description. | `docs/archive/build-brief.md` |
 | 2026-10-05 | Discovery documents created. | `CONTEXT.md`, `docs/domain-model.md`, `docs/risks-and-open-questions.md` |
 | 2026-10-07 | Harness starter created, then completed. | `AGENTS.md`, `scripts/init.sh`, `feature_list.json` |
 | 2026-10-08 | Startup harness refreshed; MVP work split into session-sized features. | `AGENTS.md`, `feature_list.json` |
@@ -64,14 +64,14 @@ restate evidence here.
 | 2026-10-21 | `desktop_land_layout_decision` accepted. | [desktop_land_layout_decision.md](../specs/desktop_land_layout_decision.md) · [acceptance](../validations/desktop_land_layout_decision.md) |
 | 2026-10-21 | `desktop_wide_land_layout` accepted. | [desktop_wide_land_layout.md](../specs/desktop_wide_land_layout.md) · [acceptance](../validations/desktop_wide_land_layout.md) |
 | 2026-10-22 | Imported and indexed the Stitch design references. | [design-references/README.md](../../design-references/README.md), `DESIGN.md`, `ARCHITECTURE.md` |
-| 2026-10-24 | Planned `shared_design_system` from the selected Stitch tokens. | `docs/specs/shared_design_system.md`, `docs/specs/shared_design_system.appendix.md`, `DESIGN.md` |
+| 2026-10-24 | Planned `shared_design_system` from the selected Stitch tokens. | `docs/specs/shared_design_system.md`, `docs/archive/specs/shared_design_system.appendix.md`, `DESIGN.md` |
 | 2026-10-24 | `shared_design_system` accepted. | [shared_design_system.md](../specs/shared_design_system.md) · [acceptance](../validations/shared_design_system.md) |
 | 2026-10-25 | `ui_refresh_accessibility_audit` accepted. | [ui_refresh_accessibility_audit.md](../specs/ui_refresh_accessibility_audit.md) · [acceptance](../validations/ui_refresh_accessibility_audit.md) |
 | 2026-10-25 | `help_privacy_refresh` accepted. | [help_privacy_refresh.md](../specs/help_privacy_refresh.md) · [acceptance](../validations/help_privacy_refresh.md) |
 | 2026-10-25 | Removed the custom typography override. | `docs/validations/shared_design_system.md` · `DESIGN.md` |
 | 2026-10-25 | `design_token_refresh` accepted. | [design_token_refresh.md](../specs/design_token_refresh.md) · [acceptance](../validations/design_token_refresh.md) |
 | 2026-10-25 | `screenshot_regression_tests` accepted. | [screenshot_regression_tests.md](../specs/screenshot_regression_tests.md) · [acceptance](../validations/screenshot_regression_tests.md) |
-| 2026-10-25 | Split screenshot captures by screen and added phone-width scenes. | [shared/src/jvmTest/screenshots/README.md](../../shared/src/jvmTest/screenshots/README.md) · `docs/specs/screenshot_regression_tests.appendix.md` |
+| 2026-10-25 | Split screenshot captures by screen and added phone-width scenes. | [shared/src/jvmTest/screenshots/README.md](../../shared/src/jvmTest/screenshots/README.md) · `docs/archive/specs/screenshot_regression_tests.appendix.md` |
 | 2026-10-25 | Added Android host-rendered screenshot coverage. | `docs/screenshot-regression.md` · `docs/validations/screenshot_regression_tests.md` |
 | 2026-10-25 | `brand_vectors` accepted. | [brand_vectors.md](../specs/brand_vectors.md) · [acceptance](../validations/brand_vectors.md) |
 | 2026-10-25 | `ui_component_library` accepted. | [ui_component_library.md](../specs/ui_component_library.md) · [acceptance](../validations/ui_component_library.md) |

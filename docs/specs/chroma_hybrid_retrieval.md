@@ -63,4 +63,4 @@ MANIJERO_PYTHON=backend/.venv/bin/python ./scripts/init.sh --backend-tests
 
 ## Appendix
 
-See [`chroma_hybrid_retrieval.appendix.md`](chroma_hybrid_retrieval.appendix.md).
+See [`chroma_hybrid_retrieval.appendix.md`](../archive/specs/chroma_hybrid_retrieval.appendix.md).

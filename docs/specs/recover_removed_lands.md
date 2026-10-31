@@ -89,4 +89,4 @@ The feature adds a removed-lands list and permanent-delete confirmation. Follow 
 
 ## Appendix
 
-See [`recover_removed_lands.appendix.md`](recover_removed_lands.appendix.md) for repository research, tasks, verification evidence, and validator checklist.
+See [`recover_removed_lands.appendix.md`](../archive/specs/recover_removed_lands.appendix.md) for repository research, tasks, verification evidence, and validator checklist.

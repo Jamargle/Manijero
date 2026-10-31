@@ -135,7 +135,7 @@ never name/note/area/timestamp/invented value; omit or `unknown`, never guess;
 `general` only when empty; no silent vocabulary change) with its reason. The
 `chat_question_submission.md` supersession note is present and accurate.
 `docs/risks-and-open-questions.md` and `AGENTS.md`/`CONTEXT.md`/`domain-model`/
-`DESIGN.md`/`MasterPlanV3.md` are untouched as the spec required, and no
+`DESIGN.md`/`docs/archive/MasterPlanV3.md` are untouched as the spec required, and no
 `ARCHITECTURE.md` was created. `feature_list.json` (`passing`, real evidence) and
 `PROGRESS.md` reflect real evidence only.
 

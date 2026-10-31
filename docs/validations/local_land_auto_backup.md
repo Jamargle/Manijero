@@ -71,5 +71,5 @@ Honest limits:
 8. `docs/risks-and-open-questions.md` and `PROGRESS.md` describe the accepted state; the portable
    plaintext backup/restore feature remains unimplemented and still blocks the pilot.
 
-See [`local_land_auto_backup.appendix.md`](../specs/local_land_auto_backup.appendix.md) for the full
+See [`local_land_auto_backup.appendix.md`](../archive/specs/local_land_auto_backup.appendix.md) for the full
 evidence, the retention policy, the APK inspection transcript, and the repair history.

@@ -420,4 +420,4 @@ Spanish summary is understood by a person with low digital confidence, screen-re
 ## Appendix
 
 Repository research, the ordered implementation plan, verification plan, evidence to capture and the
-validator checklist: [`land_search_and_summary.appendix.md`](land_search_and_summary.appendix.md).
+validator checklist: [`land_search_and_summary.appendix.md`](../archive/specs/land_search_and_summary.appendix.md).

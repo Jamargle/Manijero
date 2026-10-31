@@ -74,4 +74,4 @@ MANIJERO_PYTHON=backend/.venv/bin/python ./scripts/init.sh --backend-tests
 
 ## Appendix
 
-See [`pilot_privacy_readiness.appendix.md`](pilot_privacy_readiness.appendix.md).
+See [`pilot_privacy_readiness.appendix.md`](../archive/specs/pilot_privacy_readiness.appendix.md).

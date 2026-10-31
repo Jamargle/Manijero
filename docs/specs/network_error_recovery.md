@@ -218,7 +218,7 @@ composer regains the wording, so the question is never lost, but visible auto-sc
 - `docs/risks-and-open-questions.md`: **not needed** — no open question is settled or created; the F1 gap is
   recorded in `feature_list.json`/`PROGRESS.md` and owned elsewhere.
 - `ARCHITECTURE.md`: **not needed** — it does not exist; this adds no module or architectural boundary.
-- `AGENTS.md`, `CONTEXT.md`, `docs/build-brief.md`, `docs/domain-model.md`: **not needed** — no product,
+- `AGENTS.md`, `CONTEXT.md`, `docs/archive/build-brief.md`, `docs/domain-model.md`: **not needed** — no product,
   glossary, or domain change.
 - `scripts/init.sh`: **not needed** — it must not gain modes and must not start a service.
 - `feature_list.json`, `PROGRESS.md`, `docs/specs/chat_question_submission.md`: **after verified
@@ -265,5 +265,5 @@ python3 contracts/validate_examples.py
 The planning and verification record for this feature — repository research, implementation
 plan and tasks, verification plan, evidence to capture, implementation findings, validator
 checklist, and the feature evidence — moved verbatim to
-[`docs/specs/network_error_recovery.appendix.md`](network_error_recovery.appendix.md) on 2026-10-17 to keep this contract short.
+[`docs/archive/specs/network_error_recovery.appendix.md`](../archive/specs/network_error_recovery.appendix.md) on 2026-10-17 to keep this contract short.
 `docs/validations/network_error_recovery.md` remains the authoritative acceptance record.

@@ -52,5 +52,5 @@ diff, and are superseded by this record and the current `README.md`, `docs/domai
 expects `land-store-v1` inside `LandRepository.kt` no longer describes the current format and must not
 be treated as migration evidence.
 
-See [`recover_removed_lands.appendix.md`](../specs/recover_removed_lands.appendix.md) for exact
+See [`recover_removed_lands.appendix.md`](../archive/specs/recover_removed_lands.appendix.md) for exact
 commands, per-test evidence, synthetic fixtures, and the remaining findings.

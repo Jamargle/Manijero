@@ -5,7 +5,7 @@
 **Accepted** on 2026-10-27 after one validator `revise` cycle and independent re-validation.
 
 - Spec: [`knowledge_update_review_pr.md`](../specs/knowledge_update_review_pr.md)
-- Evidence: [`knowledge_update_review_pr.appendix.md`](../specs/knowledge_update_review_pr.appendix.md)
+- Evidence: [`knowledge_update_review_pr.appendix.md`](../archive/specs/knowledge_update_review_pr.appendix.md)
 - Reviewed scope: `backend/app/review_package.py`, `backend/scripts/knowledge_review.py`, `backend/tests/test_knowledge_update_review.py`, the public `candidate_admission_issue()` seam in `backend/app/document_ingestion.py`, `knowledge/knowledge-update-review.schema.json`, `knowledge/knowledge-update-review-decisions.schema.json`, plus `backend/README.md`, `knowledge/README.md`, `ARCHITECTURE.md`, `CONSTRAINTS.md`, `PROGRESS.md`, `docs/risks-and-open-questions.md`, this feature's spec/appendix, and the `feature_list.json` status line. `feature_list.json` still says `passing`; persisting `accepted` stays with the orchestrator.
 
 ## Independent verification

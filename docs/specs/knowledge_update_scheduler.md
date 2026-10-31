@@ -106,4 +106,4 @@ MANIJERO_PYTHON=backend/.venv/bin/python ./scripts/init.sh --backend-tests tests
 
 ## Appendix
 
-See [`knowledge_update_scheduler.appendix.md`](knowledge_update_scheduler.appendix.md) for repository research, the host decision, ledger schema, implementation plan, verification plan, evidence, and validator checklist.
+See [`knowledge_update_scheduler.appendix.md`](../archive/specs/knowledge_update_scheduler.appendix.md) for repository research, the host decision, ledger schema, implementation plan, verification plan, evidence, and validator checklist.

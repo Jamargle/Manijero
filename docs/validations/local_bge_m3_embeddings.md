@@ -157,5 +157,5 @@ operator; verification counts but does not remove unpinned extra files in the
 artifact directory. Comparing bge-m3 (and Chroma/RRF) with the accepted BM25
 baseline remains `chroma_hybrid_retrieval`'s decision.
 
-See [`local_bge_m3_embeddings.appendix.md`](../specs/local_bge_m3_embeddings.appendix.md)
+See [`local_bge_m3_embeddings.appendix.md`](../archive/specs/local_bge_m3_embeddings.appendix.md)
 for the planning research, implementation notes, and raw evidence.

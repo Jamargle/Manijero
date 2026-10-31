@@ -218,7 +218,7 @@ Estos son los terrenos guardados…             (bodyLarge, onSurfaceVariant)
 - `PROGRESS.md`: **not yet**; add only verified evidence and known gaps.
 - `docs/specs/add_land.md`: **do not modify**; the navigation change is recorded here and `add_land`'s
   substantive behavior is unchanged.
-- `DESIGN.md`, `docs/domain-model.md`, `CONTEXT.md`, `docs/build-brief.md`, `AGENTS.md`: **not needed**;
+- `DESIGN.md`, `docs/domain-model.md`, `CONTEXT.md`, `docs/archive/build-brief.md`, `AGENTS.md`: **not needed**;
   this implements existing surface-4 and land-lifecycle decisions.
 - `docs/risks-and-open-questions.md`: **not needed**; the duplicate-name limit below is a recorded
   known limit, not a new product question.
@@ -253,5 +253,5 @@ changed; `./scripts/init.sh --verify` remains the full gate.
 The planning and verification record for this feature — repository research, implementation
 plan and tasks, verification plan, evidence to capture, implementation findings, validator
 checklist, and the feature evidence — moved verbatim to
-[`docs/specs/land_list.appendix.md`](land_list.appendix.md) on 2026-10-17 to keep this contract short.
+[`docs/archive/specs/land_list.appendix.md`](../archive/specs/land_list.appendix.md) on 2026-10-17 to keep this contract short.
 `docs/validations/land_list.md` remains the authoritative acceptance record.

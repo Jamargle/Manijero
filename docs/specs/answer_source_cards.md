@@ -180,7 +180,7 @@ Uses accepted theme roles only: `surface` + `outlineVariant` for the reply and c
 | `docs/specs/response_states.md` | **Append one line after implementation** | Record R5 as closed from this side for conforming payloads (precedent: `network_error_recovery` recorded F2 in `chat_question_submission.md`). The accepted behavior itself is not revised. |
 | `docs/validations/grounded_answer_generation.md` / `knowledge/README.md` | **Not changed here; escalate** | F1's backend hardening and the unconditional `[n] == sources[n-1]` sentence in `knowledge/README.md` are backend-owned; this feature only refuses to link a non-conforming payload (R1). |
 | `DESIGN.md` | Not needed | Lines 84 and 78 already require exactly this treatment (readable source card, verification date, no confident legal-certainty affordance); no token or surface is added. |
-| `AGENTS.md`, `CONTEXT.md`, `docs/build-brief.md`, `docs/domain-model.md` | Not needed | No product, glossary, or domain change; the operating rules (plain Spanish, accessibility, commonMain UI, minimize land context, no invented legal facts) are already authoritative. |
+| `AGENTS.md`, `CONTEXT.md`, `docs/archive/build-brief.md`, `docs/domain-model.md` | Not needed | No product, glossary, or domain change; the operating rules (plain Spanish, accessibility, commonMain UI, minimize land context, no invented legal facts) are already authoritative. |
 | `docs/risks-and-open-questions.md` | Not needed | The "unsupported or outdated legal answer" mitigation already names visible citations and verification dates; this implements it and opens no new question that needs the register. |
 | `ARCHITECTURE.md` | Not needed | It does not exist; no module, boundary, or dependency is added. |
 | `scripts/init.sh` | Not needed | No new mode; it must not start a service. |
@@ -218,5 +218,5 @@ python3 contracts/validate_examples.py
 The planning and verification record for this feature — repository research, implementation
 plan and tasks, verification plan, evidence to capture, implementation findings, validator
 checklist, and the feature evidence — moved verbatim to
-[`docs/specs/answer_source_cards.appendix.md`](answer_source_cards.appendix.md) on 2026-10-17 to keep this contract short.
+[`docs/archive/specs/answer_source_cards.appendix.md`](../archive/specs/answer_source_cards.appendix.md) on 2026-10-17 to keep this contract short.
 `docs/validations/answer_source_cards.md` remains the authoritative acceptance record.

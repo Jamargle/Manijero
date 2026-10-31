@@ -138,7 +138,7 @@ None. No Compose UI and no client code change. The client feature `response_stat
 - `CONSTRAINTS.md`: update; it is the durable MUST/MUST NOT register, and "an abstention never carries sources, figures, or dates and its copy is code-owned" is a mechanism-level rule later features must follow.
 - `knowledge/README.md`: no update needed; the corpus contract and reviewer guidance do not change (the feature reads corpus metadata through the accepted retriever only).
 - `AGENTS.md`: no update; "abstain when evidence is inadequate" and "do not invent legal facts" already govern, and this feature makes them executable.
-- `CONTEXT.md`, `docs/build-brief.md`, `docs/domain-model.md`, `docs/risks-and-open-questions.md`, `MasterPlanV3.md`, `DESIGN.md`: no update; they already state the abstention principle and the trap taxonomy.
+- `CONTEXT.md`, `docs/archive/build-brief.md`, `docs/domain-model.md`, `docs/risks-and-open-questions.md`, `docs/archive/MasterPlanV3.md`, `DESIGN.md`: no update; they already state the abstention principle and the trap taxonomy.
 - `ARCHITECTURE.md`: not needed; absent, and a focused offline decision module does not establish a broader runtime architecture.
 - `PROGRESS.md` and `feature_list.json`: update after verification with the commands actually run; state plainly that fixtures are synthetic, detection is lexical, thresholds are not release gates, and no route exists.
 
@@ -166,5 +166,5 @@ python3 backend/scripts/evaluate_abstention.py --catalog backend/tests/fixtures/
 The planning and verification record for this feature — repository research, implementation
 plan and tasks, verification plan, evidence to capture, implementation findings, validator
 checklist, and the feature evidence — moved verbatim to
-[`docs/specs/safe_abstention.appendix.md`](safe_abstention.appendix.md) on 2026-10-17 to keep this contract short.
+[`docs/archive/specs/safe_abstention.appendix.md`](../archive/specs/safe_abstention.appendix.md) on 2026-10-17 to keep this contract short.
 `docs/validations/safe_abstention.md` remains the authoritative acceptance record.

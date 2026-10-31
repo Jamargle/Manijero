@@ -11,7 +11,7 @@ and operational limits are implemented and tested locally; no host rehearsal is 
 
 - Feature: `hosted_pilot_operations`
 - Spec: [`hosted_pilot_operations.md`](../specs/hosted_pilot_operations.md)
-- Implementation record: [`hosted_pilot_operations.appendix.md`](../specs/hosted_pilot_operations.appendix.md)
+- Implementation record: [`hosted_pilot_operations.appendix.md`](../archive/specs/hosted_pilot_operations.appendix.md)
 - Harness state reviewed: `in_progress` in `feature_list.json`; the validator did not edit
   that file. The orchestrator may set it to `accepted` (see “Acceptance record status”).
 - Reviewed scope: `backend/app/pilot_config.py`, `pilot_guard.py`, `pilot_logging.py`,

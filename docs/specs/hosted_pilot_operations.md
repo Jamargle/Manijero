@@ -69,4 +69,4 @@ None.
 
 ## Appendix
 
-See [`hosted_pilot_operations.appendix.md`](hosted_pilot_operations.appendix.md).
+See [`hosted_pilot_operations.appendix.md`](../archive/specs/hosted_pilot_operations.appendix.md).

@@ -8,7 +8,7 @@
 - **Source plan:** [`docs/design/ui-refresh-plan.md`](../design/ui-refresh-plan.md), P2-15…P2-16 and §§5.3–5.4; [`DESIGN.md`](../../DESIGN.md), shared component/layout/accessibility rules; [`coverage_and_help`](coverage_and_help.md) and [`land_data_disclosure`](land_data_disclosure.md).
 - **Source verification:** Inspect coverage and privacy content/navigation on Android and Desktop; verify existing disclosure text/facts, links, and back behavior remain correct while the new card/callout treatment is readable in compact, wide, dark and large-text layouts.
 - **Feature-list note:** P2-15 specifies help cards plus a limits callout with the same content and no new links; P2-16 specifies privacy cards and a local-only section whose copy matches the accepted disclosure facts. This is visual adaptation, not a new product disclosure.
-- **Acceptance record:** [`docs/validations/help_privacy_refresh.md`](../validations/help_privacy_refresh.md) (created at acceptance); planning/evidence detail is in the [appendix](help_privacy_refresh.appendix.md).
+- **Acceptance record:** [`docs/validations/help_privacy_refresh.md`](../validations/help_privacy_refresh.md) (created at acceptance); planning/evidence detail is in the [appendix](../archive/specs/help_privacy_refresh.appendix.md).
 
 ## Goal and boundaries
 
@@ -89,4 +89,4 @@ Run shared tests and screenshot verification. Review changed images; report unre
 
 ## Appendix
 
-See [`help_privacy_refresh.appendix.md`](help_privacy_refresh.appendix.md) for repository research, ordered implementation tasks, verification/evidence plan and validator checklist.
+See [`help_privacy_refresh.appendix.md`](../archive/specs/help_privacy_refresh.appendix.md) for repository research, ordered implementation tasks, verification/evidence plan and validator checklist.

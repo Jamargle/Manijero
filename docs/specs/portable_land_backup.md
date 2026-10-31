@@ -73,4 +73,4 @@ Add export/import controls and a restore preview/confirmation. Follow `DESIGN.md
 
 ## Appendix
 
-See [`portable_land_backup.appendix.md`](portable_land_backup.appendix.md).
+See [`portable_land_backup.appendix.md`](../archive/specs/portable_land_backup.appendix.md).

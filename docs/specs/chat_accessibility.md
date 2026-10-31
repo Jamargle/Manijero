@@ -139,7 +139,7 @@ No token, copy, or state change: the same `surface`/`surfaceVariant`/`outlineVar
 | `DESIGN.md` | **Update during implementation** | Keep durable accessibility guidance concise and link to the validation record for inspected evidence and remaining gaps; do not duplicate feature evidence here. |
 | `docs/specs/response_states.md`, `docs/specs/land_clarification.md` | **Append one short note each after implementation** | `response_states` U2 (the answered entry is announced) and `land_clarification` N2 (the fallback flash) are decided/closed from this side; the accepted behavior is not revised (precedent: the `answer_source_cards` R5 note). |
 | `docs/risks-and-open-questions.md` | Optional | One row for the missing automated accessibility/UI-test coverage, if the orchestrator wants it tracked there rather than only in this spec's risks. |
-| `AGENTS.md`, `CONTEXT.md`, `docs/build-brief.md`, `docs/domain-model.md` | Not needed | The plain-Spanish, accessibility, and shared-`commonMain` rules already govern; no product or domain change. |
+| `AGENTS.md`, `CONTEXT.md`, `docs/archive/build-brief.md`, `docs/domain-model.md` | Not needed | The plain-Spanish, accessibility, and shared-`commonMain` rules already govern; no product or domain change. |
 | `ARCHITECTURE.md` | Not needed | It does not exist; no module, boundary, or dependency is added. |
 | `scripts/init.sh` | Not needed | No new mode; it must not start a service or an emulator. |
 | `feature_list.json`, `PROGRESS.md` | After verified implementation only | Record status, the checks actually run, and every unperformed/manual limit then; planning does not touch them. |
@@ -176,5 +176,5 @@ changed; `./scripts/init.sh --verify` remains the full gate.
 The planning and verification record for this feature — repository research, implementation
 plan and tasks, verification plan, evidence to capture, implementation findings, validator
 checklist, and the feature evidence — moved verbatim to
-[`docs/specs/chat_accessibility.appendix.md`](chat_accessibility.appendix.md) on 2026-10-17 to keep this contract short.
+[`docs/archive/specs/chat_accessibility.appendix.md`](../archive/specs/chat_accessibility.appendix.md) on 2026-10-17 to keep this contract short.
 `docs/validations/chat_accessibility.md` remains the authoritative acceptance record.

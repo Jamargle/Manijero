@@ -220,4 +220,4 @@ manual and are recorded as limits.
 ## Appendix
 
 Repository research, the ordered implementation plan, verification plan, evidence to capture and the validator
-checklist: [`land_measurement_fields.appendix.md`](land_measurement_fields.appendix.md).
+checklist: [`land_measurement_fields.appendix.md`](../archive/specs/land_measurement_fields.appendix.md).

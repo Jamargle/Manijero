@@ -159,7 +159,7 @@ None. No Compose UI and no client code change. The generated `answer` carries on
 - `knowledge/README.md`: update; it is the durable operational contract for the corpus and now also documents how reviewed passages become user-visible answers.
 - `backend/README.md`: update; it documents the backend boundaries, including that generation is offline and no provider is configured.
 - `AGENTS.md`: no update; "do not invent legal facts, ground regulatory claims in approved official sources, cite them, and abstain when evidence is inadequate" already governs this work, and `backend/app/generation.py` makes it executable.
-- `CONTEXT.md`, `docs/build-brief.md`, `docs/domain-model.md`, `DESIGN.md`, `MasterPlanV3.md`: no update; the response principles, source definition, and plan sections already state these rules.
+- `CONTEXT.md`, `docs/archive/build-brief.md`, `docs/domain-model.md`, `DESIGN.md`, `docs/archive/MasterPlanV3.md`: no update; the response principles, source definition, and plan sections already state these rules.
 - `ARCHITECTURE.md`: not needed; absent, and a focused offline pipeline does not establish a broader runtime architecture.
 - `CONSTRAINTS.md`: not needed for this slice (AGENTS.md already states the rule and the verifier enforces it). Create it with a single MUST line only if implementation reveals a mechanism-level rule later features must follow and no existing doc covers (for example, "no component may emit a user-visible answer that bypasses `verify_draft`").
 - `PROGRESS.md` and `feature_list.json`: update after verification with the real command output; state plainly that fixtures are synthetic, no model provider is configured, the generator is extractive, and metrics are not release gates.
@@ -212,5 +212,5 @@ python3 backend/scripts/evaluate_generation.py --catalog backend/tests/fixtures/
 The planning and verification record for this feature — repository research, implementation
 plan and tasks, verification plan, evidence to capture, implementation findings, validator
 checklist, and the feature evidence — moved verbatim to
-[`docs/specs/grounded_answer_generation.appendix.md`](grounded_answer_generation.appendix.md) on 2026-10-17 to keep this contract short.
+[`docs/archive/specs/grounded_answer_generation.appendix.md`](../archive/specs/grounded_answer_generation.appendix.md) on 2026-10-17 to keep this contract short.
 `docs/validations/grounded_answer_generation.md` remains the authoritative acceptance record.

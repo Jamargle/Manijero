@@ -93,4 +93,4 @@ python3 contracts/validate_examples.py
 
 ## Appendix
 
-Repository findings, campaign policy decisions, verification evidence to capture, and the validator checklist are in [`backend_campaign_validity.appendix.md`](backend_campaign_validity.appendix.md).
+Repository findings, campaign policy decisions, verification evidence to capture, and the validator checklist are in [`backend_campaign_validity.appendix.md`](../archive/specs/backend_campaign_validity.appendix.md).

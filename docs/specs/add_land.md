@@ -93,7 +93,7 @@ This adds the first land-management surface, not a list or dashboard. It follows
 
 - `feature_list.json`: **not yet**; retain `not_started` until implementation is independently verified, then record evidence/status.
 - `PROGRESS.md`: **not yet**; add only verified implementation evidence and known platform blockers.
-- `AGENTS.md`, `CONTEXT.md`, `docs/build-brief.md`, `docs/domain-model.md`, `DESIGN.md`, and `docs/risks-and-open-questions.md`: **not needed**; this implements existing decisions without changing them.
+- `AGENTS.md`, `CONTEXT.md`, `docs/archive/build-brief.md`, `docs/domain-model.md`, `DESIGN.md`, and `docs/risks-and-open-questions.md`: **not needed**; this implements existing decisions without changing them.
 - `ARCHITECTURE.md` and `CONSTRAINTS.md`: **not needed**; neither exists and this feature introduces no durable architectural decision.
 
 ## Follow-up status after `land_form_accessibility`
@@ -123,5 +123,5 @@ changed; `./scripts/init.sh --verify` remains the full gate.
 The planning and verification record for this feature — repository research, implementation
 plan and tasks, verification plan, evidence to capture, implementation findings, validator
 checklist, and the feature evidence — moved verbatim to
-[`docs/specs/add_land.appendix.md`](add_land.appendix.md) on 2026-10-17 to keep this contract short.
+[`docs/archive/specs/add_land.appendix.md`](../archive/specs/add_land.appendix.md) on 2026-10-17 to keep this contract short.
 `docs/validations/add_land.md` remains the authoritative acceptance record.

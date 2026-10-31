@@ -103,7 +103,7 @@ Cloudflare Tunnel as transport and keeps it conditional on owner attestation, ap
 access controls, a qualified privacy/legal review, and account-time provider re-checks.
 No server, domain, tunnel, TLS edge, provider account, or real-user traffic exists. This
 section is the operator procedure for that path; the [feature
-appendix](../docs/specs/hosted_pilot_operations.appendix.md) records exactly what was
+appendix](../docs/archive/specs/hosted_pilot_operations.appendix.md) records exactly what was
 rehearsed locally and what remains unverified.
 
 Do not route a public hostname to this service, and do not send a real user's question
@@ -564,7 +564,7 @@ backend/.venv/bin/python backend/scripts/measure_local_generation.py \
 ```
 
 The measured numbers from this Mac are in
-[`docs/specs/local_generation_provider.appendix.md`](../docs/specs/local_generation_provider.appendix.md)
+[`docs/archive/specs/local_generation_provider.appendix.md`](../docs/archive/specs/local_generation_provider.appendix.md)
 ("Feature evidence"). Limits: one host, 14 author-only cases, the untuned Gemini instruction, and
 a lexical verifier; Ollama's own server logs and update checks are outside the app's control.
 

@@ -4,7 +4,7 @@
 
 **Accept** — independently validated against `docs/specs/chroma_hybrid_retrieval.md` on
 2026-10-31. No blocking findings. Evidence: the "Feature evidence" section of
-[`chroma_hybrid_retrieval.appendix.md`](../specs/chroma_hybrid_retrieval.appendix.md).
+[`chroma_hybrid_retrieval.appendix.md`](../archive/specs/chroma_hybrid_retrieval.appendix.md).
 
 ## Independently rerun checks
 

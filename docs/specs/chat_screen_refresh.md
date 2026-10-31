@@ -23,7 +23,7 @@
   action, not the chip shape).
 - **Acceptance record:** [`docs/validations/chat_screen_refresh.md`](../validations/chat_screen_refresh.md)
   (created at acceptance); planning and verification detail is in the
-  [appendix](chat_screen_refresh.appendix.md).
+  [appendix](../archive/specs/chat_screen_refresh.appendix.md).
 
 ## Goal and boundaries
 
@@ -316,6 +316,6 @@ recorded in the appendix and acceptance record.
 
 ## Appendix
 
-See [`chat_screen_refresh.appendix.md`](chat_screen_refresh.appendix.md) for repository research,
+See [`chat_screen_refresh.appendix.md`](../archive/specs/chat_screen_refresh.appendix.md) for repository research,
 component decisions, the ordered implementation plan, evidence to capture and the validator
 checklist.

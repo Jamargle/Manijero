@@ -310,4 +310,4 @@ MANIJERO_PYTHON="${MANIJERO_PYTHON:-backend/.venv/bin/python}" ./scripts/init.sh
 
 ## Appendix
 
-See [`local_generation_provider.appendix.md`](local_generation_provider.appendix.md).
+See [`local_generation_provider.appendix.md`](../archive/specs/local_generation_provider.appendix.md).

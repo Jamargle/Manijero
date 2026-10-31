@@ -26,4 +26,4 @@ The dated decision record conditionally selects Cloudflare Tunnel as transport f
 - Prices are list prices read on 2026-10-27 and may change; no legal or privacy compliance conclusion is made.
 - `pilot_privacy_readiness` still owns the qualified privacy/legal review, and `hosted_pilot_operations` still owns deployment and API controls.
 
-See [`hosting_provider_review.appendix.md`](../specs/hosting_provider_review.appendix.md) for the source table, comparison matrix, and raw evidence.
+See [`hosting_provider_review.appendix.md`](../archive/specs/hosting_provider_review.appendix.md) for the source table, comparison matrix, and raw evidence.

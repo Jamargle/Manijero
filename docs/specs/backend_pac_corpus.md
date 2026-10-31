@@ -90,4 +90,4 @@ python3 backend/scripts/validate_source_catalog.py knowledge/source_catalog.json
 
 ## Appendix
 
-The official-source research, source chronology, implementation tasks, and validator checklist are in [`backend_pac_corpus.appendix.md`](backend_pac_corpus.appendix.md).
+The official-source research, source chronology, implementation tasks, and validator checklist are in [`backend_pac_corpus.appendix.md`](../archive/specs/backend_pac_corpus.appendix.md).

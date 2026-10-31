@@ -134,8 +134,8 @@ None. This is an offline backend boundary; it adds no Compose UI and no user-fac
 
 - `knowledge/README.md`: update; it is the durable operational contract for how reviewed passages relate to the approved catalog and how to run the baseline.
 - `knowledge/passages.schema.json`: create; the durable, versioned passage format.
-- `AGENTS.md`, `CONTEXT.md`, `docs/build-brief.md`, `docs/domain-model.md`, `DESIGN.md`: no update; existing source-grounding, review, and UI rules already govern this work.
-- `MasterPlanV3.md`: no update; it is planning context, while the schema/README become executable documentation.
+- `AGENTS.md`, `CONTEXT.md`, `docs/archive/build-brief.md`, `docs/domain-model.md`, `DESIGN.md`: no update; existing source-grounding, review, and UI rules already govern this work.
+- `docs/archive/MasterPlanV3.md`: no update; it is planning context, while the schema/README become executable documentation.
 - `ARCHITECTURE.md`, `CONSTRAINTS.md`: not needed; both are absent and this focused offline boundary does not establish a broader runtime architecture.
 - `PROGRESS.md` and `feature_list.json`: update after verification, recording the measured fixture baseline and stating plainly that it is synthetic, not a legal-quality claim.
 
@@ -161,5 +161,5 @@ python3 backend/scripts/evaluate_retrieval.py --catalog backend/tests/fixtures/r
 The planning and verification record for this feature — repository research, implementation
 plan and tasks, verification plan, evidence to capture, implementation findings, validator
 checklist, and the feature evidence — moved verbatim to
-[`docs/specs/source_retrieval.appendix.md`](source_retrieval.appendix.md) on 2026-10-17 to keep this contract short.
+[`docs/archive/specs/source_retrieval.appendix.md`](../archive/specs/source_retrieval.appendix.md) on 2026-10-17 to keep this contract short.
 `docs/validations/source_retrieval.md` remains the authoritative acceptance record.
