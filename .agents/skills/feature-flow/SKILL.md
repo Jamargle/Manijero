@@ -15,7 +15,7 @@ The main agent is the orchestrator. It chooses the next role, launches the right
 
 ## Hard Rules
 
-- Work on one feature at a time, and on one feature per session. After a feature's commit, end the flow; never plan, implement, or validate a second feature in the same session, even when asked to continue. Tell the user to start the next feature in a new session (`./scripts/feature-session.sh` in Claude Code, which picks the selector's next feature, or a new session of the active runtime). A session that already ran a feature carries all of its reads and reports, and the next feature would pay for them on every turn.
+- Work on one feature at a time, and on one feature per session. After a feature's commit, end the flow; never plan, implement, or validate a second feature in the same session, even when asked to continue. Tell the user to start the next feature in a new session with `./scripts/feature-session.sh` (it picks the selector's next feature; add `--agent codex` or `--agent opencode` for those runtimes). A session that already ran a feature carries all of its reads and reports, and the next feature would pay for them on every turn.
 - Do not run planner, implementer, and validator in parallel for the same feature.
 - Do not skip roles unless the required artifact already exists and is current.
 - Do not implement work in the main agent while a subagent owns that role.

@@ -76,7 +76,7 @@ before making any claim in its area.
 Tiers, cheapest first; `./scripts/init.sh` holds the exact commands.
 
 - Toolchain check: `./scripts/init.sh` (default; prints the same commands).
-- Run a feature: `./scripts/feature-session.sh [feature-id]` opens a new Claude Code session that runs `feature-flow` for that one feature (default: the next one). One session per feature.
+- Run a feature: `./scripts/feature-session.sh [--agent claude|codex|opencode] [feature-id]` opens a new agent session that runs `feature-flow` for that one feature (default: Claude Code and the next feature). One session per feature.
 - Next feature: `./scripts/select-feature.sh --next` — the next dependency-ready feature id and its next role; `./scripts/select-feature.sh --status` prints the board and unfinished-feature readiness. Use these instead of reading `feature_list.json` by hand.
 - Focused feature check: `./scripts/init.sh --feature <feature-id>` — runs the command block the feature spec publishes between its `<!-- verify:start -->` and `<!-- verify:end -->` markers.
 - No-device tier: `./scripts/init.sh --fast` — `:shared:jvmTest`, `contracts/validate_examples.py`, the backend pytest suite, the `source-catalog-v1` validation of `knowledge/source_catalog.json`, and the five offline evaluators over `backend/tests/fixtures/`.

@@ -36,23 +36,13 @@ Given <state> · When <user/system action> · Then <observable result>
 
 Given <state> · When <user/system action> · Then <observable result>
 
-## Repository Research
-
-### Files Inspected
-
-- `<path>` — <why it matters>
-
-### Existing Patterns To Follow
-
-- <Pattern, convention, command, or architectural choice found in the repo.>
-
-### Current Gaps
-
-- <Missing app infrastructure, missing command, missing table, unknown integration, etc.>
-
 ## Technical approach
 
 <A few bullets an implementer can execute without re-planning. Name boundaries and patterns; link `ARCHITECTURE.md` or `CONSTRAINTS.md` sections instead of restating them.>
+
+## Expected file changes
+
+- `<path>` — create/modify; <reason>
 
 ## Visual design impact
 
@@ -87,8 +77,17 @@ See [`<feature-id>.appendix.md`](<feature-id>.appendix.md) for research, plan, e
 
 ## Repository research
 
+### Files inspected
+
 - `<path>` — <one line: why it matters>
-- Gaps: <missing infrastructure, command, or decision; or none>
+
+### Existing patterns to follow
+
+- <Pattern, convention, command, or architectural choice found in the repo.>
+
+### Current gaps
+
+- <Missing app infrastructure, command, table, integration, or decision; or none.>
 
 ## Implementation plan
 
