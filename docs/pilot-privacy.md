@@ -21,7 +21,7 @@ privacy gate").
 | Request metadata log | API stdout → systemd journal (pilot profile only) | Method, path, status, duration, gate, time; plus fixed retention/error codes | Journal retention is set by the host (no value configured in this repository). Never contains question, answer, land values, client id, or token. |
 | Product-improvement retention | API → owner-only SQLite file (`MANIJERO_RETENTION_DB`), only when configured **and** opted in | Redacted question and redacted final answer (answered or abstained), answer state, UTC creation date, expiry date | Deleted no later than 30 days after creation (see below). No land context, land id, municipality, client id, token, IP address, device id, or precise time. |
 | Owner export | Owner command → owner-only file outside the repository | The unexpired redacted records | Outside the automatic purge: the owner must delete an export within the same 30-day window. |
-| Generation provider (Gemini) | Not implemented | Nothing is sent | The gate is closed. A future provider may receive only the question and the approved retrieved passages (`minimal_provider_payload`), never land context, names, notes, identifiers, or retained text, and only after its own gate passes. |
+| Generation provider (Gemini) | Gated client implemented; no transport exists | Nothing is sent | The gates are closed and the repository ships no transport, so the provider stays extractive. When a reviewed change supplies one and every gate passes, the provider may receive only the redacted question and the reviewed excerpts of the cited candidates labelled by candidate number (`minimal_provider_payload`), never land context, names, notes, catalog ids, URLs, identifiers, or retained text. |
 
 ## Retention rules as implemented
 
@@ -69,8 +69,11 @@ privacy gate").
 - **Gemini gate.** Additionally requires the pilot gate, its own dated qualified review over
   `model_terms`, `data_flow`, `data_sent`, and `retention_by_provider`, the exact reviewed
   `model` equal to `MANIJERO_GEMINI_MODEL`, `MANIJERO_GENERATION_PROVIDER=gemini`, and
-  `data_sent` limited to `question` and `approved_passages`. Even when it passes, this
-  service has no Gemini client and stays on the extractive, verifier-checked path.
+  `data_sent` limited to `question` and `approved_passages`. The gated drafting path
+  (`backend/app/gemini_generation.py`) also needs a recorded limits file
+  (`backend/config/gemini_provider_limits.json`, committed all `null`) and an injected
+  transport, which does not exist; so even when this gate passes, the service stays on the
+  extractive, verifier-checked path. A model draft that fails any check falls back to it.
 - The record keeps the reviewer's qualification, never their name or contact details.
 
 ## Recording the review (human step, not done)

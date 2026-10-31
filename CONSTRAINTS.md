@@ -238,6 +238,19 @@ Operational MUST/MUST NOT rules that future features have to respect on top of
   Reason: model output is untrusted and provider exposure requires informed choice and qualified
   review before real users.
 
+- **MUST**: a model draft MUST reach `/ask` only through
+  `backend/app/gemini_generation.py::GatedGeminiGenerator`, which runs `verify_draft` itself and
+  otherwise returns the extractive draft; it MUST NOT raise or emit any text of a rejected draft, and
+  logs MUST carry only fixed `provider`/`outcome` codes. The provider payload MUST be built only by
+  `minimal_provider_payload` from the `redact_text`-redacted question and candidate-numbered reviewed
+  excerpts of the citation window (no land context, catalog id, URL, title, metadata, or retained
+  text). No transport, endpoint, credential handling, or Google dependency may be added except by a
+  reviewed change that also records the exact model, both reviews in
+  `backend/config/pilot_privacy_review.json`, and the limits; `backend/config/gemini_provider_limits.json`
+  MUST only become non-null through a reviewed change carrying a real limits and spend-cap decision.
+  Reason: `gemini_generation_provider`; the absent transport is the guarantee that nothing leaves the
+  service, and a fallback keeps a model problem from ever being worse than the extractive answer.
+
 - **MUST**: retention MUST run only after the answer is produced, through
   `backend/app/retention.py::retain_if_opted_in`, and MUST NOT change, delay-fail, or replace the
   answer; a redaction or storage failure retains nothing and logs only a fixed outcome code. The

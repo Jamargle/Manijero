@@ -1,0 +1,9 @@
+{
+  "schema_version": "gemini-provider-limits-v1",
+  "timeout_seconds": 10,
+  "max_output_tokens": 512,
+  "max_requests_per_minute": 3,
+  "max_requests_per_day": 5,
+  "cost_reference": "SYNTHETIC TEST FIXTURE: not a real pricing, spend-cap, or limits decision",
+  "recorded_on": "2026-10-01"
+}

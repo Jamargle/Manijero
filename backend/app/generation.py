@@ -197,9 +197,11 @@ class GroundingGenerator(Protocol):
     """The seam between evidence and drafting.
 
     The code-composed :class:`ExtractiveGroundingGenerator` is the only enabled
-    implementation today. A future hosted model must implement this protocol and
-    its draft is passed through the same :func:`verify_draft`, so a model can
-    never introduce a fact.
+    implementation today. The gated model adapter
+    (:class:`app.gemini_generation.GatedGeminiGenerator`) implements this protocol,
+    verifies its own draft and falls back to the extractive draft otherwise; it has
+    no transport in this repository. Whatever draft is returned is passed through the
+    same :func:`verify_draft` again, so a model can never introduce a fact.
     """
 
     def generate(
