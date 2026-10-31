@@ -78,6 +78,9 @@ Usage: ./scripts/init.sh [--check|--fast|--verify|--feature <id>|--backend-tests
 
 Tiers keep a small change cheap to check: --feature for one feature, --fast for the
 whole no-device surface, --verify for the release-shaped gate.
+
+Output is compact: one line per passing check and the tail of a failing log; full
+logs are kept in build/verify-logs/. Set MANIJERO_VERBOSE=1 to print them inline.
 EOF
 }
 
@@ -220,6 +223,13 @@ run_backend_tests() {
 # fixed order once the job has finished. Every exit code is collected before the tier
 # decides, so the tier fails closed if any single check fails and never aborts a
 # sibling mid-run.
+#
+# Output is compact by default, because agents pay for every line they read: one
+# summary line per passing job, and only the tail of a failing job's log. The full
+# logs stay in build/verify-logs/ for on-demand reading; MANIJERO_VERBOSE=1 replays
+# them all inline, and MANIJERO_FAIL_TAIL sets how many failing-log lines to print.
+VERIFY_LOG_DIR="$REPO_ROOT/build/verify-logs"
+FAIL_TAIL="${MANIJERO_FAIL_TAIL:-60}"
 FAST_JOB_NAMES=()
 FAST_JOB_PIDS=()
 FAST_JOB_LOGS=()
@@ -238,15 +248,16 @@ fast_job() {
 }
 
 run_offline_checks() {
-  local workdir
-  workdir="$(mktemp -d "${TMPDIR:-/tmp}/manijero-fast-XXXXXX")"
+  local workdir="$VERIFY_LOG_DIR"
+  rm -rf "$workdir"
+  mkdir -p "$workdir"
   FAST_JOB_NAMES=()
   FAST_JOB_PIDS=()
   FAST_JOB_LOGS=()
 
-  fast_job "$workdir" gradle-jvm-test ./gradlew :shared:jvmTest
+  fast_job "$workdir" gradle-jvm-test ./gradlew --console=plain :shared:jvmTest
   fast_job "$workdir" contract-examples run_python contracts/validate_examples.py
-  fast_job "$workdir" backend-tests run_backend_tests 0
+  fast_job "$workdir" backend-tests run_backend_tests 0 -q
   fast_job "$workdir" source-catalog run_python backend/scripts/validate_source_catalog.py knowledge/source_catalog.json --as-of "$AS_OF"
   fast_job "$workdir" retrieval run_python backend/scripts/evaluate_retrieval.py --catalog backend/tests/fixtures/retrieval/catalog.json --passages backend/tests/fixtures/retrieval/passages.json --eval backend/tests/fixtures/retrieval/eval_questions.jsonl --as-of "$AS_OF" --active-campaign 2026 --k 5
   fast_job "$workdir" generation run_python backend/scripts/evaluate_generation.py --catalog backend/tests/fixtures/generation/catalog.json --passages backend/tests/fixtures/generation/passages.json --eval backend/tests/fixtures/generation/eval_questions.jsonl --as-of "$AS_OF" --active-campaign 2026 --k 5
@@ -256,24 +267,38 @@ run_offline_checks() {
 
   printf '\nRunning %d independent offline checks concurrently...\n' "${#FAST_JOB_PIDS[@]}"
 
-  local status=0 failed=() i code
+  local status=0 failed=() i code name log
   for i in "${!FAST_JOB_PIDS[@]}"; do
     code=0
     wait "${FAST_JOB_PIDS[$i]}" || code=$?
-    printf '\n---- %s ----\n' "${FAST_JOB_NAMES[$i]}"
-    cat "${FAST_JOB_LOGS[$i]}"
+    name="${FAST_JOB_NAMES[$i]}"
+    log="${FAST_JOB_LOGS[$i]}"
+    if [[ -n "${MANIJERO_VERBOSE:-}" ]]; then
+      printf '\n---- %s ----\n' "$name"
+      cat "$log"
+    elif (( code == 0 )); then
+      printf '[ok]   %-18s %s\n' "$name" "$(log_summary "$log")"
+    else
+      printf '[FAIL] %-18s exit %d; last %d lines of %s:\n' "$name" "$code" "$FAIL_TAIL" "${log#"$REPO_ROOT"/}"
+      tail -n "$FAIL_TAIL" "$log"
+    fi
     if (( code != 0 )); then
-      failed+=("${FAST_JOB_NAMES[$i]}")
+      failed+=("$name")
       status=1
     fi
   done
-  rm -rf "$workdir"
 
   if (( status != 0 )); then
-    printf '\nFast tier failed: %s\n' "${failed[*]}" >&2
+    printf '\nFast tier failed: %s (full logs in %s)\n' "${failed[*]}" "${workdir#"$REPO_ROOT"/}" >&2
     return 1
   fi
-  printf '\nAll %d offline checks passed.\n' "${#FAST_JOB_PIDS[@]}"
+  printf '\nAll %d offline checks passed (full logs in %s).\n' "${#FAST_JOB_PIDS[@]}" "${workdir#"$REPO_ROOT"/}"
+}
+
+# log_summary <log>
+# The last non-empty line of a log, trimmed of pytest's '=' framing, as a one-line result.
+log_summary() {
+  awk 'NF { last = $0 } END { print last }' "$1" | sed -e 's/^=* *//' -e 's/ *=*$//' | cut -c1-110
 }
 
 run_fast() {
@@ -328,12 +353,30 @@ run_feature() {
     fi
     export MANIJERO_PYTHON="$validator_python"
   fi
-  printf '\n== Focused tier: %s (from docs/specs/%s.md) ==\n\n%s\n\n' "$id" "$id" "$commands"
+  if [[ -n "${MANIJERO_VERBOSE:-}" ]]; then
+    printf '\n== Focused tier: %s (from docs/specs/%s.md) ==\n\n%s\n\n' "$id" "$id" "$commands"
+  else
+    printf '\n== Focused tier: %s (%d command lines from docs/specs/%s.md) ==\n' "$id" "$(printf '%s\n' "$commands" | wc -l)" "$id"
+  fi
   local script status=0 tmpdir="${TMPDIR:-/tmp}"
   tmpdir="${tmpdir%/}"
   script="$(mktemp "$tmpdir/manijero-verify-XXXXXX")"
   printf '%s\n' "$commands" > "$script"
-  AS_OF="$AS_OF" REPO_ROOT="$REPO_ROOT" bash -euo pipefail "$script" || status=$?
+  if [[ -n "${MANIJERO_VERBOSE:-}" ]]; then
+    AS_OF="$AS_OF" REPO_ROOT="$REPO_ROOT" bash -euo pipefail "$script" || status=$?
+  else
+    # Compact like the fast tier: the tail of the log on success, a longer tail on failure.
+    local log="$VERIFY_LOG_DIR/feature-$id.log"
+    mkdir -p "$VERIFY_LOG_DIR"
+    AS_OF="$AS_OF" REPO_ROOT="$REPO_ROOT" bash -euo pipefail "$script" >"$log" 2>&1 || status=$?
+    if (( status == 0 )); then
+      tail -n 5 "$log"
+      printf '\nFocused tier passed (full log in %s).\n' "${log#"$REPO_ROOT"/}"
+    else
+      tail -n "$FAIL_TAIL" "$log"
+      printf '\nFocused tier failed with exit %d (full log in %s).\n' "$status" "${log#"$REPO_ROOT"/}" >&2
+    fi
+  fi
   rm -f "$script"
   return "$status"
 }
@@ -367,7 +410,13 @@ EOF
   --verify|--full)
     run_fast
     printf '\n== Full tier: Android host tests and the Android/Desktop builds ==\n'
-    ./gradlew :shared:testAndroidHostTest :androidApp:assembleDebug :desktopApp:build
+    # --quiet keeps task chatter out of the transcript; errors and test failures still print.
+    if [[ -n "${MANIJERO_VERBOSE:-}" ]]; then
+      ./gradlew --console=plain :shared:testAndroidHostTest :androidApp:assembleDebug :desktopApp:build
+    else
+      ./gradlew --console=plain --quiet :shared:testAndroidHostTest :androidApp:assembleDebug :desktopApp:build
+      printf '\nFull tier passed.\n'
+    fi
     ;;
   --feature)
     run_feature "${2:-}"

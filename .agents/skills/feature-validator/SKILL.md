@@ -22,11 +22,11 @@ You are the validator/evaluator, not the planner and not the implementer.
 
 ## Inputs To Read First
 
-1. `../../../AGENTS.md`
+1. `../../../AGENTS.md` — skip re-reading it when it is already in context (Claude Code loads it through `CLAUDE.md`)
 2. The **Current state** section of `../../../PROGRESS.md`; read other sections only when the task needs them
 3. `./scripts/select-feature.sh --next` when the user has not supplied a feature id; inspect the named feature's status as needed.
 4. Selected feature spec: `../../../docs/specs/<feature-id>.md`
-5. Current git status and diff
+5. Current git status and diff: start with `git diff --stat` (plus untracked files from `git status --short`), then read the diffs of source and contract files; skim generated fixtures and docs by heading rather than reading them line by line
 6. Durable docs if present:
    - `../../../ARCHITECTURE.md`
    - `../../../CONSTRAINTS.md`
@@ -46,7 +46,7 @@ Identify:
 - spec path,
 - implementation diff,
 - claimed status in `feature_list.json` (a lean index: `spec` and `validation` point at the feature's documents),
-- evidence recorded in the `Feature evidence` section of `../../../docs/specs/<feature-id>.appendix.md` and the acceptance record `../../../docs/validations/<feature-id>.md`.
+- evidence recorded in the `Feature evidence` section of `../../../docs/specs/<feature-id>.appendix.md` and the acceptance record `../../../docs/validations/<feature-id>.md`. From the appendix, read only `Feature evidence` and `Validator checklist` unless a finding needs the research or plan.
 
 Status convention:
 
@@ -74,7 +74,7 @@ Run the repo standard gate and focused checks when practical. If checks are expe
 
 If `scripts/init.sh` exists after a runnable baseline has been created, treat it as the standard non-blocking startup/verification gate. At least one invocation must execute the relevant checks and fail on errors; a print-only bare default is fine only when the script also exposes real checks-running tiers (for example `--feature`/`--fast`/`--verify`). If the script *only* prints commands and never runs checks while the repo is already bootstrapped, raise a `revise` finding with a concrete repair brief. It must not start long-running processes such as a dev server.
 
-Spend the cheapest useful tier first: `./scripts/init.sh --feature <feature-id>` runs the focused block the spec publishes, `./scripts/init.sh --fast` covers the no-device surface, and `./scripts/init.sh --verify` is the full gate. Confirm independently that the feature's published focused block is accurate and still runs; a stale or wrong block is a `revise` finding.
+Spend the cheapest useful tier first: `./scripts/init.sh --feature <feature-id>` runs the focused block the spec publishes, `./scripts/init.sh --fast` covers the no-device surface, and `./scripts/init.sh --verify` is the full gate. Rerun `--verify` yourself only when the diff touches `shared/`, `androidApp/`, `desktopApp/`, Gradle files, or packaging; otherwise `--feature` plus `--fast` is the independent rerun, and you say that `--verify` was not rerun and why. Read a failing check's log in `build/verify-logs/` rather than rerunning verbose. Confirm independently that the feature's published focused block is accurate and still runs; a stale or wrong block is a `revise` finding.
 
 Use this hierarchy:
 
@@ -128,6 +128,8 @@ For each finding that leads to `revise` or `block`, include:
 - required change,
 - suggested implementation steps,
 - verification after fix.
+
+Keep the report short: at most 40 lines for `accept`. A persisted acceptance record (`docs/validations/<feature-id>.md`) holds the verdict, the checks rerun with one-line results, and the limits that remain, in at most about 60 lines; it links the appendix evidence instead of restating it.
 
 If the verdict is `revise`, also include an `Implementation Repair Brief` that can be handed directly to the implementer. It should be ordered, scoped, and executable without this chat.
 

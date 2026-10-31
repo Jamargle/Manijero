@@ -22,11 +22,11 @@ You are the implementer/generator, not the planner and not the final validator.
 
 ## Inputs To Read First
 
-1. `../../../AGENTS.md`
+1. `../../../AGENTS.md` — skip re-reading it when it is already in context (Claude Code loads it through `CLAUDE.md`)
 2. The **Current state** section of `../../../PROGRESS.md`; read other sections only when the task needs them
 3. `./scripts/select-feature.sh --next` (feature selection); read `feature_list.json` only when you must update the selected feature's status
 4. Selected feature spec contract: `../../../docs/specs/<feature-id>.md`, plus its appendix `../../../docs/specs/<feature-id>.appendix.md` for repository research, the implementation plan and tasks, the validator checklist, and existing evidence.
-5. Durable docs if present and relevant:
+5. Durable docs if present and relevant. For large files, list headings (`grep -n '^#' <file>`) and read only the sections the spec touches:
    - `../../../ARCHITECTURE.md`
    - `../../../CONSTRAINTS.md`
    - `../../../DESIGN.md` when the spec has UI or visual behavior
@@ -69,7 +69,7 @@ Make the smallest coherent set of changes needed to satisfy the spec.
 
 Rules:
 
-- Load skill `clean-code-solid-architecture` and follow it pragmatically.
+- When the change adds or restructures production classes, modules, or use cases, load skill `clean-code-solid-architecture` and follow it pragmatically; skip it for docs, config, script, fixture, and test-only changes.
 - Follow existing repository patterns.
 - Keep WIP=1.
 - Do not implement adjacent features from `feature_list.json`.
@@ -80,6 +80,8 @@ Rules:
 ### 4. Self-Verify
 
 Run the spec's verification plan and the repo's standard gate, cheapest tier first: `./scripts/init.sh --feature <feature-id>` (the focused block the spec publishes), then `./scripts/init.sh --fast`, and `./scripts/init.sh --verify` when the change touches the Android/Desktop surface, packaging, or shared public behavior. If a required check cannot run, document exactly why and what is missing.
+
+Iterate on the focused tier; run `--fast` once the focused tier is green, and `--verify` once at the end rather than after every edit. The tiers print one line per passing check; when one fails, read or grep only its log in `build/verify-logs/`.
 
 If the feature creates or updates `scripts/init.sh`, make it an executable non-blocking gate: some invocation (a checks-running default, or named tiers such as `--feature`/`--fast`/`--verify`) must run the standard verification checks for the current repo state and fail on error, and none may start long-running dev servers. A print-only invocation is acceptable only as the cheapest informational tier when the script also exposes real checks-running tiers; a script that can *only* print the checks is not enough unless the repo is still pre-bootstrap.
 
@@ -97,8 +99,8 @@ If any required check fails, fix it or leave the feature non-passing with a clea
 After verification:
 
 - update `feature_list.json` for the selected feature only (status, and the `spec`/`validation` paths); it is a lean index, so do not add an `evidence` array,
-- record exact evidence for checks that passed in the `Feature evidence` section of `../../../docs/specs/<feature-id>.appendix.md`; never copy the same verification elsewhere,
-- do not append verification prose to `../../../docs/progress/session-log.md`; the main orchestrator adds one pointer line when the feature is accepted. Update the `../../../PROGRESS.md` status board only when the accepted set, open items, or honesty limits change,
+- record exact evidence for checks that passed in the `Feature evidence` section of `../../../docs/specs/<feature-id>.appendix.md`: each command with its one-line result (for example `1346 passed, 2 skipped`), at most about 40 lines per session, no pasted logs; never copy the same verification elsewhere,
+- do not append verification prose to `../../../docs/progress/session-log.md`; the main orchestrator adds one pointer line when the feature is accepted. Update the `../../../PROGRESS.md` status board only when the accepted set, open items, or known limitations change (a new limitation gets its full text in `../../../docs/progress/known-limitations.md` and a one-line digest in `PROGRESS.md`),
 - update the session handoff note if it exists or if the session leaves meaningful incomplete state,
 - update durable docs required by the spec or discovered during implementation.
 

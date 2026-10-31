@@ -16,6 +16,16 @@ Update docs only when the change creates or changes knowledge future agents need
 
 Do not create architecture or constraints docs just to look complete. Create them when they reduce future rediscovery or prevent future mistakes.
 
+### Writing budget
+
+Durable docs are reread by every later agent, so each added line has a recurring cost. Write each fact in exactly one owning file and link to it from elsewhere.
+
+- `CONSTRAINTS.md`: one bullet per new rule, as a MUST/MUST NOT sentence of at most three lines plus a link to the spec that established it. Put the rationale in the spec, not here. Add the rule under the existing section that fits; open a new section only for a new area.
+- `ARCHITECTURE.md`: change only the lines whose boundary moved; no per-feature history or file inventories.
+- `backend/README.md` and `knowledge/README.md`: operator usage only (commands, flags, env vars, exit codes) for what an operator runs, at most about 30 added lines per feature. Design decisions, test lists, and limitations belong in the spec, its appendix, or `docs/progress/known-limitations.md`.
+- `Feature evidence`: each command with its one-line result and any manual check in one or two lines; no pasted output, no restated scenarios.
+- `docs/risks-and-open-questions.md` and `PROGRESS.md`: touch only when a risk, open item, or limitation actually changes.
+
 ## Self-Verification Rules
 
 The implementer must verify its own work, but self-verification is not final acceptance.

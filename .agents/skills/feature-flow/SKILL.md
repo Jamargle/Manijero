@@ -32,12 +32,11 @@ The main agent is the orchestrator. It chooses the next role, launches the right
 
 ## Inputs To Read First
 
-1. `../../../AGENTS.md`
+1. `../../../AGENTS.md` — skip re-reading it when it is already in context (Claude Code loads it through `CLAUDE.md`)
 2. The **Current state** section of `../../../PROGRESS.md`; read other sections only when the task needs them
 3. `./scripts/select-feature.sh --next` (feature selection); read `feature_list.json` only when you must update a feature's status
-4. `docs/specs/` if present
-5. `docs/validations/` if present
-6. Current git status
+4. Only the selected feature's files: `docs/specs/<feature-id>.md` and `docs/validations/<feature-id>.md` when present. Never list-read the `docs/specs/` or `docs/validations/` directories.
+5. Current git status (`git status --short`)
 
 ## Feature Selection
 
@@ -76,6 +75,8 @@ Send only dynamic handoff context:
 - spec path when applicable,
 - validator repair brief when applicable,
 - expected output summary.
+
+Do not paste file contents, earlier subagent reports, or diffs into the handoff; give paths and let the subagent read them. Ask every subagent to end with a report of at most 25 lines (verdict or status, files changed, checks with one-line results, blockers) and to leave detail in the files it owns, because each report stays in the orchestrator's context for the rest of the flow.
 
 Do not duplicate the subagent role prompts in this skill. The stable role instructions live in the configured subagent files.
 
@@ -126,7 +127,7 @@ When no meaningful manual test exists, say so and explain the closest verificati
 
 After a subagent returns:
 
-- verify the expected artifact exists or the expected verdict is present,
+- verify the expected artifact exists or the expected verdict is present (check with `git status --short` and targeted greps; do not reread whole artifacts the subagent just wrote),
 - check that the subagent stayed in role,
 - check for obvious missing state updates,
 - summarize the next action.
