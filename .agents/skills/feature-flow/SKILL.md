@@ -15,14 +15,14 @@ The main agent is the orchestrator. It chooses the next role, launches the right
 
 ## Hard Rules
 
-- Work on one feature at a time.
+- Work on one feature at a time, and on one feature per session. After a feature's commit, end the flow; never plan, implement, or validate a second feature in the same session, even when asked to continue. Tell the user to start the next feature in a new session (`./scripts/feature-session.sh` in Claude Code, which picks the selector's next feature, or a new session of the active runtime). A session that already ran a feature carries all of its reads and reports, and the next feature would pay for them on every turn.
 - Do not run planner, implementer, and validator in parallel for the same feature.
 - Do not skip roles unless the required artifact already exists and is current.
 - Do not implement work in the main agent while a subagent owns that role.
 - Subagents do not create commits. The main orchestrator owns final staging and commit after validator acceptance.
 - Do not treat `passing` as accepted. `passing` means implementer self-verification passed; validator `accept` is independent.
 - After validation returns `accept`, persist acceptance by changing the selected feature status in `feature_list.json` from `passing` to `accepted`. `feature_list.json` is a lean index, so never add an `evidence` array: the feature's evidence belongs in that feature's appendix (`docs/specs/<feature-id>.appendix.md`, section `Feature evidence`) and its acceptance record in `docs/validations/<feature-id>.md` — the two canonical stores; `docs/progress/session-log.md` gets one pointer line per accepted feature and never restates evidence.
-- If validation returns `revise`, route the repair brief back to `implementer` for the same feature.
+- If validation returns `revise`, route the repair brief back to `implementer` for the same feature, continuing the same implementer subagent when the runtime allows it (see Repair loop).
 - Verification is tiered, and each tier must be reachable: a spec that publishes no focused command block is incomplete, and implementer/validator runs use `./scripts/init.sh --feature <feature-id>` and `./scripts/init.sh --fast` before paying for `./scripts/init.sh --verify`.
 - After a `revise` repair, route the same feature back to `validator`; do not stop after the repair unless the user explicitly asked for a single role step.
 - If validation returns `block`, stop and report the blocker.
@@ -87,9 +87,9 @@ Default behavior for this skill is until-accepted mode for one feature. Do not s
 Mode summary: until-accepted is the default full pipeline for one feature; one-step runs a single role only when explicitly requested; next-feature only selects and reports after an accept, never auto-starts.
 
 - Until-accepted mode: run planner -> implementer -> validator sequentially for one feature, stopping only when the validator returns `accept`, the validator returns `block`, or a subagent cannot continue.
-- Repair loop: if validator returns `revise`, run `implementer` with the repair brief, then run `validator` again for the same feature.
+- Repair loop: if validator returns `revise`, send the repair brief to `implementer`, then run `validator` again for the same feature. Continue the implementer subagent that built the feature instead of launching a new one, so it keeps the spec, code, and docs it already read: in Claude Code, `SendMessage` to that implementer's agent id or name with the repair brief. Launch a fresh implementer only when that one cannot be continued (for example, the runtime has no continuation or the session was restarted), and then hand it the spec path plus the repair brief. Re-validation still runs a fresh `validator`, so acceptance stays independent of the earlier verdict.
 - One-step mode: run only the next required role and report the result only when the user explicitly asks for a single step, dry run, preview, or next-role-only execution.
-- Next-feature mode: after accept, select the next feature and report the next required role; do not start it unless asked.
+- Next-feature mode: after accept, select the next feature and report its id and next role; never start it in this session (see Hard Rules).
 
 ## Commit On Acceptance
 
@@ -105,7 +105,7 @@ Creating the commit is the main orchestrator's final step after the validator re
    - `chore: complete <feature-id>` for workflow/tooling-only features.
 6. If the accepted feature's changes cannot be isolated from unrelated work, stop and report the commit blocker instead of making a mixed commit.
 7. Do not push the commit unless the user explicitly requested a push.
-8. After the commit succeeds, select the next available feature and report the next required role. Do not start the next feature unless asked.
+8. After the commit succeeds, select the next available feature and report the next required role, then end the flow. The next feature starts in a new session (see Hard Rules).
 
 ## Final User Handoff
 
@@ -119,7 +119,7 @@ Include:
 - `Cómo probarlo`: the command that actually exercises the accepted feature — the spec's focused block `./scripts/init.sh --feature <feature-id>`, or `CI=true ./scripts/init.sh --fast` for the no-device surface (`CI=true ./scripts/init.sh --verify` for the full gate). Never present the bare `./scripts/init.sh`: it only prints a toolchain banner and exits 0 without running any check. Plus concrete manual/local steps when the feature has observable behavior. Prefer commands the user can run directly. If manual testing needs env vars, database, a dev server, or a port, state that explicitly.
 - `Validación`: validator verdict and the most relevant checks/smokes that actually ran.
 - `Commit`: hash and Conventional Commit message.
-- `Siguiente`: next feature id and next required role/action.
+- `Siguiente`: next feature id and next required role, and the command that starts it in a new session: `./scripts/feature-session.sh` (or `./scripts/feature-session.sh <feature-id>`).
 
 When no meaningful manual test exists, say so and explain the closest verification command. Do not invent product behavior that was not implemented.
 

@@ -29,7 +29,7 @@ You are the validator/evaluator, not the planner and not the implementer.
 5. Current git status and diff: start with `git diff --stat` (plus untracked files from `git status --short`), then read the diffs of source and contract files; skim generated fixtures and docs by heading rather than reading them line by line
 6. Durable docs if present:
    - `../../../ARCHITECTURE.md`
-   - `../../../CONSTRAINTS.md`
+   - `../../../CONSTRAINTS.md` (the index) and only the `../../../docs/constraints/<area>.md` files the diff touches
    - `../../../DESIGN.md` when the spec or implementation has UI or visual behavior
    - related docs under `docs/`
 7. Files changed by the implementation.
@@ -108,7 +108,7 @@ Validate the spec's `Durable Documentation Impact` section:
 - unnecessary docs were not created,
 - `../../../AGENTS.md` stayed short and router-like,
 - `../../../ARCHITECTURE.md` captures durable boundaries without becoming a file inventory,
-- `../../../CONSTRAINTS.md` uses operational MUST/MUST NOT rules rather than vague preferences,
+- new constraints sit in the matching `../../../docs/constraints/<area>.md` section as operational MUST/MUST NOT rules rather than vague preferences,
 - docs do not contradict the implemented behavior.
 - UI or visual changes follow `../../../DESIGN.md` when the feature involves product screens, public verification pages, or generated design assets.
 

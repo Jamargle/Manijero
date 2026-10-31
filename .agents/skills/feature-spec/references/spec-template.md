@@ -61,11 +61,11 @@ UI involved: yes/no. If yes: affected screens and states, and the `DESIGN.md` se
 ## Durable documentation impact (required)
 
 - `ARCHITECTURE.md`: update/not needed — <reason>
-- `CONSTRAINTS.md`: update/not needed — <rule in one line, or reason>
+- `docs/constraints/<area>.md`: update/not needed — <rule in one line, or reason>
 - `AGENTS.md`: update/not needed — <reason>
 - Other: <path or none> — <reason>
 
-Update `AGENTS.md` only when the agent workflow, startup path, or repo-wide rules change; `ARCHITECTURE.md` when a boundary, layer, runtime surface, or adapter changes; `CONSTRAINTS.md` when a durable MUST/MUST NOT rule appears.
+Update `AGENTS.md` only when the agent workflow, startup path, or repo-wide rules change; `ARCHITECTURE.md` when a boundary, layer, runtime surface, or adapter changes; the matching `docs/constraints/<area>.md` when a durable MUST/MUST NOT rule appears.
 
 ## Focused verification (required)
 

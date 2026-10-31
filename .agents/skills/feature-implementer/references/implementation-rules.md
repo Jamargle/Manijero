@@ -8,7 +8,7 @@ Update docs only when the change creates or changes knowledge future agents need
 
 - `../../../../AGENTS.md`: update only if the agent workflow, startup path, verification path, or repo-wide operating rules change. Keep it short and router-like.
 - `../../../../ARCHITECTURE.md`: create/update when domains, layers, runtime surfaces, dependency direction, adapters/providers, or architectural boundaries are established or changed.
-- `../../../../CONSTRAINTS.md`: create/update when a durable MUST/MUST NOT rule appears that future agents must obey.
+- `../../../../docs/constraints/<area>.md` (indexed by `../../../../CONSTRAINTS.md`): update when a durable MUST/MUST NOT rule appears that future agents must obey.
 - `../../../../docs/specs/<feature-id>.md`: update if implementation discovers that the spec was wrong, incomplete, or materially changed by necessary findings.
 - `../../../../docs/progress/session-log.md`: the main orchestrator adds one pointer line per accepted feature; do not append verification prose here (the `../../../../PROGRESS.md` status board changes only when the accepted set, open items, or limits change).
 - `feature_list.json`: update the selected feature's status every implementation session. It is a lean index (`id`, `area`, `title`, `status`, `depends_on`, `spec`, `validation`); do not add an `evidence` array or duplicate the spec's prose here.
@@ -20,7 +20,7 @@ Do not create architecture or constraints docs just to look complete. Create the
 
 Durable docs are reread by every later agent, so each added line has a recurring cost. Write each fact in exactly one owning file and link to it from elsewhere.
 
-- `CONSTRAINTS.md`: one bullet per new rule, as a MUST/MUST NOT sentence of at most three lines plus a link to the spec that established it. Put the rationale in the spec, not here. Add the rule under the existing section that fits; open a new section only for a new area.
+- `docs/constraints/<area>.md`: one bullet per new rule, as a MUST/MUST NOT sentence of at most three lines plus a link to the spec that established it. Put the rationale in the spec, not here. Add the rule under the existing section that fits; open a new section or area file only for a new area, and list it in the `CONSTRAINTS.md` index.
 - `ARCHITECTURE.md`: change only the lines whose boundary moved; no per-feature history or file inventories.
 - `backend/README.md` and `knowledge/README.md`: operator usage only (commands, flags, env vars, exit codes) for what an operator runs, at most about 30 added lines per feature. Design decisions, test lists, and limitations belong in the spec, its appendix, or `docs/progress/known-limitations.md`.
 - `Feature evidence`: each command with its one-line result and any manual check in one or two lines; no pasted output, no restated scenarios.

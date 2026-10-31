@@ -28,7 +28,7 @@ Use this skill to turn one harness feature into an implementation-ready contract
 5. Current product and architecture docs as needed. For any file over ~200 lines, list its headings (`grep -n '^#' <file>`) and read only the sections the feature touches:
    - `../../../CONTEXT.md`
    - `../../../ARCHITECTURE.md`
-   - `../../../CONSTRAINTS.md`
+   - `../../../CONSTRAINTS.md` (the index) and only the `../../../docs/constraints/<area>.md` files the feature touches
    - `../../../docs/domain-model.md`
    - `../../../DESIGN.md` when the selected feature has UI or visual behavior
    - `../../../docs/risks-and-open-questions.md`
@@ -117,7 +117,7 @@ Before finishing, check:
 - The focused verification block is executable as published: `./scripts/init.sh --feature <feature-id>` must run it without edits, and it must be the cheapest check that still touches what the feature changes.
 - If a persistent E2E command exists and the feature changes user-visible behavior, authentication, authorization, routing, or API flows, the verification plan should include adding/updating focused E2E coverage or explicitly justify why unit/integration coverage is enough.
 - For shell scripts such as `scripts/init.sh`, the spec states whether the script must execute checks, print guidance, start services, or provide modes. The default harness rule is: `scripts/init.sh` exposes a non-blocking, checks-running invocation (a default or named tiers) and must not start long-running dev servers. A print-only invocation is acceptable only as the cheapest informational tier alongside real checks-running tiers; a script that can *only* print the checks is not enough unless the repo is still pre-bootstrap.
-- Durable documentation impact is explicit: `../../../ARCHITECTURE.md`, `../../../CONSTRAINTS.md`, `../../../AGENTS.md`, and other durable docs are each marked create/update/not needed with a reason.
+- Durable documentation impact is explicit: `../../../ARCHITECTURE.md`, the `../../../docs/constraints/` area files, `../../../AGENTS.md`, and other durable docs are each marked create/update/not needed with a reason.
 - Non-goals prevent scope creep.
 - The contract and appendix fit their size budgets, and no paragraph restates another file.
 - Unknowns are explicit and do not hide blocking ambiguity.

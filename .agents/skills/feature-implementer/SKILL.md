@@ -28,7 +28,7 @@ You are the implementer/generator, not the planner and not the final validator.
 4. Selected feature spec contract: `../../../docs/specs/<feature-id>.md`, plus its appendix `../../../docs/specs/<feature-id>.appendix.md` for repository research, the implementation plan and tasks, the validator checklist, and existing evidence.
 5. Durable docs if present and relevant. For large files, list headings (`grep -n '^#' <file>`) and read only the sections the spec touches:
    - `../../../ARCHITECTURE.md`
-   - `../../../CONSTRAINTS.md`
+   - `../../../CONSTRAINTS.md` (the index) and only the `../../../docs/constraints/<area>.md` files the feature touches
    - `../../../DESIGN.md` when the spec has UI or visual behavior
    - relevant docs under `docs/`
 6. Existing application files named in the spec contract's expected file changes and the appendix's repository research.
@@ -104,7 +104,7 @@ After verification:
 - update the session handoff note if it exists or if the session leaves meaningful incomplete state,
 - update durable docs required by the spec or discovered during implementation.
 
-CONSTRAINTS.md rule: read `../../../CONSTRAINTS.md` before implementing (see Inputs To Read First). When implementation or verification reveals a durable operational constraint (a MUST/MUST NOT rule future features have to respect), append it to `../../../CONSTRAINTS.md` with a short reason. Do not add speculative rules or restate what the spec, `../../../AGENTS.md`, or `../../../ARCHITECTURE.md` already cover; follow the durable documentation rules in `references/implementation-rules.md`.
+Constraints rule: read the `../../../CONSTRAINTS.md` index and the area files the feature touches before implementing (see Inputs To Read First). When implementation or verification reveals a durable operational constraint (a MUST/MUST NOT rule future features have to respect), add it to the matching section of the matching `../../../docs/constraints/<area>.md` file with a link to the spec that established it. Do not add speculative rules or restate what the spec, `../../../AGENTS.md`, or `../../../ARCHITECTURE.md` already cover; follow the durable documentation rules in `references/implementation-rules.md`.
 
 Status rule:
 
