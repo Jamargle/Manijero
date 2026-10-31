@@ -1,0 +1,7 @@
+{
+  "schema_version": "hybrid-retrieval-v1",
+  "fusion": "reciprocal_rank_fusion",
+  "rrf_k": 60,
+  "candidate_depth": 20,
+  "vector_min_similarity": 0.0
+}

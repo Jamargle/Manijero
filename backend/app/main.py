@@ -28,6 +28,8 @@ from app.ask_api import (
     router as ask_router,
     sanitize_request_validation,
 )
+from app.gemini_generation import GeminiTransport, GenerationClock
+from app.local_generation import resolve_startup_generation
 from app.pilot_config import PilotConfig, load_config
 from app.pilot_guard import PilotGuardMiddleware
 from app.pilot_logging import configure_operational_logging, operational_log
@@ -57,12 +59,26 @@ _RETENTION_FROM_ENV = object()
 def create_app(
     config: PilotConfig | None = None,
     retention_store: RetentionStore | None | object = _RETENTION_FROM_ENV,
+    *,
+    generation_transport: GeminiTransport | None = None,
+    generation_clock: GenerationClock | None = None,
+    local_transport: GeminiTransport | None = None,
 ) -> FastAPI:
     """Build the FastAPI application for the configured service profile.
 
     Product-improvement retention stays off unless ``MANIJERO_RETENTION_DB`` names a safe
     store (or a test passes one). A configured but unsafe store also leaves retention off;
     the pilot preflight reports it as a problem before traffic.
+
+    The answer provider is resolved once here. No real Gemini transport exists in this
+    repository, so ``generation_transport`` defaults to ``None`` (a gate blocker) and the
+    provider stays ``extractive``; only tests inject a fake transport and clock.
+
+    ``MANIJERO_GENERATION_PROVIDER=local`` selects the loopback Ollama provider instead
+    (:mod:`app.local_generation`). It stays off unless both of its env keys match the
+    committed model record, and in the pilot profile it also needs a passed pilot review.
+    Resolution makes no network call; ``local_transport`` lets tests and the measurement
+    script inject a transport in place of the default ``OllamaTransport``.
     """
 
     resolved = config or load_config()
@@ -88,6 +104,18 @@ def create_app(
             operational_log("retention_disabled", reason=error.code)
             retention_store = None
     application.state.retention_store = retention_store
+    generation = resolve_startup_generation(
+        gemini_transport=generation_transport,
+        local_transport=local_transport,
+        clock=generation_clock,
+        pilot=pilot,
+    )
+    operational_log(
+        "generation_provider",
+        provider=generation.provider,
+        blockers=",".join(generation.blockers),
+    )
+    application.state.generation_provider = generation
 
     @application.get("/health", response_model=HealthResponse, summary="Check service health")
     def health() -> HealthResponse:

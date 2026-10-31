@@ -23,11 +23,13 @@ Operational MUST/MUST NOT rules that future features have to respect on top of
 
 ## Local embeddings
 
-- **MUST**: no embedding model may run on the `/ask` path until a separately
-  reviewed change composes it there, and the default answer behavior MUST stay
-  the accepted BM25 retrieval with every code-owned answer property unchanged. A
-  missing optional runtime, a missing/invalid artifact, or a stale derived index
-  MUST NOT alter an answer, citation, abstention, or land clarification. Reason:
+- **MUST**: the default answer behavior MUST stay the accepted BM25 retrieval
+  with every code-owned answer property unchanged. An embedding model may run on
+  the `/ask` path only through the explicit hybrid opt-in
+  (`MANIJERO_RETRIEVAL_MODE=hybrid`, `chroma_hybrid_retrieval`); any other
+  composition is a separately reviewed change. A missing optional runtime, a
+  missing/invalid artifact, or a stale derived index or store MUST NOT alter an
+  answer, citation, abstention, or land clarification. Reason:
   `local_bge_m3_embeddings` added an optional capability, not a new answer
   authority; silently swapping retrieval on a host without the model would
   weaken grounding without review.
@@ -43,6 +45,30 @@ Operational MUST/MUST NOT rules that future features have to respect on top of
   campaign inputs, and MUST be reported stale instead of reused when any of them
   change. Reason: the index is reproducible derived data; promoting it into the
   reviewed corpus would create a second, unreviewed answer source.
+
+## Hybrid retrieval
+
+- **MUST**: a vector or fused ranking MUST compose into `app.retrieval.Retriever`
+  only through `Retriever.with_ranker`; it MUST NOT construct `RetrievedPassage`
+  values, re-implement eligibility, or bypass the lexical gate. A question with no
+  positive BM25 match MUST return no candidate in every mode, and only passages
+  the retriever admitted may be returned. Reason: `chroma_hybrid_retrieval` kept
+  approved-source provenance and zero-evidence abstention code-owned; vector
+  similarity is positive for almost any text, so without the gate it would turn
+  unrelated questions into answers.
+- **MUST**: hybrid ranking MUST be used for a request only while the store
+  manifest matches the current model pin, active campaign, and the digest of the
+  exact admitted `(passage_id, text)` documents; otherwise, and on any load or
+  query failure, the request MUST use the unchanged BM25 ranking and log only a
+  fixed reason code or exception type name. Importing the service MUST NOT import
+  `chromadb`, `torch`, or the vector/hybrid modules. Reason: a stale or broken
+  vector store must degrade to the reviewed behavior, never to an answer from
+  passages that are no longer admitted, and third-party error text can echo a
+  question.
+- **MUST NOT**: change the default retrieval mode to hybrid, or claim a retrieval
+  or answer improvement, without a measured BM25 vs hybrid comparison on reviewed
+  cases recorded with the change. Reason: the 2026-10-31 comparison on the
+  14-case author-only sample measured no answer-level difference.
 
 ## Client request failure
 
@@ -211,6 +237,30 @@ Operational MUST/MUST NOT rules that future features have to respect on top of
   existing whole-draft verifier; citations, source arrays, notices, and abstentions remain code-owned.
   Reason: model output is untrusted and provider exposure requires informed choice and qualified
   review before real users.
+
+- **MUST**: a model draft (Gemini or the loopback local provider) MUST reach `/ask` only through
+  `backend/app/gemini_generation.py::GatedGeminiGenerator`, which runs `verify_draft` itself and
+  otherwise returns the extractive draft; it MUST NOT raise or emit any text of a rejected draft, and
+  logs MUST carry only fixed `provider`/`outcome` codes. The provider payload MUST be built only by
+  `minimal_provider_payload` from the `redact_text`-redacted question and candidate-numbered reviewed
+  excerpts of the citation window (no land context, catalog id, URL, title, metadata, or retained
+  text). No remote-provider transport, endpoint, credential handling, or Google dependency may be
+  added except by a reviewed change that also records the exact model, both reviews in
+  `backend/config/pilot_privacy_review.json`, and the limits; `backend/config/gemini_provider_limits.json`
+  MUST only become non-null through a reviewed change carrying a real limits and spend-cap decision.
+  Reason: `gemini_generation_provider`; the absent transport is the guarantee that nothing leaves the
+  service, and a fallback keeps a model problem from ever being worse than the extractive answer.
+
+- **MUST**: the local generation transport (`backend/app/local_generation.py::OllamaTransport`)
+  MUST talk only to the `OLLAMA_BASE_URL` loopback constant (`http://127.0.0.1:11434`), with no
+  proxy, no redirect, and no configurable or remote URL, and MUST use only the pinned tag whose
+  installed digest matches `backend/config/local_generation_model.json`. Changing the model,
+  digest, or limits in that record MUST be a reviewed change carrying new measurement evidence.
+  Local generation MUST stay off unless both `MANIJERO_GENERATION_PROVIDER=local` and a matching
+  `MANIJERO_LOCAL_MODEL` are set; in the pilot profile it MUST also require a passed pilot review.
+  Automated tests MUST NOT need Ollama. Reason: `local_generation_provider`; the question stays on
+  the host only while the endpoint is a fixed loopback address, and the recorded measurements are
+  valid only for the pinned weights and limits.
 
 - **MUST**: retention MUST run only after the answer is produced, through
   `backend/app/retention.py::retain_if_opted_in`, and MUST NOT change, delay-fail, or replace the

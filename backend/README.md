@@ -8,8 +8,8 @@ with the shared startup script:
 ./scripts/init.sh --backend
 ```
 
-The script creates `backend/.venv` when needed, installs/updates the runtime
-requirements, sets `MANIJERO_ACTIVE_CAMPAIGN=2026` unless already configured,
+The script links `backend/.venv` to the shared development environment (see
+"Shared Python environments" below), building it first if needed, sets `MANIJERO_ACTIVE_CAMPAIGN=2026` unless already configured,
 and launches Uvicorn with reload enabled, bound to `0.0.0.0` so the Android
 emulator can reach the host through `10.0.2.2`. This also makes the development
 server reachable from your local network; use a trusted network/firewall, or set
@@ -34,12 +34,31 @@ address as the Android endpoint when building, for example
 `./gradlew :androidApp:assembleDebug -PmanijeroAskBaseUrl=http://192.168.1.20:8000`.
 The emulator default remains `http://10.0.2.2:8000`.
 
-For backend tests and artifact validation, install the development dependencies
-in a virtual environment instead:
+### Shared Python environments
+
+The backend needs Python 3.10 or newer; `.python-version` pins 3.12 for local work,
+CI, and the pilot server. With [uv](https://docs.astral.sh/uv/) installed (the supported
+setup), the environment uses that exact Python, downloading it if needed. From the
+repository root, build (or reuse) the development environment once:
 
 ```sh
-python -m pip install -r requirements-dev.txt
+./scripts/init.sh --setup-python          # runtime + pytest/jsonschema, linked as backend/.venv
+./scripts/init.sh --setup-python hybrid   # adds torch/transformers/chromadb, linked as backend/.venv-hybrid
 ```
+
+Each environment is built once under the repository's git common directory
+(`.git/manijero-venvs/<profile>-py<version>-<hash>`) and keyed by its requirement
+files and interpreter version, so the base checkout and every worktree share it
+and a rebuild happens only when a requirements file changes. `backend/.venv` and
+`backend/.venv-hybrid` are symlinks to it, so commands such as
+`MANIJERO_PYTHON=backend/.venv/bin/python ./scripts/init.sh --backend-tests` work
+unchanged; the test runners link an already-built environment automatically.
+An existing local `backend/.venv` directory is never replaced: rename or remove
+it to switch to the shared one. Without uv, the newest Python 3.10+ on `PATH`
+is used. Set `MANIJERO_BASE_PYTHON` to choose the interpreter (it must live outside the
+repository) and `MANIJERO_VENV_ROOT` to move
+the environments. Superseded environments are not deleted automatically; remove
+old directories under `.git/manijero-venvs/` when they are no longer linked.
 
 The runtime requirements intentionally do not include `pytest` or `jsonschema`;
 the latter is used by the focused PAC answer-evaluation test tier to validate
@@ -158,8 +177,9 @@ Read from the process environment; secrets live in an operator-owned file, never
 | `MANIJERO_PILOT_MAX_CONCURRENCY` | pilot | Default `64`, maximum `512`. A protective placeholder, not a measured capacity. |
 | `MANIJERO_MAX_REQUEST_BYTES` | both | Default `65536`, minimum `1024`, maximum `1048576`. |
 | `MANIJERO_RETENTION_DB` | both (optional) | Unset = product-improvement retention off. Otherwise an owner-only SQLite path outside the repository (see "Product-improvement retention and the privacy gate"). |
-| `MANIJERO_GENERATION_PROVIDER` | both (optional) | `extractive` (default) or `gemini`. `gemini` stays on the extractive path: no client exists and its review gate is closed. Any other value is a preflight problem. |
-| `MANIJERO_GEMINI_MODEL` | both (optional) | The exact model the Gemini review approved; only read by the gate. |
+| `MANIJERO_GENERATION_PROVIDER` | both (optional) | `extractive` (default), `gemini`, or `local`. `gemini` selects the gated drafting path only when every gate input passes (see "Gated Gemini drafting"); today no transport exists and the gates are closed, so it stays extractive. `local` selects loopback Ollama drafting (see "Local open-weight drafting (Ollama)"); in the pilot profile it also needs a passed pilot review, which is pending, so it is development-only today. The value is exact (`Local` is not `local`). Any other value is a preflight problem. |
+| `MANIJERO_GEMINI_MODEL` | both (optional) | The exact model the Gemini review approved; read only by the gate and, when it passes, sent as the request's model id. |
+| `MANIJERO_LOCAL_MODEL` | both (optional) | Read only when the provider is `local`; must equal `model` in `config/local_generation_model.json` exactly (`local_model_mismatch` otherwise). |
 
 The client file is a closed contract:
 
@@ -199,9 +219,12 @@ fails closed with `clients_unreadable`. The `chown`/`chmod` pair is required aft
    monitoring, UPS/graceful shutdown, and outbound TCP 7844 for the tunnel connector.
 2. Create the service user and checkout:
    `git clone <reviewed origin> /opt/manijero/repo && git -C /opt/manijero/repo checkout <release tag>`.
-3. Create the virtualenv and install the pinned runtime:
-   `python3 -m venv /opt/manijero/repo/backend/.venv` then
-   `/opt/manijero/repo/backend/.venv/bin/python -m pip install -r /opt/manijero/repo/backend/deploy/requirements-production.txt`.
+3. Install [uv](https://docs.astral.sh/uv/), then create the virtualenv from the Python
+   pinned in `.python-version` and install the pinned runtime. The interpreter goes to
+   `/opt/manijero/python` so the `manijero` service user can read it:
+   `cd /opt/manijero/repo && sudo env UV_PYTHON_INSTALL_DIR=/opt/manijero/python uv python install`,
+   `sudo env UV_PYTHON_INSTALL_DIR=/opt/manijero/python uv venv /opt/manijero/repo/backend/.venv`, then
+   `sudo uv pip install --python /opt/manijero/repo/backend/.venv/bin/python -r /opt/manijero/repo/backend/deploy/requirements-production.txt`.
 4. Create `/etc/manijero` as `root:manijero 0750`
    (`sudo install -d -o root -g manijero -m 0750 /etc/manijero`), then create
    `/etc/manijero/pilot.env` from `backend/deploy/pilot.env.example` (root, `0600`) and fill
@@ -447,6 +470,99 @@ have no identifier of a person, so one person's record cannot be deleted early; 
 retention store is not backed up by `pilot_ops.py backup` and must not be. Nothing here is a
 compliance claim.
 
+### Gated Gemini drafting
+
+`app/gemini_generation.py` implements a replaceable Gemini drafting path, **but ships no
+transport**: nothing in this repository can reach Google, and no key or credential is read.
+`create_app` resolves the provider once at startup (restart to re-resolve) and logs one
+`generation_provider` line with `provider` and comma-joined fixed `blockers`. Gemini is used
+only when every input passes:
+
+- `MANIJERO_GENERATION_PROVIDER=gemini` and `MANIJERO_GEMINI_MODEL` equal to
+  `gemini_review.model`, with both review gates passed in `config/pilot_privacy_review.json`;
+- `config/gemini_provider_limits.json` (`gemini-provider-limits-v1`) records `timeout_seconds`
+  (1–30), `max_output_tokens` (1–2048), `max_requests_per_minute` (1–600, per process),
+  `max_requests_per_day` (1–100000, per process, UTC day), a non-blank `cost_reference`, and a
+  `recorded_on` date not in the future. It is committed all `null`; only a reviewed change with a
+  real limits and spend-cap decision may fill it;
+- a transport was injected (`gemini_transport_unavailable` otherwise — always, today).
+
+Limits blockers: `gemini_limits_unreadable`, `gemini_limits_invalid`,
+`gemini_limits_not_recorded`, `gemini_limits_out_of_range`, `gemini_limits_future_date`.
+
+When active, each draft sends only the redacted question and the reviewed excerpts of the
+citation window labelled by candidate number, and logs one `generation` line with
+`provider=gemini` and an `outcome`: `gemini_used`, `rate_limited`, `redaction_failed`,
+`payload_invalid`, `transport_error`, `timeout`, `malformed_output`, `provider_abstained`, or
+`verifier_rejected`. Every outcome but `gemini_used` returns the extractive draft. No
+answer-quality, latency, cost, or legal-coverage evidence exists: no real model has been called.
+
+### Local open-weight drafting (Ollama)
+
+`app/local_generation.py` adds a `local` provider to the same slot. It reuses
+`GatedGeminiGenerator` unchanged (same instruction `gemini-draft-v1`, strict parser, citation
+window, `verify_draft`, rate limiter, and extractive fallback); only the transport and the
+startup gate are new. It is off by default and talks only to the loopback constant
+`http://127.0.0.1:11434`: the URL is not configurable, proxy variables are ignored, redirects
+are refused, and no HTTPS handler exists. No new Python dependency is used (stdlib `urllib`).
+
+Pin, pull, and read the digest (the owner runs Ollama; the app never pulls):
+
+```sh
+ollama pull mistral-small3.2:24b-instruct-2506-q4_K_M
+curl -s http://127.0.0.1:11434/api/tags      # models[].digest (64 hex) and size
+curl -s http://127.0.0.1:11434/api/show -d '{"model":"mistral-small3.2:24b-instruct-2506-q4_K_M"}'  # license, details
+```
+
+`config/local_generation_model.json` (`local-generation-model-v1`) records the exact tag, the
+`/api/tags` digest, the SPDX licence (`Apache-2.0`) and its reference, parameter size,
+quantization, `size_bytes`, and the limits: `num_ctx` 4096 (2048–32768), `timeout_seconds` 10
+(1–14, below the app's 15 s request timeout so a fallback still reaches the app),
+`max_output_tokens` 400 (1–1024), 30 requests/minute and 2000/day per process,
+`keep_alive_seconds` 1800 (0–86400), and `recorded_on`. Changing the model, digest, or limits
+is a reviewed change with new measurement evidence.
+
+Enable for local development only:
+
+```sh
+MANIJERO_ACTIVE_CAMPAIGN=2026 MANIJERO_GENERATION_PROVIDER=local \
+MANIJERO_LOCAL_MODEL=mistral-small3.2:24b-instruct-2506-q4_K_M \
+backend/.venv/bin/python -m uvicorn app.main:app --app-dir backend
+```
+
+Startup blockers (fixed codes, no value echoed; the provider stays `extractive`):
+`local_model_mismatch`, `local_model_record_unreadable`, `local_model_record_invalid`,
+`local_model_record_out_of_range`, `local_model_over_budget` (`size_bytes` above
+50,000,000,000), `local_model_record_future_date`, and, in the pilot profile,
+`pilot_privacy_review_not_passed`. Startup makes no network call. The first draft checks
+`/api/tags` for the pinned tag and digest (only a success is cached, so pulling later needs no
+restart), then posts `/api/chat` with `stream: false`, the draft JSON schema as `format`,
+`temperature` 0, `seed` 0, `num_ctx`, `num_predict`, and `keep_alive`. The digest check and the
+chat share the 10 s budget.
+
+Each draft logs one `generation` line with `provider=local` and an outcome: `local_used`, or one
+of the shared fallback outcomes (`transport_error` covers connection refused, HTTP errors, a
+non-JSON or oversize body, a missing model, and a digest mismatch; `timeout`; `rate_limited`;
+`redaction_failed`; `payload_invalid`; `malformed_output`; `provider_abstained`;
+`verifier_rejected`). Every outcome but `local_used` returns the extractive draft. There is no
+startup warm-up: after an unload, the first question pays the model load.
+
+Opt-in live measurement (needs Ollama serving the pinned model; not part of the tests; prints
+text-free JSON and makes no recommendation; exit 0 within budget, 1 over the 50 GB budget, 2 when
+Ollama is unreachable, the model is missing, the digest differs, or the input is invalid):
+
+```sh
+backend/.venv/bin/python backend/scripts/measure_local_generation.py \
+  --catalog knowledge/source_catalog.json --passages knowledge/passages.json \
+  --cases knowledge/pac_answer_eval.json --active-campaign 2026 --as-of 2026-10-31 \
+  --k 5 --repeats 3 > /tmp/local-generation-run1.json
+```
+
+The measured numbers from this Mac are in
+[`docs/specs/local_generation_provider.appendix.md`](../docs/specs/local_generation_provider.appendix.md)
+("Feature evidence"). Limits: one host, 14 author-only cases, the untuned Gemini instruction, and
+a lexical verifier; Ollama's own server logs and update checks are outside the app's control.
+
 ## Offline retrieval baseline
 
 `app/retrieval.py` is the offline retrieval boundary over reviewed passages of
@@ -471,15 +587,17 @@ numbers come from a small synthetic fixture corpus, not from real user questions
 or legal documents. See `knowledge/README.md` for the passage-set contract and
 the eligibility rules.
 
-## Local multilingual embeddings (optional, pinned, off the answer path)
+## Local multilingual embeddings (optional, pinned, off the default answer path)
 
 `app/embeddings.py` owns one pinned local model behind the narrow
 `EmbeddingModel` protocol, and `app/embedding_index.py` owns its derived,
 rebuildable passage index. `backend/scripts/manage_embeddings.py` is the operator
-entry point. **`/ask` imports and reads neither**: the default and only answer
+entry point. **By default `/ask` imports and reads neither**: the default answer
 retrieval remains the reviewed BM25 path, so a missing model, a missing optional
 runtime, or an invalid artifact cannot change an answer, citation, abstention, or
-land clarification. Nothing in this path downloads a file, opens a network
+land clarification. The only composition onto `/ask` is the explicit opt-in
+hybrid mode described in "Hybrid retrieval with a Chroma vector store" below.
+Nothing in this path downloads a file, opens a network
 socket, or reads a mutable model name.
 
 `torch` and `transformers` are not part of `requirements.txt`. Install the
@@ -627,17 +745,18 @@ reasons name what changed (`catalog_changed`, `passages_changed`,
   to `float32`; a GPU or half-precision path is a separate, measured change.
 - Latency, RAM, and index size scale with hardware, thread count, and token
   count. Only this local Mac host and four approved passages were observed; the
-  owned server, long documents, and the future Chroma/hybrid path are unmeasured.
+  owned server and long documents are unmeasured; the Chroma/hybrid measurement
+  is in the hybrid section below.
 - Reproducibility means the same pinned code, runtime, artifact, input digests,
   and host produce the same vectors (`0.0` difference measured). Float arithmetic
   can differ across BLAS libraries and hardware; no cross-platform bit-identity
   is claimed.
 - No retrieval-quality, Spanish legal-coverage, or answer-quality claim follows
-  from successful verification or from a `0.0` determinism result. Comparing
-  bge-m3 (and Chroma/RRF) with the accepted BM25 baseline belongs to
-  `chroma_hybrid_retrieval`.
-- Embeddings stay off the answer path until a later reviewed change composes them
-  with retrieval and revalidates the code-owned answer properties. The derived
+  from successful verification or from a `0.0` determinism result. The measured
+  BM25 vs Chroma/RRF comparison is in the hybrid section below.
+- Embeddings stay off the default answer path; `chroma_hybrid_retrieval` composes
+  them only behind the explicit `MANIJERO_RETRIEVAL_MODE=hybrid` opt-in (see
+  below), with the code-owned answer properties unchanged. The derived
   index is not canonical knowledge, is not encrypted, and is owned/backed up by
   the operator.
 - `1_Pooling/config.json`, `modules.json`, and `config_sentence_transformers.json`
@@ -647,6 +766,172 @@ reasons name what changed (`catalog_changed`, `passages_changed`,
   Because the loader points `transformers` at that directory, keep it to the
   pinned files: an unpinned file whose name the library recognizes would be
   outside this pin.
+
+## Hybrid retrieval with a Chroma vector store (optional, off by default)
+
+`app/vector_store.py` owns a persistent, rebuildable Chroma collection of the
+pinned model's passage vectors; `app/hybrid_retrieval.py` owns the fusion,
+ranker, and lazily loaded runtime; `app/retrieval_backend.py` selects the mode
+from the environment. `backend/scripts/manage_vector_store.py` is the operator
+entry point (`build`, `check`, `compare`).
+
+**BM25 stays the default.** `/ask` uses hybrid ranking only when
+`MANIJERO_RETRIEVAL_MODE=hybrid` is set **and** the store is fresh for the
+current model pin, active campaign, and admitted passages. In every other case
+— unset or unknown mode, missing paths, no `chromadb`/`torch`, an artifact that
+fails verification, a missing/invalid/stale store, or a query failure — the
+request uses the accepted BM25 ranking unchanged. The `/ask` wire contract,
+citations, verification, abstention, and land clarification are unchanged; the
+service import loads no vector module, runtime, or model.
+
+### Fusion method
+
+Reciprocal Rank Fusion (Cormack, Clarke and Büttcher, 2009), configured in the
+closed `backend/config/hybrid_retrieval.json` (`hybrid-retrieval-v1`):
+
+```text
+rrf(d) = Σ over lists L containing d of 1 / (rrf_k + rank_L(d))
+```
+
+- Two lists with equal weight: the BM25 ranking (positive scores only) and the
+  Chroma cosine ranking (similarity strictly above `vector_min_similarity`).
+- Each list is truncated to `candidate_depth`; ranks are 1-based; ties break by
+  ascending passage id, so results are deterministic for the same inputs.
+- Pinned values: `rrf_k: 60` (the published default), `candidate_depth: 20`,
+  `vector_min_similarity: 0.0`. They were **not** tuned on the evaluation cases.
+- **Lexical gate**: a question with no BM25 match returns no candidate and the
+  vector side never runs, so vector similarity cannot turn a zero-evidence
+  question into an answer.
+- **Provenance**: the ranker can only reorder or add passages the `Retriever`
+  already admitted (approved, current, unexpired, active campaign); any other id,
+  duplicate, or non-finite score is dropped by `Retriever.search`.
+
+### Install the optional runtime
+
+```sh
+./scripts/init.sh --setup-python hybrid
+```
+
+`requirements-hybrid.txt` adds `chromadb==1.5.9` (exact pin) on top of the
+service and embedding pins. Measured here, the environment is 1.2 GB. Chroma
+anonymized telemetry is always disabled in code, and no Chroma embedding
+function is configured, so Chroma never downloads its own model.
+
+### Lifecycle
+
+```sh
+STORE="$HOME/manijero/vector-store"
+# 1. Embed the eligible passages (see "Build and check the derived index" above).
+backend/.venv-hybrid/bin/python backend/scripts/manage_embeddings.py build \
+  --config backend/config/bge_m3_embedding.json --artifact "$MODEL_DIR" \
+  --catalog knowledge/source_catalog.json --passages knowledge/passages.json \
+  --as-of "$(date -u +%F)" --active-campaign 2026 \
+  --index "$HOME/manijero/embedding-index.json"
+
+# 2. Load that index into Chroma (needs chromadb, not torch).
+backend/.venv-hybrid/bin/python backend/scripts/manage_vector_store.py build \
+  --config backend/config/bge_m3_embedding.json \
+  --embedding-index "$HOME/manijero/embedding-index.json" \
+  --catalog knowledge/source_catalog.json --passages knowledge/passages.json \
+  --as-of "$(date -u +%F)" --active-campaign 2026 --store "$STORE"
+
+# 3. Check freshness (manifest only; --deep also opens and verifies the collection).
+backend/.venv/bin/python backend/scripts/manage_vector_store.py check \
+  --config backend/config/bge_m3_embedding.json \
+  --catalog knowledge/source_catalog.json --passages knowledge/passages.json \
+  --as-of "$(date -u +%F)" --active-campaign 2026 --store "$STORE"
+
+# 4. Compare BM25 and hybrid on the reviewed cases before enabling (report only).
+backend/.venv-hybrid/bin/python backend/scripts/manage_vector_store.py compare \
+  --config backend/config/bge_m3_embedding.json \
+  --hybrid-config backend/config/hybrid_retrieval.json \
+  --artifact "$MODEL_DIR" --store "$STORE" \
+  --catalog knowledge/source_catalog.json --passages knowledge/passages.json \
+  --cases knowledge/pac_answer_eval.json \
+  --as-of "$(date -u +%F)" --active-campaign 2026 --json
+
+# 5. Opt in (run the service from the hybrid environment).
+MANIJERO_RETRIEVAL_MODE=hybrid MANIJERO_VECTOR_STORE="$STORE" \
+MANIJERO_EMBEDDING_ARTIFACT="$MODEL_DIR" MANIJERO_ACTIVE_CAMPAIGN=2026 \
+  backend/.venv-hybrid/bin/python -m uvicorn app.main:app --app-dir backend
+```
+
+`MANIJERO_EMBEDDING_CONFIG` and `MANIJERO_HYBRID_CONFIG` override the two
+repository configuration files. The store's `build` refuses an embedding index
+that is not `up_to_date` for the given inputs.
+
+**Store layout.** `<store>/manijero-vector-store.json` (`chroma-passage-store-v1`
+manifest, written last) plus Chroma's own files. The manifest records the model
+pin, the corpus inputs, a SHA-256 of the exact admitted `(passage_id, text)`
+documents, the sorted passage ids, the source index SHA-256, and a SHA-256 of the
+`float32` vectors read back from Chroma. Neither the manifest nor the collection
+holds passage text, a question, or a score. Opening a store re-checks the
+collection's ids and vector digest against the manifest.
+
+**Freshness at answer time** depends on the model pin, the active campaign, and
+the admitted-documents digest, **not** on `as_of` or file digests. A source
+that expires, a passage edit, or a campaign change makes the store `stale`
+(`documents_changed`, `active_campaign_changed`, `model_*_changed`, …) and
+requests use BM25 until the store is rebuilt. If only `as_of` advances and the
+admitted passages stay the same, the store remains current.
+
+**Observability.** The service writes a `retrieval_mode` operational record
+whenever the outcome changes (`configured`, `active`, `store_state`, `reasons`),
+and `hybrid_retrieval_fallback` with a fixed reason code or exception type name
+if a query falls back. It never writes the question, passage text, or a land
+value. `/ready` is unchanged: a hybrid problem never makes the service unready,
+because answers continue on BM25.
+
+### Rebuild and failure recovery
+
+- **Rebuild** = rerun steps 1–3 after any approved catalog/passage change, a new
+  model pin, or a campaign change. `build` writes into a sibling staging
+  directory, verifies it, then swaps it into place. A failed build leaves the
+  previous store untouched. An existing target is replaced only if it is itself
+  a store (it has a manifest); any other directory is refused
+  (`store_path_not_a_store`) and left alone.
+- **`unsafe_store_path`**: choose a path outside `knowledge/`.
+- **`vector_runtime_unavailable`**: install `requirements-hybrid.txt` in the
+  environment that runs the service or command.
+- **`store_missing` / `manifest_*` / `store_ids_mismatch` /
+  `store_vectors_mismatch` / `store_open_failed` / `store_model_mismatch`**: the
+  store is absent, damaged, or built under another pin. Delete it and rebuild.
+  Answers continue on BM25 meanwhile.
+- **`store_query_failed` / `encode_failed`** at answer time: that request fell
+  back to BM25. Check the log reason, then the runtime and artifact.
+- A load failure is remembered until the service restarts, so restart after
+  fixing the artifact, runtime, or store. The first hybrid request after start
+  pays the model load and artifact verification (2.7–2.8 s measured here).
+
+### Measured comparison (2026-10-31, this development Mac only)
+
+Apple M1 Max, CPU `float32`, Python 3.12.16, `torch==2.14.1`,
+`chromadb==1.5.9`, pinned bge-m3 `5617a9f…`, the four approved passages, and the
+14 reviewed author-only cases in `knowledge/pac_answer_eval.json` at `k=5`:
+
+| Metric | BM25 | Hybrid (RRF) |
+|---|---|---|
+| Expected states | 13/14 | 13/14 |
+| Expected-answer cases answered | 11/11 | 11/11 |
+| Expected source cited | 8/11 | 8/11 |
+| Expected passage cited | 8/11 | 8/11 |
+| Expected critical literal | 9/11 | 9/11 |
+| Expected abstentions | 2/3 | 2/3 |
+| Retrieval: expected passage at rank 1 | 8/11 | 8/11 |
+| Retrieval: expected passage in top 5 | 10/11 | 11/11 |
+| Retrieval: mean reciprocal rank | 0.818 | 0.841 |
+| Search latency per question (median / p95) | 0.02 / 0.03 ms | 33.9 / 52.9 ms |
+
+**No answer-level improvement was measured.** Two answers changed:
+`canal-sga-2026` now cites a different passage that is still not the expected
+one, and `canal-sga-entidades-2026` now cites one extra passage. The single
+top-5 recall gain is `canal-sga-2026` (expected passage now at rank 4, absent
+before). With four passages, almost any question gives every passage a positive
+cosine, so hybrid candidate lists contain all four. The process peaked at
+1,967.5 MB RSS. The store is 630,124 bytes; writing it took 0.2–1.3 s. This is a
+14-case author-reviewed sample on one host, not legal review and not evidence of
+general accuracy; keep BM25 as the default unless a larger reviewed comparison
+supports a change.
 
 ## Offline grounded answer generation
 

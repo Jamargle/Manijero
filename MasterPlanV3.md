@@ -60,7 +60,7 @@ Land records provide context, not proof of legal eligibility. Minimize data sent
 |-----|------------------------------------------------------------------------------------|-----------------------------------------------------------------------|
 | D1  | **Kotlin Multiplatform + Compose Multiplatform: Android and Desktop MVP; iOS later** | Shared business logic and UI should be reused; platform-specific integrations remain isolated |
 | D2  | **Python 3.11 + FastAPI backend**                                                  | Mature RAG ecosystem (parsers, evaluation, embeddings)                |
-| D3  | **Generation LLM: Gemini Flash** (stable model fixed in config) behind `LLMClient` | Free tier sufficient to start                                         |
+| D3  | **Generation LLM: Gemini Flash** (stable model fixed in config) behind `LLMClient` | Free tier sufficient to start **Superseded 2026-10-31:** EEA users require paid Gemini; local generation is tried first (see `docs/specs/hosting_provider_review.md`, owner decisions). |
 | D4  | **Local embeddings: bge-m3**                                                       | A server with over 20 GB of RAM is available; zero cost and no quotas |
 | D5  | **Vector DB: ChromaDB** + BM25                                                     | Free, serverless                                                      |
 | D6  | **Near-zero budget is a constraint to validate**, providers replaceable             | Free tiers can change terms, limits, privacy, and availability         |

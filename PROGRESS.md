@@ -7,9 +7,9 @@ Routine entry point. Exact feature status lives in [`feature_list.json`](feature
 contracts, raw evidence, and acceptance records remain in their owning files. Last updated:
 2026-10-31.
 
-**Feature status** — 64 of 68 features are accepted. The four remaining `not_started` features are
-`chroma_hybrid_retrieval`, `gemini_generation_provider`, `knowledge_reindex_release`, and
-`private_pilot_distribution`. `feature_list.json` and the selector remain the status authority;
+**Feature status** — 67 of 69 features are accepted, including `local_generation_provider` (off by
+default; measured on the owner's Mac, host decision pending); `knowledge_reindex_release` and
+`private_pilot_distribution` are `not_started`. `feature_list.json` and the selector remain the status authority;
 this page does not duplicate the feature-id list.
 
 **Product shape** — shared Compose chat, lands, and help surfaces in `shared/src/commonMain`, hosted
@@ -25,8 +25,16 @@ in the Andalusian PAC single application for 2026. `/ready` and `/ask` require a
 `MANIJERO_ACTIVE_CAMPAIGN`; no hosted model or public deployment is implemented. Scheduled
 source scans exist only as a manual-dispatch runner plus disabled, unrehearsed systemd templates
 (`knowledge_update_scheduler`); no host runs them and no freshness is claimed. A pinned local `BAAI/bge-m3` artifact and a derived
-passage-embedding index now exist, but stay off the answer path: `/ask` still uses the reviewed
-BM25 retrieval. Gemini is planned but gated off pending current provider/privacy review.
+passage-embedding index now exist, but stay off the default answer path: `/ask` uses the reviewed
+BM25 retrieval unless the accepted opt-in Chroma/RRF hybrid mode is configured
+(`chroma_hybrid_retrieval`; no answer-level improvement measured). Gated Gemini drafting code exists
+(`gemini_generation_provider`) but ships no transport and an all-`null` limits record, so generation
+stays extractive; no model has been called. By owner decision (2026-10-31) Gemini is postponed: no
+spending for now, and local open-weight generation (`local_generation_provider`) is tried first:
+an opt-in, off-by-default `local` provider drafts through loopback Ollama with a pinned
+Apache-2.0 model and the same verify-then-extractive fallback; it was measured only on the
+owner's Mac in development (numbers in its appendix evidence, no quality claim or host
+recommendation), and the pending pilot review keeps it out of the pilot profile.
 
 **Known limitations (do not over-claim)**
 
@@ -108,8 +116,9 @@ BM25 retrieval. Gemini is planned but gated off pending current provider/privacy
   32 GiB, CPU `float32`, 8 threads) was measured: a 2,293,315,747-byte artifact, a 928 MB optional
   runtime, 1,943 MB peak RSS, about 77 ms for a two-text probe, `0.0` repeated-run difference, and a
   0.621 s index rebuild over the four approved passages. That is not owned-server capacity, not a
-  per-passage latency budget, and not a BM25 comparison; the hybrid/retrieval-quality decision stays
-  in `chroma_hybrid_retrieval`. The model is CPU-only, `torch`/`transformers` stay optional, the
+  per-passage latency budget, and not a BM25 comparison. The BM25 vs hybrid comparison is
+  recorded in the [`chroma_hybrid_retrieval` appendix](docs/specs/chroma_hybrid_retrieval.appendix.md):
+  identical answer metrics on the 14-case sample, so BM25 remains the default. The model is CPU-only, `torch`/`transformers` stay optional, the
   artifact is not committed, and the operator owns its storage and backup. No Spanish legal
   retrieval, answer-quality, or license-review claim follows. See the
   [feature appendix](docs/specs/local_bge_m3_embeddings.appendix.md).
@@ -137,7 +146,7 @@ Tiers, cheapest first; `./scripts/init.sh` holds the exact commands.
 - No-device tier: `./scripts/init.sh --fast` — `:shared:jvmTest`, `contracts/validate_examples.py`, the backend pytest suite, the `source-catalog-v1` validation of `knowledge/source_catalog.json`, and the five offline evaluators over `backend/tests/fixtures/`.
 - Full gate: `./scripts/init.sh --verify` (`--full`) — `--fast` plus `:shared:testAndroidHostTest`, `:androidApp:assembleDebug`, and `:desktopApp:build`.
 - Backend unit tests alone: `./scripts/init.sh --backend-tests [targets]` — needs pytest; with none available, `--fast` prints the virtualenv recipe, skips the suite locally, and fails under `CI`.
-- Start the local API: `./scripts/init.sh --backend` (creates/reuses `backend/.venv`, installs runtime requirements, and launches Uvicorn). Android build: `./scripts/init.sh --android`; build, boot an emulator if needed, install, and launch: `./scripts/init.sh --android-run` (uses the first configured AVD when none is running). Launch Desktop: `./scripts/init.sh --desktop`.
+- Backend Python (3.10+): `./scripts/init.sh --setup-python` builds the shared environment once per requirements change and links it as `backend/.venv` in every checkout and worktree. Start the local API: `./scripts/init.sh --backend` (links that environment if needed and launches Uvicorn). Android build: `./scripts/init.sh --android`; build, boot an emulator if needed, install, and launch: `./scripts/init.sh --android-run` (uses the first configured AVD when none is running). Launch Desktop: `./scripts/init.sh --desktop`.
 - The offline checks pin `--as-of 2026-10-13` so runs are deterministic; override with `MANIJERO_AS_OF=YYYY-MM-DD`.
 
 Evaluator flags, report-only caveats, and a feature's own commands live in its spec; the metrics stay report-only (see the limitations above).
