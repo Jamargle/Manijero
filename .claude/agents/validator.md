@@ -1,6 +1,7 @@
 ---
 name: validator
 description: Wrapper agent that delegates validation work to the feature-validator skill.
+model: sonnet
 tools: Read, Glob, Grep, Bash, Skill
 skills:
   - feature-validator
