@@ -1,0 +1,21 @@
+{
+  "schema_version": "pilot-privacy-review-v1",
+  "pilot_review": {
+    "status": "pending",
+    "reviewed_on": null,
+    "reviewer_qualification": null,
+    "scope": [],
+    "conditions": [],
+    "evidence_reference": null
+  },
+  "gemini_review": {
+    "status": "pending",
+    "reviewed_on": null,
+    "reviewer_qualification": null,
+    "scope": [],
+    "conditions": [],
+    "evidence_reference": null,
+    "model": null,
+    "data_sent": []
+  }
+}

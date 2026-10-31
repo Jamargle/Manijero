@@ -254,9 +254,10 @@ them; feature specs own screen-specific behavior.
   as `Mis terrenos`, `Asistente` and `Ayuda` (top to bottom on the rail); the lands tab is omitted
   when no local repository is injected. Tabs are the only top-level navigation: top-level screens
   must not add another `Volver` or `Mis terrenos` route. The bars are hidden on add/edit/remove forms
-  and the `Borrar para siempre` confirmation, which keep their own `Cancelar`; privacy and
-  `Terrenos eliminados` stay detail routes with their own `Volver`, so their bars remain visible.
-  Android system back returns lands → assistant, a form → lands, `Terrenos eliminados` → lands, the
+  and the `Borrar para siempre` confirmation, which keep their own `Cancelar`; privacy,
+  `Terrenos eliminados`, and `Copia en un archivo` stay detail routes with their own `Volver`, so
+  their bars remain visible.
+  Android system back returns lands → assistant, a form → lands, `Terrenos eliminados` → lands, `Copia en un archivo` → lands, the
   `Borrar para siempre` confirmation → `Terrenos eliminados`, `Ayuda` → the tab it was opened from,
   and privacy → the section it was opened from; it is not installed on the assistant tab, so the
   platform default applies. The shell is the **single** owner of the status bar, navigation bar,
@@ -301,7 +302,11 @@ component layer. These rules are durable:
 - **Suggestions.** The three accepted example questions are wrapping `AssistChip`s with a
   decorative `ic_chat`. They never truncate a question and only fill the composer; they never submit.
 - **Composer and footer.** The field keeps `Escribe tu pregunta`, the example placeholder, 3–6 lines
-  and the over-limit message. It is followed by one full-width filled `Preguntar` button with a
+  and the over-limit message. Between the field and the button sits the separate retention
+  checkbox row (`Permitir guardar esta pregunta…`, unchecked by default, the whole labelled row one
+  checkbox target) with its plain detail line stating "only the next question", no land data, and
+  30-day deletion; ticking it never sends and every send unticks it. The field is then followed by
+  one full-width filled `Preguntar` button with a
   decorative `ic_send`, disabled while blank, over the limit or submitting. The privacy summary is
   always present; the two icon + label footer actions appear only when their callbacks are wired.
 - **Land chooser.** The clarification chooser is an outlined card with the accepted title,
@@ -310,7 +315,8 @@ component layer. These rules are durable:
   It shows nothing while the guarded local read is unresolved and the accepted fallback if no land
   matches; it never fabricates a land.
 - **Compact limit.** At 360×800 dp with both shell bars, the hero and suggestions occupy the first
-  screen, so the composer's `Preguntar` button needs one short scroll. This is a recorded limit of
+  screen, so the composer's `Preguntar` button needs a scroll (a little longer since the retention
+  row was added below the field). This is a recorded limit of
   the accepted order, not a hidden control: the field and button stay in the same scroll and are
   never icon-only or off the page.
 

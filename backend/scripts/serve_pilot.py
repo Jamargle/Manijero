@@ -9,7 +9,8 @@ Before serving traffic the launcher:
 
 1. loads the explicit configuration (profile, campaign, client credentials, body bound),
 2. refuses anything but the ``pilot`` profile,
-3. runs the same preflight the operator runs (campaign + reviewed corpus readiness),
+3. runs the same preflight the operator runs (campaign + reviewed corpus readiness, the
+   recorded qualified privacy/legal review gate, and the retention store location),
 4. refuses a non-loopback bind unless explicitly acknowledged, because the reviewed
    design is a Cloudflare Tunnel connector reaching ``127.0.0.1``,
 5. starts Uvicorn with the access log off (the application writes the reviewed request
@@ -118,6 +119,9 @@ def _summary(config, host: str, port: int, workers: int, concurrency: int, repor
     print("reload: disabled", flush=True)
     print("access_log: application-owned", flush=True)
     print(f"corpus_ready: {'yes' if report.readiness and report.readiness.ready else 'no'}", flush=True)
+    print(f"privacy_review: {'passed' if report.privacy_review_passed else 'blocked'}", flush=True)
+    print(f"retention: {'configured' if report.retention_configured else 'off'}", flush=True)
+    print(f"generation_provider: {report.generation_provider}", flush=True)
 
 
 def _loopback(host: str) -> bool:

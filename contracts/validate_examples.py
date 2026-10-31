@@ -29,6 +29,9 @@ def assert_date(value: str, field: str) -> None:
 
 
 def validate_request(payload: dict) -> None:
+    assert set(payload) <= {"question", "land_context", "retain_for_improvement"}
+    if "retain_for_improvement" in payload:
+        assert isinstance(payload["retain_for_improvement"], bool), "opt-in must be a boolean"
     assert isinstance(payload.get("question"), str) and 1 <= len(payload["question"]) <= 2000
     context = payload.get("land_context")
     assert isinstance(context, dict) and set(context) == {"mode", "lands"}
@@ -91,10 +94,11 @@ def validate_response(payload: dict) -> None:
 def main() -> None:
     validate_request(load("ask-request-general.json"))
     validate_request(load("ask-request-all-lands.json"))
+    validate_request(load("ask-request-retention-opt-in.json"))
     validate_response(load("response-answered.json"))
     validate_response(load("response-abstained.json"))
     validate_response(load("response-needs-land-clarification.json"))
-    print("Validated 2 request and 3 response examples against answer_api_contract")
+    print("Validated 3 request and 3 response examples against answer_api_contract")
 
 
 if __name__ == "__main__":

@@ -1,0 +1,11 @@
+# Runs the retention purge daily — TEMPLATE, NOT REHEARSED.
+[Unit]
+Description=Daily Manijero retention purge
+
+[Timer]
+OnCalendar=daily
+Persistent=true
+RandomizedDelaySec=15m
+
+[Install]
+WantedBy=timers.target

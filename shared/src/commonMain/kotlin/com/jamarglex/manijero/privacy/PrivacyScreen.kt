@@ -35,6 +35,12 @@ import manijero.shared.generated.resources.privacy_local_title
 import manijero.shared.generated.resources.privacy_promise_body_1
 import manijero.shared.generated.resources.privacy_promise_body_2
 import manijero.shared.generated.resources.privacy_promise_title
+import manijero.shared.generated.resources.privacy_retention_body_1
+import manijero.shared.generated.resources.privacy_retention_body_2
+import manijero.shared.generated.resources.privacy_retention_body_3
+import manijero.shared.generated.resources.privacy_retention_body_4
+import manijero.shared.generated.resources.privacy_retention_body_5
+import manijero.shared.generated.resources.privacy_retention_title
 import manijero.shared.generated.resources.privacy_sent_body_1
 import manijero.shared.generated.resources.privacy_sent_lead
 import manijero.shared.generated.resources.privacy_sent_not_sent
@@ -84,6 +90,14 @@ fun PrivacyScreen(
                 }
                 PrivacyBody(Res.string.privacy_sent_unknown)
                 PrivacyBody(Res.string.privacy_sent_not_sent)
+            }
+
+            PrivacySection(title = Res.string.privacy_retention_title) {
+                PrivacyBody(Res.string.privacy_retention_body_1)
+                PrivacyBody(Res.string.privacy_retention_body_2)
+                PrivacyBody(Res.string.privacy_retention_body_3)
+                PrivacyBody(Res.string.privacy_retention_body_4)
+                PrivacyBody(Res.string.privacy_retention_body_5)
             }
 
             PrivacySection(title = Res.string.privacy_promise_title) {

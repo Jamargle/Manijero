@@ -45,6 +45,7 @@ import manijero.shared.generated.resources.add_land_water_mixed
 import manijero.shared.generated.resources.chat_home_lands
 import manijero.shared.generated.resources.edit_land_saved
 import manijero.shared.generated.resources.land_list_add
+import manijero.shared.generated.resources.land_list_backup_link
 import manijero.shared.generated.resources.land_list_description
 import manijero.shared.generated.resources.land_list_edit
 import manijero.shared.generated.resources.land_list_edit_description
@@ -112,7 +113,8 @@ enum class LandListConfirmation { ADDED, UPDATED, REMOVED }
  *
  * `Quitar` moves the named land to `Terrenos eliminados`; when [onOpenRemovedLands] is wired the
  * screen also offers the way into that list, in every state, so a removed land stays findable even
- * after the active list became empty.
+ * after the active list became empty. When [onOpenBackup] is wired it also offers
+ * `Copia en un archivo`, in every state, so a person with an empty list can still restore a file.
  *
  * When [recovery] is not null the primary store could not be read and the newest same-device
  * automatic copy was restored. That is a recovered state, not a failure: it keeps its own neutral
@@ -131,6 +133,7 @@ fun LandListScreen(
     confirmation: LandListConfirmation? = null,
     onOpenRemovedLands: (() -> Unit)? = null,
     recovery: LandStoreRecovery? = null,
+    onOpenBackup: (() -> Unit)? = null,
     onDismissRecovery: () -> Unit = {},
 ) {
     androidx.compose.foundation.layout.BoxWithConstraints(modifier = modifier) {
@@ -166,6 +169,15 @@ fun LandListScreen(
                             modifier = Modifier.fillMaxWidth(),
                         ) {
                             Text(stringResource(Res.string.land_list_removed_link))
+                        }
+                    }
+
+                    if (onOpenBackup != null) {
+                        TextButton(
+                            onClick = onOpenBackup,
+                            modifier = Modifier.fillMaxWidth(),
+                        ) {
+                            Text(stringResource(Res.string.land_list_backup_link))
                         }
                     }
 

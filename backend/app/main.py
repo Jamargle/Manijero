@@ -32,6 +32,7 @@ from app.pilot_config import PilotConfig, load_config
 from app.pilot_guard import PilotGuardMiddleware
 from app.pilot_logging import configure_operational_logging, operational_log
 from app.readiness import evaluate_readiness, get_configured_campaign
+from app.retention import RetentionError, RetentionStore, load_retention_store
 
 SERVICE_NAME = "manijero-backend"
 
@@ -50,8 +51,19 @@ class ReadinessResponse(BaseModel):
     service: str
 
 
-def create_app(config: PilotConfig | None = None) -> FastAPI:
-    """Build the FastAPI application for the configured service profile."""
+_RETENTION_FROM_ENV = object()
+
+
+def create_app(
+    config: PilotConfig | None = None,
+    retention_store: RetentionStore | None | object = _RETENTION_FROM_ENV,
+) -> FastAPI:
+    """Build the FastAPI application for the configured service profile.
+
+    Product-improvement retention stays off unless ``MANIJERO_RETENTION_DB`` names a safe
+    store (or a test passes one). A configured but unsafe store also leaves retention off;
+    the pilot preflight reports it as a problem before traffic.
+    """
 
     resolved = config or load_config()
     pilot = resolved.pilot
@@ -69,6 +81,13 @@ def create_app(config: PilotConfig | None = None) -> FastAPI:
     application.add_exception_handler(Exception, unhandled_exception)
     if resolved.operational_logging:
         configure_operational_logging()
+    if retention_store is _RETENTION_FROM_ENV:
+        try:
+            retention_store = load_retention_store()
+        except RetentionError as error:
+            operational_log("retention_disabled", reason=error.code)
+            retention_store = None
+    application.state.retention_store = retention_store
 
     @application.get("/health", response_model=HealthResponse, summary="Check service health")
     def health() -> HealthResponse:

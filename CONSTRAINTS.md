@@ -199,6 +199,8 @@ Operational MUST/MUST NOT rules that future features have to respect on top of
   selected same-device automatic copies plus a user-controlled Android/macOS file, with replace-all
   restore and no cloud or encryption feature.
 
+- **MUST**: the portable land backup MUST stay one plaintext JSON schema (`manijero-land-backup`, `version` integer) separate from the private store codec; a schema change MUST bump `version` and keep reading every earlier version or refuse it as unsupported, never misread it. Import MUST validate the whole file before any preview or repository call, and an invalid file MUST NOT call the repository at all. Restore MUST replace both lists (no merge) only through `LandRepository.replaceAll`, which MUST keep a same-device automatic copy of the current aggregate before rewriting it and MUST NOT overwrite a store it cannot read. The exporter MUST NOT produce a file the importer would refuse (same value rules, same size limit), and the file MUST contain only land data. Copy MUST say the file is unencrypted and that the app cannot delete exported copies. Reason: `portable_land_backup`; a file the person keeps outside the app must stay readable on both platforms and a bad file must never cost them their current lands.
+
 - **MUST**: product-improvement question/answer retention MUST be default-off and opt-in before each
   retained question, redact text, exclude land context and stable user/device identifiers, and delete
   records no later than 30 days. Pilot readiness MUST remain blocked until a qualified privacy/legal
@@ -209,6 +211,21 @@ Operational MUST/MUST NOT rules that future features have to respect on top of
   existing whole-draft verifier; citations, source arrays, notices, and abstentions remain code-owned.
   Reason: model output is untrusted and provider exposure requires informed choice and qualified
   review before real users.
+
+- **MUST**: retention MUST run only after the answer is produced, through
+  `backend/app/retention.py::retain_if_opted_in`, and MUST NOT change, delay-fail, or replace the
+  answer; a redaction or storage failure retains nothing and logs only a fixed outcome code. The
+  retained row MUST stay exactly `created_on`, `expires_on`, `answer_status`, `question_redacted`,
+  `answer_redacted` (dates, no time; no client, device, land, or network identifier), the store MUST
+  live outside the repository in an owner-only directory, and every read or export MUST exclude a
+  record whose `expires_on` (creation + 29 days) has arrived. The client MUST send
+  `retain_for_improvement: true` only from the unchecked-by-default checkbox for that one send, MUST
+  reset it on every send, and MUST drop it when the wording contains a saved land's name, zone,
+  municipality, custom variety, or notes. `backend/config/pilot_privacy_review.json` MUST only be
+  changed to an approved state by a reviewed change carrying a real dated qualified review; tests use
+  the labelled synthetic fixture. Reason: `pilot_privacy_readiness`; the server never sees land
+  names, so only the device can exclude them, and a widened row or an in-repo store would turn
+  short-lived redacted text into durable, joinable personal data.
 
 - **MUST**: land-list Edit and Remove controls remain separate from the non-clickable row and their
   accessible names MUST include both the action and saved land name. Reason: duplicate land names
@@ -431,6 +448,13 @@ Operational MUST/MUST NOT rules that future features have to respect on top of
 - **MUST**: scheduled source checks are best-effort and MUST expose last-success time, failures, and
   missed runs; a schedule alone MUST NOT be represented as proof that the corpus is current.
   Reason: external schedulers and official sites can delay or fail.
+- **MUST NOT**: add a repository-hosted schedule (for example a `.github/workflows` `schedule:` trigger)
+  that scans official sources or invokes `run_source_updates.py`; scheduled source checks run only from
+  operator-installed host units. The scheduler MUST write only operational state (monitor/discovery
+  state, ledger, lock) in a state directory outside the repository and outside `knowledge/`, and its
+  tests MUST stay offline (sockets blocked, fakes only). Reason: `knowledge_update_scheduler` — a
+  merged repository schedule would make real requests to official sites without an operator choice,
+  and committed state would bypass human-reviewed canonical changes.
 - **MUST**: change-impact analysis MUST stay read-only over approved knowledge and MUST NOT retire,
   replace, re-approve, or re-date a source, passage, evaluation case, index, or answer. Every
   potentially affected candidate MUST remain review-required, and an ambiguous publication,

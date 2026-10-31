@@ -40,3 +40,15 @@ sealed interface LandLifecycleResult {
     /** The device refused the write; the stored aggregate is unchanged. */
     data object StorageFailed : LandLifecycleResult
 }
+
+/** What [LandRepository.replaceAll] did. Only [Replaced] means the store now holds the backup. */
+enum class LandReplaceResult {
+    /** A pre-restore copy was kept and both lists now hold exactly the replacement. */
+    Replaced,
+
+    /** The current store could not be read, so it was not overwritten. */
+    CurrentUnreadable,
+
+    /** The device refused a write; the primary aggregate still holds the previous lands. */
+    StorageFailed,
+}
