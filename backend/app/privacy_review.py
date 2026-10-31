@@ -15,8 +15,13 @@ for its own scope, to name the exact reviewed model, and to limit the data sent 
 question and the approved retrieved passages. It also requires the pilot gate to pass, and
 ``MANIJERO_GENERATION_PROVIDER=gemini`` with a matching ``MANIJERO_GEMINI_MODEL``. This gate
 is necessary, not sufficient: :mod:`app.gemini_generation` also requires the recorded limits
-file and an injected transport, and this repository ships no transport, so the answer path
-stays extractive.
+file and an injected transport, and this repository ships no Gemini transport, so the
+Gemini path stays extractive.
+
+``MANIJERO_GENERATION_PROVIDER=local`` is also an accepted value: it selects the loopback
+Ollama provider in :mod:`app.local_generation`, which has its own model-record gate and, in
+the pilot profile, requires the pilot review gate here to pass. The Gemini decision below
+reports ``gemini_not_configured`` for it, unchanged.
 
 Blockers are fixed codes; no record value is echoed.
 """
@@ -49,7 +54,7 @@ GEMINI_REVIEW_SCOPE = ("model_terms", "data_flow", "data_sent", "retention_by_pr
 GEMINI_ALLOWED_DATA = frozenset({"question", "approved_passages"})
 GENERATION_PROVIDER_ENV = "MANIJERO_GENERATION_PROVIDER"
 GEMINI_MODEL_ENV = "MANIJERO_GEMINI_MODEL"
-GENERATION_PROVIDERS = frozenset({"extractive", "gemini"})
+GENERATION_PROVIDERS = frozenset({"extractive", "gemini", "local"})
 _SECTION_KEYS = frozenset(
     {"status", "reviewed_on", "reviewer_qualification", "scope", "conditions", "evidence_reference"}
 )
@@ -170,9 +175,10 @@ def minimal_provider_payload(question: str, passages: Sequence[Mapping[str, Any]
 
     It carries the question and the text of the approved retrieved passages, each with
     its passage id so a draft can cite it. It never carries land context, land ids,
-    names, notes, client or device identifiers, or retained question/answer text. The gated
-    Gemini generator builds its payload only through this function (with the redacted
-    question and candidate numbers as ids); no transport exists here, so nothing sends it.
+    names, notes, client or device identifiers, or retained question/answer text. The shared
+    gated generator builds its payload only through this function (with the redacted
+    question and candidate numbers as ids), for Gemini (no transport exists, so nothing
+    sends it) and for the loopback local provider (sent only to ``127.0.0.1``).
     """
 
     if not isinstance(question, str) or not question.strip():

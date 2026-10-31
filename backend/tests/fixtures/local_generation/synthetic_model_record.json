@@ -1,0 +1,17 @@
+{
+  "schema_version": "local-generation-model-v1",
+  "model": "synthetic-local-model:test",
+  "digest": "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef",
+  "license": "Apache-2.0",
+  "license_reference": "SYNTHETIC TEST FIXTURE: not a real model, digest, or licence record",
+  "parameter_size": "0B",
+  "quantization": "SYNTHETIC",
+  "size_bytes": 1000000,
+  "num_ctx": 4096,
+  "timeout_seconds": 10,
+  "max_output_tokens": 400,
+  "max_requests_per_minute": 3,
+  "max_requests_per_day": 5,
+  "keep_alive_seconds": 1800,
+  "recorded_on": "2026-10-01"
+}

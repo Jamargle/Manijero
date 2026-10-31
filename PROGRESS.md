@@ -7,8 +7,9 @@ Routine entry point. Exact feature status lives in [`feature_list.json`](feature
 contracts, raw evidence, and acceptance records remain in their owning files. Last updated:
 2026-10-31.
 
-**Feature status** — 66 of 69 features are accepted. The three remaining `not_started` features are
-`knowledge_reindex_release`, `local_generation_provider`, and `private_pilot_distribution`. `feature_list.json` and the selector remain the status authority;
+**Feature status** — 67 of 69 features are accepted, including `local_generation_provider` (off by
+default; measured on the owner's Mac, host decision pending); `knowledge_reindex_release` and
+`private_pilot_distribution` are `not_started`. `feature_list.json` and the selector remain the status authority;
 this page does not duplicate the feature-id list.
 
 **Product shape** — shared Compose chat, lands, and help surfaces in `shared/src/commonMain`, hosted
@@ -29,7 +30,11 @@ BM25 retrieval unless the accepted opt-in Chroma/RRF hybrid mode is configured
 (`chroma_hybrid_retrieval`; no answer-level improvement measured). Gated Gemini drafting code exists
 (`gemini_generation_provider`) but ships no transport and an all-`null` limits record, so generation
 stays extractive; no model has been called. By owner decision (2026-10-31) Gemini is postponed: no
-spending for now, and local open-weight generation (`local_generation_provider`) is tried first.
+spending for now, and local open-weight generation (`local_generation_provider`) is tried first:
+an opt-in, off-by-default `local` provider drafts through loopback Ollama with a pinned
+Apache-2.0 model and the same verify-then-extractive fallback; it was measured only on the
+owner's Mac in development (numbers in its appendix evidence, no quality claim or host
+recommendation), and the pending pilot review keeps it out of the pilot profile.
 
 **Known limitations (do not over-claim)**
 

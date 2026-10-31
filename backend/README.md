@@ -177,8 +177,9 @@ Read from the process environment; secrets live in an operator-owned file, never
 | `MANIJERO_PILOT_MAX_CONCURRENCY` | pilot | Default `64`, maximum `512`. A protective placeholder, not a measured capacity. |
 | `MANIJERO_MAX_REQUEST_BYTES` | both | Default `65536`, minimum `1024`, maximum `1048576`. |
 | `MANIJERO_RETENTION_DB` | both (optional) | Unset = product-improvement retention off. Otherwise an owner-only SQLite path outside the repository (see "Product-improvement retention and the privacy gate"). |
-| `MANIJERO_GENERATION_PROVIDER` | both (optional) | `extractive` (default) or `gemini`. `gemini` selects the gated drafting path only when every gate input passes (see "Gated Gemini drafting"); today no transport exists and the gates are closed, so it stays extractive. Any other value is a preflight problem. |
+| `MANIJERO_GENERATION_PROVIDER` | both (optional) | `extractive` (default), `gemini`, or `local`. `gemini` selects the gated drafting path only when every gate input passes (see "Gated Gemini drafting"); today no transport exists and the gates are closed, so it stays extractive. `local` selects loopback Ollama drafting (see "Local open-weight drafting (Ollama)"); in the pilot profile it also needs a passed pilot review, which is pending, so it is development-only today. The value is exact (`Local` is not `local`). Any other value is a preflight problem. |
 | `MANIJERO_GEMINI_MODEL` | both (optional) | The exact model the Gemini review approved; read only by the gate and, when it passes, sent as the request's model id. |
+| `MANIJERO_LOCAL_MODEL` | both (optional) | Read only when the provider is `local`; must equal `model` in `config/local_generation_model.json` exactly (`local_model_mismatch` otherwise). |
 
 The client file is a closed contract:
 
@@ -495,6 +496,72 @@ citation window labelled by candidate number, and logs one `generation` line wit
 `payload_invalid`, `transport_error`, `timeout`, `malformed_output`, `provider_abstained`, or
 `verifier_rejected`. Every outcome but `gemini_used` returns the extractive draft. No
 answer-quality, latency, cost, or legal-coverage evidence exists: no real model has been called.
+
+### Local open-weight drafting (Ollama)
+
+`app/local_generation.py` adds a `local` provider to the same slot. It reuses
+`GatedGeminiGenerator` unchanged (same instruction `gemini-draft-v1`, strict parser, citation
+window, `verify_draft`, rate limiter, and extractive fallback); only the transport and the
+startup gate are new. It is off by default and talks only to the loopback constant
+`http://127.0.0.1:11434`: the URL is not configurable, proxy variables are ignored, redirects
+are refused, and no HTTPS handler exists. No new Python dependency is used (stdlib `urllib`).
+
+Pin, pull, and read the digest (the owner runs Ollama; the app never pulls):
+
+```sh
+ollama pull mistral-small3.2:24b-instruct-2506-q4_K_M
+curl -s http://127.0.0.1:11434/api/tags      # models[].digest (64 hex) and size
+curl -s http://127.0.0.1:11434/api/show -d '{"model":"mistral-small3.2:24b-instruct-2506-q4_K_M"}'  # license, details
+```
+
+`config/local_generation_model.json` (`local-generation-model-v1`) records the exact tag, the
+`/api/tags` digest, the SPDX licence (`Apache-2.0`) and its reference, parameter size,
+quantization, `size_bytes`, and the limits: `num_ctx` 4096 (2048–32768), `timeout_seconds` 10
+(1–14, below the app's 15 s request timeout so a fallback still reaches the app),
+`max_output_tokens` 400 (1–1024), 30 requests/minute and 2000/day per process,
+`keep_alive_seconds` 1800 (0–86400), and `recorded_on`. Changing the model, digest, or limits
+is a reviewed change with new measurement evidence.
+
+Enable for local development only:
+
+```sh
+MANIJERO_ACTIVE_CAMPAIGN=2026 MANIJERO_GENERATION_PROVIDER=local \
+MANIJERO_LOCAL_MODEL=mistral-small3.2:24b-instruct-2506-q4_K_M \
+backend/.venv/bin/python -m uvicorn app.main:app --app-dir backend
+```
+
+Startup blockers (fixed codes, no value echoed; the provider stays `extractive`):
+`local_model_mismatch`, `local_model_record_unreadable`, `local_model_record_invalid`,
+`local_model_record_out_of_range`, `local_model_over_budget` (`size_bytes` above
+50,000,000,000), `local_model_record_future_date`, and, in the pilot profile,
+`pilot_privacy_review_not_passed`. Startup makes no network call. The first draft checks
+`/api/tags` for the pinned tag and digest (only a success is cached, so pulling later needs no
+restart), then posts `/api/chat` with `stream: false`, the draft JSON schema as `format`,
+`temperature` 0, `seed` 0, `num_ctx`, `num_predict`, and `keep_alive`. The digest check and the
+chat share the 10 s budget.
+
+Each draft logs one `generation` line with `provider=local` and an outcome: `local_used`, or one
+of the shared fallback outcomes (`transport_error` covers connection refused, HTTP errors, a
+non-JSON or oversize body, a missing model, and a digest mismatch; `timeout`; `rate_limited`;
+`redaction_failed`; `payload_invalid`; `malformed_output`; `provider_abstained`;
+`verifier_rejected`). Every outcome but `local_used` returns the extractive draft. There is no
+startup warm-up: after an unload, the first question pays the model load.
+
+Opt-in live measurement (needs Ollama serving the pinned model; not part of the tests; prints
+text-free JSON and makes no recommendation; exit 0 within budget, 1 over the 50 GB budget, 2 when
+Ollama is unreachable, the model is missing, the digest differs, or the input is invalid):
+
+```sh
+backend/.venv/bin/python backend/scripts/measure_local_generation.py \
+  --catalog knowledge/source_catalog.json --passages knowledge/passages.json \
+  --cases knowledge/pac_answer_eval.json --active-campaign 2026 --as-of 2026-10-31 \
+  --k 5 --repeats 3 > /tmp/local-generation-run1.json
+```
+
+The measured numbers from this Mac are in
+[`docs/specs/local_generation_provider.appendix.md`](../docs/specs/local_generation_provider.appendix.md)
+("Feature evidence"). Limits: one host, 14 author-only cases, the untuned Gemini instruction, and
+a lexical verifier; Ollama's own server logs and update checks are outside the app's control.
 
 ## Offline retrieval baseline
 

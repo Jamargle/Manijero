@@ -393,10 +393,12 @@ class RateLimiter:
 
 @dataclass
 class GatedGeminiGenerator:
-    """A ``GroundingGenerator`` that drafts with Gemini and falls back to extractive.
+    """A ``GroundingGenerator`` that drafts with a model and falls back to extractive.
 
-    It never raises because of the model path: every failure returns the extractive draft
-    and records one fixed outcome code.
+    It is shared by every model provider (Gemini, and the loopback local provider in
+    :mod:`app.local_generation`); ``provider_name`` and ``used_outcome`` only label the
+    fixed log codes. It never raises because of the model path: every failure returns the
+    extractive draft and records one fixed outcome code.
     """
 
     client: GeminiDraftClient
@@ -405,6 +407,8 @@ class GatedGeminiGenerator:
     land_context: Any
     max_claims: int = DEFAULT_MAX_CLAIMS
     log: Callable[..., None] = field(default=operational_log)
+    provider_name: str = PROVIDER_GEMINI
+    used_outcome: str = OUTCOME_USED
 
     def generate(
         self,
@@ -414,7 +418,7 @@ class GatedGeminiGenerator:
         as_of: Optional[date] = None,
     ) -> DraftAnswer:
         outcome, draft = self._gemini_draft(question, numbered_candidates)
-        self.log("generation", provider=PROVIDER_GEMINI, outcome=outcome)
+        self.log("generation", provider=self.provider_name, outcome=outcome)
         if draft is not None:
             return draft
         return ExtractiveGroundingGenerator(max_claims=self.max_claims).generate(
@@ -462,16 +466,23 @@ class GatedGeminiGenerator:
             return OUTCOME_ABSTAINED, None
         if not verify_draft(draft, offered).ok:
             return OUTCOME_REJECTED, None
-        return OUTCOME_USED, draft
+        return self.used_outcome, draft
 
 
 @dataclass(frozen=True)
 class GatedGeminiProvider:
-    """The startup-resolved Gemini provider; one shared rate limiter per process."""
+    """The startup-resolved model provider; one shared rate limiter per process.
+
+    ``provider_name``, ``used_outcome``, and ``log`` default to today's Gemini values and
+    are passed through to every generator.
+    """
 
     client: GeminiDraftClient
     limiter: RateLimiter
     clock: GenerationClock
+    provider_name: str = PROVIDER_GEMINI
+    used_outcome: str = OUTCOME_USED
+    log: Callable[..., None] = field(default=operational_log)
 
     def generator_for(
         self, land_context: Any, *, max_claims: int = DEFAULT_MAX_CLAIMS
@@ -482,6 +493,9 @@ class GatedGeminiProvider:
             clock=self.clock,
             land_context=land_context,
             max_claims=max_claims,
+            log=self.log,
+            provider_name=self.provider_name,
+            used_outcome=self.used_outcome,
         )
 
 
