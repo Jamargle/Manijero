@@ -26,19 +26,17 @@ A feature has two files. Keep each within the size budget in `../SKILL.md` and s
 
 When <situation>, I want to <action>, so I can <outcome>.
 
-## Acceptance scenarios
+## Acceptance Scenarios
 
 ### 1. <happy path>
 
-Given <state> · When <action> · Then <observable result>
+Given <state> · When <user/system action> · Then <observable result>
 
 ### 2. <edge or error path>
 
-Given <state> · When <action> · Then <observable result>
+Given <state> · When <user/system action> · Then <observable result>
 
-## Technical approach
-
-<A few bullets an implementer can execute without re-planning. Name boundaries and patterns; link `ARCHITECTURE.md` or `CONSTRAINTS.md` sections instead of restating them.>
+## Repository Research
 
 ### Files Inspected
 
@@ -52,14 +50,9 @@ Given <state> · When <action> · Then <observable result>
 
 - <Missing app infrastructure, missing command, missing table, unknown integration, etc.>
 
-## Technical Approach
+## Technical approach
 
-<Describe the implementation strategy at a high enough level that another agent can execute it without re-planning.>
-
-## Expected File Changes
-
-- `<path>` — create/modify; <reason>
-- `<path>` — create/modify; <reason>
+<A few bullets an implementer can execute without re-planning. Name boundaries and patterns; link `ARCHITECTURE.md` or `CONSTRAINTS.md` sections instead of restating them.>
 
 ## Visual design impact
 
