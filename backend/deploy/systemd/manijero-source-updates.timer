@@ -1,0 +1,14 @@
+# Daily official-source monitoring and discovery — TEMPLATE, NOT REHEARSED, NOT INSTALLED OR ENABLED.
+# Best-effort: a timer that stops firing is visible only through `run_source_updates.py status`,
+# `systemctl list-timers`, or the next run. Persistent=true catches up once after downtime.
+[Unit]
+Description=Daily Manijero official-source monitoring and discovery
+
+[Timer]
+OnCalendar=*-*-* 10:20:00 Europe/Madrid
+RandomizedDelaySec=30m
+AccuracySec=1m
+Persistent=true
+
+[Install]
+WantedBy=timers.target

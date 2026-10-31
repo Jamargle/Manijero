@@ -7,9 +7,9 @@ Routine entry point. Exact feature status lives in [`feature_list.json`](feature
 contracts, raw evidence, and acceptance records remain in their owning files. Last updated:
 2026-10-31.
 
-**Feature status** — 63 of 68 features are accepted. The five remaining `not_started` features are
-`knowledge_update_scheduler`, `chroma_hybrid_retrieval`, `gemini_generation_provider`,
-`knowledge_reindex_release`, and `private_pilot_distribution`. `feature_list.json` and the selector remain the status authority;
+**Feature status** — 64 of 68 features are accepted. The four remaining `not_started` features are
+`chroma_hybrid_retrieval`, `gemini_generation_provider`, `knowledge_reindex_release`, and
+`private_pilot_distribution`. `feature_list.json` and the selector remain the status authority;
 this page does not duplicate the feature-id list.
 
 **Product shape** — shared Compose chat, lands, and help surfaces in `shared/src/commonMain`, hosted
@@ -22,8 +22,9 @@ per-worker rate limiting, a bounded request body, and metadata-only logging. And
 Desktop use overridable local development URLs; no client can send a pilot bearer token yet.
 The reviewed corpus contains four official sources and four literal passages for three topics
 in the Andalusian PAC single application for 2026. `/ready` and `/ask` require an explicit
-`MANIJERO_ACTIVE_CAMPAIGN`; no hosted model, periodic official-source scanner, or public
-deployment is implemented. A pinned local `BAAI/bge-m3` artifact and a derived
+`MANIJERO_ACTIVE_CAMPAIGN`; no hosted model or public deployment is implemented. Scheduled
+source scans exist only as a manual-dispatch runner plus disabled, unrehearsed systemd templates
+(`knowledge_update_scheduler`); no host runs them and no freshness is claimed. A pinned local `BAAI/bge-m3` artifact and a derived
 passage-embedding index now exist, but stay off the answer path: `/ask` still uses the reviewed
 BM25 retrieval. Gemini is planned but gated off pending current provider/privacy review.
 

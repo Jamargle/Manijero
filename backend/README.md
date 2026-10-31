@@ -135,6 +135,8 @@ dependencies stay `fastapi`, `uvicorn[standard]`, and `httpx`.
 | `backend/deploy/pilot.env.example` | Configuration template, no secrets. | n/a |
 | `backend/deploy/systemd/manijero-pilot.service` | Service unit with preflight as `ExecStartPre`. | **No** |
 | `backend/deploy/systemd/manijero-retention-purge.{service,timer}` | Daily purge plus overdue check for the optional retention store. | **No** |
+| `backend/deploy/systemd/manijero-source-updates.{service,timer}` | Best-effort daily official-source monitoring and discovery; see "Scheduled source updates". Not installed or enabled. | **No** |
+| `backend/deploy/source-monitor.json.example` | Monitor configuration with the two public BOE/BOJA endpoints; no secret. | n/a |
 | `backend/deploy/cloudflared/config.yml.example` | Tunnel ingress to the loopback origin. | **No** |
 
 The development launcher (`./scripts/init.sh --backend`) is unchanged and is **not** a
@@ -903,9 +905,10 @@ retains its last good hash/time); `2` means config/state could not be read or
 validated. Use a durable, access-controlled local state path and back it up if
 operational history matters. Conditional requests are sent when validators are
 available. Requests have a 15-second timeout and 5 MiB response cap; redirects
-are allowed only to the same HTTPS host. There is no in-process recurring
-scheduler, retry loop, document ingestion, legal-change interpretation, or
-automatic canonical update. Successful polling is not evidence of legal
+are allowed only to the same HTTPS host. The command itself has no retry loop;
+scheduled dispatch with retries and a run ledger is described in "Scheduled
+source updates (owned host, best-effort)" below. There is no document
+ingestion, legal-change interpretation, or automatic canonical update here. Successful polling is not evidence of legal
 coverage or corpus currency.
 
 ## Manual official-publication discovery
@@ -942,6 +945,98 @@ versions retain prior observations. Failures preserve candidates and
 last-success timestamps. Candidates remain `pending`; a human must verify
 provenance and approve any canonical change. See
 `knowledge/official-discovery-state.schema.json`.
+
+## Scheduled source updates (owned host, best-effort)
+
+`app/source_update_scheduler.py` (CLI `scripts/run_source_updates.py`) runs the
+two commands above unchanged on the owned pilot host. It adds due rules,
+catch-up, retries, a lock, a run ledger, and a status check. Every result stays
+a quarantined, `pending` review signal: a successful run means only that the
+listed targets responded. It is **not** evidence of legal coverage, corpus
+currency, or freshness (`freshness_claim: "none"`), and FEGA/MAPA stay
+unchecked. GitHub Actions `schedule:` was rejected (best-effort, auto-disabled
+when idle, runs from a merge, and would need committed state or a secret); no
+repository workflow schedules or invokes this command.
+
+**Cadence.** One timer, `OnCalendar=*-*-* 10:20:00 Europe/Madrid`,
+`RandomizedDelaySec=30m`, `Persistent=true` (one catch-up run after downtime).
+Inside a run each job has its own due rule:
+
+| Job | Due when | Targets | Attempts |
+|---|---|---|---|
+| `monitor` | no successful monitor job in 12 h, or `--force` | every configured source; a retry re-scans only failed ids | 3 |
+| `boe` | any pending date | non-Sunday dates from the day after the last successful date (but at most 14 days back) to today; today only after 09:00 Madrid; first run = today only; earlier failed dates still inside the window; `--boe-date` values; `--force` re-adds today when due | 3 |
+| `boja` | no successful BOJA job in 156 h, or `--force` | the current Madrid year, plus the previous year when the last success was in an earlier year | 2 |
+
+Backoff is 60 s before attempt 2 and 300 s before attempt 3; only failed
+targets are retried. Configuration/state errors are never retried. These
+publication-calendar assumptions (BOE daily except Sunday; BOJA working days)
+are planning assumptions, not live-verified.
+
+**Install (procedure, not rehearsed).** As root on the host:
+
+```sh
+install -d -o manijero -g manijero -m 0700 /var/lib/manijero/source-updates
+install -o root -g manijero -m 0640 backend/deploy/source-monitor.json.example /etc/manijero/source-monitor.json
+install -m 0644 backend/deploy/systemd/manijero-source-updates.service backend/deploy/systemd/manijero-source-updates.timer /etc/systemd/system/
+systemctl daemon-reload
+systemctl enable --now manijero-source-updates.timer   # disable: systemctl disable --now manijero-source-updates.timer
+systemctl list-timers manijero-source-updates.timer
+```
+
+Review the copied monitor configuration first. The unit reads no environment
+file and needs no secret. Notification is the failed unit (`systemctl --failed`)
+plus the JSON report in `journalctl -t manijero-source-updates`; an operator may
+add their own `OnFailure=` unit (a commented placeholder is in the template).
+No webhook, email, or token is shipped.
+
+**Manual dispatch and status.** From the repository root (the state directory
+must be outside the repository):
+
+```sh
+backend/.venv/bin/python backend/scripts/run_source_updates.py run \
+  --state-dir /var/lib/manijero/source-updates --monitor-config /etc/manijero/source-monitor.json \
+  [--job monitor|boe|boja ...] [--force] [--boe-date YYYYMMDD ...]
+backend/.venv/bin/python backend/scripts/run_source_updates.py status --state-dir /var/lib/manijero/source-updates
+# on the host: systemctl start manijero-source-updates.service
+```
+
+`run` prints the `run_finished` record plus the post-run `status` block.
+Exit codes: `0` success or nothing due and healthy; `1` a job failed or status
+has an alert; `2` configuration/state error (invalid monitor config, invalid or
+unreadable state, corrupt or oversized ledger, state directory inside the
+repository, invalid `--boe-date`); `3` another run holds the lock (nothing is
+fetched or written). A run limited with `--job` still reports alerts for the
+other jobs (for example `stale:monitor`), so it can exit `1`.
+
+**State and ledger.** The state directory holds `source-monitor-state.json`,
+`official-discovery-state.json` (the accepted formats), `source-update.lock`,
+and the append-only `source-update-ledger.jsonl` (`source-update-ledger-v1`,
+files `0600`). Each run writes one `run_started` and one `run_finished` line
+with ids, dates, counts, and fixed failure codes only — no URL, response
+content, path, or exception text. The reader refuses a malformed line or a
+ledger over 10 MiB: archive the file (`mv` it aside) and start a new one; the
+first run afterwards scans BOE for today only.
+
+**Alerts.** `status` (also evaluated at the end of every run) reports
+`never_run`, `missed_run` (no run started in 30 h), `interrupted_run` (latest
+run unfinished after 2 h), `last_run_failed:<job>`, and `stale:<job>` (no
+success within monitor 36 h, BOE 36 h, BOJA 192 h). Warnings list
+`abandoned_boe_dates` (a failed date that left the 14-day window, looked back
+60 days; re-scan it with `--boe-date` while it is at most 60 days old) and
+FEGA/MAPA as unchecked.
+
+**Recovery.** After `interrupted_run`, check `journalctl -t
+manijero-source-updates`, then dispatch `run` manually; monitoring and
+discovery state writes are atomic, and a re-run deduplicates candidates. After
+a corrupt state file, move it aside (monitoring restarts without validators;
+discovery restarts its candidate queue) and record the incident.
+
+**Limits.** Not installed or rehearsed on any host; `systemd-analyze` was not
+run. There is no external dead-man's switch: if the timer itself stops firing,
+only `status`, `systemctl list-timers`, or the next run reveals it. No SLA,
+alert delivery, coverage, or freshness claim. Scheduled runs do not ingest
+documents, analyze change impact, prepare review packages, reindex, or deploy.
 
 ## Manual official-document candidate ingestion
 
