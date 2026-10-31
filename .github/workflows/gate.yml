@@ -56,15 +56,16 @@ jobs:
           distribution: temurin
           java-version: "21"
 
-      - name: Set up Python
-        uses: actions/setup-python@v5
+      # uv provides the Python pinned in .python-version, the same way as on macOS and
+      # the pilot server; --setup-python builds the shared environment as backend/.venv.
+      - name: Set up uv
+        uses: astral-sh/setup-uv@v6
         with:
-          python-version: "3.12"
-          cache: pip
-          cache-dependency-path: backend/requirements-dev.txt
+          enable-cache: true
+          cache-dependency-glob: backend/requirements*.txt
 
       - name: Install backend test dependencies
-        run: python -m pip install -r backend/requirements-dev.txt
+        run: ./scripts/init.sh --setup-python
 
       - name: Cache Gradle
         uses: actions/cache@v4
@@ -78,6 +79,7 @@ jobs:
       - name: Verify shared tests, contract examples, and the backend checks
         env:
           CI: "true"
+          MANIJERO_PYTHON: backend/.venv/bin/python
         run: ./scripts/init.sh --fast
 
   full:
@@ -95,15 +97,16 @@ jobs:
 
       # The shared suite is not the only surface: ./scripts/init.sh --verify also runs the
       # backend pytest suite and the offline evaluators, so the gate needs Python.
-      - name: Set up Python
-        uses: actions/setup-python@v5
+      # uv provides the Python pinned in .python-version, the same way as on macOS and
+      # the pilot server; --setup-python builds the shared environment as backend/.venv.
+      - name: Set up uv
+        uses: astral-sh/setup-uv@v6
         with:
-          python-version: "3.12"
-          cache: pip
-          cache-dependency-path: backend/requirements-dev.txt
+          enable-cache: true
+          cache-dependency-glob: backend/requirements*.txt
 
       - name: Install backend test dependencies
-        run: python -m pip install -r backend/requirements-dev.txt
+        run: ./scripts/init.sh --setup-python
 
       - name: Cache Gradle
         uses: actions/cache@v4
@@ -117,4 +120,5 @@ jobs:
       - name: Verify shared tests, backend checks, and the Android/Desktop builds
         env:
           CI: "true"
+          MANIJERO_PYTHON: backend/.venv/bin/python
         run: ./scripts/init.sh --verify

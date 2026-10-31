@@ -36,8 +36,10 @@ The emulator default remains `http://10.0.2.2:8000`.
 
 ### Shared Python environments
 
-The backend needs Python 3.10 or newer. From the repository root, build (or reuse)
-the development environment once:
+The backend needs Python 3.10 or newer; `.python-version` pins 3.12 for local work,
+CI, and the pilot server. With [uv](https://docs.astral.sh/uv/) installed (the supported
+setup), the environment uses that exact Python, downloading it if needed. From the
+repository root, build (or reuse) the development environment once:
 
 ```sh
 ./scripts/init.sh --setup-python          # runtime + pytest/jsonschema, linked as backend/.venv
@@ -52,8 +54,9 @@ and a rebuild happens only when a requirements file changes. `backend/.venv` and
 `MANIJERO_PYTHON=backend/.venv/bin/python ./scripts/init.sh --backend-tests` work
 unchanged; the test runners link an already-built environment automatically.
 An existing local `backend/.venv` directory is never replaced: rename or remove
-it to switch to the shared one. Set `MANIJERO_BASE_PYTHON` to choose the
-interpreter (it must live outside the repository) and `MANIJERO_VENV_ROOT` to move
+it to switch to the shared one. Without uv, the newest Python 3.10+ on `PATH`
+is used. Set `MANIJERO_BASE_PYTHON` to choose the interpreter (it must live outside the
+repository) and `MANIJERO_VENV_ROOT` to move
 the environments. Superseded environments are not deleted automatically; remove
 old directories under `.git/manijero-venvs/` when they are no longer linked.
 
@@ -215,9 +218,12 @@ fails closed with `clients_unreadable`. The `chown`/`chmod` pair is required aft
    monitoring, UPS/graceful shutdown, and outbound TCP 7844 for the tunnel connector.
 2. Create the service user and checkout:
    `git clone <reviewed origin> /opt/manijero/repo && git -C /opt/manijero/repo checkout <release tag>`.
-3. Create the virtualenv and install the pinned runtime:
-   `python3 -m venv /opt/manijero/repo/backend/.venv` then
-   `/opt/manijero/repo/backend/.venv/bin/python -m pip install -r /opt/manijero/repo/backend/deploy/requirements-production.txt`.
+3. Install [uv](https://docs.astral.sh/uv/), then create the virtualenv from the Python
+   pinned in `.python-version` and install the pinned runtime. The interpreter goes to
+   `/opt/manijero/python` so the `manijero` service user can read it:
+   `cd /opt/manijero/repo && sudo env UV_PYTHON_INSTALL_DIR=/opt/manijero/python uv python install`,
+   `sudo env UV_PYTHON_INSTALL_DIR=/opt/manijero/python uv venv /opt/manijero/repo/backend/.venv`, then
+   `sudo uv pip install --python /opt/manijero/repo/backend/.venv/bin/python -r /opt/manijero/repo/backend/deploy/requirements-production.txt`.
 4. Create `/etc/manijero` as `root:manijero 0750`
    (`sudo install -d -o root -g manijero -m 0750 /etc/manijero`), then create
    `/etc/manijero/pilot.env` from `backend/deploy/pilot.env.example` (root, `0600`) and fill

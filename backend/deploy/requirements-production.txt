@@ -4,15 +4,18 @@
 # a range and is refreshed from the network on every start. A hosted service needs the
 # runtime it was checked with, and an update should be a deliberate, reviewable bump.
 #
-# Install into the service virtualenv:
-#   python3 -m venv /opt/manijero/repo/backend/.venv
-#   /opt/manijero/repo/backend/.venv/bin/python -m pip install --upgrade pip
-#   /opt/manijero/repo/backend/.venv/bin/python -m pip install -r backend/deploy/requirements-production.txt
+# Install into the service virtualenv with uv, using the Python pinned in .python-version
+# from a directory the service user can read (see backend/README.md, first deploy):
+#   cd /opt/manijero/repo
+#   sudo env UV_PYTHON_INSTALL_DIR=/opt/manijero/python uv python install
+#   sudo env UV_PYTHON_INSTALL_DIR=/opt/manijero/python uv venv /opt/manijero/repo/backend/.venv
+#   sudo uv pip install --python /opt/manijero/repo/backend/.venv/bin/python -r backend/deploy/requirements-production.txt
 #
 # These are direct dependencies only. Transitive versions are resolved at install time and
 # are not hash-pinned; record `pip freeze` output with the deployed revision if an exact
 # transitive set has to be reproducible. The pins below are the versions this feature was
-# verified with on Python 3.14.5.
+# verified with on Python 3.14.5; on 2026-10-31 the full backend
+# suite also passed with these pins on Python 3.12.16, the version now pinned in .python-version.
 fastapi==0.162.0
 uvicorn[standard]==0.54.0
 httpx==0.28.1

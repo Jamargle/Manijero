@@ -2,7 +2,7 @@
 # Shared backend Python environments for the base checkout and every git worktree.
 #
 # Each environment is keyed by its profile, its requirement files, and the base
-# interpreter version, and is built once under the repository's git common directory.
+# interpreter (version and location), and is built once under the repository's git common directory.
 # Worktrees then reuse it instead of reinstalling. backend/.venv (dev) and
 # backend/.venv-hybrid (hybrid) become symlinks to it, so every published
 # "MANIJERO_PYTHON=backend/.venv/bin/python" command keeps working unchanged.
@@ -12,7 +12,12 @@
 #   hybrid       dev plus the optional torch/transformers/chromadb runtime (several GB)
 #   --if-present only link an environment that is already built; never install
 #
-# MANIJERO_BASE_PYTHON  interpreter to build from (default: newest python3.1x >= 3.10 on PATH)
+# The interpreter version comes from .python-version. With uv on PATH (the supported setup
+# for macOS, CI, and the pilot server), uv provides that exact interpreter, downloading it
+# if needed, and installs the requirements; without uv, the newest python3.1x >= 3.10 on
+# PATH is used with venv and pip.
+#
+# MANIJERO_BASE_PYTHON  interpreter to build from instead
 # MANIJERO_VENV_ROOT    where environments live (default: <git common dir>/manijero-venvs)
 set -euo pipefail
 
@@ -41,10 +46,27 @@ case "$profile" in
     ;;
 esac
 
-# Prints the first interpreter at or above 3.$MIN_MINOR.
+PINNED="$(tr -d '[:space:]' < "$REPO_ROOT/.python-version")"
+have_uv=0
+command -v uv >/dev/null 2>&1 && have_uv=1
+
+# Prints the interpreter to build from: MANIJERO_BASE_PYTHON, else uv's interpreter for
+# .python-version (installed on demand unless --if-present), else the first interpreter
+# at or above 3.$MIN_MINOR on PATH.
 base_python() {
-  local candidate
-  for candidate in "${MANIJERO_BASE_PYTHON:-}" python3.14 python3.13 python3.12 python3.11 python3.10 python3; do
+  local candidate found
+  if [[ -z "${MANIJERO_BASE_PYTHON:-}" ]] && (( have_uv )); then
+    if found="$(cd "$REPO_ROOT" && uv python find "$PINNED" 2>/dev/null)"; then
+      printf '%s\n' "$found"
+      return 0
+    fi
+    if (( ! if_present )) && (cd "$REPO_ROOT" && uv python install "$PINNED" >&2); then
+      (cd "$REPO_ROOT" && uv python find "$PINNED")
+      return $?
+    fi
+    return 1
+  fi
+  for candidate in "${MANIJERO_BASE_PYTHON:-}" "python$PINNED" python3.14 python3.13 python3.12 python3.11 python3.10 python3; do
     [[ -n "$candidate" ]] || continue
     command -v "$candidate" >/dev/null 2>&1 || [[ -x "$candidate" ]] || continue
     if "$candidate" -c "import sys; sys.exit(0 if sys.version_info >= (3, $MIN_MINOR) else 1)" >/dev/null 2>&1; then
@@ -71,8 +93,9 @@ common_dir="$(git -C "$REPO_ROOT" rev-parse --path-format=absolute --git-common-
 venv_root="${MANIJERO_VENV_ROOT:-$common_dir/manijero-venvs}"
 
 if ! python="$(base_python)"; then
+  (( if_present )) && exit 1
   printf 'The backend needs Python 3.%s or newer, and none was found on PATH.\n' "$MIN_MINOR" >&2
-  printf 'Install one (for example: brew install python@3.12) or set MANIJERO_BASE_PYTHON.\n' >&2
+  printf 'Install uv (https://docs.astral.sh/uv/) so it can provide Python %s, or set MANIJERO_BASE_PYTHON.\n' "$PINNED" >&2
   exit 1
 fi
 real_python="$("$python" -c 'import os, sys; print(os.path.realpath(sys.executable))')"
@@ -80,7 +103,7 @@ version="$("$python" -c 'import platform; print(platform.python_version())')"
 
 key="$(
   {
-    printf '%s %s\n' "$profile" "$version"
+    printf '%s %s %s\n' "$profile" "$version" "$real_python"
     for file in "${requirement_files[@]}"; do
       printf '== %s\n' "$file"
       cat "$BACKEND_DIR/$file"
@@ -131,12 +154,17 @@ if [[ ! -f "$env_dir/.complete" ]]; then
   # A directory without the marker is a build that did not finish.
   rm -rf "$env_dir"
   printf 'Building shared %s environment with Python %s in %s\n' "$profile" "$version" "$env_dir"
-  "$python" -m venv "$env_dir"
   pip_args=()
   for file in "${requirement_files[@]}"; do
     pip_args+=(-r "$BACKEND_DIR/$file")
   done
-  "$env_dir/bin/python" -m pip install --disable-pip-version-check --quiet "${pip_args[@]}"
+  if (( have_uv )); then
+    uv venv --quiet --python "$python" "$env_dir"
+    uv pip install --quiet --python "$env_dir/bin/python" "${pip_args[@]}"
+  else
+    "$python" -m venv "$env_dir"
+    "$env_dir/bin/python" -m pip install --disable-pip-version-check --quiet "${pip_args[@]}"
+  fi
   printf '%s\n' "$real_python" > "$env_dir/.complete"
 fi
 link_env
