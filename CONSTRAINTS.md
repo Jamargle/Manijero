@@ -448,6 +448,13 @@ Operational MUST/MUST NOT rules that future features have to respect on top of
 - **MUST**: scheduled source checks are best-effort and MUST expose last-success time, failures, and
   missed runs; a schedule alone MUST NOT be represented as proof that the corpus is current.
   Reason: external schedulers and official sites can delay or fail.
+- **MUST NOT**: add a repository-hosted schedule (for example a `.github/workflows` `schedule:` trigger)
+  that scans official sources or invokes `run_source_updates.py`; scheduled source checks run only from
+  operator-installed host units. The scheduler MUST write only operational state (monitor/discovery
+  state, ledger, lock) in a state directory outside the repository and outside `knowledge/`, and its
+  tests MUST stay offline (sockets blocked, fakes only). Reason: `knowledge_update_scheduler` — a
+  merged repository schedule would make real requests to official sites without an operator choice,
+  and committed state would bypass human-reviewed canonical changes.
 - **MUST**: change-impact analysis MUST stay read-only over approved knowledge and MUST NOT retire,
   replace, re-approve, or re-date a source, passage, evaluation case, index, or answer. Every
   potentially affected candidate MUST remain review-required, and an ambiguous publication,

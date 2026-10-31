@@ -1,0 +1,34 @@
+# Official-source monitoring and discovery run — TEMPLATE, NOT REHEARSED, NOT INSTALLED OR ENABLED.
+# Nothing runs until the operator copies this unit and its .timer to the host and enables the timer.
+# It reads no environment file and needs no secret. Results are quarantined review signals only; a
+# successful run is not evidence of legal coverage or corpus currency.
+# Exit 1 (a job failed, or status has an alert), 2 (config/state error), or 3 (another run
+# holds the lock) leaves a failed unit: `systemctl --failed` shows it and the JSON report is in
+# `journalctl -t manijero-source-updates`. Check `run_source_updates.py status` after downtime.
+
+[Unit]
+Description=Manijero official-source monitoring and discovery (best-effort)
+Wants=network-online.target
+After=network-online.target
+# Optional, operator-provided notification unit (none is shipped):
+# OnFailure=<operator-provided-unit>@%n.service
+
+[Service]
+Type=oneshot
+User=manijero
+Group=manijero
+WorkingDirectory=/opt/manijero/repo
+ExecStart=/opt/manijero/repo/backend/.venv/bin/python /opt/manijero/repo/backend/scripts/run_source_updates.py run --trigger systemd --state-dir /var/lib/manijero/source-updates --monitor-config /etc/manijero/source-monitor.json
+TimeoutStartSec=90min
+Nice=10
+MemoryMax=512M
+StandardOutput=journal
+StandardError=journal
+SyslogIdentifier=manijero-source-updates
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=strict
+ProtectHome=true
+RestrictAddressFamilies=AF_INET AF_INET6 AF_UNIX
+ReadOnlyPaths=/opt/manijero
+ReadWritePaths=/var/lib/manijero/source-updates

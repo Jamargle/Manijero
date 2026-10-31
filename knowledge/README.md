@@ -186,7 +186,10 @@ Review-package preparation now exists as a local, offline command
 `knowledge-update-review-decisions.schema.json`). It turns a reviewed proposal
 over quarantined candidates into a draft directory (`package.json` and
 `REVIEW.md`) under an operator-owned workspace, and it never writes this
-directory. Passage extraction into a reviewed corpus, scheduled dispatch,
+directory. Scheduled dispatch of monitoring and discovery now exists only as an
+inert owned-host systemd template (`backend/README.md`, "Scheduled source
+updates"); its candidates remain `pending` and it never writes this directory.
+Passage extraction into a reviewed corpus,
 hosting-platform pull-request integration, and reindex/release remain separate
 features. A monitor hash, a discovery record, or an extracted quarantine
 document is not approval and does not establish that a source is current or
