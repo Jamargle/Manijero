@@ -47,4 +47,5 @@ Every line read or written is paid for again by each later agent. Read the small
 - Minimize land context sent to services and keep personal details out of logs.
 - Keep Spanish UI copy plain, forgiving, and usable with large text, touch, keyboard, and screen readers.
 - Keep product behavior and Compose UI in `commonMain`; keep platform integrations and entry points in platform source sets.
+- The owner operates the backend and monitoring alone without terminal or Python expertise: anything they run must be one named command with plain-language results, and monitoring a browser dashboard (see [docs/constraints/operations.md](docs/constraints/operations.md)).
 - Do not implement out-of-scope features such as iOS release, cloud sync, precise parcel mapping, document upload, or aid calculations without an explicit scope change.

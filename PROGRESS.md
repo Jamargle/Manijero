@@ -7,9 +7,11 @@ Routine entry point. Exact feature status lives in [`feature_list.json`](feature
 contracts, raw evidence, and acceptance records remain in their owning files. Last updated:
 2026-10-31.
 
-**Feature status** — 68 of 69 features are accepted, including `local_generation_provider` (off by
+**Feature status** — 68 of 120 features are accepted, including `local_generation_provider` (off by
 default; measured on the owner's Mac, host decision pending) and `knowledge_reindex_release`
-(rehearsed locally only; no host step executed); `private_pilot_distribution` is `not_started`. `feature_list.json` and the selector remain the status authority;
+(rehearsed locally only; no host step executed); `private_pilot_distribution` is `on_hold` by owner
+decision (2026-11-01). The 51 `not_started` features are the remaining MasterPlanV3 work, ordered
+local environment first, then the QA environment for remote real-device testing; prod is not planned yet. `feature_list.json` and the selector remain the status authority;
 this page does not duplicate the feature-id list.
 
 **Product shape** — shared Compose chat, lands, and help surfaces in `shared/src/commonMain`, hosted

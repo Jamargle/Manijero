@@ -5,7 +5,9 @@ set -euo pipefail
 # have to read and interpret the whole file. `--next` prints the next
 # dependency-ready feature and its next role; `--status` prints the board
 # summary plus one line per unfinished feature. A feature is dependency-ready
-# only when it is not `blocked` and every `depends_on` id is `accepted`.
+# only when it is not `blocked` or `on_hold` and every `depends_on` id is
+# `accepted`. `on_hold` is an owner decision to defer a feature; `blocked`
+# means work cannot continue.
 #
 # Read-only: it runs before any Android/Gradle setup and needs no SDK, JDK, or
 # local.properties.
@@ -79,13 +81,14 @@ def main():
         return 2
 
     features = data.get("features", [])
+    paused = ("blocked", "on_hold")
     status = {feature["id"]: feature.get("status", "not_started") for feature in features}
 
     def unmet(feature):
         return [dep for dep in (feature.get("depends_on") or []) if status.get(dep) != "accepted"]
 
     def ready(feature):
-        return feature.get("status") != "blocked" and not unmet(feature)
+        return feature.get("status") not in paused and not unmet(feature)
 
     def spec_path(feature):
         return feature.get("spec") or "docs/specs/%s.md" % feature["id"]
@@ -98,8 +101,8 @@ def main():
 
     def role(feature):
         state = feature.get("status")
-        if state == "blocked":
-            return "blocked"
+        if state in paused:
+            return state
         if state == "passing":
             return "validator"
         if not has_spec(feature):
@@ -107,7 +110,7 @@ def main():
         return "implementer"
 
     open_features = [f for f in features if f.get("status") != "accepted"]
-    selectable = [f for f in open_features if f.get("status") != "blocked"]
+    selectable = [f for f in open_features if f.get("status") not in paused]
 
     def select():
         for feature in selectable:
@@ -128,8 +131,8 @@ def main():
         listed = []
         for feature in open_features:
             missing = unmet(feature)
-            if feature.get("status") == "blocked":
-                listed.append("%s(blocked)" % feature["id"])
+            if feature.get("status") in paused:
+                listed.append("%s(%s)" % (feature["id"], feature["status"]))
             elif missing:
                 listed.append("%s(%s)" % (feature["id"], ",".join(missing)))
         return listed
@@ -159,7 +162,7 @@ def main():
     for feature in features:
         state = feature.get("status", "not_started")
         counts[state] = counts.get(state, 0) + 1
-    order = ["accepted", "in_progress", "passing", "not_started", "blocked"]
+    order = ["accepted", "in_progress", "passing", "not_started", "blocked", "on_hold"]
     summary = " ".join("%s=%d" % (name, counts.get(name, 0)) for name in order)
     for name in sorted(set(counts) - set(order)):
         summary += " %s=%d" % (name, counts[name])

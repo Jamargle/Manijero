@@ -48,7 +48,7 @@ Run `./scripts/select-feature.sh --next`. It reads `feature_list.json` and print
 
 Run `./scripts/select-feature.sh --status` for the whole-board view: a `SUMMARY` line by status, the next feature/role, and one `FEATURE` line per unfinished feature with `ready`, `unmet`, `role`, and `spec` state. When the user asks what can run in parallel, list the unfinished features with `ready=yes` in `feature_list.json` order.
 
-The selector treats a dependency as satisfied only when its status is `accepted` (`passing` is not accepted) and never selects a `blocked` feature. It picks, in order: an `in_progress` feature, then the first `passing` feature, then the first dependency-ready unfinished feature that has a spec, then the first that has none.
+The selector treats a dependency as satisfied only when its status is `accepted` (`passing` is not accepted) and never selects a `blocked` or `on_hold` feature (`on_hold` is an owner decision to defer it; leave it alone until the owner reopens it). It picks, in order: an `in_progress` feature, then the first `passing` feature, then the first dependency-ready unfinished feature that has a spec, then the first that has none.
 
 ## Role Selection
 
