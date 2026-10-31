@@ -95,3 +95,4 @@ restate evidence here.
 | 2026-10-31 | `pilot_privacy_readiness` accepted (gates closed; qualified review pending). | [pilot_privacy_readiness.md](../specs/pilot_privacy_readiness.md) · [acceptance](../validations/pilot_privacy_readiness.md) |
 | 2026-10-31 | `portable_land_backup` accepted. | [portable_land_backup.md](../specs/portable_land_backup.md) · [acceptance](../validations/portable_land_backup.md) |
 | 2026-10-31 | `knowledge_update_scheduler` accepted (owned-host templates, not installed). | [knowledge_update_scheduler.md](../specs/knowledge_update_scheduler.md) · [acceptance](../validations/knowledge_update_scheduler.md) |
+| 2026-10-31 | `chroma_hybrid_retrieval` accepted (opt-in; BM25 stays default, no answer-level gain measured). | [chroma_hybrid_retrieval.md](../specs/chroma_hybrid_retrieval.md) · [acceptance](../validations/chroma_hybrid_retrieval.md) |

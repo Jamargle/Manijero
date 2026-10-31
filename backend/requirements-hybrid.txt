@@ -1,0 +1,17 @@
+# Optional hybrid (BM25 + vector) retrieval runtime, pinned for reproducibility.
+#
+# Install this only on a host that will build the Chroma vector store or serve
+# `MANIJERO_RETRIEVAL_MODE=hybrid`:
+#
+#   python3 -m venv backend/.venv-hybrid
+#   backend/.venv-hybrid/bin/python -m pip install -r backend/requirements-hybrid.txt
+#
+# The default backend runtime and test suite deliberately do not include these
+# packages: hybrid retrieval is off by default and BM25 needs none of them.
+# `chromadb` is pinned exactly because the persisted collection format and its
+# HNSW index are version-specific; a different version is a new pin and a store
+# rebuild, not an upgrade. Chroma's own embedding functions are never used, so
+# its optional ONNX model is never downloaded.
+-r requirements.txt
+-r requirements-embeddings.txt
+chromadb==1.5.9

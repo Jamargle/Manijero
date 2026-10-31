@@ -25,6 +25,7 @@ from app.clarification import (
 from app.generation import Answered, to_answer_response
 from app.pilot_logging import operational_log
 from app.retention import RetentionStore, retain_if_opted_in
+from app.retrieval_backend import RetrievalBackend, get_retrieval_backend
 from app.retrieval import CatalogRejectedError, PassageSetError, Retriever, validate_passage_set
 from app.source_catalog import CatalogReadError, load_catalog, validate_catalog
 
@@ -166,10 +167,13 @@ def ask_question(
     active_campaign: str = Depends(get_active_campaign),
     retrieval_k: int = Depends(get_retrieval_k),
     retention_store: RetentionStore | None = Depends(get_retention_store),
+    retrieval_backend: RetrievalBackend = Depends(get_retrieval_backend),
 ) -> Dict[str, Any]:
     """Run accepted corpus and answer decisions, then the separate opt-in retention step."""
 
-    response = _answer(request, corpus_documents, as_of, active_campaign, retrieval_k)
+    response = _answer(
+        request, corpus_documents, as_of, active_campaign, retrieval_k, retrieval_backend
+    )
     # Retention runs after the answer exists and cannot change or fail it. Only a fixed
     # outcome code is logged, and only when something was attempted.
     outcome = retain_if_opted_in(
@@ -191,6 +195,7 @@ def _answer(
     as_of: date,
     active_campaign: str,
     retrieval_k: int,
+    retrieval_backend: RetrievalBackend,
 ) -> Dict[str, Any]:
     try:
         years = set(re.findall(r"(?<!\d)\d{4}(?!\d)", request.question))
@@ -199,6 +204,11 @@ def _answer(
         corpus = _prepare_runtime_corpus(corpus_documents, as_of, active_campaign)
     except (CatalogReadError, CatalogRejectedError, PassageSetError, RuntimeError, ValueError):
         raise _unavailable_corpus_error()
+
+    if isinstance(corpus, Retriever):
+        # BM25 unless hybrid retrieval is explicitly configured and its store is fresh
+        # for this exact admitted corpus; the backend never raises.
+        corpus = retrieval_backend.attach(corpus, active_campaign)
 
     result = answer_with_clarification(
         request.question,
