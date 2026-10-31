@@ -14,6 +14,7 @@ listed below.
 | [`docs/constraints/lands.md`](docs/constraints/lands.md) | Land editing, Land fields and storage, Land automatic copies, Land list search and summary, Land removal, Land form accessibility |
 | [`docs/constraints/ui-shell.md`](docs/constraints/ui-shell.md) | Brand vectors, Shared component layer, App shell and navigation |
 | [`docs/constraints/hosting-and-pilot.md`](docs/constraints/hosting-and-pilot.md) | Hosted pilot and provider boundaries |
+| [`docs/constraints/operations.md`](docs/constraints/operations.md) | Owner operability, Monitoring — read for any feature that sets up, runs, deploys, updates, backs up, or monitors the service or an environment |
 
 Adding a rule: put it under the matching section of the matching area file (see the writing
 budget in `.agents/skills/feature-implementer/references/implementation-rules.md`). Add a new
