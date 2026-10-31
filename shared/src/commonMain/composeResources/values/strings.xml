@@ -252,4 +252,26 @@
     <string name="coverage_section_help">Dónde pedir ayuda</string>
     <string name="coverage_help_body">Para plazos internos de tu cooperativa o dudas personales sobre tu expediente, habla con tu oficina comarcal agraria o con tu cooperativa.</string>
     <string name="coverage_privacy_link">Ver privacidad y ayuda</string>
+    <!-- Test-build only: the Ayuda card and the Conexión screen never exist in release builds. -->
+    <string name="connection_tools_title">Herramientas de prueba</string>
+    <string name="connection_tools_note">Solo aparece en las versiones de prueba.</string>
+    <string name="connection_tools_open">Conexión</string>
+    <string name="connection_title">Conexión</string>
+    <string name="connection_intro">Escribe la dirección del servicio de respuestas y pulsa Comprobar para saber si está listo para contestar preguntas.</string>
+    <string name="connection_address_label">Dirección del servicio</string>
+    <string name="connection_address_example">Por ejemplo: http://192.168.1.20:8000</string>
+    <string name="connection_in_use_default">Dirección en uso: %1$s (la predeterminada de esta versión)</string>
+    <string name="connection_in_use_saved">Dirección en uso: %1$s (guardada en este dispositivo)</string>
+    <string name="connection_check">Comprobar</string>
+    <string name="connection_reset">Usar la dirección predeterminada</string>
+    <string name="connection_checking">Comprobando la conexión…</string>
+    <string name="connection_ready">Conectado. El servicio responde y está listo para contestar preguntas.</string>
+    <string name="connection_not_ready">El servicio responde, pero todavía no está listo para contestar preguntas. Revisa su configuración y vuelve a comprobarlo.</string>
+    <string name="connection_ready_unknown">El servicio responde, pero no se pudo saber si está listo. Vuelve a comprobarlo.</string>
+    <string name="connection_unreachable">No se puede conectar con el servicio. Comprueba que está encendido, que la dirección es correcta y que este dispositivo está en la misma red.</string>
+    <string name="connection_not_manijero">Algo responde en esa dirección, pero no es el servicio de respuestas de Manijero. Revisa la dirección y el puerto.</string>
+    <string name="connection_invalid">Esa dirección no es válida. Escríbela completa, por ejemplo: http://192.168.1.20:8000</string>
+    <string name="connection_storage_failed">No se pudo guardar la dirección en este dispositivo. Inténtalo de nuevo.</string>
+    <string name="connection_reset_done">Se usará la dirección predeterminada: %1$s</string>
+    <string name="connection_back">Volver</string>
 </resources>

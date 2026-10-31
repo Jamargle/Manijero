@@ -95,3 +95,8 @@ Do not over-claim.
   are the earlier citation/critical-fact misses and one is a newly measured out-of-scope
   reclamación answer. No answer-quality, legal-correctness, or independent-review claim is
   supported.
+- The `Conexión` test-build screen (`local_service_connection`) is verified by unit, guard, compile,
+  and `Ayuda` screenshot checks only. Typing an address, `Comprobar` against a running, stopped, or
+  not-ready service, and the remembered address after restart were not exercised in the Desktop or
+  emulator GUI, and the packaged Desktop app was not opened to confirm the card is absent. See the
+  [acceptance record](../validations/local_service_connection.md).

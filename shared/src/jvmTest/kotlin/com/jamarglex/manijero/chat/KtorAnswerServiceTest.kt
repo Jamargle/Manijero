@@ -267,6 +267,28 @@ class KtorAnswerServiceTest {
         }
     }
 
+    @Test
+    fun `a changed address provider applies to the next ask without a new service`() = runTest {
+        val engine = MockEngine {
+            respond(
+                content = answeredFixture,
+                status = HttpStatusCode.OK,
+                headers = headersOf(HttpHeaders.ContentType, ContentType.Application.Json.toString()),
+            )
+        }
+        var address = "http://10.0.2.2:8000"
+        val service = KtorAnswerService(client = answerHttpClient(engine), baseUrl = { address })
+
+        service.ask(generalAskRequest(question = "¿Puedo regar hoy?"))
+        address = "http://192.168.1.20:8000/manijero/"
+        service.ask(generalAskRequest(question = "¿Puedo regar hoy?"))
+
+        assertEquals(
+            listOf("http://10.0.2.2:8000/ask", "http://192.168.1.20:8000/manijero/ask"),
+            engine.requestHistory.map { it.url.toString() },
+        )
+    }
+
     private suspend fun OutgoingContent.asText(): String = when (this) {
         is TextContent -> text
         is OutgoingContent.ByteArrayContent -> bytes().decodeToString()

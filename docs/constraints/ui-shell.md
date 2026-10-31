@@ -60,3 +60,6 @@ Durable MUST/MUST NOT rules for brand vectors, the shared component layer, and a
   privacy → the section it was opened from) and MUST be absent when that target is null. Reason:
   `app_chrome_navigation` protects an unsaved draft and keeps the selected tab consistent with the
   visible screen.
+- **MUST**: test-build tools (`Conexión`) are reachable only when a host injects them; the Android
+  release source set and every Desktop packaging or release task MUST NOT inject them, and
+  `TestBuildGatingGuardTest` guards this. See [`local_service_connection`](../specs/local_service_connection.md).

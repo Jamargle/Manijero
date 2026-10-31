@@ -135,15 +135,18 @@ interface AnswerService {
  * Contract client for a single general question. Every thrown transport failure is translated into
  * one of the two payload-free signals, so the presentation layer never has to know Ktor types and
  * no URL, response body, or question text can escape through an exception message.
+ *
+ * [baseUrl] is read on every [ask], so a test build's `Conexión` address applies to the next
+ * question without a restart. Release wiring uses the fixed-[String] constructor.
  */
 class KtorAnswerService(
     private val client: HttpClient,
-    baseUrl: String,
+    private val baseUrl: () -> String,
 ) : AnswerService {
-    private val askUrl = "${baseUrl.trimEnd('/')}/ask"
+    constructor(client: HttpClient, baseUrl: String) : this(client, { baseUrl })
 
     override suspend fun ask(request: AskRequest): AskResponse = try {
-        client.post(askUrl) {
+        client.post("${baseUrl().trimEnd('/')}/ask") {
             contentType(ContentType.Application.Json)
             setBody(request)
         }.body()

@@ -14,6 +14,7 @@ import io.ktor.client.engine.android.Android
 import com.jamarglex.manijero.chat.answerHttpClient
 import com.jamarglex.manijero.platform.androidAskBaseUrl
 import com.jamarglex.manijero.chat.KtorAnswerService
+import com.jamarglex.manijero.connection.ConnectionTools
 import com.jamarglex.manijero.lands.AndroidLandBackupFiles
 import com.jamarglex.manijero.lands.ContentResolverBackupDocuments
 import com.jamarglex.manijero.lands.LandRepository
@@ -25,7 +26,21 @@ class MainActivity : ComponentActivity() {
     ) { }
 
     private val answerClient by lazy { answerHttpClient(Android.create()) }
-    private val answerService by lazy { KtorAnswerService(answerClient, androidAskBaseUrl(BuildConfig.ASK_BASE_URL)) }
+    private val defaultAskBaseUrl by lazy { androidAskBaseUrl(BuildConfig.ASK_BASE_URL) }
+
+    // The variant source sets decide: debug builds get the `Conexión` test tools, release builds get
+    // `null` and keep the fixed answer URL.
+    private val connectionTools: ConnectionTools? by lazy {
+        testBuildConnectionTools(applicationContext, defaultAskBaseUrl, answerClient)
+    }
+    private val answerService by lazy {
+        val tools = connectionTools
+        if (tools != null) {
+            KtorAnswerService(answerClient, tools.address::current)
+        } else {
+            KtorAnswerService(answerClient, defaultAskBaseUrl)
+        }
+    }
     private val landRepository by lazy {
         LandRepository(SharedPreferencesLandStorage(applicationContext))
     }
@@ -60,7 +75,7 @@ class MainActivity : ComponentActivity() {
         }
 
         setContent {
-            App(landRepository, answerService, landBackupFiles)
+            App(landRepository, answerService, landBackupFiles, connectionTools)
         }
     }
 
