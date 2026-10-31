@@ -18,8 +18,13 @@ The ``Retriever.search`` boundary is narrow on purpose. It returns ranked
 ``AnswerSource`` contract (``title``, ``issuing_body``, ``url``, ``location``,
 ``published_or_updated_on``, ``verified_on``, ``excerpt``) plus retrieval-local
 fields (``passage_id``, ``source_id``, ``applicability``, ``critical``,
-``score``, ``rank``). A later hybrid (vector + BM25) implementation can replace
-``search`` without changing consumers.
+``score``, ``rank``).
+
+Hybrid retrieval plugs in through :meth:`Retriever.with_ranker`, never by
+replacing this class: a :class:`CandidateRanker` may only reorder or add
+passages this retriever already admitted, a question with no lexical match still
+returns no candidate, and without a ranker ``search`` is the accepted BM25
+behavior unchanged.
 """
 
 import json
@@ -29,7 +34,7 @@ import unicodedata
 from dataclasses import dataclass
 from datetime import date
 from pathlib import Path
-from typing import Any, Dict, FrozenSet, List, Optional, Sequence, Tuple
+from typing import Any, Dict, FrozenSet, List, Optional, Protocol, Sequence, Tuple
 
 from app.source_catalog import (
     ValidationIssue,
@@ -347,6 +352,22 @@ class Bm25Index:
         return score
 
 
+class CandidateRanker(Protocol):
+    """Optional re-ranking step composed into :meth:`Retriever.search`.
+
+    ``rank`` receives the question and the non-empty BM25 ranking (``(passage_id,
+    score)`` pairs with a positive score, best first) and returns ``(passage_id,
+    score)`` pairs best first. The retriever drops any id it did not admit and
+    any duplicate, so a ranker cannot introduce an ineligible passage. A ranker
+    that cannot run must return the lexical ranking it was given.
+    """
+
+    def rank(
+        self, question: str, lexical: Tuple[Tuple[str, float], ...]
+    ) -> Sequence[Tuple[str, float]]:
+        """Return the final ranking, best first."""
+
+
 @dataclass(frozen=True)
 class _PassageRecord:
     """Citation metadata for one indexed passage, without score or rank."""
@@ -379,7 +400,9 @@ class Retriever:
         as_of: date,
         eligible_source_count: int,
         excluded_passage_count: int,
+        ranker: Optional[CandidateRanker] = None,
     ) -> None:
+        self._ranker = ranker
         self._records: Tuple[_PassageRecord, ...] = tuple(records)
         self._records_by_id: Dict[str, _PassageRecord] = {
             record.passage_id: record for record in self._records
@@ -482,12 +505,36 @@ class Retriever:
 
         return tuple((record.passage_id, record.excerpt) for record in self._records)
 
+    @property
+    def uses_ranker(self) -> bool:
+        """Whether ``search`` composes a :class:`CandidateRanker` after BM25."""
+
+        return self._ranker is not None
+
+    def with_ranker(self, ranker: CandidateRanker) -> "Retriever":
+        """Return a retriever over the same admitted passages that uses ``ranker``.
+
+        The admitted records, the BM25 index, and the corpus counts are shared;
+        only the final ordering step changes. ``self`` is left unchanged.
+        """
+
+        return Retriever(
+            records=self._records,
+            index=self._index,
+            as_of=self._as_of,
+            eligible_source_count=self._eligible_source_count,
+            excluded_passage_count=self._excluded_passage_count,
+            ranker=ranker,
+        )
+
     def search(self, question: str, k: int = DEFAULT_K) -> Tuple[RetrievedPassage, ...]:
         """Return up to ``k`` candidate passages ranked best-first.
 
         A blank question, a question made only of stopwords, an empty index, and
         an out-of-vocabulary question all return an empty tuple: passages without
-        any lexical match are never returned with a fabricated score.
+        any lexical match are never returned with a fabricated score. That lexical
+        gate also applies when a ranker is composed, so a ranker cannot turn a
+        zero-evidence question into an answerable one.
         """
 
         if k < 1:
@@ -496,11 +543,24 @@ class Retriever:
         if not query_tokens:
             return ()
 
+        lexical = tuple(
+            (passage_id, score)
+            for passage_id, score in self._index.ranked_scores(query_tokens)
+            if score > 0.0
+        )
+        if not lexical:
+            return ()
+        ranked: Sequence[Tuple[str, float]] = lexical
+        if self._ranker is not None:
+            ranked = self._ranker.rank(question, lexical)
+
         candidates: List[RetrievedPassage] = []
-        for passage_id, score in self._index.ranked_scores(query_tokens):
-            if score <= 0.0:
+        seen: Dict[str, None] = {}
+        for passage_id, score in ranked:
+            record = self._records_by_id.get(passage_id)
+            if record is None or passage_id in seen or not _is_finite_number(score):
                 continue
-            record = self._records_by_id[passage_id]
+            seen[passage_id] = None
             candidates.append(
                 RetrievedPassage(
                     passage_id=record.passage_id,
@@ -514,13 +574,21 @@ class Retriever:
                     excerpt=record.excerpt,
                     applicability=record.applicability,
                     critical=record.critical,
-                    score=score,
+                    score=float(score),
                     rank=len(candidates) + 1,
                 )
             )
             if len(candidates) >= k:
                 break
         return tuple(candidates)
+
+
+def _is_finite_number(value: Any) -> bool:
+    return (
+        isinstance(value, (int, float))
+        and not isinstance(value, bool)
+        and math.isfinite(float(value))
+    )
 
 
 def _term_frequencies(tokens: Sequence[str]) -> Dict[str, int]:

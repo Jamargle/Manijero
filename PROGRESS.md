@@ -7,9 +7,8 @@ Routine entry point. Exact feature status lives in [`feature_list.json`](feature
 contracts, raw evidence, and acceptance records remain in their owning files. Last updated:
 2026-10-31.
 
-**Feature status** — 64 of 68 features are accepted. The four remaining `not_started` features are
-`chroma_hybrid_retrieval`, `gemini_generation_provider`, `knowledge_reindex_release`, and
-`private_pilot_distribution`. `feature_list.json` and the selector remain the status authority;
+**Feature status** — 65 of 68 features are accepted. The three remaining `not_started` features are
+`gemini_generation_provider`, `knowledge_reindex_release`, and `private_pilot_distribution`. `feature_list.json` and the selector remain the status authority;
 this page does not duplicate the feature-id list.
 
 **Product shape** — shared Compose chat, lands, and help surfaces in `shared/src/commonMain`, hosted
@@ -25,8 +24,9 @@ in the Andalusian PAC single application for 2026. `/ready` and `/ask` require a
 `MANIJERO_ACTIVE_CAMPAIGN`; no hosted model or public deployment is implemented. Scheduled
 source scans exist only as a manual-dispatch runner plus disabled, unrehearsed systemd templates
 (`knowledge_update_scheduler`); no host runs them and no freshness is claimed. A pinned local `BAAI/bge-m3` artifact and a derived
-passage-embedding index now exist, but stay off the answer path: `/ask` still uses the reviewed
-BM25 retrieval. Gemini is planned but gated off pending current provider/privacy review.
+passage-embedding index now exist, but stay off the default answer path: `/ask` uses the reviewed
+BM25 retrieval unless the accepted opt-in Chroma/RRF hybrid mode is configured
+(`chroma_hybrid_retrieval`; no answer-level improvement measured). Gemini is planned but gated off pending current provider/privacy review.
 
 **Known limitations (do not over-claim)**
 
@@ -108,8 +108,9 @@ BM25 retrieval. Gemini is planned but gated off pending current provider/privacy
   32 GiB, CPU `float32`, 8 threads) was measured: a 2,293,315,747-byte artifact, a 928 MB optional
   runtime, 1,943 MB peak RSS, about 77 ms for a two-text probe, `0.0` repeated-run difference, and a
   0.621 s index rebuild over the four approved passages. That is not owned-server capacity, not a
-  per-passage latency budget, and not a BM25 comparison; the hybrid/retrieval-quality decision stays
-  in `chroma_hybrid_retrieval`. The model is CPU-only, `torch`/`transformers` stay optional, the
+  per-passage latency budget, and not a BM25 comparison. The BM25 vs hybrid comparison is
+  recorded in the [`chroma_hybrid_retrieval` appendix](docs/specs/chroma_hybrid_retrieval.appendix.md):
+  identical answer metrics on the 14-case sample, so BM25 remains the default. The model is CPU-only, `torch`/`transformers` stay optional, the
   artifact is not committed, and the operator owns its storage and backup. No Spanish legal
   retrieval, answer-quality, or license-review claim follows. See the
   [feature appendix](docs/specs/local_bge_m3_embeddings.appendix.md).
