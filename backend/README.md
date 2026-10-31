@@ -277,6 +277,11 @@ from the calendar date, a question, or a land.
    that is the honest outcome, not a silent failure. Never restore while
    `manijero-pilot` is still active: the `restore` command refuses with `service_running`
    when systemd reports the unit active.
+6. **With a configured knowledge release root** (`MANIJERO_KNOWLEDGE_RELEASE_ROOT`), a
+   corpus change is `knowledge_release.py prepare` + `publish`, and a corpus rollback is
+   `knowledge_release.py rollback`: no stop, no restore, no restart. See
+   [Knowledge reindex and release](#knowledge-reindex-and-release). The backup/restore
+   path above still covers the checkout's `knowledge/` files and configuration.
 
 ### Corpus and configuration backup and restore
 
@@ -1757,8 +1762,9 @@ refused (`already_merged`). A no-op proposal leaves both canonical files
 byte-identical.
 
 **Merge is not release.** It never reindexes, releases, or deploys. The separate
-reindex/release feature owns index rebuilds, artifact/model versions, rollback,
-and the plainly stated corpus boundary. An approved bounded update is not
+reindex/release step ([Knowledge reindex and release](#knowledge-reindex-and-release))
+owns index rebuilds, artifact/model versions, rollback, and the plainly stated corpus
+boundary. An approved bounded update is not
 legal-coverage or answer-quality certification.
 
 ### Limits
@@ -1800,3 +1806,146 @@ legal-coverage or answer-quality certification.
   unapproved package. A pending package simply never merges.
 - Only synthetic fixtures back this flow today; there is no live run against a
   real published update.
+
+## Knowledge reindex and release
+
+After an approved merge (above), the owner turns the canonical catalog, passages, and
+reviewed evaluation cases into an immutable, hash-addressed **knowledge release**, gates it,
+and switches the service to it atomically, with a one-command rollback. Everything is
+offline and local; the code is `backend/app/knowledge_release.py` (stdlib-only, imported
+by the service), `backend/app/release_gates.py` (imported only by `prepare`/`verify`), and
+`backend/scripts/knowledge_release.py`. The manifest contract is
+[`knowledge/knowledge-release-manifest.schema.json`](../knowledge/knowledge-release-manifest.schema.json).
+
+### Layout
+
+```text
+<root>/releases/<release_id>/      source_catalog.json, passages.json, pac_answer_eval.json
+                                   (byte copies), bm25-index.json, evaluation-report.json,
+                                   [embedding-index.json, vector-store/], release-manifest.json
+<root>/current                     relative symlink -> releases/<release_id>
+<root>/release-log.jsonl           append-only publish/rollback events (the only timestamps)
+<root>/.release.lock               held by publish/rollback (O_CREAT|O_EXCL)
+```
+
+`release_id` is the first 16 hex of SHA-256 over the canonical manifest without the id,
+so it is a pure function of the inputs, approval evidence, code revision, Python and
+Unicode-data versions, BM25 parameters, `as_of`, campaign, gate result, and baseline
+release. The manifest carries no timestamp, reviewer name, or corpus text. A release is
+written to a staging directory and renamed into place with the manifest written last; an
+identical existing release is reported `already_prepared`, a different one is refused
+`release_conflict`. Files are `0644`, directories `0755`. The root must not be inside
+`knowledge/` (`unsafe_release_root`) and must be empty or an existing release root.
+
+### Commands
+
+```sh
+ROOT=/srv/manijero/knowledge-releases     # any local directory outside knowledge/
+backend/.venv/bin/python backend/scripts/knowledge_release.py prepare --root "$ROOT" \
+  --catalog knowledge/source_catalog.json --passages knowledge/passages.json \
+  --cases knowledge/pac_answer_eval.json --active-campaign 2026 --as-of 2026-10-31 \
+  --code-revision "$(git rev-parse HEAD)" \
+  --merge-record /path/to/package/merge.json        # or --reviewed-baseline-revision <40-hex>
+... knowledge_release.py publish  --root "$ROOT" --release-id <id> --active-campaign 2026 [--as-of D]
+... knowledge_release.py rollback --root "$ROOT" --active-campaign 2026 [--to <id>] [--as-of D]
+... knowledge_release.py status   --root "$ROOT"
+... knowledge_release.py verify   --root "$ROOT" [--release-id <id>]
+... knowledge_release.py compare  --a ROOT_A/releases/<id> --b ROOT_B/releases/<id>
+```
+
+Output is fixed `key: value` lines (`--json` for one JSON object); `prepare` always prints
+`release_id:` first, also when the gate fails. Exit codes: `0` success; `1` gate failed,
+corpus not ready for `--as-of`/campaign, no current or previous release, an integrity or
+BM25 mismatch on `status`/`verify`, or `compare` found differences; `2` refused or invalid
+input (approval evidence, `gate_failed` or tampered target, `release_locked`, unsafe root,
+stale embedding index, missing `chromadb`).
+
+**Approval evidence (exactly one is required).** `--merge-record` must be a
+`knowledge-update-merge-v1` record with `canonical_changes_applied: true` whose catalog and
+passages hashes equal the candidate bytes (`approval_mismatch` otherwise); the manifest
+keeps `package_id`, `approved_on`, and the record's SHA-256, never the reviewer name.
+`--reviewed-baseline-revision` binds the current corpus (which predates the merge tool) to a
+reviewed Git revision: an **operator assertion the tool cannot verify**. `--code-revision`
+is recorded, not checked against Git.
+
+### Gates
+
+All failures are collected as fixed codes in `gate.failures`; any failure writes the
+release with `gate.passed: false`, exits `1`, and the release can be neither published,
+rolled back to, nor served.
+
+1. **Structural:** catalog and passage contracts at `as_of` (`catalog_invalid`,
+   `passages_invalid`, `passage_source_unresolved`), campaign/date readiness
+   (`corpus_not_ready:<code>`), a valid case set (`cases_invalid`) whose expected passages
+   and sources are admitted for this campaign and date (`cases_orphaned`). A structural
+   failure skips evaluation (`evaluation_failed`).
+2. **BM25:** two independent fingerprints of the admitted documents (ids, text SHA-256,
+   token lengths, term and document frequencies, average length, `k1`, `b`) must match
+   (`bm25_nondeterministic`). `bm25-index.json` is reproducibility evidence only; **the
+   service does not load it** and still builds BM25 in memory per request.
+3. **Grounding + evaluation:** the reviewed cases run through the unchanged `/ask` router
+   in a minimal in-process app with BM25 retrieval, extractive generation, and retention
+   off, whatever the shell exports. Every answered response must satisfy the API contract
+   and cite at least one source that maps to exactly one candidate passage by URL,
+   location, and literal excerpt (`grounding_invalid_response`, `grounding_empty_sources`,
+   `grounding_unmapped_source`).
+4. **Regression:** against the currently published release's `evaluation-report.json`. For
+   every case whose definition digest is unchanged, any of `expected_state_match`,
+   `source_match`, `passage_match`, `critical_facts_match`, `clarification_ids_match`
+   going true -> false fails with `evaluation_regression:<case_id>`. New, changed, and
+   removed cases are reported, not gated. With nothing published the baseline is `none`.
+   There is no numeric quality threshold; the known 13/14 result is not a target.
+
+### Publish, serve, and roll back
+
+`publish` re-verifies every recorded hash and size, requires `gate.passed`, checks
+readiness for `--as-of` (default today UTC) and the campaign, takes the lock, points a
+temporary symlink at `releases/<id>`, and `os.replace`s it onto `current` (one atomic
+step), then appends `{"event","release_id","previous_release_id","at"}` to the log. If the
+log append fails, `current` is switched back and `publish_failed` is reported. `rollback`
+returns to the `previous_release_id` of the latest `publish` of the current release (so a
+second rollback does not bounce back to the bad one), or to `--to <id>`, under the same
+checks. Publishing the current release is `already_current`.
+
+The service reads a release only when `MANIJERO_KNOWLEDGE_RELEASE_ROOT` is set (see
+`deploy/pilot.env.example`). Each `/ask` and `/ready` request resolves `current` once,
+requires it to be a direct child of `<root>/releases/`, validates the manifest and
+`gate.passed`, verifies the catalog and passages SHA-256, and reads both from that one
+directory, so a publish takes effect on the next request without a restart and one
+request never mixes two releases. Any failure is the existing generic `503`/not-ready,
+and one `knowledge_release` operational record (`release_id`, `state` `served|refused`,
+fixed `reason`) is written only when the outcome changes. Unset, the service reads the
+checkout's `knowledge/` exactly as before; preflight follows the same default.
+
+### Optional hybrid artifacts
+
+`prepare --embedding-index <path> --with-vector-store` (both or neither), run from
+`backend/.venv-hybrid`, packages a pre-built index that is `up_to_date` for the candidate
+bytes, `as_of`, campaign, and model pin, and loads it into `<release>/vector-store` with the
+existing `write_store`. The manifest records the pin, the index SHA-256, and the store
+manifest's SHA-256, `documents_sha256`, and `vectors_sha256`; Chroma's SQLite bytes are not
+claimed reproducible. A stale index (`embedding_index_stale:<reasons>`) or a missing runtime
+(`vector_runtime_unavailable`) refuses before anything is written. `prepare` never embeds
+text: build the index with `manage_embeddings.py build`. Hybrid still activates only via
+`MANIJERO_RETRIEVAL_MODE=hybrid` with `MANIJERO_VECTOR_STORE` (for example
+`<root>/current/vector-store`); the hybrid backend loads its store once per process, so
+after a publish with different documents it is stale and answers with BM25 until restart.
+
+### Determinism
+
+Same inputs, `as_of`, campaign, code revision, Python and Unicode-data versions, and pin
+give byte-identical `release-manifest.json`, `bm25-index.json`, and
+`evaluation-report.json` and the same id. `compare` prints every differing dotted manifest
+path; vector fields are tagged `vector_digest_differs` instead of hidden.
+
+### Limits
+
+- Rehearsed only locally (temporary roots, loopback uvicorn). No host, systemd unit,
+  tunnel, or off-host copy of a release root has been exercised; where the root lives on a
+  host and how it is backed up is an open owner decision.
+- Old releases are never garbage-collected; the root grows by one small directory per
+  prepare.
+- The reviewed-baseline approval and the code revision are recorded, not verified.
+- The evaluation is the 14-case author-only sample; passing the gate is not a
+  legal-coverage, answer-quality, or freshness claim.
+- POSIX only (symlink + `os.replace`); Windows release roots are out of scope.

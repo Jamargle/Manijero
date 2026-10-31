@@ -231,9 +231,17 @@ while keeping approval with an identified human:
    canonical knowledge and the answer index byte-identical; a revised proposal
    is a new package with new checks and no inherited approval. Merge never
    reindexes or releases.
-5. After merge, the separate reindex/release step publishes the approved
-   artifacts. An approved update does not certify broader legal coverage or
-   answer quality.
+5. After merge, the separate reindex/release step
+   (`backend/scripts/knowledge_release.py`, see "Knowledge reindex and release" in
+   [`backend/README.md`](../backend/README.md)) copies the approved catalog,
+   passages, and evaluation cases into an immutable, hash-verified release bound
+   to the `merge.json` hashes, rebuilds and fingerprints BM25, runs structural,
+   grounding, and no-regression evaluation gates, and publishes it with one atomic
+   `current` swap that a single `rollback` reverses. The service reads releases
+   only when `MANIJERO_KNOWLEDGE_RELEASE_ROOT` is set. It has been rehearsed only
+   locally; no host step has run. Releases never live under `knowledge/`, and this
+   step never edits these canonical files. An approved update or a passed gate does
+   not certify broader legal coverage or answer quality.
 
 Automated provenance, unsafe-URL, extraction-digest, catalog/passage,
 proposal-link (catalog additions/updates, passage edits, and removals),

@@ -7,9 +7,9 @@ Routine entry point. Exact feature status lives in [`feature_list.json`](feature
 contracts, raw evidence, and acceptance records remain in their owning files. Last updated:
 2026-10-31.
 
-**Feature status** — 67 of 69 features are accepted, including `local_generation_provider` (off by
-default; measured on the owner's Mac, host decision pending); `knowledge_reindex_release` and
-`private_pilot_distribution` are `not_started`. `feature_list.json` and the selector remain the status authority;
+**Feature status** — 68 of 69 features are accepted, including `local_generation_provider` (off by
+default; measured on the owner's Mac, host decision pending) and `knowledge_reindex_release`
+(rehearsed locally only; no host step executed); `private_pilot_distribution` is `not_started`. `feature_list.json` and the selector remain the status authority;
 this page does not duplicate the feature-id list.
 
 **Product shape** — shared Compose chat, lands, and help surfaces in `shared/src/commonMain`, hosted
@@ -35,6 +35,11 @@ an opt-in, off-by-default `local` provider drafts through loopback Ollama with a
 Apache-2.0 model and the same verify-then-extractive fallback; it was measured only on the
 owner's Mac in development (numbers in its appendix evidence, no quality claim or host
 recommendation), and the pending pilot review keeps it out of the pilot profile.
+Reviewed knowledge can now be packaged into immutable, hash-addressed releases that pass structure,
+BM25-fingerprint, citation, and no-regression gates before an atomic publish with rollback
+(`knowledge_reindex_release`); the service reads them only when the opt-in
+`MANIJERO_KNOWLEDGE_RELEASE_ROOT` is set. It was rehearsed only in a local temporary root; the
+Chroma packaging path is untested and no release root exists on any host.
 
 **Known limitations (do not over-claim)**
 

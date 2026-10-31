@@ -528,9 +528,19 @@ Operational MUST/MUST NOT rules that future features have to respect on top of
   serialization.
   Reason: `knowledge_update_review_pr` keeps approval with a person and separates a bounded reviewed
   merge from publication; an unreviewed case set or a reordered file would hide corpus drift.
-- **MUST**: a knowledge release MUST rebuild indexes from approved canonical artifacts, record artifact
-  and model versions, pass structural/grounding gates, and support rollback to the prior index.
-  Reason: generated indexes are derived data and must not drift from reviewed sources.
+- **MUST**: a knowledge release MUST be built only from canonical artifacts bound to human-approval
+  evidence (a `merge.json` whose hashes equal the candidate bytes, or an explicitly recorded reviewed
+  Git baseline), MUST rebuild indexes from them and record artifact, runtime, and model versions, and
+  MUST pass structural, grounding, and per-case no-regression gates that force BM25 retrieval and
+  extractive generation regardless of environment. A release whose gate failed MUST NOT be published,
+  rolled back to, or served. Publication MUST be a single atomic pointer swap (`current`) under a lock
+  that records the previous release, so rollback to the prior release is one step. The manifest MUST
+  NOT carry a timestamp, reviewer name, or other personal value (timestamps live only in the release
+  log), and a release root MUST NOT live under `knowledge/`. With `MANIJERO_KNOWLEDGE_RELEASE_ROOT`
+  set, each request MUST read both corpus files from one verified release; unset MUST keep today's
+  checkout read path.
+  Reason: generated indexes are derived data and must not drift from reviewed sources; `knowledge_reindex_release`
+  replaced the non-atomic two-file corpus replace with immutable, hash-verified releases.
 - **MUST**: retrieval changes MUST be compared with the measured BM25 baseline on the reviewed cases;
   report-only metrics MUST NOT be described as improved answer quality without sufficient reviewed
   evidence.
