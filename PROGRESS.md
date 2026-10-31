@@ -7,10 +7,11 @@ Routine entry point. Exact feature status lives in [`feature_list.json`](feature
 contracts, raw evidence, and acceptance records remain in their owning files. Last updated:
 2026-10-31.
 
-**Feature status** — 68 of 120 features are accepted, including `local_generation_provider` (off by
-default; measured on the owner's Mac, host decision pending) and `knowledge_reindex_release`
-(rehearsed locally only; no host step executed); `private_pilot_distribution` is `on_hold` by owner
-decision (2026-11-01). The 51 `not_started` features are the remaining MasterPlanV3 work, ordered
+**Feature status** — 69 of 120 features are accepted, including `local_generation_provider` (off by
+default; measured on the owner's Mac, host decision pending), `knowledge_reindex_release`
+(rehearsed locally only; no host step executed), and `mock_answer_server` (Desktop and emulator
+walkthroughs not yet run); `private_pilot_distribution` is `on_hold` by owner
+decision (2026-11-01). The 50 `not_started` features are the remaining MasterPlanV3 work, ordered
 local environment first, then the QA environment for remote real-device testing; prod is not planned yet. `feature_list.json` and the selector remain the status authority;
 this page does not duplicate the feature-id list.
 
@@ -61,6 +62,7 @@ before making any claim in its area.
 - Source monitoring, document ingestion, change-impact analysis, and reviewed update packages are local,
   manual, synthetic-fixture-backed, and guarantee neither completeness nor currency.
 - Hosted operations are prepared but not deployed; no host, domain, tunnel, or release artifacts exist.
+- The mock answer service serves fixed contract examples only (not real or legal answers), on loopback for Desktop and the Android emulator.
 - Local `bge-m3` embeddings and Chroma hybrid retrieval are off the default answer path; measured
   on the development Mac only, with no answer-level improvement over BM25.
 
@@ -85,6 +87,7 @@ Tiers, cheapest first; `./scripts/init.sh` holds the exact commands.
 - Full gate: `./scripts/init.sh --verify` (`--full`) — `--fast` plus `:shared:testAndroidHostTest`, `:androidApp:assembleDebug`, and `:desktopApp:build`.
 - Backend unit tests alone: `./scripts/init.sh --backend-tests [targets]` — needs pytest; with none available, `--fast` prints the virtualenv recipe, skips the suite locally, and fails under `CI`.
 - Backend Python (3.10+): `./scripts/init.sh --setup-python` builds the shared environment once per requirements change and links it as `backend/.venv` in every checkout and worktree. Start the local API: `./scripts/init.sh --backend` (links that environment if needed and launches Uvicorn). Android build: `./scripts/init.sh --android`; build, boot an emulator if needed, install, and launch: `./scripts/init.sh --android-run` (uses the first configured AVD when none is running). Launch Desktop: `./scripts/init.sh --desktop`.
+- Mock answer service (no Python): `./scripts/init.sh --mock` starts it in the background on the apps' default address and prints it, `--mock-status` reports it, `--mock-stop` stops it; owner steps in [`docs/owner-guide.md`](docs/owner-guide.md).
 - Output is compact: one line per passing check and the tail of a failing log; full logs stay in `build/verify-logs/` (`MANIJERO_VERBOSE=1` prints them inline, `MANIJERO_FAIL_TAIL=<n>` sets the tail length).
 - The offline checks pin `--as-of 2026-10-13` so runs are deterministic; override with `MANIJERO_AS_OF=YYYY-MM-DD`.
 
