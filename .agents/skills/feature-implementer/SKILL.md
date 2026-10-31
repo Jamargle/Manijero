@@ -35,7 +35,7 @@ You are the implementer/generator, not the planner and not the final validator.
 
 If no feature id is provided, run `./scripts/select-feature.sh --next` and use `NEXT_FEATURE` / `NEXT_ROLE`; do not read or re-derive `feature_list.json` by hand. Proceed only when `NEXT_ROLE=implementer`. If `NEXT_ROLE=validator`, the feature is `passing` and belongs to `feature-validator`; if `NEXT_ROLE=planner`, stop and ask the user to run the planner/spec step first; if `NEXT_ROLE=none`, report `NEXT_REASON`/`NEXT_BLOCKED` and stop.
 
-A dependency is satisfied when its status is `accepted` (`passing` is not accepted) and never selects a `blocked` feature. Run `./scripts/select-feature.sh --status` if you need the per-feature readiness of the unfinished set.
+A dependency is satisfied when its status is `accepted` (`passing` is not accepted) and never selects a `blocked` or `on_hold` feature (`on_hold` is an owner decision to defer it; leave it alone until the owner reopens it). Run `./scripts/select-feature.sh --status` if you need the per-feature readiness of the unfinished set.
 
 If no spec exists for the selected feature (the selector prints `NEXT_SPEC=-` and `NEXT_ROLE=planner`), stop and ask the user to run the planner/spec step first.
 
