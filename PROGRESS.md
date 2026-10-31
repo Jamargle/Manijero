@@ -7,8 +7,8 @@ Routine entry point. Exact feature status lives in [`feature_list.json`](feature
 contracts, raw evidence, and acceptance records remain in their owning files. Last updated:
 2026-10-31.
 
-**Feature status** — 66 of 68 features are accepted. The two remaining `not_started` features are
-`knowledge_reindex_release` and `private_pilot_distribution`. `feature_list.json` and the selector remain the status authority;
+**Feature status** — 66 of 69 features are accepted. The three remaining `not_started` features are
+`knowledge_reindex_release`, `local_generation_provider`, and `private_pilot_distribution`. `feature_list.json` and the selector remain the status authority;
 this page does not duplicate the feature-id list.
 
 **Product shape** — shared Compose chat, lands, and help surfaces in `shared/src/commonMain`, hosted
@@ -28,7 +28,8 @@ passage-embedding index now exist, but stay off the default answer path: `/ask` 
 BM25 retrieval unless the accepted opt-in Chroma/RRF hybrid mode is configured
 (`chroma_hybrid_retrieval`; no answer-level improvement measured). Gated Gemini drafting code exists
 (`gemini_generation_provider`) but ships no transport and an all-`null` limits record, so generation
-stays extractive; no model has been called.
+stays extractive; no model has been called. By owner decision (2026-10-31) Gemini is postponed: no
+spending for now, and local open-weight generation (`local_generation_provider`) is tried first.
 
 **Known limitations (do not over-claim)**
 

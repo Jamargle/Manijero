@@ -202,6 +202,23 @@ unreviewed; none is an approval to enable generation.
 | Pricing assumptions | List-price example only (see Cost assumptions); no quote, measured usage, or spend cap exists. |
 | Disabled-by-default gate | The provider call is absent and the key is unset. Enabling requires a passed `pilot_privacy_readiness` review, a resolved model/tier/region/limit record, and an explicit owner go decision. |
 
+**Owner decisions (2026-10-31).** Recorded by the owner while choosing a tier; the decision was then
+postponed, so none of this enables Gemini or selects a revision.
+
+- **Postponed in favour of local generation.** No spending for now: answer drafting is tried first
+  with a local open-weight model (`local_generation_provider`), developed and measured on the
+  owner's Mac. Paid Gemini is reconsidered for production only if local generation is not enough.
+  This supersedes MasterPlanV3 decision D3 (Gemini Flash on the free tier).
+- **Free vs paid.** The free tier may be used only for development with synthetic data; any pilot
+  user requires Paid services, as the EEA rule above already states.
+- **Platform.** Development on the Gemini Developer API (AI Studio); pilot on Vertex AI's EU
+  multi-region endpoint, which keeps ML processing in the EU. Vertex retention settings and model
+  availability in that endpoint are unverified.
+- **Model.** The cheapest suitable model (Flash-Lite family); no model or revision is fixed. Google
+  list prices checked on 2026-10-30: Gemini 3.5 Flash-Lite $0.30 input / $2.50 output and Gemini
+  3.1 Flash-Lite $0.25 / $1.50 per 1M tokens, paid Standard.
+- **Not decided.** Service tier, usage-tier limits, the limits record values, and the spend cap.
+
 ### Terms, support, and incident notice
 
 - **Cloudflare terms.** The Self-Serve Subscription Agreement lets Cloudflare change prices with 30
