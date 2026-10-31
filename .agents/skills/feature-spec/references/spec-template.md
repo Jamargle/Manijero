@@ -1,133 +1,116 @@
-# Feature Implementation Spec Template
+# Feature Spec Templates
 
-Use this structure for `../../../../docs/specs/<feature-id>.md`.
+A feature has two files. Keep each within the size budget in `../SKILL.md` and say each fact once: the contract owns behavior and verification, the appendix owns research, plan, and evidence. Drop any section that would only say "not applicable", except the ones marked required.
+
+## Contract: `../../../../docs/specs/<feature-id>.md`
 
 ```md
-# Feature Implementation Spec: <feature title>
+# <feature title>
 
-## Source Feature
+## Source metadata
 
-- `id`: <feature-id>
-- `area`: <area>
-- `depends_on`: <feature ids this feature depends on>
-- `status`: <status at planning time>
-- `source`: `feature_list.json`
+- `id`: <feature-id> · `area`: <area> · `depends_on`: <ids> · `status` at planning: <status>
+- User-visible behavior: <one or two sentences>
+- Verification: <one sentence; the commands are in Focused verification>
+- Notes: <scope decisions, owner decisions, or none>
 
 ## Goal
 
-<One or two paragraphs describing the outcome this feature must enable.>
+<One short paragraph: the outcome this feature must enable.>
 
-## Non-Goals
+## Non-goals
 
-- <Behavior or technical work explicitly outside this slice.>
-- <Adjacent feature that must not be pulled in.>
+- <Adjacent behavior or feature that must not be pulled in.>
 
-## Job Story
+## Job story
 
-When <situation/context>,
-I want to <motivation/action>,
-so I can <expected outcome>.
-
-## Users And Permissions
-
-- <Actor/role>: <allowed behavior and constraints>
+When <situation>, I want to <action>, so I can <outcome>.
 
 ## Acceptance Scenarios
 
-### Scenario 1: <happy path name>
+### 1. <happy path>
 
-Given <initial state>
-When <user/system action>
-Then <observable result>
+Given <state> · When <user/system action> · Then <observable result>
 
-### Scenario 2: <edge/error path name>
+### 2. <edge or error path>
 
-Given <initial state>
-When <user/system action>
-Then <observable result>
+Given <state> · When <user/system action> · Then <observable result>
 
-## Repository Research
+## Technical approach
 
-### Files Inspected
+<A few bullets an implementer can execute without re-planning. Name boundaries and patterns; link `ARCHITECTURE.md` or `CONSTRAINTS.md` sections instead of restating them.>
 
-- `<path>` — <why it matters>
+## Expected file changes
 
-### Existing Patterns To Follow
+- `<path>` — create/modify; <reason>
+
+## Visual design impact
+
+UI involved: yes/no. If yes: affected screens and states, and the `DESIGN.md` sections that apply. If `DESIGN.md` lacks what is needed, record it as a planning gap.
+
+## Durable documentation impact (required)
+
+- `ARCHITECTURE.md`: update/not needed — <reason>
+- `docs/constraints/<area>.md`: update/not needed — <rule in one line, or reason>
+- `AGENTS.md`: update/not needed — <reason>
+- Other: <path or none> — <reason>
+
+Update `AGENTS.md` only when the agent workflow, startup path, or repo-wide rules change; `ARCHITECTURE.md` when a boundary, layer, runtime surface, or adapter changes; the matching `docs/constraints/<area>.md` when a durable MUST/MUST NOT rule appears.
+
+## Focused verification (required)
+
+<!-- verify:start -->
+```sh
+<cheapest commands that touch what this feature changes: targeted test files or filters, quiet flags>
+```
+<!-- verify:end -->
+
+## Appendix
+
+See [`<feature-id>.appendix.md`](<feature-id>.appendix.md) for research, plan, evidence, and the validator checklist.
+```
+
+## Appendix: `../../../../docs/specs/<feature-id>.appendix.md`
+
+```md
+# <feature-id> — appendix
+
+## Repository research
+
+### Files inspected
+
+- `<path>` — <one line: why it matters>
+
+### Existing patterns to follow
 
 - <Pattern, convention, command, or architectural choice found in the repo.>
 
-### Current Gaps
+### Current gaps
 
-- <Missing app infrastructure, missing command, missing table, unknown integration, etc.>
+- <Missing app infrastructure, command, table, integration, or decision; or none.>
 
-## Technical Approach
+## Implementation plan
 
-<Describe the implementation strategy at a high enough level that another agent can execute it without re-planning.>
+1. <one line per ordered step>
 
-## Expected File Changes
+## Verification plan
 
-- `<path>` — create/modify; <reason>
-- `<path>` — create/modify; <reason>
+- <command or manual check> — <expected result>
+- E2E: <coverage to add, or why unit/integration coverage is enough>
 
-If paths are provisional because the app is not bootstrapped yet, say so explicitly.
+## Evidence to capture
 
-## Visual Design Impact
+- <test name, command result, or manual result to record below>
 
-- UI involved: yes/no
-- Design source: `../../../../DESIGN.md` / existing design asset / not applicable
-- Screens or states affected: <list>
-- New design artifact required: yes/no — <reason>
+## Feature evidence
 
-If UI is involved, follow `../../../../DESIGN.md` and identify any feature-specific visual states the implementer must handle. If `../../../../DESIGN.md` is missing but needed, mark it as a planning gap rather than letting the implementer invent a visual style.
+<!-- Implementer appends here: date, each command with its one-line result, manual checks in one or two lines. No pasted logs. -->
 
-## Durable Documentation Impact
+## Validator checklist
 
-- `../../../../ARCHITECTURE.md`: create/update/not needed — <reason>
-- `../../../../CONSTRAINTS.md`: create/update/not needed — <reason>
-- `../../../../AGENTS.md`: update/not needed — <reason>
-- Other docs: <path or none> — <reason>
-
-Use these rules:
-
-- Update `../../../../AGENTS.md` only when the agent workflow, startup path, or repo-wide operating rules change.
-- Create or update `../../../../ARCHITECTURE.md` when this feature establishes or changes domains, layers, runtime surfaces, dependency direction, adapters/providers, or other architectural boundaries.
-- Create or update `../../../../CONSTRAINTS.md` when this feature introduces a durable MUST/MUST NOT rule that future agents must obey.
-- Avoid duplicating product behavior already captured in discovery docs unless the implemented behavior changes the source of truth.
-
-## Implementation Plan
-
-1. <First implementation step.>
-2. <Second implementation step.>
-3. <Final integration/update step.>
-
-## Implementation Tasks
-
-- [ ] <Small executable task.>
-- [ ] <Small executable task.>
-- [ ] <Small executable task.>
-
-## Verification Plan
-
-- <Command or manual scenario to run.>
-- <Expected result.>
-- If the repo has a persistent E2E command such as `pnpm test:e2e` and this feature changes user-visible behavior, authentication, authorization, routing, or API flows, add or update focused E2E coverage and include the E2E command here. If E2E is not appropriate, state why.
-
-For `init.sh`, be explicit:
-
-- `./init.sh` should execute the non-blocking standard gate for the current repo state.
-- `./init.sh` must not start long-running processes such as `pnpm dev`.
-- It may print manual follow-up commands after the non-blocking checks pass.
-
-## Evidence To Capture
-
-- <Command output, screenshot, test name, log line, or manual result to record in `feature_list.json` or `../../../../PROGRESS.md`.>
-
-## Validator Checklist
-
-- [ ] Implementation stays within this feature's scope.
-- [ ] Acceptance scenarios pass.
-- [ ] Verification evidence is present.
-- [ ] Persistent E2E coverage was added/updated when the feature has an observable user/API flow and an E2E harness exists, or the spec explains why it is not needed.
-- [ ] `feature_list.json` and `../../../../PROGRESS.md` were updated correctly.
-- [ ] No unrelated product behavior or extra feature work was added.
+- [ ] Scope matches the contract; non-goals respected.
+- [ ] Acceptance scenarios pass, with evidence.
+- [ ] Focused verification block runs unchanged through `./scripts/init.sh --feature <feature-id>`.
+- [ ] Durable documentation impact followed; nothing restated across files.
+- [ ] `feature_list.json` and `PROGRESS.md` updated correctly.
 ```

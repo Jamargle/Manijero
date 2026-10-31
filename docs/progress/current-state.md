@@ -1,7 +1,7 @@
 # Current state — narrative detail
 
 This short narrative is on demand. [`PROGRESS.md`](../../PROGRESS.md) owns the current status,
-limitations, and open checks; [`ARCHITECTURE.md`](../../ARCHITECTURE.md) owns technical boundaries;
+limitations digest, and open checks ([`known-limitations.md`](known-limitations.md) holds the full text); [`ARCHITECTURE.md`](../../ARCHITECTURE.md) owns technical boundaries;
 [`CONTEXT.md`](../../CONTEXT.md) and [`CONSTRAINTS.md`](../../CONSTRAINTS.md) own current product
 terms and durable rules.
 

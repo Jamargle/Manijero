@@ -21,14 +21,14 @@ Use this skill to turn one harness feature into an implementation-ready contract
 
 ## Inputs To Read First
 
-1. `../../../AGENTS.md`
+1. `../../../AGENTS.md` — skip re-reading it when it is already in context (Claude Code loads it through `CLAUDE.md`)
 2. The **Current state** section of `../../../PROGRESS.md`; read other sections only when the task needs them
 3. `./scripts/select-feature.sh --next` when the user has not supplied a feature id
 4. Existing feature spec if present: `../../../docs/specs/<feature-id>.md` and its appendix `../../../docs/specs/<feature-id>.appendix.md`
-5. Current product and architecture docs as needed:
+5. Current product and architecture docs as needed. For any file over ~200 lines, list its headings (`grep -n '^#' <file>`) and read only the sections the feature touches:
    - `../../../CONTEXT.md`
    - `../../../ARCHITECTURE.md`
-   - `../../../CONSTRAINTS.md`
+   - `../../../CONSTRAINTS.md` (the index) and only the `../../../docs/constraints/<area>.md` files the feature touches
    - `../../../docs/domain-model.md`
    - `../../../DESIGN.md` when the selected feature has UI or visual behavior
    - `../../../docs/risks-and-open-questions.md`
@@ -61,7 +61,7 @@ Investigate how to implement the selected feature in this specific repo:
 - persistent E2E commands available today, such as `pnpm test:e2e`, when the feature has user-facing or API-flow behavior,
 - gaps caused by pre-bootstrap or missing infrastructure.
 
-Record inspected files in the spec. Do not pretend to have inspected files that do not exist.
+Record inspected files in the appendix as one line each (path and why it matters). Do not paste code excerpts that the implementer can open themselves, and do not pretend to have inspected files that do not exist.
 
 ### 3. Write The Contract And Its Appendix
 
@@ -96,7 +96,14 @@ The appendix must include, in order:
 - an empty `## Feature evidence` section for the implementer to append to,
 - a validator checklist.
 
-Keep the contract concise but operational. A good default target is 100-250 lines; if it grows far beyond that, the feature may need splitting. For a sense of the level of detail, look at an accepted pair such as `../../../docs/specs/add_land.md` with `../../../docs/specs/add_land.appendix.md`.
+Size budget (every later role rereads these files, so length is paid for several times):
+
+- Contract: at most 200 lines. Scenarios state observable results, not implementation steps.
+- Appendix before `Feature evidence`: at most 200 lines. Plan steps are one line each; tests are named with the behavior they cover, not written out.
+- Say each fact once: the contract owns behavior and verification, the appendix owns research and plan. Link instead of restating `CONSTRAINTS.md`, `ARCHITECTURE.md`, or another spec.
+- Focused verification block: the cheapest commands that touch what the feature changes, using targeted pytest files or Gradle test filters rather than whole suites, and quiet flags such as `pytest -q`.
+
+For a sense of the level of detail, look at an accepted compact pair such as `../../../docs/specs/recover_removed_lands.md` with its appendix.
 
 ### 4. Quality Gate
 
@@ -110,8 +117,9 @@ Before finishing, check:
 - The focused verification block is executable as published: `./scripts/init.sh --feature <feature-id>` must run it without edits, and it must be the cheapest check that still touches what the feature changes.
 - If a persistent E2E command exists and the feature changes user-visible behavior, authentication, authorization, routing, or API flows, the verification plan should include adding/updating focused E2E coverage or explicitly justify why unit/integration coverage is enough.
 - For shell scripts such as `scripts/init.sh`, the spec states whether the script must execute checks, print guidance, start services, or provide modes. The default harness rule is: `scripts/init.sh` exposes a non-blocking, checks-running invocation (a default or named tiers) and must not start long-running dev servers. A print-only invocation is acceptable only as the cheapest informational tier alongside real checks-running tiers; a script that can *only* print the checks is not enough unless the repo is still pre-bootstrap.
-- Durable documentation impact is explicit: `../../../ARCHITECTURE.md`, `../../../CONSTRAINTS.md`, `../../../AGENTS.md`, and other durable docs are each marked create/update/not needed with a reason.
+- Durable documentation impact is explicit: `../../../ARCHITECTURE.md`, the `../../../docs/constraints/` area files, `../../../AGENTS.md`, and other durable docs are each marked create/update/not needed with a reason.
 - Non-goals prevent scope creep.
+- The contract and appendix fit their size budgets, and no paragraph restates another file.
 - Unknowns are explicit and do not hide blocking ambiguity.
 
 If the spec fails this gate, revise it before reporting completion.
