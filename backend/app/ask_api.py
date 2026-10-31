@@ -4,6 +4,7 @@ from datetime import date, datetime, timezone
 import json
 import os
 import re
+import threading
 from pathlib import Path
 from typing import Annotated, Any, Dict, Literal
 
@@ -25,6 +26,7 @@ from app.clarification import (
 )
 from app.gemini_generation import ProviderResolution
 from app.generation import Answered, to_answer_response
+from app.knowledge_release import ReleaseError, load_published_corpus
 from app.pilot_logging import operational_log
 from app.retention import RetentionStore, retain_if_opted_in
 from app.retrieval_backend import RetrievalBackend, get_retrieval_backend
@@ -34,6 +36,8 @@ from app.source_catalog import CatalogReadError, load_catalog, validate_catalog
 REPOSITORY_ROOT = Path(__file__).resolve().parents[2]
 CATALOG_PATH = REPOSITORY_ROOT / "knowledge" / "source_catalog.json"
 PASSAGES_PATH = REPOSITORY_ROOT / "knowledge" / "passages.json"
+# Opt-in: when set, requests read the verified published knowledge release under this root.
+KNOWLEDGE_RELEASE_ROOT_ENV = "MANIJERO_KNOWLEDGE_RELEASE_ROOT"
 
 
 class ClosedModel(BaseModel):
@@ -125,15 +129,52 @@ def load_corpus_documents(
     """Read canonical repository artifacts; failures are translated by the route.
 
     The optional paths are an operator-tool seam (preflight and restore verification);
-    the request path always uses the canonical artifact locations.
+    the request path always uses the canonical artifact locations. When
+    ``MANIJERO_KNOWLEDGE_RELEASE_ROOT`` is set and no path is given, the request reads
+    the verified published release instead (:mod:`app.knowledge_release`).
     """
 
+    if catalog_path is None and passages_path is None:
+        release_root = os.environ.get(KNOWLEDGE_RELEASE_ROOT_ENV, "").strip()
+        if release_root:
+            return _load_published_release(Path(release_root))
     try:
         catalog = load_catalog(catalog_path or CATALOG_PATH)
         passages = json.loads((passages_path or PASSAGES_PATH).read_text(encoding="utf-8"))
     except (CatalogReadError, OSError, json.JSONDecodeError):
         return CorpusDocuments(catalog=None, passages=None, load_error=True)
     return CorpusDocuments(catalog=catalog, passages=passages)
+
+
+def _load_published_release(root: Path) -> CorpusDocuments:
+    """Read the verified ``current`` release; any failure is the generic unavailable path."""
+
+    try:
+        catalog, passages, release_id = load_published_corpus(root)
+    except ReleaseError as error:
+        _note_release_outcome(error.release_id, "refused", error.code)
+        return CorpusDocuments(catalog=None, passages=None, load_error=True)
+    except (OSError, ValueError):
+        _note_release_outcome(None, "refused", "release_unreadable")
+        return CorpusDocuments(catalog=None, passages=None, load_error=True)
+    _note_release_outcome(release_id, "served", "ok")
+    return CorpusDocuments(catalog=catalog, passages=passages)
+
+
+_RELEASE_OUTCOME_LOCK = threading.Lock()
+_LAST_RELEASE_OUTCOME: tuple[str | None, str, str] | None = None
+
+
+def _note_release_outcome(release_id: str | None, state: str, reason: str) -> None:
+    """Write one ``knowledge_release`` record only when the outcome changes."""
+
+    global _LAST_RELEASE_OUTCOME
+    outcome = (release_id, state, reason)
+    with _RELEASE_OUTCOME_LOCK:
+        if outcome == _LAST_RELEASE_OUTCOME:
+            return
+        _LAST_RELEASE_OUTCOME = outcome
+    operational_log("knowledge_release", release_id=release_id or "none", state=state, reason=reason)
 
 
 def get_corpus_documents() -> CorpusDocuments:
