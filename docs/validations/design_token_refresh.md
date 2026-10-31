@@ -83,4 +83,4 @@
   `ARCHITECTURE.md`, and `CONSTRAINTS.md` were correctly left untouched.
 - The acceptance record is indexed in [`docs/progress/session-log.md`](../progress/session-log.md) and
   the raw verification evidence is in
-  [`docs/specs/design_token_refresh.appendix.md`](../specs/design_token_refresh.appendix.md).
+  [`docs/archive/specs/design_token_refresh.appendix.md`](../archive/specs/design_token_refresh.appendix.md).

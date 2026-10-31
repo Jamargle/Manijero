@@ -13,7 +13,7 @@ remaining slices were registered as `not_started`. The palette decision is recor
 **Authority:** existing feature specs own behavior. This plan proposes visual, structural, and scoped content changes; after approval it is sliced into new feature specs with their own acceptance records.
 
 **Delivery note (2026-10-25):** The refreshed-screen work has reached the cross-surface audit
-[`ui_refresh_accessibility_audit`](../specs/ui_refresh_accessibility_audit.appendix.md). Its focused
+[`ui_refresh_accessibility_audit`](../archive/specs/ui_refresh_accessibility_audit.appendix.md). Its focused
 host screenshot/JVM gate, fast gate, full Android-host/build gate, and iOS simulator-target compile
 passed. The repository owner subsequently acted as validator, reporting an in-person accessibility
 review of the refreshed UI and accepting the feature. That review has no per-screen artifacts in the
@@ -104,7 +104,7 @@ The plan deliberately separates **visual adaptation** (no behavior change) from 
 - Raw hex is allowed only in `ManijeroColors.kt` and the two approved brand/illustration vectors. UI icons stay single-colour and are tinted by the wrapper.
 - Every visual step must ship light + dark + large-text previews and pass contrast tests.
 
-### 2.4 Alignment with `MasterPlanV3.md`
+### 2.4 Alignment with `docs/archive/MasterPlanV3.md`
 
 The plan stays inside the reconstructed v3.1 scope:
 
@@ -740,7 +740,7 @@ with a decorative `ic_send` instead of the unnamed `Enviar` icon button (item 8)
 Delivery note: P2-09…P2-14 are implemented by `lands_screens_refresh`: accepted list behavior is
 retained, rows use known-value chips and named separate actions, forms group fields without
 reordering, and removal uses a danger treatment with safe Cancel. Evidence and host-render limits
-are in [the feature appendix](../specs/lands_screens_refresh.appendix.md).
+are in [the feature appendix](../archive/specs/lands_screens_refresh.appendix.md).
 
 Delivery note: P2-15…P2-16 are implemented by `help_privacy_refresh`
 ([spec](../specs/help_privacy_refresh.md)). The shared screen frame/cards and limits callout preserve

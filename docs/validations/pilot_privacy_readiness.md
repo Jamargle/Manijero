@@ -28,4 +28,4 @@ Optional `retain_for_improvement` (default false) across contract, backend, and 
 - Retention store, purge timer, and preflight blocker are tested locally only; never run on a host or under systemd.
 - Screenshots are host-rendered and agent-inspected; no human screenshot review, device, screen-reader, or enlarged-text manual check of the new copy.
 
-See [`pilot_privacy_readiness.appendix.md`](../specs/pilot_privacy_readiness.appendix.md) for raw evidence.
+See [`pilot_privacy_readiness.appendix.md`](../archive/specs/pilot_privacy_readiness.appendix.md) for raw evidence.

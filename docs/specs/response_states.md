@@ -137,7 +137,7 @@ Uses the accepted theme only: `LocalManijeroSemanticColors.caution`/`cautionSurf
 | `CONSTRAINTS.md` | **Update during implementation** | One client MUST rule: a supported answer and an abstention MUST stay distinguishable; an abstention MUST render its code-owned message verbatim in the transcript with a non-confident caution treatment and no source, figure, date, or client next step; no answer MUST receive a confident legal-certainty treatment. `answer_source_cards` and `chat_accessibility` render this transcript next. |
 | `DESIGN.md` | Not needed | Lines 78 and 84 already require the treatment implemented here; no token, role, or surface is added. |
 | `AGENTS.md` | Not needed | Plain-Spanish, accessibility, and shared-`commonMain` rules already govern. |
-| `CONTEXT.md`, `docs/build-brief.md`, `docs/domain-model.md`, `docs/risks-and-open-questions.md`, `MasterPlanV3.md` | Not needed | No product, glossary, domain, or risk change; the missing `/ask` route stays tracked as F1 in `feature_list.json`/`PROGRESS.md`. |
+| `CONTEXT.md`, `docs/archive/build-brief.md`, `docs/domain-model.md`, `docs/risks-and-open-questions.md`, `docs/archive/MasterPlanV3.md` | Not needed | No product, glossary, domain, or risk change; the missing `/ask` route stays tracked as F1 in `feature_list.json`/`PROGRESS.md`. |
 | `docs/specs/safe_abstention.md`, `docs/specs/grounded_answer_generation.md` | Not needed | Their handoffs are executed, not revised. |
 | `ARCHITECTURE.md` | Not needed | It does not exist; no module, boundary, or dependency is added. |
 | `scripts/init.sh` | Not needed | No new mode; it must not start a service. |
@@ -172,5 +172,5 @@ changed; `./scripts/init.sh --verify` remains the full gate.
 The planning and verification record for this feature — repository research, implementation
 plan and tasks, verification plan, evidence to capture, implementation findings, validator
 checklist, and the feature evidence — moved verbatim to
-[`docs/specs/response_states.appendix.md`](response_states.appendix.md) on 2026-10-17 to keep this contract short.
+[`docs/archive/specs/response_states.appendix.md`](../archive/specs/response_states.appendix.md) on 2026-10-17 to keep this contract short.
 `docs/validations/response_states.md` remains the authoritative acceptance record.

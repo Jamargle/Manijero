@@ -74,7 +74,7 @@ downloaded official copies and approved the literal passages and coverage on
 2026-10-17. This bounded slice does not establish individual eligibility or aid
 amounts. Do not answer outside its published coverage; the ordinary safe
 abstention behavior applies to uncovered questions. Research and chronology are
-documented in `docs/specs/backend_pac_corpus.appendix.md`.
+documented in `docs/archive/specs/backend_pac_corpus.appendix.md`.
 
 `pac_answer_eval.json` is a separate, reviewed sample of end-to-end `/ask`
 questions for that bounded slice. The `pac-answer-eval-v2` artifact declares

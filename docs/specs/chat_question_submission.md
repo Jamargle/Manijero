@@ -137,8 +137,8 @@ clipping the active composer; test small Android windows and wide Desktop window
 
 - `AGENTS.md`: **not needed**; its shared-code, privacy, and Spanish-copy rules already
   apply.
-- `CONTEXT.md`, `docs/build-brief.md`, `docs/domain-model.md`, `DESIGN.md`, and
-  `MasterPlanV3.md`: **not needed**; this implements existing decisions.
+- `CONTEXT.md`, `docs/archive/build-brief.md`, `docs/domain-model.md`, `DESIGN.md`, and
+  `docs/archive/MasterPlanV3.md`: **not needed**; this implements existing decisions.
 - `ARCHITECTURE.md` and `CONSTRAINTS.md`: **not needed**; neither exists and this narrow
   client boundary does not justify creating durable architecture documents.
 - `feature_list.json` and `PROGRESS.md`: **defer until implementation verification**;
@@ -199,5 +199,5 @@ python3 contracts/validate_examples.py
 The planning and verification record for this feature — repository research, implementation
 plan and tasks, verification plan, evidence to capture, implementation findings, validator
 checklist, and the feature evidence — moved verbatim to
-[`docs/specs/chat_question_submission.appendix.md`](chat_question_submission.appendix.md) on 2026-10-17 to keep this contract short.
+[`docs/archive/specs/chat_question_submission.appendix.md`](../archive/specs/chat_question_submission.appendix.md) on 2026-10-17 to keep this contract short.
 `docs/validations/chat_question_submission.md` remains the authoritative acceptance record.

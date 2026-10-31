@@ -74,7 +74,7 @@ interpreter of a temporary virtualenv created **outside** the repository
   `backend/app/source_catalog.py`, `backend/app/main.py`,
   `knowledge/source_catalog.json`, `knowledge/passages.schema.json`,
   `backend/requirements.txt`, `scripts/init.sh`, `AGENTS.md`, `CONTEXT.md`, `DESIGN.md`,
-  `docs/build-brief.md`, `docs/domain-model.md`, `MasterPlanV3.md`, and all
+  `docs/archive/build-brief.md`, `docs/domain-model.md`, `docs/archive/MasterPlanV3.md`, and all
   client/shared/Android/Desktop code are unmodified. No canonical
   `knowledge/passages.json` was created and no manifest/dependency file was added.
 - Fixtures: synthetic and labelled (`"fixture"`, `"no es una norma real"`,

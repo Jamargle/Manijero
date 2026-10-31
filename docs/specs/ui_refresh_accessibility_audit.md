@@ -104,4 +104,4 @@ The feature is verification-dominant; this focused block runs the existing share
 
 ## Appendix
 
-Repository research, audit matrix, implementation/remediation tasks, verification and evidence checklist are in [`ui_refresh_accessibility_audit.appendix.md`](ui_refresh_accessibility_audit.appendix.md).
+Repository research, audit matrix, implementation/remediation tasks, verification and evidence checklist are in [`ui_refresh_accessibility_audit.appendix.md`](../archive/specs/ui_refresh_accessibility_audit.appendix.md).

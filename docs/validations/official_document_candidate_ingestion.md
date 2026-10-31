@@ -5,7 +5,7 @@
 **Accepted** on 2026-10-27 after one validator `revise` cycle and independent re-validation.
 
 - Spec: [`official_document_candidate_ingestion.md`](../specs/official_document_candidate_ingestion.md)
-- Evidence: [`official_document_candidate_ingestion.appendix.md`](../specs/official_document_candidate_ingestion.appendix.md)
+- Evidence: [`official_document_candidate_ingestion.appendix.md`](../archive/specs/official_document_candidate_ingestion.appendix.md)
 - Reviewed scope: `backend/app/document_ingestion.py`, `backend/scripts/ingest_official_documents.py`, `backend/tests/test_document_ingestion.py`, `backend/tests/fixtures/document_ingestion/`, `knowledge/official-ingestion-state.schema.json`, `knowledge/official-ingestion-document.schema.json`, plus the operator/documentation updates in `backend/README.md`, `knowledge/README.md`, `ARCHITECTURE.md`, `PROGRESS.md`, this feature's spec/appendix, and the `feature_list.json` status line.
 
 ## Independent verification

@@ -69,7 +69,7 @@ git diff --check
 
 ## Appendix
 
-See [`hosting_provider_review.appendix.md`](hosting_provider_review.appendix.md).
+See [`hosting_provider_review.appendix.md`](../archive/specs/hosting_provider_review.appendix.md).
 
 ## Decision and evidence — 2026-10-27
 

@@ -168,7 +168,7 @@ abstain rather than answer, and a rejected draft is discarded whole.
   described behaviour.
 - `docs/validations/safe_abstention.md` (this record) is new.
 - `AGENTS.md`, `ARCHITECTURE.md` (absent), `knowledge/README.md`, `CONTEXT.md`,
-  `docs/*`, `MasterPlanV3.md`, and `DESIGN.md` were correctly left untouched, per
+  `docs/*`, `docs/archive/MasterPlanV3.md`, and `DESIGN.md` were correctly left untouched, per
   the spec's Durable Documentation Impact section.
 - `scripts/init.sh` was not changed and was not run: the spec mandates no change and this
   backend slice has no `scripts/init.sh` backend command. No persistent E2E harness exists

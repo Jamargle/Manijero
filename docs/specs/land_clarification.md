@@ -252,8 +252,8 @@ alone; no answer gains a confident affordance. `answer_land_scope` still owns re
 - `backend/README.md`: **update** (clarification boundary, rules, CLI; `/health` stays the only route).
 - `docs/specs/minimal_land_context.md`: **update** with a follow-up note that land selection/clarification
   is now owned here.
-- `AGENTS.md`, `CONTEXT.md`, `docs/build-brief.md`, `docs/domain-model.md`, `DESIGN.md`, `docs/risks-and-open-questions.md`,
-  `MasterPlanV3.md`: **not needed** — this implements their existing rules (B13/D5, §8.2 rule 12, domain
+- `AGENTS.md`, `CONTEXT.md`, `docs/archive/build-brief.md`, `docs/domain-model.md`, `DESIGN.md`, `docs/risks-and-open-questions.md`,
+  `docs/archive/MasterPlanV3.md`: **not needed** — this implements their existing rules (B13/D5, §8.2 rule 12, domain
   model rules 2–5) without changing a product decision.
 - `ARCHITECTURE.md`: **not needed** (absent; a narrow decision module plus a chooser does not justify it).
 - `feature_list.json` / `PROGRESS.md`: **update after verification only**, with truthful evidence.
@@ -293,5 +293,5 @@ python3 backend/scripts/evaluate_clarification.py --catalog backend/tests/fixtur
 The planning and verification record for this feature — repository research, implementation
 plan and tasks, verification plan, evidence to capture, implementation findings, validator
 checklist, and the feature evidence — moved verbatim to
-[`docs/specs/land_clarification.appendix.md`](land_clarification.appendix.md) on 2026-10-17 to keep this contract short.
+[`docs/archive/specs/land_clarification.appendix.md`](../archive/specs/land_clarification.appendix.md) on 2026-10-17 to keep this contract short.
 `docs/validations/land_clarification.md` remains the authoritative acceptance record.

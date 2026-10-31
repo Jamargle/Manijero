@@ -3,7 +3,7 @@
 **Verdict: accept** — 2026-10-25
 
 Independent validation against [`land_search_and_summary.md`](../specs/land_search_and_summary.md),
-its [appendix](../specs/land_search_and_summary.appendix.md) checklist and evidence, the four
+its [appendix](../archive/specs/land_search_and_summary.appendix.md) checklist and evidence, the four
 confirmed product decisions recorded in the spec, `CONSTRAINTS.md`, `DESIGN.md`, `CONTEXT.md`,
 `docs/domain-model.md`, `docs/risks-and-open-questions.md`, `docs/screenshot-regression.md` and
 `PROGRESS.md`, in the `land_search_and_summary` worktree (branch

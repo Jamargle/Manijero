@@ -94,7 +94,7 @@ git diff --check
 
 ## Appendix
 
-See [`land_backup_decision.appendix.md`](land_backup_decision.appendix.md) for repository research, tasks, verification, evidence capture, and validator checklist.
+See [`land_backup_decision.appendix.md`](../archive/specs/land_backup_decision.appendix.md) for repository research, tasks, verification, evidence capture, and validator checklist.
 
 ## Decision and evidence — 2026-10-20
 

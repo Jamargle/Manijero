@@ -111,4 +111,4 @@ Heavier checks (not in the block; need `./scripts/init.sh --setup-python hybrid`
 
 ## Appendix
 
-See [`knowledge_reindex_release.appendix.md`](knowledge_reindex_release.appendix.md) for repository research, design decisions, the implementation plan, the verification plan and local rehearsal, evidence to capture, feature evidence, and the validator checklist.
+See [`knowledge_reindex_release.appendix.md`](../archive/specs/knowledge_reindex_release.appendix.md) for repository research, design decisions, the implementation plan, the verification plan and local rehearsal, evidence to capture, feature evidence, and the validator checklist.

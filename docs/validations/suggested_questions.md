@@ -13,7 +13,7 @@
   `¿Qué es el SIGPAC y para qué sirve?`, `¿Qué obligaciones tengo por la condicionalidad?`) against the
   spec Content decision with a Python equality check; order matches (solicitud única, SIGPAC,
   condicionalidad); no extra example is shipped. The unapproved deadline wording
-  (`¿Hasta cuándo puedo cambiar mi solicitud?`) appears only in `MasterPlanV3.md`, the spec prohibition,
+  (`¿Hasta cuándo puedo cambiar mi solicitud?`) appears only in `docs/archive/MasterPlanV3.md`, the spec prohibition,
   and the PROGRESS non-shipped note — never in a shipped resource or UI literal.
 - Reducer (`ChatHomeState.reduce`) sets `question` to the supplied text and clears `submittedQuestion`,
   performs no I/O, and adds no dependency/ViewModel/route/platform adapter. `canAsk` (non-blank) enables

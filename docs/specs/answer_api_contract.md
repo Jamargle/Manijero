@@ -84,7 +84,7 @@ privacy validation without adding a Python dependency to this starter repository
 
 - `AGENTS.md`: no update; the existing guide already requires source-grounded answers and minimal
   land context.
-- `CONTEXT.md`, `docs/domain-model.md`, `docs/build-brief.md`: no update; this contract implements
+- `CONTEXT.md`, `docs/domain-model.md`, `docs/archive/build-brief.md`: no update; this contract implements
   their existing response and privacy rules without changing product decisions.
 - `ARCHITECTURE.md` / `CONSTRAINTS.md`: not present in this starter scaffold; do not create them for
   this narrowly scoped contract slice.
@@ -107,5 +107,5 @@ python3 contracts/validate_examples.py
 The planning and verification record for this feature — repository research, implementation
 plan and tasks, verification plan, evidence to capture, implementation findings, validator
 checklist, and the feature evidence — moved verbatim to
-[`docs/specs/answer_api_contract.appendix.md`](answer_api_contract.appendix.md) on 2026-10-17 to keep this contract short.
+[`docs/archive/specs/answer_api_contract.appendix.md`](../archive/specs/answer_api_contract.appendix.md) on 2026-10-17 to keep this contract short.
 `docs/validations/answer_api_contract.md` remains the authoritative acceptance record.

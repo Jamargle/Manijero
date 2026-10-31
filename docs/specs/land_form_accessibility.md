@@ -147,7 +147,7 @@ No visual change: same background, Material 3 fields, radio rows, error role, bu
 | `DESIGN.md` | **Update during implementation** | Keep shared accessibility guidance concise and link to the authoritative validation record for form-specific evidence and remaining gaps; do not duplicate the report. |
 | `docs/specs/add_land.md`, `docs/specs/edit_land.md` | **Append one short note each after implementation** | The deferred accessibility validation (and `edit_land` F3/F6) is closed or explicitly deferred from this side; accepted behavior is not revised. |
 | `feature_list.json`, `PROGRESS.md` | After verified implementation only | Record status, the checks actually run and every unperformed/manual limit; planning does not touch them. |
-| `AGENTS.md`, `CONTEXT.md`, `docs/build-brief.md`, `docs/domain-model.md`, `docs/risks-and-open-questions.md`, `ARCHITECTURE.md`, `scripts/init.sh` | Not needed | The plain-Spanish/accessibility/shared-`commonMain` rules already govern; no product, domain, module, boundary, or script-mode change is introduced. |
+| `AGENTS.md`, `CONTEXT.md`, `docs/archive/build-brief.md`, `docs/domain-model.md`, `docs/risks-and-open-questions.md`, `ARCHITECTURE.md`, `scripts/init.sh` | Not needed | The plain-Spanish/accessibility/shared-`commonMain` rules already govern; no product, domain, module, boundary, or script-mode change is introduced. |
 
 ## Risks and open decisions
 
@@ -178,5 +178,5 @@ changed; `./scripts/init.sh --verify` remains the full gate.
 The planning and verification record for this feature — repository research, implementation
 plan and tasks, verification plan, evidence to capture, implementation findings, validator
 checklist, and the feature evidence — moved verbatim to
-[`docs/specs/land_form_accessibility.appendix.md`](land_form_accessibility.appendix.md) on 2026-10-17 to keep this contract short.
+[`docs/archive/specs/land_form_accessibility.appendix.md`](../archive/specs/land_form_accessibility.appendix.md) on 2026-10-17 to keep this contract short.
 `docs/validations/land_form_accessibility.md` remains the authoritative acceptance record.

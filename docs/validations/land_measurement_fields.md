@@ -3,7 +3,7 @@
 **Verdict: accept** — 2026-10-25
 
 Independent validation against [`land_measurement_fields.md`](../specs/land_measurement_fields.md),
-its [appendix](../specs/land_measurement_fields.appendix.md) checklist,
+its [appendix](../archive/specs/land_measurement_fields.appendix.md) checklist,
 [`land_setup_fields_decision.md`](../specs/land_setup_fields_decision.md), `CONSTRAINTS.md`,
 `DESIGN.md`, `CONTEXT.md`, `docs/domain-model.md`, `docs/risks-and-open-questions.md` and
 `PROGRESS.md`, in the `land_measurement_fields` worktree (branch `feature/land_measurement_fields`,

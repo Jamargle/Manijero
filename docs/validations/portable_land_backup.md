@@ -68,5 +68,5 @@ Honest limits:
    the `Copia en un archivo` route; the orchestrator added it on acceptance (bars visible, back →
    `Mis terrenos`, matching `navigationVisible` and the back map in `AppNavigation.kt`).
 
-See [`portable_land_backup.appendix.md`](../specs/portable_land_backup.appendix.md) for the full
+See [`portable_land_backup.appendix.md`](../archive/specs/portable_land_backup.appendix.md) for the full
 evidence.

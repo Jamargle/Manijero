@@ -63,4 +63,4 @@ MANIJERO_PYTHON=backend/.venv/bin/python ./scripts/init.sh --backend-tests
 
 ## Appendix
 
-See [`official_document_candidate_ingestion.appendix.md`](official_document_candidate_ingestion.appendix.md).
+See [`official_document_candidate_ingestion.appendix.md`](../archive/specs/official_document_candidate_ingestion.appendix.md).

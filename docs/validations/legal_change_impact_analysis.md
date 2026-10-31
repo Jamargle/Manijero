@@ -5,7 +5,7 @@
 **Accepted** on 2026-10-27 after two validator `revise` cycles and a third independent validation pass.
 
 - Spec: [`legal_change_impact_analysis.md`](../specs/legal_change_impact_analysis.md)
-- Evidence: [`legal_change_impact_analysis.appendix.md`](../specs/legal_change_impact_analysis.appendix.md)
+- Evidence: [`legal_change_impact_analysis.appendix.md`](../archive/specs/legal_change_impact_analysis.appendix.md)
 - Reviewed scope: `backend/app/change_impact.py`, `backend/scripts/analyze_legal_changes.py`, `backend/tests/test_change_impact.py`, `backend/tests/fixtures/change_impact/`, `knowledge/legal-change-impact.schema.json`, plus the documentation updates in `backend/README.md`, `knowledge/README.md`, `ARCHITECTURE.md`, `CONSTRAINTS.md`, `PROGRESS.md`, `docs/risks-and-open-questions.md`, this feature's spec/appendix, and the `feature_list.json` status line. `feature_list.json` still says `passing`; persisting `accepted` stays with the orchestrator.
 
 ## Independent verification

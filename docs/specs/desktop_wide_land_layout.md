@@ -78,4 +78,4 @@ The focused block runs shared JVM tests and Desktop build: it exercises common c
 
 ## Appendix
 
-Repository findings, ordered implementation tasks, manual verification/evidence, and validator checklist are in [`desktop_wide_land_layout.appendix.md`](desktop_wide_land_layout.appendix.md).
+Repository findings, ordered implementation tasks, manual verification/evidence, and validator checklist are in [`desktop_wide_land_layout.appendix.md`](../archive/specs/desktop_wide_land_layout.appendix.md).

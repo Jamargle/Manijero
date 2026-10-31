@@ -382,7 +382,7 @@ validators should treat them as scope, not regression:
 - `docs/risks-and-open-questions.md`: **not needed**; the existing “local device loss removes land
   records” row already covers the no-recovery stance, and user-initiated permanent removal is recorded
   as a known limitation above rather than as a new unresolved product question.
-- `ARCHITECTURE.md`, `AGENTS.md`, `CONTEXT.md`, `docs/build-brief.md`: **not needed**; `ARCHITECTURE.md`
+- `ARCHITECTURE.md`, `AGENTS.md`, `CONTEXT.md`, `docs/archive/build-brief.md`: **not needed**; `ARCHITECTURE.md`
   does not exist and this reuses the accepted reducer/screen/injected-repository pattern.
 
 ## Focused verification
@@ -402,5 +402,5 @@ changed; `./scripts/init.sh --verify` remains the full gate.
 The planning and verification record for this feature — repository research, implementation
 plan and tasks, verification plan, evidence to capture, implementation findings, validator
 checklist, and the feature evidence — moved verbatim to
-[`docs/specs/remove_land.appendix.md`](remove_land.appendix.md) on 2026-10-17 to keep this contract short.
+[`docs/archive/specs/remove_land.appendix.md`](../archive/specs/remove_land.appendix.md) on 2026-10-17 to keep this contract short.
 `docs/validations/remove_land.md` remains the authoritative acceptance record.

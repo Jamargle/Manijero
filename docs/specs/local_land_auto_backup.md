@@ -73,4 +73,4 @@ UI may need a recovery notice and retry/continue action. Follow `DESIGN.md`; kee
 
 ## Appendix
 
-See [`local_land_auto_backup.appendix.md`](local_land_auto_backup.appendix.md).
+See [`local_land_auto_backup.appendix.md`](../archive/specs/local_land_auto_backup.appendix.md).

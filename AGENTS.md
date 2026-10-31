@@ -9,10 +9,10 @@ Read the row that matches the work in front of you; a routine feature change nee
 | Work in front of you | Read | On demand |
 |---|---|---|
 | Every session | [PROGRESS.md](PROGRESS.md) "Current state" — status summary, open items, limitations digest; use the selector for exact feature status | [docs/progress/known-limitations.md](docs/progress/known-limitations.md) before claiming anything in a limited area; [docs/progress/current-state.md](docs/progress/current-state.md) and [docs/progress/session-log.md](docs/progress/session-log.md): on demand, not for routine work |
-| Plan, implement, or validate one feature | the spec contract [docs/specs/](docs/specs/)/`<feature-id>.md` and its acceptance record [docs/validations/](docs/validations/)/`<feature-id>.md` | the feature's appendix [docs/specs/](docs/specs/)/`<feature-id>.appendix.md` (repository research, implementation plan, validator checklist, feature evidence) and [feature_list.json](feature_list.json) for status and dependencies |
+| Plan, implement, or validate one feature | the spec contract [docs/specs/](docs/specs/)/`<feature-id>.md` and its acceptance record [docs/validations/](docs/validations/)/`<feature-id>.md` | the feature's appendix [docs/specs/](docs/specs/)/`<feature-id>.appendix.md`, or [docs/archive/specs/](docs/archive/specs/) once accepted (repository research, implementation plan, validator checklist, feature evidence) and [feature_list.json](feature_list.json) for status and dependencies |
 | User-facing UI or Spanish copy | [DESIGN.md](DESIGN.md) | the spec of the feature that owns the surface |
-| A domain term, product-scope, or audience question | [CONTEXT.md](CONTEXT.md) — glossary, users and scope | [docs/domain-model.md](docs/domain-model.md) for concepts; [docs/build-brief.md](docs/build-brief.md) is the historical discovery baseline |
-| An architecture, module, dependency, or contract boundary | [ARCHITECTURE.md](ARCHITECTURE.md) — the current map | a matching [MasterPlanV3.md](MasterPlanV3.md) section is historical, not current |
+| A domain term, product-scope, or audience question | [CONTEXT.md](CONTEXT.md) — glossary, users and scope | [docs/domain-model.md](docs/domain-model.md) for concepts; [docs/archive/build-brief.md](docs/archive/build-brief.md) is the historical discovery baseline |
+| An architecture, module, dependency, or contract boundary | [ARCHITECTURE.md](ARCHITECTURE.md) — the current map | a matching [docs/archive/MasterPlanV3.md](docs/archive/MasterPlanV3.md) section is historical, not current |
 | Backend, `contracts/`, or `knowledge/` work | [ARCHITECTURE.md](ARCHITECTURE.md) plus the artifact's schema or `contracts/openapi.yaml` | `backend/README.md`, [knowledge/README.md](knowledge/README.md) |
 | A rule the change must not break | [CONSTRAINTS.md](CONSTRAINTS.md) — the index; then only the [docs/constraints/](docs/constraints/) area files the change touches | the reason line in the spec that established the rule |
 | An unresolved constraint, risk, or honest limit | [docs/risks-and-open-questions.md](docs/risks-and-open-questions.md) | the matching open item in [PROGRESS.md](PROGRESS.md) |
@@ -26,13 +26,14 @@ Use `./scripts/select-feature.sh --next` to pick the next feature and role, or `
 
 Every line read or written is paid for again by each later agent. Read the smallest unit that answers the question, and write each fact once.
 
-- Large files (`DESIGN.md`, `backend/README.md`, `knowledge/README.md`, `MasterPlanV3.md`, any appendix): list headings with `grep -n '^#' <file>` and read only the matching sections. Never read a whole `docs/specs/` or `docs/validations/` directory; open only the selected feature's files.
+- Large files (`DESIGN.md`, `backend/README.md`, `knowledge/README.md`, `docs/archive/MasterPlanV3.md`, any appendix): list headings with `grep -n '^#' <file>` and read only the matching sections. Never read a whole `docs/specs/` or `docs/validations/` directory; open only the selected feature's files.
 - Verification: `./scripts/init.sh` prints one line per passing check and only the tail of a failing log; full logs stay in `build/verify-logs/`. Read a log only when a check fails, and grep it rather than dumping it. Do not rerun a tier whose inputs have not changed since it last passed.
 - Writing: follow the size budgets in `feature-spec` and `feature-implementer`. Record commands and one-line results, never pasted output; link the owning file instead of restating it.
 
 ## Track the work
 
 - [feature_list.json](feature_list.json) is a lean index of `id`, `area`, `title`, `status`, `depends_on`, `spec`, and `validation`. The feature's user-visible behavior, verification, and notes live in the "Source metadata" section of [docs/specs/](docs/specs/)/`<feature-id>.md`; the planning and verification record (repository research, implementation plan, validator checklist, and the raw "Feature evidence") lives in the feature's appendix [docs/specs/](docs/specs/)/`<feature-id>.appendix.md`, and its acceptance record lives in [docs/validations/](docs/validations/)/`<feature-id>.md`.
+- [docs/archive/](docs/archive/) holds historical records that no routine work needs: the original plans and accepted features' appendices. Read them only to trace why a past decision was made. When an accepted feature is reopened, `git mv` its appendix back to `docs/specs/` first.
 - Record verified progress in [PROGRESS.md](PROGRESS.md) — the status board — and add one line per accepted feature to [docs/progress/session-log.md](docs/progress/session-log.md), which is a pointer index: link the spec and the acceptance record, never restate the verification.
 
 ## Project skills

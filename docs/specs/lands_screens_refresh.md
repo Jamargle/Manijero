@@ -15,7 +15,7 @@
   wide layouts without changing saved values or navigation behavior.
 - **Acceptance record:** [`docs/validations/lands_screens_refresh.md`](../validations/lands_screens_refresh.md)
   (created at acceptance); planning and evidence detail is in the
-  [appendix](lands_screens_refresh.appendix.md).
+  [appendix](../archive/specs/lands_screens_refresh.appendix.md).
 
 ## Goal and boundaries
 
@@ -154,5 +154,5 @@ usability or accessibility audit.
 
 ## Appendix
 
-See [`lands_screens_refresh.appendix.md`](lands_screens_refresh.appendix.md) for repository research,
+See [`lands_screens_refresh.appendix.md`](../archive/specs/lands_screens_refresh.appendix.md) for repository research,
 implementation tasks, screenshot targets, evidence and validator checklist.

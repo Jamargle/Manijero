@@ -16,4 +16,4 @@
 
 BOE daily sumario XML and BOJA calendar/bulletin JSON discovery are implemented with provenance, deduplication, changed observations, transactional failure handling, and a manual CLI. FEGA and MAPA remain explicit unchecked coverage gaps; discovery does not imply complete registry coverage or legal validity. The live endpoints were smoke-tested, but the local Python certificate store rejected BOE TLS during a CLI-level live attempt, so live candidate-state creation was not verified. No TLS verification was disabled.
 
-See [`official_source_discovery.appendix.md`](../specs/official_source_discovery.appendix.md) for detailed evidence and exact smoke limitations.
+See [`official_source_discovery.appendix.md`](../archive/specs/official_source_discovery.appendix.md) for detailed evidence and exact smoke limitations.

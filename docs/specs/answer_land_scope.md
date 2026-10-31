@@ -235,7 +235,7 @@ screen-reader/focus policy stay with `chat_accessibility`; Desktop text scaling 
 | `CONSTRAINTS.md` | **Update during implementation** | One client MUST rule: every assistant entry MUST render only the `land_scope` its own decoded response carried (copied at the single creation site, never from `lastResponseStatus`), the caption MUST state in plain Spanish which lands were taken into account and MUST NOT name a land or id, imply that land details prove eligibility, add a confident affordance, or appear on a failed request or a clarification; `chat_accessibility` renders this transcript next. |
 | `DESIGN.md` | Not needed | Lines 78/84 already require a readable, non-confident treatment; no token or surface is added. |
 | `docs/specs/minimal_land_context.md`, `docs/specs/land_clarification.md`, `docs/specs/answer_source_cards.md`, `docs/specs/response_states.md` | Not needed | Their `land_scope`-rendering handoff is executed here, not revised; the accepted behavior is unchanged. |
-| `AGENTS.md`, `CONTEXT.md`, `docs/build-brief.md`, `docs/domain-model.md`, `docs/risks-and-open-questions.md`, `MasterPlanV3.md` | Not needed | No product, glossary, or domain change; the operating rules (plain Spanish, no invented legal facts, commonMain UI) already govern. |
+| `AGENTS.md`, `CONTEXT.md`, `docs/archive/build-brief.md`, `docs/domain-model.md`, `docs/risks-and-open-questions.md`, `docs/archive/MasterPlanV3.md` | Not needed | No product, glossary, or domain change; the operating rules (plain Spanish, no invented legal facts, commonMain UI) already govern. |
 | `ARCHITECTURE.md` | Not needed | It does not exist; no module, boundary, or dependency is added. |
 | `scripts/init.sh` | Not needed | No new mode; it must not start a service. |
 | `feature_list.json`, `PROGRESS.md` | After verified implementation only | Record evidence, status, and the `/ask`/UI-harness limitation then; planning does not touch them. |
@@ -276,5 +276,5 @@ changed; `./scripts/init.sh --verify` remains the full gate.
 The planning and verification record for this feature — repository research, implementation
 plan and tasks, verification plan, evidence to capture, implementation findings, validator
 checklist, and the feature evidence — moved verbatim to
-[`docs/specs/answer_land_scope.appendix.md`](answer_land_scope.appendix.md) on 2026-10-17 to keep this contract short.
+[`docs/archive/specs/answer_land_scope.appendix.md`](../archive/specs/answer_land_scope.appendix.md) on 2026-10-17 to keep this contract short.
 `docs/validations/answer_land_scope.md` remains the authoritative acceptance record.

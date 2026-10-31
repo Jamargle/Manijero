@@ -63,4 +63,4 @@ MANIJERO_PYTHON=backend/.venv/bin/python ./scripts/init.sh --backend-tests
 
 ## Appendix
 
-See [`legal_change_impact_analysis.appendix.md`](legal_change_impact_analysis.appendix.md).
+See [`legal_change_impact_analysis.appendix.md`](../archive/specs/legal_change_impact_analysis.appendix.md).

@@ -94,4 +94,4 @@ Manual review remains required when recording: inspect each changed expected ima
 
 ## Appendix
 
-See [`docs/specs/screenshot_regression_tests.appendix.md`](screenshot_regression_tests.appendix.md) for repository research, implementation tasks, verification details, evidence, and the validator checklist.
+See [`docs/archive/specs/screenshot_regression_tests.appendix.md`](../archive/specs/screenshot_regression_tests.appendix.md) for repository research, implementation tasks, verification details, evidence, and the validator checklist.

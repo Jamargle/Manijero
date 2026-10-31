@@ -86,4 +86,4 @@ The following block is the exact focused harness invocation: it runs shared test
 
 ## Appendix
 
-Research, ordered tasks, verification details, evidence requirements, and validator checklist are in [`platform_ask_wiring.appendix.md`](platform_ask_wiring.appendix.md).
+Research, ordered tasks, verification details, evidence requirements, and validator checklist are in [`platform_ask_wiring.appendix.md`](../archive/specs/platform_ask_wiring.appendix.md).

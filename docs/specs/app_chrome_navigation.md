@@ -17,7 +17,7 @@
   **hidden** on add/edit/remove forms so a draft cannot be abandoned by a stray tab tap.
 - **Acceptance record:** [`docs/validations/app_chrome_navigation.md`](../validations/app_chrome_navigation.md)
   (created at acceptance); planning and verification detail is in the
-  [appendix](app_chrome_navigation.appendix.md).
+  [appendix](../archive/specs/app_chrome_navigation.appendix.md).
 
 ## Goal and boundaries
 
@@ -241,5 +241,5 @@ checks recorded in the appendix and acceptance record.
 
 ## Appendix
 
-See [`app_chrome_navigation.appendix.md`](app_chrome_navigation.appendix.md) for repository research,
+See [`app_chrome_navigation.appendix.md`](../archive/specs/app_chrome_navigation.appendix.md) for repository research,
 the ordered implementation plan, evidence to capture and the validator checklist.

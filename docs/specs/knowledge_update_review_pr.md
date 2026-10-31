@@ -68,4 +68,4 @@ MANIJERO_PYTHON=backend/.venv/bin/python ./scripts/init.sh --backend-tests
 
 ## Appendix
 
-See [`knowledge_update_review_pr.appendix.md`](knowledge_update_review_pr.appendix.md).
+See [`knowledge_update_review_pr.appendix.md`](../archive/specs/knowledge_update_review_pr.appendix.md).

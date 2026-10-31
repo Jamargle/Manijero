@@ -13,7 +13,7 @@
   decisions D8 (vectors only, no generated or binary assets) and D11 (no `material-icons-*` runtime
   dependency). `DESIGN.md` and plan §3.4 are the visual authority.
 - **Record:** geometry, licence, and verification evidence are in the
-  [appendix](brand_vectors.appendix.md); the acceptance record is
+  [appendix](../archive/specs/brand_vectors.appendix.md); the acceptance record is
   [`docs/validations/brand_vectors.md`](../validations/brand_vectors.md).
 
 ## Goal and boundaries
@@ -196,5 +196,5 @@ four new goldens. A pass proves decode, tint, and pixel stability only.
 
 ## Appendix
 
-See [`brand_vectors.appendix.md`](brand_vectors.appendix.md) for repository research, geometry and
+See [`brand_vectors.appendix.md`](../archive/specs/brand_vectors.appendix.md) for repository research, geometry and
 licence, the implementation record, evidence, and the validator checklist.

@@ -74,4 +74,4 @@ MANIJERO_PYTHON=backend/.venv/bin/python ./scripts/init.sh --backend-tests
 
 ## Appendix
 
-See [`official_source_discovery.appendix.md`](official_source_discovery.appendix.md).
+See [`official_source_discovery.appendix.md`](../archive/specs/official_source_discovery.appendix.md).

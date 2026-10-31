@@ -63,4 +63,4 @@ MANIJERO_PYTHON=backend/.venv/bin/python ./scripts/init.sh --backend-tests
 
 ## Appendix
 
-See [`local_bge_m3_embeddings.appendix.md`](local_bge_m3_embeddings.appendix.md).
+See [`local_bge_m3_embeddings.appendix.md`](../archive/specs/local_bge_m3_embeddings.appendix.md).

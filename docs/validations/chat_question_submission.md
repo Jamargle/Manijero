@@ -161,7 +161,7 @@ Feature-scoped review; no blocking findings.
   "lista para continuar" string was removed, `contracts/openapi.yaml` was not revised, and no backend
   source was touched.
 - The spec's `Durable Documentation Impact` was honoured: no new architecture or constraint documents
-  were created, `AGENTS.md`/`CONTEXT.md`/`DESIGN.md`/`MasterPlanV3.md` are untouched, and `PROGRESS.md`
+  were created, `AGENTS.md`/`CONTEXT.md`/`DESIGN.md`/`docs/archive/MasterPlanV3.md` are untouched, and `PROGRESS.md`
   plus the `feature_list.json` evidence were updated after implementation with claims I could reproduce
   (test counts 24/22, contract validator output, Android/Desktop builds, Desktop launch, no-logging grep).
 - No overclaim was found: `feature_list.json` still says `passing`, "ready for independent validation",

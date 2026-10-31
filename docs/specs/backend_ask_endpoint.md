@@ -86,7 +86,7 @@ None. This backend feature adds no UI or Spanish app copy.
 - `contracts/openapi.yaml`: update the route/error contract; keep request and response payload shapes unchanged.
 - `CONSTRAINTS.md`: no update; the existing grounding, abstention, and privacy constraints already govern the route.
 - `AGENTS.md`, `CONTEXT.md`, `docs/domain-model.md`, `DESIGN.md`: no update; the feature preserves existing product and domain behavior and has no UI.
-- `docs/build-brief.md`, `docs/technical-discovery.md`, `docs/risks-and-open-questions.md`: discovery scope already recorded; update only if implementation exposes a new decision or risk.
+- `docs/archive/build-brief.md`, `docs/archive/technical-discovery.md`, `docs/risks-and-open-questions.md`: discovery scope already recorded; update only if implementation exposes a new decision or risk.
 - `PROGRESS.md` and `feature_list.json`: record implementation/verification status only after the focused checks pass. The feature entry is already in the shared list as `not_started`.
 - `docs/validations/backend_ask_endpoint.md`: create only during independent validation, not implementation.
 
@@ -103,4 +103,4 @@ python3 contracts/validate_examples.py
 
 ## Appendix
 
-The planning and verification record, repository research, implementation tasks, evidence to capture, and validator checklist are in [`backend_ask_endpoint.appendix.md`](backend_ask_endpoint.appendix.md).
+The planning and verification record, repository research, implementation tasks, evidence to capture, and validator checklist are in [`backend_ask_endpoint.appendix.md`](../archive/specs/backend_ask_endpoint.appendix.md).

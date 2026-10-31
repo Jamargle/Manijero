@@ -115,7 +115,7 @@ None. No token, layout, copy, or screen change. The smoke inspects the **already
 | `scripts/init.sh` (banner text) | **Not needed** | Already corrected by `android_mvp_build`: it names `--desktop`, the real verification command, and the no-`/ask` limitation, and points at the living documents. Verified in this worktree; no change. |
 | `DESIGN.md` | **No update** | Keep measured implementation state and feature-specific evidence in the validation record, progress board, and risks register; this guide carries durable design direction, not runtime findings. |
 | `docs/risks-and-open-questions.md` | **Optional** | The "no answer endpoint at MVP debug release" / Desktop-packaging notes are already implied by F1 and the "Desktop packaging" open question; add a row only if the orchestrator wants it tracked. |
-| `AGENTS.md`, `CONTEXT.md`, `docs/build-brief.md`, `docs/domain-model.md`, `CONSTRAINTS.md` | **Not needed** | Start/verify rules, product scope, and the shared-`commonMain` rule already govern; this slice adds no product invariant. |
+| `AGENTS.md`, `CONTEXT.md`, `docs/archive/build-brief.md`, `docs/domain-model.md`, `CONSTRAINTS.md` | **Not needed** | Start/verify rules, product scope, and the shared-`commonMain` rule already govern; this slice adds no product invariant. |
 | `ARCHITECTURE.md` | **Not needed** | It does not exist; no module, boundary, or dependency is added. |
 
 ## Honest limitations to record
@@ -156,5 +156,5 @@ changed; `./scripts/init.sh --verify` remains the full gate.
 The planning and verification record for this feature — repository research, implementation
 plan and tasks, verification plan, evidence to capture, implementation findings, validator
 checklist, and the feature evidence — moved verbatim to
-[`docs/specs/desktop_mvp_build.appendix.md`](desktop_mvp_build.appendix.md) on 2026-10-17 to keep this contract short.
+[`docs/archive/specs/desktop_mvp_build.appendix.md`](../archive/specs/desktop_mvp_build.appendix.md) on 2026-10-17 to keep this contract short.
 `docs/validations/desktop_mvp_build.md` remains the authoritative acceptance record.

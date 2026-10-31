@@ -13,7 +13,7 @@
   "Layout and interaction".
 - **Acceptance record:** [`docs/validations/ui_component_library.md`](../validations/ui_component_library.md)
   (created at acceptance); planning and verification detail is in the
-  [appendix](ui_component_library.appendix.md).
+  [appendix](../archive/specs/ui_component_library.appendix.md).
 
 ## Goal and boundaries
 
@@ -248,5 +248,5 @@ the gallery review and the limits recorded in the acceptance record.
 
 ## Appendix
 
-See [`ui_component_library.appendix.md`](ui_component_library.appendix.md) for repository research,
+See [`ui_component_library.appendix.md`](../archive/specs/ui_component_library.appendix.md) for repository research,
 component decisions, the ordered implementation plan, evidence to capture and the validator checklist.

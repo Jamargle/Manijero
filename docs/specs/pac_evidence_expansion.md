@@ -75,4 +75,4 @@ backend/.venv/bin/python backend/scripts/evaluate_pac_answers.py --catalog knowl
 
 ## Appendix
 
-See [`pac_evidence_expansion.appendix.md`](pac_evidence_expansion.appendix.md).
+See [`pac_evidence_expansion.appendix.md`](../archive/specs/pac_evidence_expansion.appendix.md).

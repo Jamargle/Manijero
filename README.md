@@ -10,7 +10,7 @@ Manijero is a Kotlin Multiplatform app for people who own or manage one or more 
 
 The intended user has little experience with computers or apps. The interface and assistant should use plain Spanish, clear next steps, readable text, and source links. Land information is local by default; only the minimum context needed for a question should be sent to the answer service.
 
-For current scope and behavior, start with [AGENTS.md](AGENTS.md), [CONTEXT.md](CONTEXT.md), and the owning feature spec. The [build brief](docs/build-brief.md) and [MasterPlanV3.md](MasterPlanV3.md) are historical planning records.
+For current scope and behavior, start with [AGENTS.md](AGENTS.md), [CONTEXT.md](CONTEXT.md), and the owning feature spec. The [build brief](docs/archive/build-brief.md) and [docs/archive/MasterPlanV3.md](docs/archive/MasterPlanV3.md) are historical planning records.
 
 ## Project structure
 
@@ -77,4 +77,4 @@ Standard verification (shared host tests + Android debug APK + Desktop build):
 - [ARCHITECTURE.md](ARCHITECTURE.md), [CONTEXT.md](CONTEXT.md), [CONSTRAINTS.md](CONSTRAINTS.md), and [DESIGN.md](DESIGN.md): current boundaries, scope, durable rules, and UI guidance.
 - Feature behavior lives in [specs](docs/specs/); accepted evidence lives in [validations](docs/validations/).
 - [Contracts](contracts/) and [knowledge](knowledge/README.md) document the API and reviewed corpus formats.
-- The [build brief](docs/build-brief.md) and [Master Plan v3](MasterPlanV3.md) are historical planning records.
+- The [build brief](docs/archive/build-brief.md) and [Master Plan v3](docs/archive/MasterPlanV3.md) are historical planning records.

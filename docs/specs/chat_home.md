@@ -55,5 +55,5 @@ changed; `./scripts/init.sh --verify` remains the full gate.
 The planning and verification record for this feature — repository research, implementation
 plan and tasks, verification plan, evidence to capture, implementation findings, validator
 checklist, and the feature evidence — moved verbatim to
-[`docs/specs/chat_home.appendix.md`](chat_home.appendix.md) on 2026-10-17 to keep this contract short.
+[`docs/archive/specs/chat_home.appendix.md`](../archive/specs/chat_home.appendix.md) on 2026-10-17 to keep this contract short.
 `docs/validations/chat_home.md` remains the authoritative acceptance record.

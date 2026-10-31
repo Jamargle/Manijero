@@ -142,7 +142,7 @@ Scoped to this feature and diff: **no relevant issues found**.
 - No persistent E2E harness exists in this repo; the spec justifies focused
   pure-state/repository tests plus manual smoke, consistent with the validator
   hierarchy.
-- `AGENTS.md`, `CONTEXT.md`, `DESIGN.md`, `docs/build-brief.md`,
+- `AGENTS.md`, `CONTEXT.md`, `DESIGN.md`, `docs/archive/build-brief.md`,
   `docs/domain-model.md`, `docs/risks-and-open-questions.md` were correctly left
   unchanged; no `ARCHITECTURE.md`/`CONSTRAINTS.md` exist and none were needed.
 

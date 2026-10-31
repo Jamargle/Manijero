@@ -247,10 +247,10 @@ review, not as reproducible artifacts.
 |---|---|---|
 | `DESIGN.md` | Update | Drop the superseded-palette status note, record the Ecológico semantic pair, and keep every documented ratio equal to the test. |
 | `ARCHITECTURE.md`, `CONSTRAINTS.md`, `AGENTS.md` | Not needed | Same theme package and boundary; the existing contrast, shared-source, and no-raw-colour rules already cover this change. |
-| `CONTEXT.md`, `docs/build-brief.md`, `docs/domain-model.md` | Not needed | Presentation-only change. |
+| `CONTEXT.md`, `docs/archive/build-brief.md`, `docs/domain-model.md` | Not needed | Presentation-only change. |
 | `feature_list.json`, `PROGRESS.md`, `docs/progress/session-log.md` | Update after implementation and independent acceptance | Keep status and evidence honest; planning must not mark the feature passing or accepted. |
 
 ## Appendix
 
-See [`docs/specs/design_token_refresh.appendix.md`](design_token_refresh.appendix.md) for the repository
+See [`docs/archive/specs/design_token_refresh.appendix.md`](../archive/specs/design_token_refresh.appendix.md) for the repository
 audit, ordered implementation tasks, verification detail, evidence to capture, and validator checklist.

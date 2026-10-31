@@ -71,4 +71,4 @@ MANIJERO_PYTHON=backend/.venv/bin/python ./scripts/init.sh --backend-tests tests
 
 ## Appendix
 
-See [`official_source_monitoring.appendix.md`](official_source_monitoring.appendix.md) for repository findings, implementation evidence, verification, and unresolved limits.
+See [`official_source_monitoring.appendix.md`](../archive/specs/official_source_monitoring.appendix.md) for repository findings, implementation evidence, verification, and unresolved limits.

@@ -4,15 +4,15 @@
   "evidence_location": "docs/specs/<feature-id>.appendix.md, section \"Feature evidence\"",
   "source_of_truth": [
     "CONTEXT.md",
-    "docs/build-brief.md",
+    "docs/archive/build-brief.md",
     "docs/domain-model.md",
-    "docs/technical-discovery.md",
+    "docs/archive/technical-discovery.md",
     "docs/risks-and-open-questions.md",
     "DESIGN.md",
     "ARCHITECTURE.md"
   ],
   "historical_reference": {
-    "path": "MasterPlanV3.md",
+    "path": "docs/archive/MasterPlanV3.md",
     "guidance": "Historical reference — do not read per feature."
   },
   "status_values": [

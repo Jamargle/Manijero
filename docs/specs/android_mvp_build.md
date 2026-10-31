@@ -120,7 +120,7 @@ None. No token, layout, copy, or screen changes. The smoke inspects the **alread
 | `PROGRESS.md`, `feature_list.json` | **Update after verification** | Record status, the APK evidence, and the honest limitation; planning does not touch them. |
 | `docs/specs/desktop_mvp_build.md` | **Not now** | The sibling slice has its own spec/run; this slice must not pre-empt it. |
 | `docs/risks-and-open-questions.md` | **Optional** | One row noting the debug MVP ships with no answer endpoint (F1) and that a real-user release still needs the corpus, backup stance, and provider terms — only if the orchestrator wants it tracked there. |
-| `AGENTS.md`, `CONTEXT.md`, `docs/build-brief.md`, `docs/domain-model.md`, `DESIGN.md`, `CONSTRAINTS.md` | **Not needed** | Start/verify rules, product scope, accessibility baselines, and the shared-`commonMain` rule already govern; this slice adds no product invariant. |
+| `AGENTS.md`, `CONTEXT.md`, `docs/archive/build-brief.md`, `docs/domain-model.md`, `DESIGN.md`, `CONSTRAINTS.md` | **Not needed** | Start/verify rules, product scope, accessibility baselines, and the shared-`commonMain` rule already govern; this slice adds no product invariant. |
 | `ARCHITECTURE.md` | **Not needed** | It does not exist; no module, boundary, or dependency is added. |
 
 ## Honest limitations to record
@@ -158,5 +158,5 @@ changed; `./scripts/init.sh --verify` remains the full gate.
 The planning and verification record for this feature — repository research, implementation
 plan and tasks, verification plan, evidence to capture, implementation findings, validator
 checklist, and the feature evidence — moved verbatim to
-[`docs/specs/android_mvp_build.appendix.md`](android_mvp_build.appendix.md) on 2026-10-17 to keep this contract short.
+[`docs/archive/specs/android_mvp_build.appendix.md`](../archive/specs/android_mvp_build.appendix.md) on 2026-10-17 to keep this contract short.
 `docs/validations/android_mvp_build.md` remains the authoritative acceptance record.

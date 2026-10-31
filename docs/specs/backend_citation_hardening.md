@@ -91,4 +91,4 @@ None. The client already maps canonical markers to cards and degrades malformed 
 
 ## Appendix
 
-See [`backend_citation_hardening.appendix.md`](backend_citation_hardening.appendix.md) for repository research, ordered implementation tasks, verification, evidence, and validator checklist.
+See [`backend_citation_hardening.appendix.md`](../archive/specs/backend_citation_hardening.appendix.md) for repository research, ordered implementation tasks, verification, evidence, and validator checklist.

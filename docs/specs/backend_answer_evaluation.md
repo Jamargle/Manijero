@@ -93,4 +93,4 @@ backend/.venv/bin/python backend/scripts/evaluate_pac_answers.py --catalog knowl
 
 ## Appendix
 
-Repository research, case design, report semantics, implementation tasks, and the validator checklist are in [`backend_answer_evaluation.appendix.md`](backend_answer_evaluation.appendix.md).
+Repository research, case design, report semantics, implementation tasks, and the validator checklist are in [`backend_answer_evaluation.appendix.md`](../archive/specs/backend_answer_evaluation.appendix.md).

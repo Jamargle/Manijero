@@ -6,7 +6,7 @@
 - **Status at planning:** `not_started`. This feature did **not** exist in `feature_list.json`; it is
   now registered in the lean feature index. It is the unimplemented WBS task **D10
   ("Coverage and Help — declare content limits and human referral paths")** and MVP screen
-  **§17.1 #7** of `MasterPlanV3.md`, backed by closed decision **D12** ("the app must not imply
+  **§17.1 #7** of `docs/archive/MasterPlanV3.md`, backed by closed decision **D12** ("the app must not imply
   unsupported topics are covered") and §17.4 limit behavior.
 - **Source behavior:** A person can see, in plain Spanish, what questions the assistant is built to
   answer and what it will not answer, and where to get human help — without asking a question first
@@ -32,7 +32,7 @@
     the digital notebook, agricultural insurance, pruning-waste burning, Junta aid beyond the seeded
     calls, personalized amounts and eligibility).
   - `DESIGN.md` MVP surface 7 ("Privacy/help … Link to human help for questions the app cannot
-    answer") and `docs/domain-model.md` / `docs/build-brief.md` plain-Spanish accessibility rules.
+    answer") and `docs/domain-model.md` / `docs/archive/build-brief.md` plain-Spanish accessibility rules.
   - `chat_accessibility` / `land_form_accessibility`: the accessibility baseline and evidence rules
     (large text, screen-reader labels, no colour-only meaning) this screen must follow.
 - **Size:** one stateless shared screen, one pinned Compose-free content module, one navigation
@@ -68,7 +68,7 @@ reachable from the chat home, in the style of the accepted privacy notice.
 
 - No welcome/first-use gate or "notice seen" state (that is the separate `CR1` slice; this screen is
   reachable, not blocking).
-- No feedback collection, ratings, contact forms, question logs, or analytics (`MasterPlanV3.md`
+- No feedback collection, ratings, contact forms, question logs, or analytics (`docs/archive/MasterPlanV3.md`
   D9 feedback stays optional and separate).
 - No live query of `knowledge/` or the backend: the disclosure is pinned copy (the app works
   offline of the corpus), with a durable rule that it must be updated when corpus scope changes.
@@ -163,7 +163,7 @@ Inspected (2026-10-16):
   forces preview/manual evidence.
 - `docs/specs/answer_source_cards.md` — the 720dp capped/centred column convention and the
   merged-semantics card pattern.
-- `MasterPlanV3.md` §7.3 (procedure map topics), §11.2 (seed-corpus coverage), §12.4 (trap classes
+- `docs/archive/MasterPlanV3.md` §7.3 (procedure map topics), §11.2 (seed-corpus coverage), §12.4 (trap classes
   the assistant must refuse), §17.1 #7, §17.4 (limit behavior), D12 (declared coverage).
 - `CONSTRAINTS.md` sections "Client response states", "Land data disclosure", "Chat accessibility",
   "Land form accessibility" — the MUST rules the new screen must respect.
@@ -291,7 +291,7 @@ python3 scripts/validate_coverage_copy.py
 | `PROGRESS.md` | **Update** | Evidence (after verification only). |
 | `AGENTS.md` | **Not needed** | Plain-Spanish and no-invented-legal-facts rules already exist. |
 | `ARCHITECTURE.md` | **Not needed** | Does not exist; no architectural boundary changes. |
-| `MasterPlanV3.md` | **Not needed** | This implements WBS D10 / §17.1 #7; the plan is context, not a status ledger. |
+| `docs/archive/MasterPlanV3.md` | **Not needed** | This implements WBS D10 / §17.1 #7; the plan is context, not a status ledger. |
 
 ## Risks and open decisions
 
@@ -324,6 +324,6 @@ python3 scripts/validate_coverage_copy.py
 
 Repository research, implementation planning, verification, and validator checklist are retained in
 this contract until implementation evidence is recorded. The evidence record belongs in
-[`coverage_and_help.appendix.md`](coverage_and_help.appendix.md), following the repository's feature
+[`coverage_and_help.appendix.md`](../archive/specs/coverage_and_help.appendix.md), following the repository's feature
 documentation convention. `docs/validations/coverage_and_help.md` will be the independent acceptance
 record.

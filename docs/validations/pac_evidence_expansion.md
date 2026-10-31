@@ -55,4 +55,4 @@ No blocking feature-scoped issue. The diff adds no secret, dependency, network c
 - `clarification_cases: 0` reflects a corpus with no declared `applicability`, not evidence that land clarification works on the PAC slice.
 - The generation fix corrects a claim-merging defect; it is not evidence of improved answer quality, and no retrieval, readability, or user-facing-answer-quality claim is supported.
 
-See [`pac_evidence_expansion.appendix.md`](../specs/pac_evidence_expansion.appendix.md) for the implementer record and [`pac_evidence_expansion.md`](../specs/pac_evidence_expansion.md) for the contract.
+See [`pac_evidence_expansion.appendix.md`](../archive/specs/pac_evidence_expansion.appendix.md) for the implementer record and [`pac_evidence_expansion.md`](../specs/pac_evidence_expansion.md) for the contract.

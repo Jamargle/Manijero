@@ -44,7 +44,7 @@ Given the decision requires a later product change, when this feature is accepte
 
 ## Technical approach
 
-1. Inventory real MVP-supported question categories from `docs/build-brief.md`, `knowledge/pac_coverage.md`, `docs/specs/minimal_land_context.md`, and domain model. Distinguish the current narrow PAC corpus from hypothetical future questions.
+1. Inventory real MVP-supported question categories from `docs/archive/build-brief.md`, `knowledge/pac_coverage.md`, `docs/specs/minimal_land_context.md`, and domain model. Distinguish the current narrow PAC corpus from hypothetical future questions.
 2. Assess each candidate field against a concrete supported use, privacy/minimization cost, and safe behavior when unknown. Area is currently persisted in `Land` but not collected by add/edit UI and is not among the `MinimalLandContext` attributes; do not assume it should be transmitted.
 3. Conduct/commission a small formative check using the short setup and a plain-language explanation. Record method, anonymized observations, whether prompts were understood, and limits; do not collect unnecessary personal details.
 4. Publish a decision record in the risks/open-questions register (or an explicitly linked product decision document if substantial evidence warrants it). Update the relevant source feature notes only if asked/approved; this feature does not implement the resulting change.
@@ -66,7 +66,7 @@ None. No UI behavior, form, labels, or layout changes. Any later field change mu
 - `docs/specs/land_setup_fields_decision.md` and `.appendix.md`: **update** with decision and traceable evidence.
 - `CONSTRAINTS.md`: **not needed**; no durable engineering constraint is introduced unless the decision changes one.
 - `ARCHITECTURE.md`: **not needed**; no architecture change.
-- `AGENTS.md`, `CONTEXT.md`, `docs/domain-model.md`, `docs/build-brief.md`, `DESIGN.md`: **not needed** for the decision record; update only if the approved decision changes product-wide guidance, which is a separately reviewed follow-up.
+- `AGENTS.md`, `CONTEXT.md`, `docs/domain-model.md`, `docs/archive/build-brief.md`, `DESIGN.md`: **not needed** for the decision record; update only if the approved decision changes product-wide guidance, which is a separately reviewed follow-up.
 - `feature_list.json` / `PROGRESS.md`: **after independent validation only**.
 
 ## Focused verification
@@ -83,7 +83,7 @@ Manual evidence check: confirm decision explicitly cites reviewed question scope
 
 ## Appendix
 
-Planning record, repository research, decision procedure, evidence capture, and validator checklist: [`land_setup_fields_decision.appendix.md`](land_setup_fields_decision.appendix.md).
+Planning record, repository research, decision procedure, evidence capture, and validator checklist: [`land_setup_fields_decision.appendix.md`](../archive/specs/land_setup_fields_decision.appendix.md).
 
 ## Decision and evidence (2026-10-20)
 
@@ -106,7 +106,7 @@ The reviewed supported questions concern the SGA/recognized-entity submission ro
 
 ### Evidence and limits
 
-This decision is based on desk review of the product question scope in [`docs/build-brief.md`](../build-brief.md), the approved narrow coverage in [`knowledge/pac_coverage.md`](../../knowledge/pac_coverage.md), the existing [`add_land`](add_land.md) and [`minimal_land_context`](minimal_land_context.md) contracts, and [`docs/domain-model.md`](../domain-model.md). The review found no area-dependent question among the three currently supported procedural topics; the minimal context contract also excludes area and notes and sends only needed municipality, water, or production values.
+This decision is based on desk review of the product question scope in [`docs/archive/build-brief.md`](../archive/build-brief.md), the approved narrow coverage in [`knowledge/pac_coverage.md`](../../knowledge/pac_coverage.md), the existing [`add_land`](add_land.md) and [`minimal_land_context`](minimal_land_context.md) contracts, and [`docs/domain-model.md`](../domain-model.md). The review found no area-dependent question among the three currently supported procedural topics; the minimal context contract also excludes area and notes and sends only needed municipality, water, or production values.
 
 No target-user session was conducted or commissioned in this implementation. There are therefore **no participant observations or comprehension results**. In particular, understanding of “municipio”, “riego”, “producción”, or `No lo sé`, and whether omitted area blocks an actual task, remain untested. This desk review is not usability evidence and does not close the user-validation requirement. The existing feature contracts and their prior implementation evidence are not a substitute for this check.
 

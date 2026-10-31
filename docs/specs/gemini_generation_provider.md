@@ -207,4 +207,4 @@ MANIJERO_PYTHON="${MANIJERO_PYTHON:-backend/.venv/bin/python}" ./scripts/init.sh
 
 ## Appendix
 
-See [`gemini_generation_provider.appendix.md`](gemini_generation_provider.appendix.md).
+See [`gemini_generation_provider.appendix.md`](../archive/specs/gemini_generation_provider.appendix.md).

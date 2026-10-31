@@ -59,7 +59,7 @@ Each source must contain:
 - `lifecycle_status: "current"`, with optional `valid_until` on/after the supplied validation date; and
 - optional retrieval metadata only when known: `campaign`, `critical`, and applicability fields. Unknown applicability remains absent rather than inferred.
 
-The initial approved-host policy is exact host matching (including `www.` aliases) for BOE, Junta/BOJA, FEGA, and MAPA domains named in `MasterPlanV3.md`. Reject lookalike suffixes/subdomains, redirects, credentials in URLs, non-HTTPS URLs, and issuing-body/domain mismatches. Adding another issuer/domain is a reviewed schema-and-test change, not a fixture shortcut.
+The initial approved-host policy is exact host matching (including `www.` aliases) for BOE, Junta/BOJA, FEGA, and MAPA domains named in `docs/archive/MasterPlanV3.md`. Reject lookalike suffixes/subdomains, redirects, credentials in URLs, non-HTTPS URLs, and issuing-body/domain mismatches. Adding another issuer/domain is a reviewed schema-and-test change, not a fixture shortcut.
 
 ### Offline validator
 
@@ -84,8 +84,8 @@ None. This is an offline repository/Knowledge Ops boundary; it changes no Compos
 ## Durable documentation impact
 
 - `knowledge/README.md`: create; it is the durable operational contract for a reviewer adding a document.
-- `AGENTS.md`, `CONTEXT.md`, `docs/build-brief.md`, `docs/domain-model.md`, and `DESIGN.md`: no update; their source-grounding, manual review, and UI rules already govern this work.
-- `MasterPlanV3.md`: no update; it is planning context, while the schema/README become executable catalog documentation.
+- `AGENTS.md`, `CONTEXT.md`, `docs/archive/build-brief.md`, `docs/domain-model.md`, and `DESIGN.md`: no update; their source-grounding, manual review, and UI rules already govern this work.
+- `docs/archive/MasterPlanV3.md`: no update; it is planning context, while the schema/README become executable catalog documentation.
 - `ARCHITECTURE.md` and `CONSTRAINTS.md`: not needed; both are absent and this focused gate does not establish a broader runtime architecture.
 - `PROGRESS.md` and `feature_list.json`: update after verification; do not claim a corpus or legal review merely because the validator exists.
 
@@ -111,5 +111,5 @@ python3 backend/scripts/validate_source_catalog.py knowledge/source_catalog.json
 The planning and verification record for this feature — repository research, implementation
 plan and tasks, verification plan, evidence to capture, implementation findings, validator
 checklist, and the feature evidence — moved verbatim to
-[`docs/specs/source_catalog_validation.appendix.md`](source_catalog_validation.appendix.md) on 2026-10-17 to keep this contract short.
+[`docs/archive/specs/source_catalog_validation.appendix.md`](../archive/specs/source_catalog_validation.appendix.md) on 2026-10-17 to keep this contract short.
 `docs/validations/source_catalog_validation.md` remains the authoritative acceptance record.

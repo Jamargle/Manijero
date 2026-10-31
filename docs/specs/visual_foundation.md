@@ -203,7 +203,7 @@ Documented non-requirements: container fills (`surface` vs `canvas` 1.08, `surfa
 | `ARCHITECTURE.md` | Not needed | Does not exist; no durable architectural decision beyond "shared tokens in `commonMain`", already stated in `AGENTS.md` and `DESIGN.md`. |
 | `CONSTRAINTS.md` | Not needed | Does not exist; this feature adds no constraint beyond the accessibility baseline already documented. |
 | `AGENTS.md` | Not needed | Its shared-UI, Spanish, accessibility, and no-new-module rules already cover this work. |
-| `CONTEXT.md`, `docs/build-brief.md`, `docs/domain-model.md` | Not needed | No product, glossary, or domain change. |
+| `CONTEXT.md`, `docs/archive/build-brief.md`, `docs/domain-model.md` | Not needed | No product, glossary, or domain change. |
 | `scripts/init.sh` | Not needed for acceptance | The script needs no new mode and must not start a service; refresh the informational banner wording only after acceptance. |
 | `feature_list.json`, `PROGRESS.md` | After verified implementation only | Record evidence/status only after independent validation; planning does not touch them. |
 
@@ -235,5 +235,5 @@ changed; `./scripts/init.sh --verify` remains the full gate.
 The planning and verification record for this feature — repository research, implementation
 plan and tasks, verification plan, evidence to capture, implementation findings, validator
 checklist, and the feature evidence — moved verbatim to
-[`docs/specs/visual_foundation.appendix.md`](visual_foundation.appendix.md) on 2026-10-17 to keep this contract short.
+[`docs/archive/specs/visual_foundation.appendix.md`](../archive/specs/visual_foundation.appendix.md) on 2026-10-17 to keep this contract short.
 `docs/validations/visual_foundation.md` remains the authoritative acceptance record.

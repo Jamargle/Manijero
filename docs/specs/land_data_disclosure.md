@@ -21,7 +21,7 @@
   - `docs/specs/answer_land_scope.md`: hands off "the land-data disclosure notice, what is stored
     locally, or what leaves the device".
   - `DESIGN.md` line 88 (MVP surface 7 "Privacy/help") and `docs/domain-model.md` line 83 ("Explain
-    that behavior in plain Spanish before first use"); `MasterPlanV3.md` §16 ("Explain data use in
+    that behavior in plain Spanish before first use"); `docs/archive/MasterPlanV3.md` §16 ("Explain data use in
     plain Spanish before first use").
 - **Size:** one stateless informational screen, one navigation destination, one short always-visible
   chat-home summary plus a labelled control, a pinned content module, strings, previews, and tests.
@@ -283,7 +283,7 @@ preview-based.
 | `docs/domain-model.md` | Not needed | Line 83 already requires explaining data handling in plain Spanish before first use; this feature implements it without changing the domain model. |
 | `docs/risks-and-open-questions.md` | Not needed | The open "Is land export/backup needed" and provider-terms rows stay open; the notice references them without resolving them. |
 | `DESIGN.md` | Not needed | Surface 7 already specifies the privacy/help content; no token or new surface direction is added. |
-| `AGENTS.md`, `CONTEXT.md`, `docs/build-brief.md`, `MasterPlanV3.md` | Not needed | The operating rules (plain Spanish, minimize sent data, commonMain UI, no invented legal facts) already govern; §16 is implemented as written. |
+| `AGENTS.md`, `CONTEXT.md`, `docs/archive/build-brief.md`, `docs/archive/MasterPlanV3.md` | Not needed | The operating rules (plain Spanish, minimize sent data, commonMain UI, no invented legal facts) already govern; §16 is implemented as written. |
 | `docs/specs/minimal_land_context.md` | Not needed | Its disclosure handoff is executed here, not revised; its accepted payload rules are unchanged. |
 | `ARCHITECTURE.md` | Not needed | It does not exist; no module, boundary, or dependency is added. |
 | `scripts/init.sh` | Not needed | No new mode; the notice needs no script and must not start a service. |
@@ -325,5 +325,5 @@ changed; `./scripts/init.sh --verify` remains the full gate.
 The planning and verification record for this feature — repository research, implementation
 plan and tasks, verification plan, evidence to capture, implementation findings, validator
 checklist, and the feature evidence — moved verbatim to
-[`docs/specs/land_data_disclosure.appendix.md`](land_data_disclosure.appendix.md) on 2026-10-17 to keep this contract short.
+[`docs/archive/specs/land_data_disclosure.appendix.md`](../archive/specs/land_data_disclosure.appendix.md) on 2026-10-17 to keep this contract short.
 `docs/validations/land_data_disclosure.md` remains the authoritative acceptance record.

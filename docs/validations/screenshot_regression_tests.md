@@ -5,7 +5,7 @@
 Independent validation of the uncommitted implementation against
 [`docs/specs/screenshot_regression_tests.md`](../specs/screenshot_regression_tests.md), the
 appendix checklist in
-[`screenshot_regression_tests.appendix.md`](../specs/screenshot_regression_tests.appendix.md),
+[`screenshot_regression_tests.appendix.md`](../archive/specs/screenshot_regression_tests.appendix.md),
 `docs/design/ui-refresh-plan.md` §§10.2/10.4, and `PROGRESS.md`. All probes were disposable and were
 reverted; the worktree is back to the implementer's state (`git status` shows only the feature's own
 modified and untracked files, `git diff --check` clean).
