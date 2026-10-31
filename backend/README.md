@@ -158,8 +158,8 @@ Read from the process environment; secrets live in an operator-owned file, never
 | `MANIJERO_PILOT_MAX_CONCURRENCY` | pilot | Default `64`, maximum `512`. A protective placeholder, not a measured capacity. |
 | `MANIJERO_MAX_REQUEST_BYTES` | both | Default `65536`, minimum `1024`, maximum `1048576`. |
 | `MANIJERO_RETENTION_DB` | both (optional) | Unset = product-improvement retention off. Otherwise an owner-only SQLite path outside the repository (see "Product-improvement retention and the privacy gate"). |
-| `MANIJERO_GENERATION_PROVIDER` | both (optional) | `extractive` (default) or `gemini`. `gemini` stays on the extractive path: no client exists and its review gate is closed. Any other value is a preflight problem. |
-| `MANIJERO_GEMINI_MODEL` | both (optional) | The exact model the Gemini review approved; only read by the gate. |
+| `MANIJERO_GENERATION_PROVIDER` | both (optional) | `extractive` (default) or `gemini`. `gemini` selects the gated drafting path only when every gate input passes (see "Gated Gemini drafting"); today no transport exists and the gates are closed, so it stays extractive. Any other value is a preflight problem. |
+| `MANIJERO_GEMINI_MODEL` | both (optional) | The exact model the Gemini review approved; read only by the gate and, when it passes, sent as the request's model id. |
 
 The client file is a closed contract:
 
@@ -446,6 +446,33 @@ Limits: redaction is pattern-based and can miss personal details (see the doc); 
 have no identifier of a person, so one person's record cannot be deleted early; the
 retention store is not backed up by `pilot_ops.py backup` and must not be. Nothing here is a
 compliance claim.
+
+### Gated Gemini drafting
+
+`app/gemini_generation.py` implements a replaceable Gemini drafting path, **but ships no
+transport**: nothing in this repository can reach Google, and no key or credential is read.
+`create_app` resolves the provider once at startup (restart to re-resolve) and logs one
+`generation_provider` line with `provider` and comma-joined fixed `blockers`. Gemini is used
+only when every input passes:
+
+- `MANIJERO_GENERATION_PROVIDER=gemini` and `MANIJERO_GEMINI_MODEL` equal to
+  `gemini_review.model`, with both review gates passed in `config/pilot_privacy_review.json`;
+- `config/gemini_provider_limits.json` (`gemini-provider-limits-v1`) records `timeout_seconds`
+  (1–30), `max_output_tokens` (1–2048), `max_requests_per_minute` (1–600, per process),
+  `max_requests_per_day` (1–100000, per process, UTC day), a non-blank `cost_reference`, and a
+  `recorded_on` date not in the future. It is committed all `null`; only a reviewed change with a
+  real limits and spend-cap decision may fill it;
+- a transport was injected (`gemini_transport_unavailable` otherwise — always, today).
+
+Limits blockers: `gemini_limits_unreadable`, `gemini_limits_invalid`,
+`gemini_limits_not_recorded`, `gemini_limits_out_of_range`, `gemini_limits_future_date`.
+
+When active, each draft sends only the redacted question and the reviewed excerpts of the
+citation window labelled by candidate number, and logs one `generation` line with
+`provider=gemini` and an `outcome`: `gemini_used`, `rate_limited`, `redaction_failed`,
+`payload_invalid`, `transport_error`, `timeout`, `malformed_output`, `provider_abstained`, or
+`verifier_rejected`. Every outcome but `gemini_used` returns the extractive draft. No
+answer-quality, latency, cost, or legal-coverage evidence exists: no real model has been called.
 
 ## Offline retrieval baseline
 

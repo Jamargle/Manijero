@@ -7,9 +7,8 @@ Routine entry point. Exact feature status lives in [`feature_list.json`](feature
 contracts, raw evidence, and acceptance records remain in their owning files. Last updated:
 2026-10-31.
 
-**Feature status** — 64 of 68 features are accepted. The four remaining `not_started` features are
-`chroma_hybrid_retrieval`, `gemini_generation_provider`, `knowledge_reindex_release`, and
-`private_pilot_distribution`. `feature_list.json` and the selector remain the status authority;
+**Feature status** — 65 of 68 features are accepted. The three remaining `not_started` features are
+`chroma_hybrid_retrieval`, `knowledge_reindex_release`, and `private_pilot_distribution`. `feature_list.json` and the selector remain the status authority;
 this page does not duplicate the feature-id list.
 
 **Product shape** — shared Compose chat, lands, and help surfaces in `shared/src/commonMain`, hosted
@@ -26,7 +25,8 @@ in the Andalusian PAC single application for 2026. `/ready` and `/ask` require a
 source scans exist only as a manual-dispatch runner plus disabled, unrehearsed systemd templates
 (`knowledge_update_scheduler`); no host runs them and no freshness is claimed. A pinned local `BAAI/bge-m3` artifact and a derived
 passage-embedding index now exist, but stay off the answer path: `/ask` still uses the reviewed
-BM25 retrieval. Gemini is planned but gated off pending current provider/privacy review.
+BM25 retrieval. Gated Gemini drafting code exists (`gemini_generation_provider`) but ships no
+transport and an all-`null` limits record, so generation stays extractive; no model has been called.
 
 **Known limitations (do not over-claim)**
 

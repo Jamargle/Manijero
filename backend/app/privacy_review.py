@@ -13,9 +13,10 @@ unnecessary personal data), covers every required scope item, and references the
 The Gemini gate additionally requires the ``gemini_review`` section to pass the same checks
 for its own scope, to name the exact reviewed model, and to limit the data sent to the
 question and the approved retrieved passages. It also requires the pilot gate to pass, and
-``MANIJERO_GENERATION_PROVIDER=gemini`` with a matching ``MANIJERO_GEMINI_MODEL``. Even when
-it passes, this service has no Gemini client (that is ``gemini_generation_provider``); the
-answer path stays extractive.
+``MANIJERO_GENERATION_PROVIDER=gemini`` with a matching ``MANIJERO_GEMINI_MODEL``. This gate
+is necessary, not sufficient: :mod:`app.gemini_generation` also requires the recorded limits
+file and an injected transport, and this repository ships no transport, so the answer path
+stays extractive.
 
 Blockers are fixed codes; no record value is echoed.
 """
@@ -135,11 +136,12 @@ def decide_generation_provider(
     record: Mapping[str, Any] | None = None,
     as_of: date,
 ) -> GenerationDecision:
-    """Return the answer provider: always ``extractive`` in this service.
+    """Return the review-gate decision; ``provider`` here is always ``extractive``.
 
     A configured Gemini provider is reported with its gate result so the operator can see
-    why it is not used. No Gemini client exists here, so even a passed gate does not make a
-    request; the later ``gemini_generation_provider`` feature must call this gate first.
+    why it is not used. The effective provider is decided by
+    :func:`app.gemini_generation.resolve_generation_provider`, which calls this gate first
+    and adds the limits and transport gates; no transport exists in this repository.
     """
 
     source = os.environ if env is None else env
@@ -168,8 +170,9 @@ def minimal_provider_payload(question: str, passages: Sequence[Mapping[str, Any]
 
     It carries the question and the text of the approved retrieved passages, each with
     its passage id so a draft can cite it. It never carries land context, land ids,
-    names, notes, client or device identifiers, or retained question/answer text. This
-    is the data boundary a future provider must use; nothing in this service sends it.
+    names, notes, client or device identifiers, or retained question/answer text. The gated
+    Gemini generator builds its payload only through this function (with the redacted
+    question and candidate numbers as ids); no transport exists here, so nothing sends it.
     """
 
     if not isinstance(question, str) or not question.strip():

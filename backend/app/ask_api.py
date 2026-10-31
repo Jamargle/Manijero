@@ -18,10 +18,12 @@ from app.abstention import (
     to_abstention_response,
 )
 from app.clarification import (
+    DEFAULT_MAX_CLAIMS,
     NeedsLandClarification,
     answer_with_clarification,
     to_clarification_response,
 )
+from app.gemini_generation import ProviderResolution
 from app.generation import Answered, to_answer_response
 from app.pilot_logging import operational_log
 from app.retention import RetentionStore, retain_if_opted_in
@@ -145,6 +147,12 @@ def get_retention_store(request: Request) -> RetentionStore | None:
     return getattr(request.app.state, "retention_store", None)
 
 
+def get_generation_provider(request: Request) -> ProviderResolution | None:
+    """The answer provider resolved by ``create_app``; ``None`` keeps the extractive path."""
+
+    return getattr(request.app.state, "generation_provider", None)
+
+
 router = APIRouter()
 
 
@@ -166,10 +174,11 @@ def ask_question(
     active_campaign: str = Depends(get_active_campaign),
     retrieval_k: int = Depends(get_retrieval_k),
     retention_store: RetentionStore | None = Depends(get_retention_store),
+    generation: ProviderResolution | None = Depends(get_generation_provider),
 ) -> Dict[str, Any]:
     """Run accepted corpus and answer decisions, then the separate opt-in retention step."""
 
-    response = _answer(request, corpus_documents, as_of, active_campaign, retrieval_k)
+    response = _answer(request, corpus_documents, as_of, active_campaign, retrieval_k, generation)
     # Retention runs after the answer exists and cannot change or fail it. Only a fixed
     # outcome code is logged, and only when something was attempted.
     outcome = retain_if_opted_in(
@@ -191,6 +200,7 @@ def _answer(
     as_of: date,
     active_campaign: str,
     retrieval_k: int,
+    generation: ProviderResolution | None = None,
 ) -> Dict[str, Any]:
     try:
         years = set(re.findall(r"(?<!\d)\d{4}(?!\d)", request.question))
@@ -200,12 +210,22 @@ def _answer(
     except (CatalogReadError, CatalogRejectedError, PassageSetError, RuntimeError, ValueError):
         raise _unavailable_corpus_error()
 
+    land_context = request.land_context.model_dump(exclude_none=True)
+    # ``None`` (the committed state) keeps the accepted extractive generator. A gated
+    # Gemini generator verifies its own draft and falls back to extractive on any problem.
+    generator = (
+        generation.generator_for(land_context, max_claims=DEFAULT_MAX_CLAIMS)
+        if generation is not None
+        else None
+    )
     result = answer_with_clarification(
         request.question,
-        request.land_context.model_dump(exclude_none=True),
+        land_context,
         corpus,
         as_of=as_of,
         k=retrieval_k,
+        max_claims=DEFAULT_MAX_CLAIMS,
+        generator=generator,
     )
     if isinstance(result, NeedsLandClarification):
         return to_clarification_response(result)
