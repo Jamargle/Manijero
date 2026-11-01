@@ -275,13 +275,13 @@ version of the app over the existing one and keeps its data.
 | `Result: the smoke test did not run. Run ./scripts/init.sh --local-rag-setup.` | The local answer tools are not set up. | Follow [Set up the local answer tools](#set-up-the-local-answer-tools). |
 | `Result: the smoke test did not run. Start it with ./scripts/init.sh --local-rag-start, ...` | The service is not running. | Start it, then run the smoke test again. |
 | A `PROBLEM ...` line, then `Result: the smoke test did not run. Do the step shown above.` | A service check is not `OK` (for example Ollama is closed). | Do what the `PROBLEM` line says, then run the smoke test again. |
-| `Java was not found on this computer.` | Java is needed to build the apps. | Install a Java 21 JDK, then run the smoke test again. |
+| `Java was not found on this computer. ...` | Java is needed to build the apps, and none was found (not even one Gradle downloaded earlier). | Install Temurin 21 from https://adoptium.net, then run the command again. |
 | `Another smoke test is running in another Terminal window.` | One is already running. | Wait for its `Result:` line, then run it again. |
 | `FAIL  Android emulator: no Android emulator is running. ...` or `... is still starting. ...` | No emulator is ready. | Do step 2, then run it again. |
 | `FAIL  Android emulator: adb was not found. ...` | Android Studio's Platform-Tools are missing. | Install them as the line says, then run it again. |
 | `FAIL  <app>: the app uses <address>, not <address>. Open Ayuda > Herramientas de prueba > Conexión, ...` | That app was set to another address. | In that app, do what the line says, then run it again. |
 | `FAIL  <app>: the app could not reach ...`, `... cannot answer questions right now ...`, `... with an error ...`, or `... no reply within 90 seconds ...` | The app reached the service, or tried, but got no usable reply. | Run `./scripts/init.sh --local-rag-service-status` and do its first step, then run it again. |
-| `FAIL  <app>: the check could not run. Details are in build/local-smoke/<app>.log; ...` or another `FAIL` line naming a log | The build, install, or check itself failed. | Send that log file to a developer. |
+| `FAIL  <app>: the check could not run. Details are in build/local-smoke/<app>.log; ...`, `FAIL  Android emulator: the Android test tools do not match this emulator's Android version. ...`, or another `FAIL` line naming a log | The build, install, or check itself failed. | Send that log file to a developer. |
 | `The smoke test was stopped.` | You pressed Ctrl+C. | Run it again when you are ready. |
 
 ## Owner walkthrough: local smoke test

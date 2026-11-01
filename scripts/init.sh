@@ -59,6 +59,10 @@ if [[ "${1:-}" == "--setup-python" ]]; then
   exec "$(dirname -- "${BASH_SOURCE[0]}")/python-env.sh" "$@"
 fi
 
+# The one Java resolution for every path that runs ./gradlew or java (scripts/java-env.sh).
+# shellcheck source=scripts/java-env.sh
+source "$(dirname -- "${BASH_SOURCE[0]}")/java-env.sh"
+
 # Owner commands for the local answer tools (docs/owner-guide.md). Like --backend, they
 # need no Android SDK, Java, or local.properties. MANIJERO_OLLAMA_CLI is for tests only.
 if [[ "${1:-}" == "--local-rag-setup" || "${1:-}" == "--local-rag-status" ]]; then
@@ -173,6 +177,9 @@ if [[ "${1:-}" == "--local-smoke" ]]; then
   ANDROID_SDK_ROOT="${ANDROID_SDK_ROOT:-$ANDROID_HOME}"
   unset ANDROID_PREFS_ROOT
   export ANDROID_HOME ANDROID_SDK_ROOT
+  # Resolve Java here but let local_smoke.py report a missing one in its own order (after the
+  # service check); it accepts only the JAVA_HOME exported here.
+  manijero_resolve_java || true
   exec "$LOCAL_RAG_PYTHON" "$REPO_ROOT/backend/scripts/local_rag.py" smoke
 fi
 
@@ -328,8 +335,9 @@ if [[ ! -x "$REPO_ROOT/gradlew" ]]; then
   exit 1
 fi
 
-if ! command -v java >/dev/null 2>&1; then
-  printf 'Java is required. Install a compatible JDK, then rerun ./scripts/init.sh.\n' >&2
+if ! manijero_resolve_java; then
+  printf '%s\n' "$MANIJERO_JAVA_MISSING"
+  printf 'Result: nothing was run. Install Temurin 21 from https://adoptium.net, then run this command again.\n'
   exit 1
 fi
 

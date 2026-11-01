@@ -10,6 +10,7 @@
   2. It runs against the real local RAG service from `local_full_rag_stack` (`--local-rag-start` / `--local-rag-service-status` / `--local-rag-stop`). It reuses the app connection settings from `local_service_connection`. Each prerequisite gap (setup not done, Ollama closed, service not running, no emulator) is reported as one plain line naming the fix, never as a stack trace.
   3. Automated verification of the smoke command itself uses fakes. It never needs a running service, Ollama, a model, an emulator, or a device. The real run is the owner walkthrough in `docs/owner-guide.md`.
   4. No answer-quality or legal-coverage claim. The smoke test proves that the apps reach the service and render either a grounded answer or an honest abstention. It does not prove that answers are correct.
+  5. (2026-11-01, after the owner walkthrough hit macOS's "Unable to locate a Java Runtime") The scripts find Java on their own. One shared resolution in `scripts/java-env.sh`, sourced by `scripts/init.sh` for every path that runs `./gradlew` or `java`, tries in order: a working `JAVA_HOME`; `/usr/libexec/java_home -v 21`; a `java` on `PATH` that runs (`java -version` succeeds, so Apple's placeholder is rejected); the newest JDK 21 under `~/.gradle/jdks`, chosen by version. Both a system-wide Temurin 21 and a Gradle-downloaded JDK must work. When none is found, one line names the fix (install Temurin 21 from https://adoptium.net) and a `Result:` line follows. `local_smoke.py` accepts only the resolved `JAVA_HOME`, so it always agrees with `init.sh`.
   The command name, the offscreen Desktop driver, the instrumented Android driver, and the test tags are planner choices; see the appendix, "Planner decisions".
 
 ## Goal
@@ -108,7 +109,8 @@ Given any run, these hold:
 ## Expected file changes
 
 - `scripts/init.sh` — modify: dispatch, `usage`, `--check` listing.
-- `backend/app/local_smoke.py`, `backend/tests/test_local_smoke.py` — create.
+- `backend/app/local_smoke.py`, `backend/tests/test_local_smoke.py` — create. `local_smoke.py`'s Java check accepts only the `JAVA_HOME` resolved by `scripts/java-env.sh` (its `bin/java -version` must run).
+- `scripts/java-env.sh`, `backend/tests/test_java_resolution.py` — create: the one shared Java resolution sourced by `scripts/init.sh` (owner decision 5), and its offline tests.
 - `backend/scripts/local_rag.py` — modify: add `smoke`.
 - `backend/app/local_rag_service.py` — modify: extract `service_checks`, with no output change.
 - `backend/tests/test_local_rag_commands.py` — modify: `--local-smoke` subprocess cases.
@@ -119,8 +121,8 @@ Given any run, these hold:
 - `desktopApp/src/main/.../main.kt` — modify: use it.
 - `shared/src/jvmTest/.../smoke/SmokeUiScript.kt`, `DesktopSmokeDriverTest.kt`, `DesktopLocalSmokeRun.kt`, and `platform/LocalSmokeGuardTest.kt` — create.
 - `shared/build.gradle.kts` — modify: jvmTest exclusion, `runDesktopLocalSmoke`, jvmTest `ktor-client-cio`.
-- `androidApp/build.gradle.kts` — modify: `testInstrumentationRunner`, test dependencies.
-- `gradle/libs.versions.toml` — modify: `androidx-test-runner`.
+- `androidApp/build.gradle.kts` — modify: `testInstrumentationRunner`, test dependencies, the androidTest-only `espresso-core` pin, and the offline `verifyAndroidTestDependencies` task (fails when the resolved `espresso-core` is older than 3.6.1, which crashes on API 34+).
+- `gradle/libs.versions.toml` — modify: `androidx-test-runner`, `androidx-test-espresso-core` (3.7.0).
 - `androidApp/src/androidTest/kotlin/com/jamarglex/manijero/smoke/AndroidLocalSmokeTest.kt` — create.
 - Not changed: `androidApp/src/release/**`, `MainActivity.kt`, every backend service module, `contracts/`, `knowledge/`, `strings.xml`, and screenshot goldens.
 
@@ -146,9 +148,11 @@ This block runs offline: no service, Ollama, model, emulator, device, or network
 <!-- verify:start -->
 ```sh
 bash -n scripts/init.sh
-MANIJERO_PYTHON="${MANIJERO_PYTHON:-backend/.venv/bin/python}" ./scripts/init.sh --backend-tests tests/test_local_smoke.py tests/test_local_rag_commands.py tests/test_local_rag_service.py -q
+bash -n scripts/java-env.sh
+MANIJERO_PYTHON="${MANIJERO_PYTHON:-backend/.venv/bin/python}" ./scripts/init.sh --backend-tests tests/test_local_smoke.py tests/test_local_rag_commands.py tests/test_local_rag_service.py tests/test_java_resolution.py -q
 ./gradlew --quiet :shared:jvmTest --tests 'com.jamarglex.manijero.smoke.*' --tests 'com.jamarglex.manijero.connection.*' --tests 'com.jamarglex.manijero.chat.*' --tests 'com.jamarglex.manijero.platform.*'
 ./gradlew --quiet :androidApp:compileDebugAndroidTestKotlin :androidApp:compileReleaseKotlin :desktopApp:compileKotlin
+./gradlew --quiet :androidApp:verifyAndroidTestDependencies :androidApp:assembleDebugAndroidTest
 ./gradlew --quiet :shared:runDesktopLocalSmoke --dry-run
 ./gradlew :shared:verifyDesktopScreenshots --tests 'com.jamarglex.manijero.screenshots.ChatHomeScreenshotsTest'
 ./gradlew :shared:verifyAndroidScreenshots --tests 'com.jamarglex.manijero.screenshots.ChatHomeAndroidScreenshotsTest'

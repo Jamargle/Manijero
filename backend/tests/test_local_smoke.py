@@ -201,7 +201,7 @@ def _stop_service(s: Smoke) -> None:
         (lambda s: s.harness.write_record(40_000), ["PROBLEM  Search: a newer knowledge release was published"], "Do the step shown above."),
         (lambda s: setattr(s.harness.probe, "ready_answer", svc.UNAVAILABLE), ["PROBLEM  Answers: the service runs but cannot answer"], "Do the step shown above."),
         (lambda s: setattr(s.tools, "java", False), ["Java was not found on this computer."],
-         "Install a Java 21 JDK (for example from https://adoptium.net), then run this command again."),
+         "Install Temurin 21 from https://adoptium.net, then run this command again."),
         (lambda s: _hold(s.dir / ".lock"), ["Another smoke test is running in another Terminal window."],
          "Wait for it to finish, then run this command again."),
     ],
@@ -429,6 +429,34 @@ def test_an_android_install_or_run_failure_could_not_run(s: Smoke, arrange) -> N
     assert s.lines[-1] == "Result: the smoke test failed on the Android emulator. Do the first step shown above."
 
 
+ESPRESSO_CRASH = (
+    "INSTRUMENTATION_STATUS: class=com.jamarglex.manijero.smoke.AndroidLocalSmokeTest\r\n"
+    "INSTRUMENTATION_STATUS: stack=java.lang.NoSuchMethodException: android.hardware.input.InputManager.getInstance []\r\n"
+    "\tat androidx.test.espresso.base.InputManagerEventInjectionStrategy.initialize(InputManagerEventInjectionStrategy.java:12)\r\n"
+    "INSTRUMENTATION_STATUS_CODE: -2\r\n"
+    "INSTRUMENTATION_RESULT: stream=\r\nFAILURES!!!\r\nTests run: 1,  Failures: 1\r\nINSTRUMENTATION_CODE: -1\r\n"
+)
+
+
+@pytest.mark.parametrize("missing", ["NoSuchMethodException", "NoSuchMethodError", "NoClassDefFoundError", "ClassNotFoundException"])
+def test_a_tools_crash_on_the_device_is_named_plainly_without_a_stack_trace(s: Smoke, missing: str) -> None:
+    s.runner.instrument = ESPRESSO_CRASH.replace("NoSuchMethodException", missing)
+
+    assert s.run() == 1
+    assert s.lines[4] == (
+        "FAIL  Android emulator: the Android test tools do not match this emulator's Android version. "
+        "Details are in {}; send that file to a developer.".format(s.dir / "android.log")
+    )
+    assert not any("InputManager" in line or "at androidx" in line for line in s.lines)
+    assert s.lines[-1] == "Result: the smoke test failed on the Android emulator. Do the first step shown above."
+
+
+def test_a_well_formed_status_wins_over_a_tools_crash_marker(s: Smoke) -> None:
+    s.runner.instrument = instrumentation_output(ANDROID_OK, "INSTRUMENTATION_STATUS: stack=java.lang.ClassNotFoundException: x\r\n")
+
+    assert s.run() == 0, s.lines
+
+
 def test_a_failed_assertion_with_a_well_formed_status_reports_the_outcome(s: Smoke) -> None:
     failing = ANDROID_OK.replace("abstained", "land_clarification")
     s.runner.instrument = instrumentation_output(failing).replace("OK (1 test)", "FAILURES!!! Tests run: 1,  Failures: 1")
@@ -510,3 +538,19 @@ def test_the_system_tools_find_java_and_adb_only_where_they_are(tmp_path: Path) 
     assert smoke.SystemTools({"ANDROID_HOME": str(tmp_path / "none")}).adb_path() is None
     assert smoke.SystemTools({"JAVA_HOME": str(java_home), "PATH": ""}).java_available()
     assert not smoke.SystemTools({"PATH": str(tmp_path / "empty")}).java_available()
+
+
+def test_the_smoke_java_check_rejects_a_placeholder_and_a_java_only_on_path(tmp_path: Path) -> None:
+    stub_home = tmp_path / "stub"
+    (stub_home / "bin").mkdir(parents=True)
+    stub = stub_home / "bin" / "java"
+    stub.write_text("#!/bin/sh\necho 'Unable to locate a Java Runtime.' >&2\nexit 1\n", encoding="utf-8")
+    stub.chmod(0o755)
+
+    assert not smoke.SystemTools({"JAVA_HOME": str(stub_home)}).java_available()
+    # A working java only on PATH: init.sh would have exported its JAVA_HOME, so without one it is absent.
+    working = tmp_path / "path-bin" / "java"
+    working.parent.mkdir()
+    working.write_text("#!/bin/sh\nexit 0\n", encoding="utf-8")
+    working.chmod(0o755)
+    assert not smoke.SystemTools({"PATH": str(working.parent)}).java_available()

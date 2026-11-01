@@ -130,6 +130,34 @@ Deviations from the spec, with reasons:
 - The "not set up" line from `init.sh` and from Python is followed by `Result: the smoke test did not run. Run ./scripts/init.sh --local-rag-setup.` (scenario 2), instead of the `--local-rag-*` `Result: setup has not run yet.`
 - `PROGRESS.md` "Start and verify" and `docs/progress/known-limitations.md` are left for the orchestrator at acceptance, as the contract says.
 
+Repair 2026-11-01 (Java detection, found by the owner walkthrough; owner decision 5 in the spec Notes):
+
+- Defect: `init.sh` checked `command -v java`, which passes on Apple's `/usr/bin/java` placeholder. As a result, `--android-run` printed only "Unable to locate a Java Runtime".
+- Fix: a new `scripts/java-env.sh` holds the one resolution, sourced by `init.sh`. Every Gradle and Java path goes through it: the main pre-dispatch check covers `--check`, `--fast`, `--verify`, `--feature`, `--backend-tests`, `--android`, `--android-run`, `--desktop`, and `--mock`, and the `--local-smoke` early dispatch calls it too.
+  - Order: working `JAVA_HOME`; `java_home -v 21`; a `java` on `PATH` that runs `-version`; the newest JDK 21 under `${GRADLE_USER_HOME:-$HOME/.gradle}/jdks`, one or two folders down, in bundle or flat layout, chosen by the version in its `release` file.
+  - It exports `JAVA_HOME` and `PATH`. Probe stderr is discarded. When nothing is found it prints the Temurin 21 line and `Result: nothing was run. ...`, exit 1.
+  - `MANIJERO_JAVA_HOME_TOOL` replaces `/usr/libexec/java_home`, for tests only.
+- `local_smoke.SystemTools.java_available` now accepts only a `JAVA_HOME` whose `bin/java -version` succeeds. A `java` that is only on `PATH` is rejected, so it agrees with the resolution; `FIX_JAVA` names Temurin 21.
+- Tests: `backend/tests/test_java_resolution.py` has 9 cases, all on temporary `HOME`, `PATH`, `java_home`, and `jdks` fakes: each order step, the placeholder rejected, the newest 21 picked by version (21.0.10 over 21.0.9 and 21.0.2, with mtimes inverted, and 17, 22, and no-release ignored), `GRADLE_USER_HOME`, nothing found, and the `init.sh --check` not-found pair. `test_local_smoke.py` has 1 new case: a placeholder `JAVA_HOME` and a PATH-only `java` are both rejected.
+- `./scripts/init.sh --feature local_end_to_end_smoke`: passed (backend 144 passed, 2 skipped).
+- `CI=true ./scripts/init.sh --fast`: all 9 checks passed (backend 1595 passed, 4 skipped).
+- `--verify` was not rerun: no Gradle input changed. Only `init.sh` and its sourced Java resolution changed.
+- Validator revise (docs only): the verify block now runs `bash -n scripts/java-env.sh` and `tests/test_java_resolution.py`; `./scripts/init.sh --feature local_end_to_end_smoke` passed (backend 153 passed, 2 skipped).
+- Deviation: the resolution lives in the sourced `scripts/java-env.sh` rather than inline in `init.sh`, so tests can run it alone. `init.sh` remains the only caller.
+
+Repair 3, 2026-11-01 (Android instrumentation crash, found by the owner walkthrough step 3; Desktop passed with 1 source card):
+
+- Defect: `AndroidLocalSmokeTest` crashed with `NoSuchMethodException: InputManager.getInstance`, thrown from `InputManagerEventInjectionStrategy.initialize`. Espresso before 3.6 reflects on that hidden API, and API 34+ removed it. `ui-test-junit4` pulled in Espresso 3.5.0.
+- Resolved `debugAndroidTestRuntimeClasspath`, before → after:
+  - `espresso-core` 3.5.0 → 3.7.0; `espresso-idling-resource` 3.5.0 → 3.7.0.
+  - Unchanged and already aligned: `core` 1.7.0, `runner` 1.7.0, `monitor` 1.8.0, `ext:junit` 1.3.0, `services:storage` 1.6.0.
+- Fix: the catalog gains `androidx-test-espresso = "3.7.0"` and `androidx-test-espresso-core`, added only as `androidTestImplementation` in `androidApp`.
+- Offline guard: new `:androidApp:verifyAndroidTestDependencies` resolves the androidTest classpath and fails unless exactly one `espresso-core` ≥ 3.6.1 resolves. With the pin set to 3.5.0 it failed ("espresso-core 3.5.0 is older than 3.6.1 and crashes on API 34+"), then I reverted the pin. It is wired into the focused block.
+- Plain owner line: an instrumentation run with no result line that names a missing method, field, or class now prints `FAIL  Android emulator: the Android test tools do not match this emulator's Android version. Details are in <android.log>; send that file to a developer.` No stack trace is printed. A well-formed status line still takes precedence. 5 new fake-output tests cover this.
+- `./scripts/init.sh --feature local_end_to_end_smoke`: passed (backend 158 passed, 2 skipped). This includes `verifyAndroidTestDependencies` and `:androidApp:assembleDebugAndroidTest`, which I added to the focused block.
+  - A direct `./gradlew :androidApp:assembleDebugAndroidTest` stopped at "SDK location not found": this shell has no `local.properties` and no `ANDROID_HOME`, and I did not create them. It ran through `init.sh` instead, which exports `ANDROID_HOME`, and `androidApp-debug-androidTest.apk` was built.
+- `CI=true ./scripts/init.sh --fast`: all 9 checks passed. `./scripts/init.sh --verify`: passed. I reran it because the Gradle build and the catalog changed.
+
 Not run here (owner walkthrough, recorded by the orchestrator): the real `--local-smoke` run against the service and emulator, AGP `installDebug` keeping app data, and the `ACCESS_LOCAL_NETWORK` grant on API 37.
 
 ## Validator checklist
