@@ -151,6 +151,31 @@ if [[ "${1:-}" == "--container-build" || "${1:-}" == "--container-start" || "${1
   exec "$LOCAL_RAG_PYTHON" "$REPO_ROOT/backend/scripts/local_rag.py" "${1#--}"
 fi
 
+# Owner command: smoke-test the Desktop and Android emulator apps against the running local answer
+# service (docs/owner-guide.md). Like --local-rag-*, it runs before the local.properties write; AGP
+# reads ANDROID_HOME instead. backend/app/local_smoke.py checks the service, Java, and the emulator.
+if [[ "${1:-}" == "--local-smoke" ]]; then
+  REPO_ROOT="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")/.." && pwd)"
+  if (( $# > 1 )); then
+    printf 'Run %s on its own, with nothing after it.\n' "$1" >&2
+    exit 2
+  fi
+  LOCAL_RAG_PYTHON="$REPO_ROOT/backend/.venv/bin/python"
+  if [[ ! -x "$LOCAL_RAG_PYTHON" ]] && ! "$REPO_ROOT/scripts/python-env.sh" dev --if-present >/dev/null 2>&1; then
+    printf 'The local answer tools are not set up yet. Run ./scripts/init.sh --local-rag-setup to set them up.\n'
+    printf 'Result: the smoke test did not run. Run ./scripts/init.sh --local-rag-setup.\n'
+    exit 1
+  fi
+  if [[ -z "${ANDROID_HOME:-}" && -z "${ANDROID_SDK_ROOT:-}" ]]; then
+    ANDROID_HOME="$HOME/Library/Android/sdk"
+  fi
+  ANDROID_HOME="${ANDROID_HOME:-${ANDROID_SDK_ROOT:-}}"
+  ANDROID_SDK_ROOT="${ANDROID_SDK_ROOT:-$ANDROID_HOME}"
+  unset ANDROID_PREFS_ROOT
+  export ANDROID_HOME ANDROID_SDK_ROOT
+  exec "$LOCAL_RAG_PYTHON" "$REPO_ROOT/backend/scripts/local_rag.py" smoke
+fi
+
 if [[ "${1:-}" == "--backend" ]]; then
   REPO_ROOT="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")/.." && pwd)"
   BACKEND_DIR="$REPO_ROOT/backend"
@@ -201,7 +226,7 @@ AS_OF="${MANIJERO_AS_OF:-2026-10-13}"
 
 usage() {
   cat <<'EOF'
-Usage: ./scripts/init.sh [--check|--fast|--verify|--feature <id>|--backend-tests [targets]|--setup-python [dev|hybrid]|--backend|--mock|--mock-status|--mock-stop|--local-rag-setup|--local-rag-status|--local-rag-start|--local-rag-service-status|--local-rag-stop|--container-build|--container-start|--container-status|--container-stop|--pilot-token-save|--android|--android-run|--desktop|--help]
+Usage: ./scripts/init.sh [--check|--fast|--verify|--feature <id>|--backend-tests [targets]|--setup-python [dev|hybrid]|--backend|--mock|--mock-status|--mock-stop|--local-rag-setup|--local-rag-status|--local-rag-start|--local-rag-service-status|--local-rag-stop|--container-build|--container-start|--container-status|--container-stop|--pilot-token-save|--local-smoke|--android|--android-run|--desktop|--help]
 
   --check                   Check Java and the Gradle wrapper, then print standard commands (default)
   --fast                    Shared host tests, contract examples, backend unit tests, and the five
@@ -234,6 +259,9 @@ Usage: ./scripts/init.sh [--check|--fast|--verify|--feature <id>|--backend-tests
   --container-stop          Stop and remove the answer service container
   --pilot-token-save        Save the copied pilot token (macOS clipboard) for the next Android and
                             Desktop builds; it never prints the token
+  --local-smoke             With the local answer service running, ask it one fixed question through
+                            the Desktop app and the app on the running Android emulator; one PASS or
+                            FAIL line each (installs the debug app over the existing one, data kept)
   --android                 Build the Android debug APK
   --android-run             Build, start an emulator if needed, install, and launch the app
   --desktop                 Launch the Desktop app
@@ -790,6 +818,7 @@ Build and run:
   ./scripts/init.sh --local-rag-start  # start the real local answer service in the background (--local-rag-service-status, --local-rag-stop)
   ./scripts/init.sh --container-build  # build the answer service image in Docker Desktop (see docs/owner-guide.md)
   ./scripts/init.sh --container-start  # run it in the background (--container-status, --container-stop)
+  ./scripts/init.sh --local-smoke      # with it running: ask it once through the Desktop and Android emulator apps
   ./scripts/init.sh --android    # androidApp/build/outputs/apk/debug/androidApp-debug.apk
   ./scripts/init.sh --android-run # build and launch on an Android emulator
   ./scripts/init.sh --desktop    # launch the Desktop app

@@ -2157,3 +2157,50 @@ rm --force`; images, Docker Desktop, and Ollama are left as they are.
 limits**: no real Docker ran in automated checks; images are never pruned; transitive packages
 are not hash-locked, so the same inputs can rebuild with different transitive versions; native
 platform only; the image is a default-profile local runtime, not a pilot launcher.
+
+### Local smoke test
+
+`./scripts/init.sh --local-smoke` (owner steps in [`docs/owner-guide.md`](../docs/owner-guide.md))
+runs `scripts/local_rag.py smoke`, implemented by `app/local_smoke.py` (operator-only,
+stdlib-only, never imported by the service). The dispatch runs before the `local.properties`
+write and exports `ANDROID_HOME`/`ANDROID_SDK_ROOT` (default `~/Library/Android/sdk`) for AGP.
+In order, stopping at the first gap, it:
+
+1. holds `<repo>/build/local-smoke/.lock` (a second run says "wait for it to finish");
+2. requires `settings.env`, a verified run record (a stale one is cleared), and all three
+   `service_checks` (the quiet core of `--local-rag-service-status`) `OK`;
+3. requires `java` (`JAVA_HOME` or `PATH`) and an executable `gradlew`;
+4. Desktop: `./gradlew --console=plain --quiet :shared:runDesktopLocalSmoke
+   -PmanijeroSmokeExpected=http://127.0.0.1:<port> -PmanijeroSmokeResult=<dir>/desktop-result.txt`
+   (15 min, log `desktop.log`). The task runs `smoke.DesktopLocalSmokeRun`, which jvmTest excludes;
+5. Android: `adb devices`, then the first `emulator-*` in state `device` whose
+   `sys.boot_completed` is `1` (physical devices are ignored);
+   `ANDROID_SERIAL=<serial> ./gradlew :androidApp:installDebug :androidApp:installDebugAndroidTest`
+   (15 min); `adb -s <serial> shell am instrument -w -r -e class
+   com.jamarglex.manijero.smoke.AndroidLocalSmokeTest -e expectedAddress http://10.0.2.2:<port>
+   com.jamarglex.manijero.test/androidx.test.runner.AndroidJUnitRunner` (5 min, log `android.log`).
+   It never uses `connectedAndroidTest`, which uninstalls the app and wipes its data.
+
+A gap in steps 1–3 prints one line and `Result: the smoke test did not run. <fix>`, and builds
+nothing. No adb, no emulator, or a booting emulator fails only the Android line.
+
+**Result protocol.** Each driver reports exactly one line,
+`MANIJERO_SMOKE_RESULT outcome=<code> sources=<n> address=<default|saved> url=<address in use>`:
+Desktop in the result file, Android as instrumentation status `manijero_smoke_result`. The codes
+are `answered`, `abstained`, `answered_without_sources`, `land_clarification`, `unreachable`,
+`service_error`, `not_ready`, `ready_unknown`, `not_manijero`, `other_address`, `no_answer`, and
+`error`. Only `answered` with at least one source card, or `abstained`, passes. A timeout, a
+non-zero exit, or a missing or malformed line prints the "could not run" line with the log path.
+For `other_address`, the `Usar la dirección predeterminada` fix is named only when the saved
+address hides a build default that equals the service address. The build default is
+`MANIJERO_ASK_BASE_URL` for Desktop and `ORG_GRADLE_PROJECT_manijeroAskBaseUrl` for Android,
+falling back to the standard addresses. A default set in a `gradle.properties` file is not seen.
+
+**Drivers.** Both resolve the address the way the app does, with the saved address read
+read-only. A different address ends the check with no request sent. They probe `/health` and
+`/ready`, render `App` with no land store, type `LOCAL_SMOKE_QUESTION` (`general`, no lands, no
+retention key), and press `Preguntar`. They wait up to 90 s for a final `ChatTestTags` state and
+press `Reintentar` once after an unreachable failure. **Logs** under `build/local-smoke/` hold
+the commands and Gradle/adb output; output lines, result files, and logs carry no question,
+answer, or passage text. **Exit codes**: `0` both pass; `1` did not run, a platform failed, or
+Ctrl+C (the child step is ended); `2` an extra argument.

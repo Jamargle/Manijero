@@ -15,6 +15,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.platform.testTag
 import com.jamarglex.manijero.design.ManijeroCard
 import com.jamarglex.manijero.design.ManijeroCardTone
 import com.jamarglex.manijero.design.ManijeroIcon
@@ -65,7 +66,7 @@ internal fun SourceCardsSection(cards: List<SourceCard>, modifier: Modifier = Mo
  */
 @Composable
 private fun SourceCardView(card: SourceCard, modifier: Modifier = Modifier) {
-    ManijeroCard(modifier = modifier, tone = ManijeroCardTone.Outlined) {
+    ManijeroCard(modifier = modifier.testTag(ChatTestTags.SOURCE_CARD), tone = ManijeroCardTone.Outlined) {
         Column(
             modifier = Modifier
                 .fillMaxWidth()

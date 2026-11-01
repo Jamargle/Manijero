@@ -21,6 +21,7 @@ import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.style.BaselineShift
 import androidx.compose.ui.text.withStyle
+import androidx.compose.ui.platform.testTag
 import com.jamarglex.manijero.ChatMessage
 import com.jamarglex.manijero.Speaker
 import com.jamarglex.manijero.design.ManijeroIcon
@@ -77,7 +78,7 @@ internal fun ChatMessageBubble(message: ChatMessage, modifier: Modifier = Modifi
                     sources = message.sources,
                 )
                 Column(
-                    modifier = modifier.fillMaxWidth(),
+                    modifier = modifier.fillMaxWidth().testTag(ChatTestTags.ANSWERED),
                     verticalArrangement = Arrangement.spacedBy(ManijeroSpacing.Small),
                 ) {
                     ChatAssistantCard(
@@ -97,7 +98,7 @@ internal fun ChatMessageBubble(message: ChatMessage, modifier: Modifier = Modifi
             // caution tokens, an explicit text state label, and the server message verbatim. The
             // limitation and next step are the sentences already inside that message.
             AnswerStatus.abstained -> ChatAbstentionCard(
-                modifier = modifier,
+                modifier = modifier.testTag(ChatTestTags.ABSTAINED),
                 scopeLabel = stringResource(landScopeCaption(message.landScope)),
                 stateLabel = stringResource(Res.string.chat_answer_state_abstained),
                 text = message.text,

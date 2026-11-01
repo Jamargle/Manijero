@@ -241,6 +241,71 @@ looks; it never starts, stops, or downloads anything.
 2. If it says `Result: the local answer service was not running, so there was nothing to stop.`,
    nothing was running; there is nothing to do.
 
+## Smoke-test the apps against the local answer service
+
+This command proves that the Desktop app and the app on the Android emulator can ask the running
+local answer service one fixed question and show its reply. You only watch the result: it types
+the question and presses `Preguntar` for you. It does not judge whether the answer is correct.
+
+It never changes your lands or the saved `Conexión` address. On the emulator it installs the test
+version of the app over the existing one and keeps its data.
+
+1. **Start the service** if it is not running: `./scripts/init.sh --local-rag-start`.
+2. **Open the emulator.** Run `./scripts/init.sh --android-run` (or start one from Android Studio's
+   Device Manager) and wait until you see its home screen or the app.
+3. **Run the smoke test.** Paste:
+
+   ```sh
+   ./scripts/init.sh --local-smoke
+   ```
+
+   - It prints `Checking the local answer service...`, then
+     `Checking the Desktop app (the first run can take a few minutes)...` and
+     `Checking the Android emulator app (the first run can take a few minutes)...`. Nothing opens
+     on the computer screen; the emulator shows the app for a moment.
+   - Expected: one `PASS  Desktop: ...` line, one `PASS  Android emulator: ...` line, and
+     `Result: the smoke test passed on Desktop and the Android emulator.`
+   - A `PASS` line says whether the app showed an answer with source cards or an honest
+     `Sin respuesta segura` reply. Both are a pass.
+
+### If the smoke test shows something else
+
+| You see | What it means | What to do |
+|---|---|---|
+| `Result: the smoke test did not run. Run ./scripts/init.sh --local-rag-setup.` | The local answer tools are not set up. | Follow [Set up the local answer tools](#set-up-the-local-answer-tools). |
+| `Result: the smoke test did not run. Start it with ./scripts/init.sh --local-rag-start, ...` | The service is not running. | Start it, then run the smoke test again. |
+| A `PROBLEM ...` line, then `Result: the smoke test did not run. Do the step shown above.` | A service check is not `OK` (for example Ollama is closed). | Do what the `PROBLEM` line says, then run the smoke test again. |
+| `Java was not found on this computer.` | Java is needed to build the apps. | Install a Java 21 JDK, then run the smoke test again. |
+| `Another smoke test is running in another Terminal window.` | One is already running. | Wait for its `Result:` line, then run it again. |
+| `FAIL  Android emulator: no Android emulator is running. ...` or `... is still starting. ...` | No emulator is ready. | Do step 2, then run it again. |
+| `FAIL  Android emulator: adb was not found. ...` | Android Studio's Platform-Tools are missing. | Install them as the line says, then run it again. |
+| `FAIL  <app>: the app uses <address>, not <address>. Open Ayuda > Herramientas de prueba > Conexión, ...` | That app was set to another address. | In that app, do what the line says, then run it again. |
+| `FAIL  <app>: the app could not reach ...`, `... cannot answer questions right now ...`, `... with an error ...`, or `... no reply within 90 seconds ...` | The app reached the service, or tried, but got no usable reply. | Run `./scripts/init.sh --local-rag-service-status` and do its first step, then run it again. |
+| `FAIL  <app>: the check could not run. Details are in build/local-smoke/<app>.log; ...` or another `FAIL` line naming a log | The build, install, or check itself failed. | Send that log file to a developer. |
+| `The smoke test was stopped.` | You pressed Ctrl+C. | Run it again when you are ready. |
+
+## Owner walkthrough: local smoke test
+
+Do this once, in a Terminal opened at the Manijero folder, after the local answer tools are set up.
+Write down each `Result:` line and send them to the developer.
+
+1. Run `./scripts/init.sh --local-rag-start`. Expect
+   `Result: the local answer service started at http://127.0.0.1:8000.`
+2. Run `./scripts/init.sh --android-run`, then wait for the app to open on the emulator.
+3. Run `./scripts/init.sh --local-smoke`. Expect two `PASS` lines and
+   `Result: the smoke test passed on Desktop and the Android emulator.` Report both `PASS` lines
+   and roughly how long it took.
+4. **Missing prerequisite:** run `./scripts/init.sh --local-rag-stop`, then
+   `./scripts/init.sh --local-smoke`. Expect
+   `Result: the smoke test did not run. Start it with ./scripts/init.sh --local-rag-start, then run this command again.`
+5. **Recovery:** run `./scripts/init.sh --local-rag-start`, then `./scripts/init.sh --local-smoke`.
+   Expect the step 3 result again.
+6. Optional: close the emulator window and run `./scripts/init.sh --local-smoke`. Expect
+   `PASS  Desktop: ...`, a `FAIL  Android emulator: ...` line naming `./scripts/init.sh --android-run`,
+   and `Result: the smoke test failed on the Android emulator. Do the first step shown above.`
+7. Run `./scripts/init.sh --local-rag-stop`. Report each `Result:` line, the two `PASS` lines, and
+   whether the emulator app still shows the lands it had before.
+
 ## Owner walkthrough: local answer service
 
 Do this once, after [Set up the local answer tools](#set-up-the-local-answer-tools) has finished,

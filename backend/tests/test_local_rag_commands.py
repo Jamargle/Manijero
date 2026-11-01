@@ -193,3 +193,105 @@ def test_an_extra_argument_or_a_bad_port_is_misuse_for_the_service_commands(tmp_
         assert bad_port.returncode == 2 and "between 1 and 65535" in bad_port.stderr
         assert not bad_port.stdout
     assert not (tmp_path / "home").exists()
+
+
+# --- The local smoke test command (never reaches Gradle or adb here) -----------------------
+
+SMOKE_DIR = REPO_ROOT / "build" / "local-smoke"
+
+
+def smoke_marks(tmp_path: Path) -> Dict[str, object]:
+    """Everything a build, install, or app start would leave behind, to compare after a run."""
+
+    marker = tmp_path / "adb-was-called"
+    adb = tmp_path / "sdk" / "platform-tools" / "adb"
+    if not adb.exists():
+        adb.parent.mkdir(parents=True)
+        adb.write_text("#!/bin/sh\ntouch " + str(marker) + "\n", encoding="utf-8")
+        adb.chmod(0o755)
+    logs = {
+        name: (SMOKE_DIR / name).stat().st_mtime_ns if (SMOKE_DIR / name).exists() else None
+        for name in ("desktop.log", "android.log", "desktop-result.txt")
+    }
+    return {"logs": logs, "local.properties": (REPO_ROOT / "local.properties").exists(), "adb": marker.exists()}
+
+
+def run_smoke(tmp_path: Path, *args: str) -> subprocess.CompletedProcess:
+    return run_service(tmp_path, "--local-smoke", *args, extra={"ANDROID_HOME": str(tmp_path / "sdk"), "ANDROID_SDK_ROOT": ""})
+
+
+def test_local_smoke_with_an_extra_argument_is_misuse(tmp_path: Path) -> None:
+    completed = run_smoke(tmp_path, "now")
+
+    assert completed.returncode == 2
+    assert completed.stderr.strip() == "Run --local-smoke on its own, with nothing after it."
+    assert not completed.stdout
+    assert not (tmp_path / "home").exists()
+
+
+def test_local_smoke_before_setup_says_to_set_up_and_builds_nothing(tmp_path: Path) -> None:
+    before = smoke_marks(tmp_path)
+
+    completed = run_smoke(tmp_path)
+
+    assert completed.returncode == 1, completed.stdout + completed.stderr
+    assert completed.stdout.splitlines() == [
+        "Checking the local answer service...",
+        "The local answer tools are not set up yet. Run ./scripts/init.sh --local-rag-setup to set them up.",
+        "Result: the smoke test did not run. Run ./scripts/init.sh --local-rag-setup.",
+    ]
+    assert "Traceback" not in completed.stdout + completed.stderr
+    assert not (tmp_path / "home").exists()
+    assert smoke_marks(tmp_path) == before
+    assert before["adb"] is False
+
+
+def _settings(tmp_path: Path) -> Path:
+    settings = tmp_path / "home" / "settings.env"
+    settings.parent.mkdir(parents=True)
+    settings.write_text("MANIJERO_ACTIVE_CAMPAIGN=2026\n", encoding="utf-8")
+    return settings
+
+
+def test_local_smoke_with_no_service_running_says_how_to_start_it(tmp_path: Path) -> None:
+    _settings(tmp_path)
+    before = smoke_marks(tmp_path)
+
+    completed = run_smoke(tmp_path)
+
+    assert completed.returncode == 1, completed.stdout + completed.stderr
+    assert completed.stdout.splitlines() == [
+        "Checking the local answer service...",
+        "The local answer service is not running.",
+        "Result: the smoke test did not run. Start it with ./scripts/init.sh --local-rag-start, then run this command again.",
+    ]
+    assert smoke_marks(tmp_path) == before
+    assert not (tmp_path / "home" / "run").exists()
+
+
+def test_local_smoke_clears_a_record_for_another_program_and_never_signals_it(tmp_path: Path) -> None:
+    _settings(tmp_path)
+    sleeper = subprocess.Popen(["sleep", "60"])
+    try:
+        record = tmp_path / "home" / "run" / "service.json"
+        record.parent.mkdir(parents=True)
+        record.write_text(
+            json.dumps({"pid": sleeper.pid, "port": 8000, "started_at": "2026-11-01T09:30:00Z", "release_id": "r", "log": "x"}),
+            encoding="utf-8",
+        )
+        before = smoke_marks(tmp_path)
+
+        completed = run_smoke(tmp_path)
+
+        assert completed.returncode == 1, completed.stdout + completed.stderr
+        assert completed.stdout.splitlines()[1:] == [
+            "An earlier local answer service ended without being stopped; its leftover record was cleared.",
+            "The local answer service is not running.",
+            "Result: the smoke test did not run. Start it with ./scripts/init.sh --local-rag-start, then run this command again.",
+        ]
+        assert not record.exists()
+        assert sleeper.poll() is None
+        assert smoke_marks(tmp_path) == before
+    finally:
+        sleeper.kill()
+        sleeper.wait()

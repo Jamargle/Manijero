@@ -445,6 +445,20 @@ def _started_text(started_at: str) -> str:
     return moment.astimezone(timezone.utc).strftime("%Y-%m-%d %H:%M UTC")
 
 
+def service_checks(ctx: bootstrap.Context, ports: ServicePorts, record: ServiceRecord) -> List[Check]:
+    """The three checks (answers, search, drafting) of a running service, printing nothing.
+
+    Raises ``bootstrap.BootstrapError`` when the reviewed settings cannot be read.
+    """
+
+    _, model = bootstrap.load_pins(ctx, ports.tools.today())
+    return [
+        answers_check(ports.probe, record.port),
+        search_check(ctx.paths, record),
+        drafting_check(ports.tools, model),
+    ]
+
+
 def report_running(ctx: bootstrap.Context, ports: ServicePorts, record: ServiceRecord) -> bool:
     """Print the running service's lines; ``True`` when all three checks are ``OK``."""
 
@@ -454,12 +468,7 @@ def report_running(ctx: bootstrap.Context, ports: ServicePorts, record: ServiceR
             service_url(record.port), record.pid, _started_text(record.started_at)
         )
     )
-    _, model = bootstrap.load_pins(ctx, ports.tools.today())
-    checks = [
-        answers_check(ports.probe, record.port),
-        search_check(ctx.paths, record),
-        drafting_check(ports.tools, model),
-    ]
+    checks = service_checks(ctx, ports, record)
     for check in checks:
         out(check.line)
     for line in address_lines(record.port):

@@ -1,4 +1,5 @@
 import org.gradle.api.tasks.testing.Test
+import org.gradle.process.CommandLineArgumentProvider
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 import java.io.File
 
@@ -81,6 +82,9 @@ kotlin {
             implementation(libs.ktor.server.core)
             implementation(libs.ktor.server.cio)
             implementation(libs.ktor.server.test.host)
+            // Local smoke test (./scripts/init.sh --local-smoke): the Desktop driver uses the same CIO
+            // answer client as the Desktop app. Test-only.
+            implementation(libs.ktor.client.cio)
         }
         // Android screenshot regression: Robolectric renders the Android target on the host JVM,
         // so no emulator or device is needed. Test-only; the main Android dependency graph is
@@ -155,6 +159,9 @@ val jvmTestTask = tasks.named<Test>("jvmTest") {
     filter {
         // See the comment above: the host-pinned screenshot suite has its own explicit tasks.
         excludeTestsMatching("com.jamarglex.manijero.screenshots.*")
+        // The live local smoke check reaches the real local answer service; only
+        // :shared:runDesktopLocalSmoke runs it.
+        excludeTestsMatching("com.jamarglex.manijero.smoke.DesktopLocalSmokeRun")
     }
     // AndroidBackupExclusionGuardTest reads the checked-in Android manifest and backup rule files
     // (it needs no Android SDK), so declare them as inputs: editing them must rerun the guard
@@ -285,4 +292,38 @@ tasks.register("prepareMockAnswerServer") {
         }
         javaFile.get().asFile.writeText(java.get() + "\n")
     }
+}
+
+// ---------------------------------------------------------------------------------------------
+// Local smoke test (test-only, never part of a tier)
+// ---------------------------------------------------------------------------------------------
+// ./scripts/init.sh --local-smoke runs this task through backend/app/local_smoke.py. It renders the
+// shared App offscreen against the running local answer service and writes one result line to the
+// file named by -PmanijeroSmokeResult. -PmanijeroSmokeExpected is the Desktop service address. The
+// task reuses the jvmTest classes, runs headless, and is never up to date.
+val smokeExpected = providers.gradleProperty("manijeroSmokeExpected")
+val smokeResult = providers.gradleProperty("manijeroSmokeResult")
+
+tasks.register<Test>("runDesktopLocalSmoke") {
+    group = "verification"
+    description = "Ask the running local answer service once through the shared Desktop UI (./scripts/init.sh --local-smoke)."
+    testClassesDirs = jvmTestTask.get().testClassesDirs
+    classpath = jvmTestTask.get().classpath
+    useJUnit()
+    filter {
+        includeTestsMatching("com.jamarglex.manijero.smoke.DesktopLocalSmokeRun")
+        isFailOnNoMatchingTests = true
+    }
+    systemProperty("java.awt.headless", "true")
+    val expected = smokeExpected
+    val result = smokeResult
+    jvmArgumentProviders.add(
+        CommandLineArgumentProvider {
+            listOfNotNull(
+                expected.orNull?.let { "-Dmanijero.smoke.expected=$it" },
+                result.orNull?.let { "-Dmanijero.smoke.result=$it" },
+            )
+        },
+    )
+    outputs.upToDateWhen { false }
 }

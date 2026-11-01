@@ -136,3 +136,7 @@ Durable MUST/MUST NOT rules for client requests, response states, source cards, 
   node. Reason: `chat_screen_refresh` restyled this surface; each of these carries meaning that
   colour, alignment or position alone cannot, and a later "cleaner" card could drop a label or merge
   the retry without any test failing.
+- **MUST NOT**: a `ChatTestTags` tag MUST NOT change semantics, copy, or layout (it is applied only
+  through `Modifier.testTag`), and no product logic reads one; `LocalSmokeGuardTest` checks this.
+  Reason: [`local_end_to_end_smoke`](../specs/local_end_to_end_smoke.md) drivers find screen states
+  by tag so copy edits never break the smoke test.

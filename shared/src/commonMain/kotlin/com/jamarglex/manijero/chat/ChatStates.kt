@@ -9,6 +9,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.testTag
 import com.jamarglex.manijero.design.ManijeroCallout
 import com.jamarglex.manijero.design.ManijeroCalloutTone
 import com.jamarglex.manijero.design.ManijeroIcon
@@ -48,13 +49,18 @@ internal fun ChatFailureNotice(
         RequestFailure.SERVICE_ERROR ->
             stringResource(Res.string.chat_home_failure_service)
     }
+    val taggedModifier = when (failure) {
+        RequestFailure.COULD_NOT_REACH_SERVICE -> modifier.testTag(ChatTestTags.FAILURE_UNREACHABLE)
+        RequestFailure.SERVICE_ERROR -> modifier.testTag(ChatTestTags.FAILURE_SERVICE)
+    }
     ManijeroCallout(
         text = message,
         tone = ManijeroCalloutTone.Danger,
-        modifier = modifier.fillMaxWidth(),
+        modifier = taggedModifier.fillMaxWidth(),
         action = {
             Button(
                 onClick = onRetry,
+                modifier = Modifier.testTag(ChatTestTags.RETRY),
                 colors = ButtonDefaults.buttonColors(
                     containerColor = MaterialTheme.colorScheme.error,
                     contentColor = MaterialTheme.colorScheme.onError,

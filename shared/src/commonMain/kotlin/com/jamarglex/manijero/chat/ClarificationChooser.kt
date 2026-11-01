@@ -19,6 +19,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.platform.testTag
 import com.jamarglex.manijero.ChatHomeAction
 import com.jamarglex.manijero.design.ManijeroCard
 import com.jamarglex.manijero.design.ManijeroCardTone
@@ -55,7 +56,10 @@ internal fun LandClarificationChooser(
     modifier: Modifier = Modifier,
 ) {
     var selectedIds by remember(landIdsToChoose) { mutableStateOf(emptySet<String>()) }
-    ManijeroCard(modifier = modifier.fillMaxWidth(), tone = ManijeroCardTone.Outlined) {
+    ManijeroCard(
+        modifier = modifier.fillMaxWidth().testTag(ChatTestTags.LAND_CLARIFICATION),
+        tone = ManijeroCardTone.Outlined,
+    ) {
         Text(
             text = stringResource(Res.string.chat_home_clarification_title),
             style = MaterialTheme.typography.titleMedium,

@@ -38,6 +38,13 @@ dependencies {
 
     implementation(libs.compose.uiToolingPreview)
     debugImplementation(libs.compose.uiTooling)
+
+    // Test-only: the instrumented local smoke check (./scripts/init.sh --local-smoke). It runs in the
+    // debug app's process; the release dependency graph is unchanged.
+    androidTestImplementation(libs.androidx.test.runner)
+    androidTestImplementation(libs.androidx.test.junit)
+    androidTestImplementation(libs.androidx.compose.uiTestJunit4)
+    debugImplementation(libs.androidx.compose.uiTestManifest)
 }
 
 android {
@@ -50,6 +57,7 @@ android {
         targetSdk = libs.versions.android.targetSdk.get().toInt()
         versionCode = 1
         versionName = "1.0"
+        testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         buildConfigField("String", "ASK_BASE_URL", "\"${providers.gradleProperty("manijeroAskBaseUrl").orElse("http://10.0.2.2:8000").get()}\"")
     }
     packaging {

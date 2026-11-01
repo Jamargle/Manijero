@@ -671,7 +671,7 @@ def test_no_output_record_or_log_contains_corpus_text(running: Harness) -> None:
 
 
 def test_the_service_never_imports_the_operator_modules() -> None:
-    operator = ("local_rag_service", "local_rag_bootstrap", "pinned_download", "local_container")
+    operator = ("local_rag_service", "local_rag_bootstrap", "pinned_download", "local_container", "local_smoke")
     pattern = re.compile(r"^\s*(from app(\.| import )|import app\.)({})".format("|".join(operator)), re.MULTILINE)
     for path in (REPO_ROOT / "backend" / "app").glob("*.py"):
         if path.stem in operator:
