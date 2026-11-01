@@ -511,7 +511,9 @@ startup gate are new. It is off by default and talks only to the loopback consta
 `http://127.0.0.1:11434`: the URL is not configurable, proxy variables are ignored, redirects
 are refused, and no HTTPS handler exists. No new Python dependency is used (stdlib `urllib`).
 
-Pin, pull, and read the digest (the owner runs Ollama; the app never pulls):
+The supported way to pull the pinned model is `./scripts/init.sh --local-rag-setup` (see
+"One-command local setup" below), which also confirms the digest. The manual commands remain
+for developers. Pin, pull, and read the digest (the owner runs Ollama; the app never pulls):
 
 ```sh
 ollama pull mistral-small3.2:24b-instruct-2506-q4_K_M
@@ -635,6 +637,10 @@ artifact. A changed file, a different revision, or an extra declared field fails
 closed. The license and revision are recorded provenance, not a legal review.
 
 ### Download and verify
+
+The supported path is `./scripts/init.sh --local-rag-setup` (see "One-command local setup"
+below): it downloads exactly these pinned files, verifies each against the pin, and resumes an
+interrupted download. The manual steps below remain for developers.
 
 Download the exact revision into an operator-owned directory outside this
 repository (the artifact is about 2.1 GiB and must not be committed):
@@ -950,7 +956,8 @@ It is standard-library only, offline, and configured with **no model provider**.
 The default and only enabled generator is the code-composed extractive one; a
 draft is re-checked by `verify_draft` before assembly, so a citation marker that
 resolves to nothing, an uncited sentence, a figure or date absent from the cited
-passage, a non-literal `critical` claim, or an eligibility assertion
+passage, a number word, month, written date, or duration absent from it
+(`numeric_fact_unsupported`), a non-literal `critical` claim, or an eligibility assertion
 (`tienes derecho a`) rejects the whole draft. The extractive generator writes
 each claim on its own line before verification, and a line break is a claim
 boundary, so an excerpt without terminal punctuation cannot merge with the next
@@ -1949,3 +1956,71 @@ path; vector fields are tagged `vector_digest_differs` instead of hidden.
 - The evaluation is the 14-case author-only sample; passing the gate is not a
   legal-coverage, answer-quality, or freshness claim.
 - POSIX only (symlink + `os.replace`); Windows release roots are out of scope.
+
+## One-command local setup
+
+The owner sets up every local RAG artifact with `./scripts/init.sh --local-rag-setup` and checks
+it with `./scripts/init.sh --local-rag-status`; the copy-paste steps are in
+[`docs/owner-guide.md`](../docs/owner-guide.md). The code is `app/local_rag_bootstrap.py`
+(orchestration), `app/pinned_download.py` (stdlib pinned-file downloader), and
+`scripts/local_rag.py` (entry point). The service never imports them. Neither command starts the
+service or enables `MANIJERO_RETRIEVAL_MODE=hybrid` or `MANIJERO_GENERATION_PROVIDER=local`.
+Neither command installs Ollama; setup stops and names the install step.
+
+**Local home** (`~/manijero/local`; `local_paths(home)` returns the layout for later features):
+
+```text
+settings.env                  commented, allowlisted KEY=VALUE (only MANIJERO_ACTIVE_CAMPAIGN), never sourced
+models/bge-m3/                the pinned files (a .part file is a download in progress)
+work/embedding-index.json     the index built for the next release
+knowledge-releases/           a knowledge_release.py root (current, releases/, release-log.jsonl)
+logs/<command>-<UTC>.log      subprocess output and tracebacks
+.setup.lock                   flock held while setup runs
+```
+
+**Setup**, in order. `init.sh` first checks the Ollama command, then links or builds
+`backend/.venv`. Before any write, `local_rag.py setup` checks:
+
+- that Ollama answers on loopback `/api/tags`;
+- that `knowledge/` catalog, passages, and cases have no uncommitted changes;
+- free space for the pending bytes plus 1 GB on each target filesystem (local home, venv root,
+  `$OLLAMA_MODELS` or `~/.ollama/models`);
+- that the lock is free.
+
+It then lists each pending download with its size from the pins (hybrid environment about
+1.2 GB as measured above, `files[].size` still missing for bge-m3, `size_bytes` for Ollama) and
+asks once. A rebuild that downloads nothing is not asked about. It then runs only the steps whose
+part is not current:
+
+1. `python-env.sh hybrid`.
+2. bge-m3 from `<source_url>/resolve/<model_revision>/<path>`, with HTTPS-only redirects, a
+   `.part` file per file resumed with `Range`, SHA-256 and size checks before rename, then
+   `verify_artifact`.
+3. `manage_embeddings.py build --as-of <today UTC>`.
+4. `knowledge_release.py prepare --with-vector-store --code-revision HEAD
+   --reviewed-baseline-revision HEAD`.
+5. `publish`.
+6. `ollama pull <pinned tag>`, then a check that the `/api/tags` digest equals the record.
+
+A pin mismatch discards the bad bge-m3 file, never edits a pin, and exits `1`. A failed gate
+leaves the previous release current.
+
+**Current** (shared by setup and status, manifest level):
+
+- Hybrid environment: `python-env.sh hybrid --if-present`.
+- Model: `verify_artifact` passes.
+- Release: `current` verifies, `gate.passed`, the input SHA-256s equal the checkout, the campaign
+  equals the setting, and the corpus is ready today.
+- Index: `index_status` at the release's `as_of`.
+- Store: `manifest_status` against the documents admitted today.
+- Drafting: the pinned tag is listed with the pinned digest.
+
+A code-revision change alone does not rebuild.
+
+**Status** prints six `OK|MISSING|PROBLEM` lines and one `Result:` line. It downloads and
+builds nothing, needs no `torch`/`chromadb`, and calls only loopback Ollama.
+
+**Exit codes**: `0` done or all OK; `1` stopped, cancelled, failed, or not all OK; `2` misuse.
+Terminal messages are fixed sentences without corpus text. Subprocess output and tracebacks go
+only to the printed log path. `MANIJERO_LOCAL_HOME` and `MANIJERO_OLLAMA_CLI` exist for tests
+only.

@@ -385,8 +385,12 @@ What the pipeline guarantees:
   candidate's retrieval rank).
 - **Figures and dates are checked, not promised.** Every figure or date in a
   claim must also appear in the text of the passage(s) that claim cites;
-  otherwise the whole draft is rejected. The pipeline adds no date or amount of
-  its own, so every figure a user sees comes from a reviewed excerpt.
+  otherwise the whole draft is rejected. Numbers written in words, month names,
+  day–month and full written dates, and day/week/month/year durations (with
+  `hábiles` or `naturales`) are checked the same way, in any equivalent written
+  form ("quince" for "15", "15 de mayo" for "15/05/2031"). The pipeline adds no
+  date or amount of its own, so every figure a user sees comes from a reviewed
+  excerpt.
 - **Critical evidence is extractive.** For a passage flagged `critical`
   (deadlines, amounts, thresholds), the claim must be a literal substring of the
   cited excerpt after whitespace/case/diacritic normalization, so a critical

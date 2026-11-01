@@ -256,7 +256,8 @@ them; feature specs own screen-specific behavior.
   must not add another `Volver` or `Mis terrenos` route. The bars are hidden on add/edit/remove forms
   and the `Borrar para siempre` confirmation, which keep their own `Cancelar`; privacy,
   `Terrenos eliminados`, and `Copia en un archivo` stay detail routes with their own `Volver`, so
-  their bars remain visible.
+  their bars remain visible. `Conexión` is a test-build-only detail route from `Ayuda`, has its own
+  `Volver`, and back returns to `Ayuda`.
   Android system back returns lands → assistant, a form → lands, `Terrenos eliminados` → lands, `Copia en un archivo` → lands, the
   `Borrar para siempre` confirmation → `Terrenos eliminados`, `Ayuda` → the tab it was opened from,
   and privacy → the section it was opened from; it is not installed on the assistant tab, so the

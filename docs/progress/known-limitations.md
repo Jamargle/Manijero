@@ -18,6 +18,10 @@ Do not over-claim.
   `fecha-modificacion-2026`, and `distingue-fechas-2026` cite a different reviewed passage, and
   `reclamacion-fuera-de-alcance` answers an out-of-scope reclamación. Neither that sample nor the
   fixture metrics are independent legal review or evidence of general accuracy.
+- The numeric-fact check in `verify_draft` ([`numeric_grounding_check`](../specs/numeric_grounding_check.md))
+  is lexical and Spanish-only, not entailment: it rejects some correct paraphrases (ranges, an
+  added year), checks only day/week/month/year durations and `por ciento`, and its effect on the
+  local model's verified-draft rate is unmeasured.
 - The 72 screenshot baselines (38 Desktop, 34 Android) are local host-rendered pixel checks, not
   device, accessibility, usability, or iOS evidence. The procedure and limits are in
   [`docs/screenshot-regression.md`](../screenshot-regression.md). At 2× text, compact navigation
@@ -95,3 +99,13 @@ Do not over-claim.
   are the earlier citation/critical-fact misses and one is a newly measured out-of-scope
   reclamación answer. No answer-quality, legal-correctness, or independent-review claim is
   supported.
+- The mock answer service (`./scripts/init.sh --mock`) serves only the fixed contract example
+  responses, chosen by request shape; they are not real or legal answers and say nothing about
+  answer quality. It listens on `127.0.0.1` only, so it serves Desktop and the Android emulator,
+  not physical devices or other machines. See the
+  [`mock_answer_server`](../specs/mock_answer_server.md) contract.
+- The `Conexión` test-build screen (`local_service_connection`) is verified by unit, guard, compile,
+  and `Ayuda` screenshot checks only. Typing an address, `Comprobar` against a running, stopped, or
+  not-ready service, and the remembered address after restart were not exercised in the Desktop or
+  emulator GUI, and the packaged Desktop app was not opened to confirm the card is absent. See the
+  [acceptance record](../validations/local_service_connection.md).

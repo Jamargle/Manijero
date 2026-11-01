@@ -5,12 +5,15 @@
 Routine entry point. Exact feature status lives in [`feature_list.json`](feature_list.json); use
 [`./scripts/select-feature.sh --status`](scripts/select-feature.sh) to read the board. Feature
 contracts, raw evidence, and acceptance records remain in their owning files. Last updated:
-2026-10-31.
+2026-11-01.
 
-**Feature status** — 68 of 120 features are accepted, including `local_generation_provider` (off by
-default; measured on the owner's Mac, host decision pending) and `knowledge_reindex_release`
-(rehearsed locally only; no host step executed); `private_pilot_distribution` is `on_hold` by owner
-decision (2026-11-01). The 51 `not_started` features are the remaining MasterPlanV3 work, ordered
+**Feature status** — 72 of 120 features are accepted, including `numeric_grounding_check`
+(lexical numeric/date/deadline check on drafts; fixtures only), `local_generation_provider` (off by
+default; measured on the owner's Mac, host decision pending), `knowledge_reindex_release`
+(rehearsed locally only; no host step executed), `local_rag_bootstrap` (one guided setup
+command and a status check, walked through on the owner's Mac), `mock_answer_server` (Desktop and
+emulator walkthroughs not yet run), and `local_service_connection` (test builds only);
+`private_pilot_distribution` is `on_hold` by owner decision (2026-11-01). The 47 `not_started` features are the remaining MasterPlanV3 work, ordered
 local environment first, then the QA environment for remote real-device testing; prod is not planned yet. `feature_list.json` and the selector remain the status authority;
 this page does not duplicate the feature-id list.
 
@@ -21,7 +24,9 @@ permanently deletes them.
 The local FastAPI service exposes liveness-only `/health`, campaign-plus-corpus readiness at
 `/ready`, and `/ask`; the separate `pilot` profile adds per-client bearer authentication,
 per-worker rate limiting, a bounded request body, and metadata-only logging. Android and
-Desktop use overridable local development URLs; no client can send a pilot bearer token yet.
+Desktop use overridable local development URLs; their test builds (never release builds) add a
+`Conexión` screen under `Ayuda` to set, remember, and check (`/health`, `/ready`) the service
+address. No client can send a pilot bearer token yet.
 The reviewed corpus contains four official sources and four literal passages for three topics
 in the Andalusian PAC single application for 2026. `/ready` and `/ask` require an explicit
 `MANIJERO_ACTIVE_CAMPAIGN`; no hosted model or public deployment is implemented. Scheduled
@@ -40,8 +45,9 @@ recommendation), and the pending pilot review keeps it out of the pilot profile.
 Reviewed knowledge can now be packaged into immutable, hash-addressed releases that pass structure,
 BM25-fingerprint, citation, and no-regression gates before an atomic publish with rollback
 (`knowledge_reindex_release`); the service reads them only when the opt-in
-`MANIJERO_KNOWLEDGE_RELEASE_ROOT` is set. It was rehearsed only in a local temporary root; the
-Chroma packaging path is untested and no release root exists on any host.
+`MANIJERO_KNOWLEDGE_RELEASE_ROOT` is set. It was rehearsed only in a local temporary root. `./scripts/init.sh --local-rag-setup`
+(`local_rag_bootstrap`) has since built every local artifact and a Chroma-packaged release in
+`~/manijero/local` on the owner's Mac only; no release root exists on any host.
 
 **Known limitations (do not over-claim)** — one line each; the exact wording, numbers, and links
 are in [`docs/progress/known-limitations.md`](docs/progress/known-limitations.md). Read the full item
@@ -60,9 +66,13 @@ before making any claim in its area.
 - Pilot privacy gates are closed (review `pending`); retention and redaction are tested locally only.
 - Source monitoring, document ingestion, change-impact analysis, and reviewed update packages are local,
   manual, synthetic-fixture-backed, and guarantee neither completeness nor currency.
+- The test-build `Conexión` screen has unit, guard, compile, and screenshot evidence only; no GUI run.
 - Hosted operations are prepared but not deployed; no host, domain, tunnel, or release artifacts exist.
+- The mock answer service serves fixed contract examples only (not real or legal answers), on loopback for Desktop and the Android emulator.
 - Local `bge-m3` embeddings and Chroma hybrid retrieval are off the default answer path; measured
   on the development Mac only, with no answer-level improvement over BM25.
+- The numeric-fact draft check is lexical and Spanish-only, rejects some correct paraphrases (ranges,
+  an added year), and its effect on live local drafts is not measured.
 
 **Detail on demand**
 
@@ -85,6 +95,7 @@ Tiers, cheapest first; `./scripts/init.sh` holds the exact commands.
 - Full gate: `./scripts/init.sh --verify` (`--full`) — `--fast` plus `:shared:testAndroidHostTest`, `:androidApp:assembleDebug`, and `:desktopApp:build`.
 - Backend unit tests alone: `./scripts/init.sh --backend-tests [targets]` — needs pytest; with none available, `--fast` prints the virtualenv recipe, skips the suite locally, and fails under `CI`.
 - Backend Python (3.10+): `./scripts/init.sh --setup-python` builds the shared environment once per requirements change and links it as `backend/.venv` in every checkout and worktree. Start the local API: `./scripts/init.sh --backend` (links that environment if needed and launches Uvicorn). Android build: `./scripts/init.sh --android`; build, boot an emulator if needed, install, and launch: `./scripts/init.sh --android-run` (uses the first configured AVD when none is running). Launch Desktop: `./scripts/init.sh --desktop`.
+- Mock answer service (no Python): `./scripts/init.sh --mock` starts it in the background on the apps' default address and prints it, `--mock-status` reports it, `--mock-stop` stops it; owner steps in [`docs/owner-guide.md`](docs/owner-guide.md).
 - Output is compact: one line per passing check and the tail of a failing log; full logs stay in `build/verify-logs/` (`MANIJERO_VERBOSE=1` prints them inline, `MANIJERO_FAIL_TAIL=<n>` sets the tail length).
 - The offline checks pin `--as-of 2026-10-13` so runs are deterministic; override with `MANIJERO_AS_OF=YYYY-MM-DD`.
 

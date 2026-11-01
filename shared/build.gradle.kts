@@ -76,6 +76,11 @@ kotlin {
             implementation(compose.desktop.currentOs)
             implementation(libs.compose.uiTestJunit4Desktop)
             implementation(libs.roborazzi.composeDesktop)
+            // Local mock answer service (./scripts/init.sh --mock). Test-only: no product source
+            // set, app host, or shipped artifact gains a server dependency.
+            implementation(libs.ktor.server.core)
+            implementation(libs.ktor.server.cio)
+            implementation(libs.ktor.server.test.host)
         }
         // Android screenshot regression: Robolectric renders the Android target on the host JVM,
         // so no emulator or device is needed. Test-only; the main Android dependency graph is
@@ -159,6 +164,10 @@ val jvmTestTask = tasks.named<Test>("jvmTest") {
         file("../androidApp/src/main/res/xml"),
     ).withPropertyName("androidBackupConfiguration")
         .withPathSensitivity(org.gradle.api.tasks.PathSensitivity.RELATIVE)
+    // The mock answer service tests read the committed contract examples.
+    inputs.dir(file("../contracts/examples"))
+        .withPropertyName("contractExamples")
+        .withPathSensitivity(org.gradle.api.tasks.PathSensitivity.RELATIVE)
 }
 
 tasks.withType<Test>().matching { it.name == "testAndroidHostTest" }.configureEach {
@@ -228,4 +237,43 @@ tasks.register("recordScreenshots") {
     group = "verification"
     description = "Re-record the Desktop and Android shared-UI screenshots after human review."
     dependsOn("recordDesktopScreenshots", "recordAndroidScreenshots")
+}
+
+// ---------------------------------------------------------------------------------------------
+// Local mock answer service (test-only)
+// ---------------------------------------------------------------------------------------------
+// ./scripts/init.sh --mock runs this task, then launches com.jamarglex.manijero.mock.MockAnswerServerKt
+// from the compiled jvmTest classes. The task writes the runtime classpath and the Java executable
+// Gradle uses for jvmTest, so the launch never depends on whichever `java` is first on PATH.
+// Values are resolved into file collections and providers here, so the action touches no `project`
+// and stays configuration-cache safe.
+val mockAnswerServerDir = layout.buildDirectory.dir("mock-answer-server")
+val mockAnswerServerCompilation = kotlin.jvm().compilations.getByName("test")
+val mockAnswerServerClasspath = files(
+    mockAnswerServerCompilation.output.allOutputs,
+    mockAnswerServerCompilation.runtimeDependencyFiles,
+)
+val mockAnswerServerJava = jvmTestTask
+    .flatMap { it.javaLauncher }
+    .map { it.executablePath.asFile.absolutePath }
+    .orElse(providers.systemProperty("java.home").map { File(it, "bin/java").absolutePath })
+
+tasks.register("prepareMockAnswerServer") {
+    group = "application"
+    description = "Compile the test-only mock answer service and record how ./scripts/init.sh --mock launches it."
+    inputs.files(mockAnswerServerClasspath).withPropertyName("runtimeClasspath")
+    inputs.property("javaExecutable", mockAnswerServerJava)
+    val classpathFile = mockAnswerServerDir.map { it.file("classpath.txt") }
+    val javaFile = mockAnswerServerDir.map { it.file("java.txt") }
+    outputs.file(classpathFile).withPropertyName("classpathFile")
+    outputs.file(javaFile).withPropertyName("javaFile")
+    val classpath = mockAnswerServerClasspath
+    val java = mockAnswerServerJava
+    doLast {
+        classpathFile.get().asFile.apply {
+            parentFile.mkdirs()
+            writeText(classpath.files.joinToString(File.pathSeparator) { it.absolutePath } + "\n")
+        }
+        javaFile.get().asFile.writeText(java.get() + "\n")
+    }
 }
