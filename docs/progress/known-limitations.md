@@ -131,3 +131,10 @@ Do not over-claim.
   through Ollama on the host, and each image (about 5.6 GB) is never pruned. See the
   [acceptance record](../validations/backend_container_image.md) and
   [risks](../risks-and-open-questions.md).
+- The local smoke test (`./scripts/init.sh --local-smoke`, `local_end_to_end_smoke`) passed once in the
+  owner walkthrough, on one Mac and the `Medium_Phone_API_37.0` emulator. "Desktop" is the shared app
+  drawn offscreen with the Desktop connection settings, not the real window. A pass proves the apps
+  reach the local service and render a grounded answer or an honest abstention; it makes no
+  answer-quality or legal-coverage claim. Whether the emulator app keeps its lands could not be
+  observed: the emulator had no lands before the run. Physical devices are never used. See the
+  [acceptance record](../validations/local_end_to_end_smoke.md).
