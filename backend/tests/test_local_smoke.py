@@ -201,7 +201,7 @@ def _stop_service(s: Smoke) -> None:
         (lambda s: s.harness.write_record(40_000), ["PROBLEM  Search: a newer knowledge release was published"], "Do the step shown above."),
         (lambda s: setattr(s.harness.probe, "ready_answer", svc.UNAVAILABLE), ["PROBLEM  Answers: the service runs but cannot answer"], "Do the step shown above."),
         (lambda s: setattr(s.tools, "java", False), ["Java was not found on this computer."],
-         "Install a Java 21 JDK (for example from https://adoptium.net), then run this command again."),
+         "Install Temurin 21 from https://adoptium.net, then run this command again."),
         (lambda s: _hold(s.dir / ".lock"), ["Another smoke test is running in another Terminal window."],
          "Wait for it to finish, then run this command again."),
     ],
@@ -510,3 +510,19 @@ def test_the_system_tools_find_java_and_adb_only_where_they_are(tmp_path: Path) 
     assert smoke.SystemTools({"ANDROID_HOME": str(tmp_path / "none")}).adb_path() is None
     assert smoke.SystemTools({"JAVA_HOME": str(java_home), "PATH": ""}).java_available()
     assert not smoke.SystemTools({"PATH": str(tmp_path / "empty")}).java_available()
+
+
+def test_the_smoke_java_check_rejects_a_placeholder_and_a_java_only_on_path(tmp_path: Path) -> None:
+    stub_home = tmp_path / "stub"
+    (stub_home / "bin").mkdir(parents=True)
+    stub = stub_home / "bin" / "java"
+    stub.write_text("#!/bin/sh\necho 'Unable to locate a Java Runtime.' >&2\nexit 1\n", encoding="utf-8")
+    stub.chmod(0o755)
+
+    assert not smoke.SystemTools({"JAVA_HOME": str(stub_home)}).java_available()
+    # A working java only on PATH: init.sh would have exported its JAVA_HOME, so without one it is absent.
+    working = tmp_path / "path-bin" / "java"
+    working.parent.mkdir()
+    working.write_text("#!/bin/sh\nexit 0\n", encoding="utf-8")
+    working.chmod(0o755)
+    assert not smoke.SystemTools({"PATH": str(working.parent)}).java_available()

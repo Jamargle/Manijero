@@ -130,6 +130,21 @@ Deviations from the spec, with reasons:
 - The "not set up" line from `init.sh` and from Python is followed by `Result: the smoke test did not run. Run ./scripts/init.sh --local-rag-setup.` (scenario 2), instead of the `--local-rag-*` `Result: setup has not run yet.`
 - `PROGRESS.md` "Start and verify" and `docs/progress/known-limitations.md` are left for the orchestrator at acceptance, as the contract says.
 
+Repair 2026-11-01 (Java detection, found by the owner walkthrough; owner decision 5 in the spec Notes):
+
+- Defect: `init.sh` checked `command -v java`, which passes on Apple's `/usr/bin/java` placeholder. As a result, `--android-run` printed only "Unable to locate a Java Runtime".
+- Fix: a new `scripts/java-env.sh` holds the one resolution, sourced by `init.sh`. Every Gradle and Java path goes through it: the main pre-dispatch check covers `--check`, `--fast`, `--verify`, `--feature`, `--backend-tests`, `--android`, `--android-run`, `--desktop`, and `--mock`, and the `--local-smoke` early dispatch calls it too.
+  - Order: working `JAVA_HOME`; `java_home -v 21`; a `java` on `PATH` that runs `-version`; the newest JDK 21 under `${GRADLE_USER_HOME:-$HOME/.gradle}/jdks`, one or two folders down, in bundle or flat layout, chosen by the version in its `release` file.
+  - It exports `JAVA_HOME` and `PATH`. Probe stderr is discarded. When nothing is found it prints the Temurin 21 line and `Result: nothing was run. ...`, exit 1.
+  - `MANIJERO_JAVA_HOME_TOOL` replaces `/usr/libexec/java_home`, for tests only.
+- `local_smoke.SystemTools.java_available` now accepts only a `JAVA_HOME` whose `bin/java -version` succeeds. A `java` that is only on `PATH` is rejected, so it agrees with the resolution; `FIX_JAVA` names Temurin 21.
+- Tests: `backend/tests/test_java_resolution.py` has 9 cases, all on temporary `HOME`, `PATH`, `java_home`, and `jdks` fakes: each order step, the placeholder rejected, the newest 21 picked by version (21.0.10 over 21.0.9 and 21.0.2, with mtimes inverted, and 17, 22, and no-release ignored), `GRADLE_USER_HOME`, nothing found, and the `init.sh --check` not-found pair. `test_local_smoke.py` has 1 new case: a placeholder `JAVA_HOME` and a PATH-only `java` are both rejected.
+- `./scripts/init.sh --feature local_end_to_end_smoke`: passed (backend 144 passed, 2 skipped).
+- `CI=true ./scripts/init.sh --fast`: all 9 checks passed (backend 1595 passed, 4 skipped).
+- `--verify` was not rerun: no Gradle input changed. Only `init.sh` and its sourced Java resolution changed.
+- Validator revise (docs only): the verify block now runs `bash -n scripts/java-env.sh` and `tests/test_java_resolution.py`; `./scripts/init.sh --feature local_end_to_end_smoke` passed (backend 153 passed, 2 skipped).
+- Deviation: the resolution lives in the sourced `scripts/java-env.sh` rather than inline in `init.sh`, so tests can run it alone. `init.sh` remains the only caller.
+
 Not run here (owner walkthrough, recorded by the orchestrator): the real `--local-smoke` run against the service and emulator, AGP `installDebug` keeping app data, and the `ACCESS_LOCAL_NETWORK` grant on API 37.
 
 ## Validator checklist

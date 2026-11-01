@@ -275,7 +275,7 @@ version of the app over the existing one and keeps its data.
 | `Result: the smoke test did not run. Run ./scripts/init.sh --local-rag-setup.` | The local answer tools are not set up. | Follow [Set up the local answer tools](#set-up-the-local-answer-tools). |
 | `Result: the smoke test did not run. Start it with ./scripts/init.sh --local-rag-start, ...` | The service is not running. | Start it, then run the smoke test again. |
 | A `PROBLEM ...` line, then `Result: the smoke test did not run. Do the step shown above.` | A service check is not `OK` (for example Ollama is closed). | Do what the `PROBLEM` line says, then run the smoke test again. |
-| `Java was not found on this computer.` | Java is needed to build the apps. | Install a Java 21 JDK, then run the smoke test again. |
+| `Java was not found on this computer. ...` | Java is needed to build the apps, and none was found (not even one Gradle downloaded earlier). | Install Temurin 21 from https://adoptium.net, then run the command again. |
 | `Another smoke test is running in another Terminal window.` | One is already running. | Wait for its `Result:` line, then run it again. |
 | `FAIL  Android emulator: no Android emulator is running. ...` or `... is still starting. ...` | No emulator is ready. | Do step 2, then run it again. |
 | `FAIL  Android emulator: adb was not found. ...` | Android Studio's Platform-Tools are missing. | Install them as the line says, then run it again. |

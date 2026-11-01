@@ -27,7 +27,6 @@ from __future__ import annotations
 import fcntl
 import os
 import re
-import shutil
 import signal
 import subprocess
 import tempfile
@@ -81,7 +80,7 @@ MSG_NOT_RUNNING = "The local answer service is not running."
 FIX_START = "Start it with {}, then run this command again.".format(svc.START_COMMAND)
 FIX_SHOWN = "Do the step shown above."
 MSG_NO_JAVA = "Java was not found on this computer."
-FIX_JAVA = "Install a Java 21 JDK (for example from https://adoptium.net), then run this command again."
+FIX_JAVA = "Install Temurin 21 from https://adoptium.net, then run this command again."
 MSG_NO_WRAPPER = "The project's Gradle wrapper (gradlew) is missing."
 FIX_WRAPPER = "Get a fresh copy of the project from a developer, then run this command again."
 STEP_STATUS = "Run {} and do its first step, then run this command again.".format(svc.SERVICE_STATUS_COMMAND)
@@ -527,16 +526,34 @@ class SubprocessRunner:
 
 
 class SystemTools:
-    """``java`` from ``JAVA_HOME`` or ``PATH``; ``adb`` from the Android SDK's platform-tools."""
+    """``java`` from the ``JAVA_HOME`` that ``scripts/java-env.sh`` resolved; ``adb`` from the SDK.
+
+    ``./scripts/init.sh --local-smoke`` runs the shared Java resolution and exports ``JAVA_HOME``
+    only when it found a Java that runs, so Java counts as present exactly when ``JAVA_HOME/bin/java
+    -version`` succeeds. A ``java`` that is only on ``PATH`` (such as Apple's placeholder) is never
+    taken on its own, so this check and the resolution always agree.
+    """
 
     def __init__(self, environ: Mapping[str, str]) -> None:
         self._environ = environ
 
     def java_available(self) -> bool:
         java_home = (self._environ.get("JAVA_HOME") or "").strip()
-        if java_home and os.access(Path(java_home) / "bin" / "java", os.X_OK):
-            return True
-        return shutil.which("java", path=self._environ.get("PATH")) is not None
+        java = Path(java_home) / "bin" / "java"
+        if not java_home or not os.access(java, os.X_OK):
+            return False
+        try:
+            completed = subprocess.run(  # noqa: S603 - fixed argv
+                [str(java), "-version"],
+                stdin=subprocess.DEVNULL,
+                stdout=subprocess.DEVNULL,
+                stderr=subprocess.DEVNULL,
+                timeout=ADB_TIMEOUT_SECONDS,
+                check=False,
+            )
+        except (OSError, subprocess.TimeoutExpired):
+            return False
+        return completed.returncode == 0
 
     def adb_path(self) -> Optional[str]:
         sdk = (self._environ.get("ANDROID_HOME") or self._environ.get("ANDROID_SDK_ROOT") or "").strip()

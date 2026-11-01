@@ -2084,7 +2084,8 @@ In order, stopping at the first gap, it:
 1. holds `<repo>/build/local-smoke/.lock` (a second run says "wait for it to finish");
 2. requires `settings.env`, a verified run record (a stale one is cleared), and all three
    `service_checks` (the quiet core of `--local-rag-service-status`) `OK`;
-3. requires `java` (`JAVA_HOME` or `PATH`) and an executable `gradlew`;
+3. requires the `JAVA_HOME` that `scripts/java-env.sh` resolved (its `bin/java -version` must run, so
+   Apple's `/usr/bin/java` placeholder never counts) and an executable `gradlew`;
 4. Desktop: `./gradlew --console=plain --quiet :shared:runDesktopLocalSmoke
    -PmanijeroSmokeExpected=http://127.0.0.1:<port> -PmanijeroSmokeResult=<dir>/desktop-result.txt`
    (15 min, log `desktop.log`). The task runs `smoke.DesktopLocalSmokeRun`, which jvmTest excludes;
