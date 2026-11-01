@@ -143,6 +143,11 @@ Durable MUST/MUST NOT rules for land editing, fields, storage, automatic copies,
   Automated tests MUST NOT need Ollama. Reason: `local_generation_provider`; the question stays on
   the host only while the endpoint is a fixed loopback address, and the recorded measurements are
   valid only for the pinned weights and limits.
+  Note (owner decision 2026-11-01, [`backend_container_image`](../specs/backend_container_image.md)):
+  inside the answer service container the constant is unchanged; a fixed relay
+  (`backend/container/ollama_relay.py`) listening only on the container's `127.0.0.1:11434`
+  forwards to the constant `host.docker.internal:11434` (Ollama on the host Mac), is not
+  configurable, and forwards nowhere else.
 
 - **MUST**: retention MUST run only after the answer is produced, through
   `backend/app/retention.py::retain_if_opted_in`, and MUST NOT change, delay-fail, or replace the

@@ -1,0 +1,22 @@
+# Allowlist for the image build context (the repository root): exclude everything, then
+# re-include only what backend/container/Dockerfile copies. Never tests, virtualenvs,
+# settings or secret files, deployment examples, or caches.
+*
+!backend/app
+!backend/config
+!backend/requirements.txt
+!backend/requirements-embeddings.txt
+!backend/requirements-hybrid.txt
+!backend/deploy/requirements-production.txt
+!backend/container
+
+# Even inside the allowlisted folders.
+**/tests
+**/.venv*
+**/*.env
+**/.env*
+**/*.example
+**/__pycache__
+**/*.pyc
+**/.pytest_cache
+**/.DS_Store

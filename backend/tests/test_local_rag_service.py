@@ -355,7 +355,7 @@ def test_start_before_setup_names_the_setup_command_and_writes_nothing(env: boot
     "owner, said, step",
     [
         (svc.MOCK_SERVICE_NAME, "in use by the mock answer service", "./scripts/init.sh --mock-stop"),
-        (svc.SERVICE_NAME, "a Manijero answer service that this command did not start", "Press Ctrl+C in the window where ./scripts/init.sh --backend runs"),
+        (svc.SERVICE_NAME, "a Manijero answer service that this command did not start", "Run ./scripts/init.sh --container-stop if the answer service runs in a container; otherwise press Ctrl+C in the window where ./scripts/init.sh --backend runs"),
         (svc.PORT_OTHER, "in use by another program", "Close the other program that uses port 8000"),
     ],
 )
@@ -671,7 +671,7 @@ def test_no_output_record_or_log_contains_corpus_text(running: Harness) -> None:
 
 
 def test_the_service_never_imports_the_operator_modules() -> None:
-    operator = ("local_rag_service", "local_rag_bootstrap", "pinned_download")
+    operator = ("local_rag_service", "local_rag_bootstrap", "pinned_download", "local_container")
     pattern = re.compile(r"^\s*(from app(\.| import )|import app\.)({})".format("|".join(operator)), re.MULTILINE)
     for path in (REPO_ROOT / "backend" / "app").glob("*.py"):
         if path.stem in operator:
