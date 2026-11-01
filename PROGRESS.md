@@ -7,14 +7,15 @@ Routine entry point. Exact feature status lives in [`feature_list.json`](feature
 contracts, raw evidence, and acceptance records remain in their owning files. Last updated:
 2026-11-01.
 
-**Feature status** — 73 of 120 features are accepted, including `local_full_rag_stack` (start, stop,
+**Feature status** — 74 of 120 features are accepted, including `client_pilot_credentials` (build-time
+pilot token, sent on `/ask` over https or loopback; owner walkthrough not run), `local_full_rag_stack` (start, stop,
 and status commands for the full local service; owner walkthrough on the owner's Mac), `numeric_grounding_check`
 (lexical numeric/date/deadline check on drafts; fixtures only), `local_generation_provider` (off by
 default; measured on the owner's Mac, host decision pending), `knowledge_reindex_release`
 (rehearsed locally only; no host step executed), `local_rag_bootstrap` (one guided setup
 command and a status check, walked through on the owner's Mac), `mock_answer_server` (Desktop and
 emulator walkthroughs not yet run), and `local_service_connection` (test builds only);
-`private_pilot_distribution` is `on_hold` by owner decision (2026-11-01). The 46 `not_started` features are the remaining MasterPlanV3 work, ordered
+`private_pilot_distribution` is `on_hold` by owner decision (2026-11-01). The 45 `not_started` features are the remaining MasterPlanV3 work, ordered
 local environment first, then the QA environment for remote real-device testing; prod is not planned yet. `feature_list.json` and the selector remain the status authority;
 this page does not duplicate the feature-id list.
 
@@ -27,7 +28,8 @@ The local FastAPI service exposes liveness-only `/health`, campaign-plus-corpus 
 per-worker rate limiting, a bounded request body, and metadata-only logging. Android and
 Desktop use overridable local development URLs; their test builds (never release builds) add a
 `Conexión` screen under `Ayuda` to set, remember, and check (`/health`, `/ready`) the service
-address. No client can send a pilot bearer token yet.
+address. Builds now send a pilot bearer token on `/ask` once the owner saves one
+(`client_pilot_credentials`).
 The reviewed corpus contains four official sources and four literal passages for three topics
 in the Andalusian PAC single application for 2026. `/ready` and `/ask` require an explicit
 `MANIJERO_ACTIVE_CAMPAIGN`; no hosted model or public deployment is implemented. Scheduled
@@ -72,6 +74,7 @@ before making any claim in its area.
 - The test-build `Conexión` screen has unit, guard, compile, and screenshot evidence only; no GUI run.
 - The full local service (start/stop/status) is walked through on the owner's Mac only, with no app question sent; status shows configuration, not per-answer use.
 - Hosted operations are prepared but not deployed; no host, domain, tunnel, or release artifacts exist.
+- A built-in pilot token is extractable from a built app; token auth is tested against an in-process fake only, with no live pilot-profile answer observed.
 - The mock answer service serves fixed contract examples only (not real or legal answers), on loopback for Desktop and the Android emulator.
 - Local `bge-m3` embeddings and Chroma hybrid retrieval are off the default answer path; measured
   on the development Mac only, with no answer-level improvement over BM25.

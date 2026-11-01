@@ -382,11 +382,15 @@ cases to exercise.
 - Rotate tunnel credentials and the Cloudflare account per the provider's own procedure;
   R2 presigned links (artifact delivery only) cannot be revoked individually before expiry,
   so keep them short-lived.
-- **Current gap:** the Android and Desktop clients have no field for a bearer token. The
-  pilot profile's authentication is implemented and tested, but a client build that can
-  present the token does not exist yet, so enabling this gate before that change would
-  make `/ask` fail (the app renders the accepted failure notice). Add client credential
-  support before routing any pilot user to the service.
+- **Client token:** Android and Desktop builds send the client's bearer token on `POST /ask`
+  once the owner saves it with `./scripts/init.sh --pilot-token-save` (see
+  [`docs/owner-guide.md`](../docs/owner-guide.md) "Give the apps the pilot token" and
+  [`client_pilot_credentials`](../docs/specs/client_pilot_credentials.md)). It is built in,
+  so after rotating or revoking a client here, save the new token and rebuild that client's
+  apps; an old build keeps getting `401`. The header is sent only over `https` or to a
+  loopback address, never on `/health` or `/ready`. **Remaining gap:** no app has yet been
+  observed getting a live answer from a pilot-profile service; that waits for a service the
+  owner can start (`environment_profiles`).
 
 ### Outage response
 

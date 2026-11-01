@@ -19,6 +19,7 @@ import io.ktor.client.HttpClient
 import com.jamarglex.manijero.chat.KtorAnswerService
 import com.jamarglex.manijero.chat.answerHttpClient
 import com.jamarglex.manijero.platform.desktopAskBaseUrl
+import com.jamarglex.manijero.platform.desktopPilotToken
 
 /** One stable local file for the lands this person manages on this computer. */
 private const val LAND_STORE_DIRECTORY = ".manijero"
@@ -33,11 +34,14 @@ fun main() = application {
     // Only the Gradle development `run` task marks a test build; packaged and release runs keep the
     // fixed answer URL and have no `Conexión` screen.
     val connectionTools = remember { testBuildConnectionTools(defaultAskBaseUrl, answerClient) }
+    // The pilot bearer token built in from the git-ignored `pilot-token.local`, or `null`. It is only
+    // handed to the answer transport and never shown or logged.
+    val pilotToken = remember { desktopPilotToken() }
     val answerService = remember {
         if (connectionTools != null) {
-            KtorAnswerService(answerClient, connectionTools.address::current)
+            KtorAnswerService(answerClient, connectionTools.address::current, pilotToken)
         } else {
-            KtorAnswerService(answerClient, defaultAskBaseUrl)
+            KtorAnswerService(answerClient, defaultAskBaseUrl, pilotToken)
         }
     }
     val landRepository = remember {

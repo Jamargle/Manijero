@@ -92,3 +92,6 @@ __pycache__/
 
 # Claude Code per-user settings
 .claude/settings.local.json
+
+# Pilot bearer token for local app builds (./scripts/init.sh --pilot-token-save). Never commit it.
+/pilot-token.local

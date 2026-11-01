@@ -429,6 +429,43 @@ anything that looked different from this guide) and send them to the developer.
     `Result: the answer service in the container has stopped.` Run it again and expect
     `... was not running, so there was nothing to stop.` Run `./scripts/init.sh --container-status`
     and expect `Result: the answer service in the container is not running. ...` Report all three.
+## Give the apps the pilot token
+
+When you are given a pilot token for the pilot answer service, save it once. The Android and
+Desktop apps you build after that send it with every question, so the pilot service answers them.
+The people testing the apps never see or type it. Without a saved token the apps work as before
+with the mock and local answer services.
+
+1. **Copy the token.** Select the whole token you were given and copy it (Command-C). Copy
+   nothing else after it.
+2. **Save it.** Paste:
+
+   ```sh
+   ./scripts/init.sh --pilot-token-save
+   ```
+
+   - Expected: `Result: the pilot token is saved. The next app build will send it.`
+   - The command never shows the token. It keeps it in the file `pilot-token.local` in the
+     Manijero folder, which is never shared or uploaded. Do not send that file to anyone.
+3. **Build the apps again** (for example `./scripts/init.sh --android` or
+   `./scripts/init.sh --desktop`). Only apps built after step 2 send the token.
+
+To use a new token, copy it and run the same command again. Expect
+`Result: the pilot token is saved; it replaced the previous one. The next app build will send it.`
+
+### If the result differs
+
+Nothing is saved, and any token saved before stays as it was.
+
+| Result line | What to do |
+|---|---|
+| `Result: the clipboard is empty. Copy the pilot token first, then run this command again.` | Copy the token (step 1), then run the command again. |
+| `Result: the clipboard does not hold a pilot token. Copy the whole token again, then run this command again.` | Part of the token, or extra text, was copied. Copy exactly the whole token again, then run the command again. |
+| `Result: this command could not read the clipboard; it needs a Mac. Ask the developer for help.` | Run it on your Mac, or ask the developer. |
+| `Result: the pilot token could not be saved, and nothing changed. Ask the developer for help.` | Send this line to the developer. |
+
+If an app build stops with `pilot-token.local is not a valid pilot token. Run ./scripts/init.sh --pilot-token-save again.`,
+copy the token and do step 2 again.
 
 ## Your settings file
 

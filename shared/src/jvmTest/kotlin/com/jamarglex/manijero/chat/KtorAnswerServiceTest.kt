@@ -26,6 +26,7 @@ import java.io.File
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFailsWith
+import kotlin.test.assertFalse
 import kotlin.test.assertNotEquals
 import kotlin.test.assertNotNull
 import kotlin.test.assertTrue
@@ -287,6 +288,112 @@ class KtorAnswerServiceTest {
             listOf("http://10.0.2.2:8000/ask", "http://192.168.1.20:8000/manijero/ask"),
             engine.requestHistory.map { it.url.toString() },
         )
+    }
+
+    // Pilot bearer token (client_pilot_credentials). Fake values only.
+
+    private val fakePilotToken = "fakeTokenForTestsOnly-0123456789abcdefABCDEF"
+
+    private fun answeringEngine() = MockEngine {
+        respond(
+            content = answeredFixture,
+            status = HttpStatusCode.OK,
+            headers = headersOf(HttpHeaders.ContentType, ContentType.Application.Json.toString()),
+        )
+    }
+
+    @Test
+    fun `without a token no ask carries an authorization header`() = runTest {
+        val engine = answeringEngine()
+        listOf("https://api.example.invalid", "http://127.0.0.1:8000", "http://192.168.1.20:8000").forEach {
+            KtorAnswerService(answerHttpClient(engine), baseUrl = it).ask(generalAskRequest("¿Puedo regar hoy?"))
+        }
+
+        assertEquals(3, engine.requestHistory.size)
+        engine.requestHistory.forEach { assertEquals(null, it.headers[HttpHeaders.Authorization]) }
+    }
+
+    @Test
+    fun `a token over https adds exactly one bearer header and leaves the request otherwise unchanged`() = runTest {
+        val plainEngine = answeringEngine()
+        val tokenEngine = answeringEngine()
+        val request = generalAskRequest("  ¿Puedo regar hoy?  ")
+        KtorAnswerService(answerHttpClient(plainEngine), "https://api.example.invalid/").ask(request)
+        KtorAnswerService(
+            answerHttpClient(tokenEngine),
+            "https://api.example.invalid/",
+            PilotToken.fromBuildSetting(fakePilotToken),
+        ).ask(request)
+
+        val plain = plainEngine.requestHistory.single()
+        val sent = tokenEngine.requestHistory.single()
+        assertEquals(listOf("Bearer $fakePilotToken"), sent.headers.getAll(HttpHeaders.Authorization))
+        assertEquals(plain.method, sent.method)
+        assertEquals(plain.url, sent.url)
+        assertEquals(plain.body.contentType, sent.body.contentType)
+        assertEquals(plain.body.asText(), sent.body.asText())
+        assertEquals(
+            plain.headers.names() + HttpHeaders.Authorization,
+            sent.headers.names(),
+        )
+    }
+
+    @Test
+    fun `a token over cleartext to a LAN host is never sent`() = runTest {
+        val engine = answeringEngine()
+        KtorAnswerService(
+            answerHttpClient(engine),
+            "http://192.168.1.20:8000",
+            PilotToken.fromBuildSetting(fakePilotToken),
+        ).ask(generalAskRequest("¿Puedo regar hoy?"))
+
+        assertEquals(null, engine.requestHistory.single().headers[HttpHeaders.Authorization])
+    }
+
+    @Test
+    fun `the header follows the address chosen for each question`() = runTest {
+        val engine = answeringEngine()
+        var address = "http://10.0.2.2:8000"
+        val service = KtorAnswerService(
+            client = answerHttpClient(engine),
+            baseUrl = { address },
+            pilotToken = PilotToken.fromBuildSetting(fakePilotToken),
+        )
+
+        service.ask(generalAskRequest("¿Puedo regar hoy?"))
+        address = "http://192.168.1.20:8000"
+        service.ask(generalAskRequest("¿Puedo regar hoy?"))
+        address = "https://api.example.invalid"
+        service.ask(generalAskRequest("¿Puedo regar hoy?"))
+
+        assertEquals(
+            listOf("Bearer $fakePilotToken", null, "Bearer $fakePilotToken"),
+            engine.requestHistory.map { it.headers[HttpHeaders.Authorization] },
+        )
+    }
+
+    @Test
+    fun `a refused token is a payload-free service error that never names the token`() = runTest {
+        val engine = MockEngine {
+            respond(
+                content = """{"detail":"Client credentials are required."}""",
+                status = HttpStatusCode.Unauthorized,
+                headers = headersOf(HttpHeaders.WWWAuthenticate, "Bearer"),
+            )
+        }
+        val service = KtorAnswerService(
+            answerHttpClient(engine),
+            "https://api.example.invalid",
+            PilotToken.fromBuildSetting(fakePilotToken),
+        )
+
+        val failure = assertFailsWith<AnswerServiceErrorException> {
+            service.ask(generalAskRequest("¿Puedo regar hoy?"))
+        }
+
+        val texts = listOf(failure.message.orEmpty(), failure.toString(), failure.stackTraceToString())
+        texts.forEach { assertFalse(fakePilotToken in it, "a failure must not carry the token") }
+        assertEquals(null, failure.cause)
     }
 
     private suspend fun OutgoingContent.asText(): String = when (this) {

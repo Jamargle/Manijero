@@ -164,6 +164,15 @@ val jvmTestTask = tasks.named<Test>("jvmTest") {
         file("../androidApp/src/main/res/xml"),
     ).withPropertyName("androidBackupConfiguration")
         .withPathSensitivity(org.gradle.api.tasks.PathSensitivity.RELATIVE)
+    // PilotTokenGuardTest reads the host build scripts, the host entry points, and .gitignore.
+    inputs.files(
+        file("../.gitignore"),
+        file("../androidApp/build.gradle.kts"),
+        file("../desktopApp/build.gradle.kts"),
+        file("../androidApp/src/main/kotlin/com/jamarglex/manijero/MainActivity.kt"),
+        file("../desktopApp/src/main/kotlin/com/jamarglex/manijero/main.kt"),
+    ).withPropertyName("pilotTokenGuardFiles")
+        .withPathSensitivity(org.gradle.api.tasks.PathSensitivity.RELATIVE)
     // The mock answer service tests read the committed contract examples.
     inputs.dir(file("../contracts/examples"))
         .withPropertyName("contractExamples")
