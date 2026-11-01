@@ -77,11 +77,21 @@ Do not over-claim.
   writes one request-metadata line with no question or land values, and ships preflight,
   hashed backup, verified restore, and smoke commands plus service/tunnel templates. Those
   gates and the corpus restore rehearsal are local evidence only: no host, domain, tunnel,
-  TLS edge, provider account, external monitoring, or measured capacity exists, the client
-  cannot yet send a token, and Android/macOS release artifacts are not implemented. The
+  TLS edge, provider account, external monitoring, or measured capacity exists, and
+  Android/macOS release artifacts are not implemented. The
   first-deploy credential ownership path, the stop/restore/start sequence, and the
   service-readable `0644` restore mode are repaired and exercised locally, but not on a
   host or through systemd.
+- Only test builds (Android debug, Desktop `run`) can carry a pilot bearer token saved with
+  `./scripts/init.sh --pilot-token-save` ([`client_pilot_credentials`](../specs/client_pilot_credentials.md)).
+  Release and packaged apps never carry it, so they cannot reach a pilot-profile service until a
+  release credential path exists (`client_environment_builds` or a later decision). In a test
+  build the token is built in, so anyone holding that build can extract it: it gates access per
+  client and is revocable, but it is not secret from the device holder. Every test build gets
+  the same saved token (no per-environment builds yet), it is sent only over
+  `https` or to a loopback address, and the auth flow is tested only against an in-process
+  fake of the pilot guard. No app has yet been observed getting a live answer from a
+  pilot-profile service, because no named command starts one locally.
 - Local embeddings are implemented but **off the answer path**: a pinned `BAAI/bge-m3` revision
   (`5617a9f…`, MIT), per-file SHA-256 verification, a derived `passage-embedding-index-v1` file
   outside `knowledge/`, and a rebuild/staleness check. Only this development Mac (Apple M1 Max,
@@ -115,3 +125,16 @@ Do not over-claim.
   may fall back to extractive while Ollama loads the model. Loopback only. See the
   [acceptance record](../validations/local_full_rag_stack.md) and
   [risks](../risks-and-open-questions.md).
+- The answer service container (`./scripts/init.sh --container-*`, `backend_container_image`) was
+  walked through on the owner's Apple-silicon Mac only (Docker Desktop 4.97.0), without sending an app
+  question; automated checks fake Docker. It is built for arm64 only, binds loopback only, drafts
+  through Ollama on the host, and each image (about 5.6 GB) is never pruned. See the
+  [acceptance record](../validations/backend_container_image.md) and
+  [risks](../risks-and-open-questions.md).
+- The local smoke test (`./scripts/init.sh --local-smoke`, `local_end_to_end_smoke`) passed once in the
+  owner walkthrough, on one Mac and the `Medium_Phone_API_37.0` emulator. "Desktop" is the shared app
+  drawn offscreen with the Desktop connection settings, not the real window. A pass proves the apps
+  reach the local service and render a grounded answer or an honest abstention; it makes no
+  answer-quality or legal-coverage claim. Whether the emulator app keeps its lands could not be
+  observed: the emulator had no lands before the run. Physical devices are never used. See the
+  [acceptance record](../validations/local_end_to_end_smoke.md).

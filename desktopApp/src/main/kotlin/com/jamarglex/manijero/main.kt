@@ -7,6 +7,7 @@ import com.jamarglex.manijero.connection.ActiveServiceAddress
 import com.jamarglex.manijero.connection.ConnectionTools
 import com.jamarglex.manijero.connection.FileServiceAddressStore
 import com.jamarglex.manijero.connection.KtorServiceStatusChecker
+import com.jamarglex.manijero.connection.desktopConnectionStorePath
 import com.jamarglex.manijero.connection.desktopTestBuildEnabled
 import com.jamarglex.manijero.lands.AwtBackupFileChooser
 import com.jamarglex.manijero.lands.DesktopLandBackupFiles
@@ -19,13 +20,11 @@ import io.ktor.client.HttpClient
 import com.jamarglex.manijero.chat.KtorAnswerService
 import com.jamarglex.manijero.chat.answerHttpClient
 import com.jamarglex.manijero.platform.desktopAskBaseUrl
+import com.jamarglex.manijero.platform.desktopPilotToken
 
 /** One stable local file for the lands this person manages on this computer. */
 private const val LAND_STORE_DIRECTORY = ".manijero"
 private const val LAND_STORE_FILE = "lands-v1.txt"
-
-/** Test builds only: the remembered answer-service address, next to the land store. */
-private const val CONNECTION_STORE_FILE = "connection-v1.txt"
 
 fun main() = application {
     val answerClient = remember { answerHttpClient(CIO.create()) }
@@ -33,11 +32,14 @@ fun main() = application {
     // Only the Gradle development `run` task marks a test build; packaged and release runs keep the
     // fixed answer URL and have no `Conexión` screen.
     val connectionTools = remember { testBuildConnectionTools(defaultAskBaseUrl, answerClient) }
+    // The pilot bearer token built in from the git-ignored `pilot-token.local`, or `null`. It is only
+    // handed to the answer transport and never shown or logged.
+    val pilotToken = remember { desktopPilotToken() }
     val answerService = remember {
         if (connectionTools != null) {
-            KtorAnswerService(answerClient, connectionTools.address::current)
+            KtorAnswerService(answerClient, connectionTools.address::current, pilotToken)
         } else {
-            KtorAnswerService(answerClient, defaultAskBaseUrl)
+            KtorAnswerService(answerClient, defaultAskBaseUrl, pilotToken)
         }
     }
     val landRepository = remember {
@@ -57,7 +59,7 @@ fun main() = application {
 private fun testBuildConnectionTools(defaultUrl: String, client: HttpClient): ConnectionTools? =
     if (desktopTestBuildEnabled()) {
         ConnectionTools(
-            address = ActiveServiceAddress(defaultUrl, FileServiceAddressStore(manijeroPath(CONNECTION_STORE_FILE))),
+            address = ActiveServiceAddress(defaultUrl, FileServiceAddressStore(desktopConnectionStorePath())),
             checker = KtorServiceStatusChecker(client),
         )
     } else {

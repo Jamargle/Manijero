@@ -1,9 +1,29 @@
+import com.android.build.api.variant.BuildConfigField
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 
 plugins {
     alias(libs.plugins.androidApplication)
     alias(libs.plugins.composeCompiler)
 }
+
+// Pilot bearer token (client_pilot_credentials): only from the git-ignored `pilot-token.local` at the
+// repository root, or the file named by MANIJERO_PILOT_TOKEN_FILE (tests and checks use fake files).
+// Never from the SDK properties file. The file is read lazily, only when BuildConfig is generated, so a
+// malformed file fails app builds without echoing its content and leaves other tasks untouched.
+val pilotTokenFile: Provider<RegularFile> = rootProject.layout.projectDirectory.file(
+    providers.environmentVariable("MANIJERO_PILOT_TOKEN_FILE").orElse("pilot-token.local"),
+)
+val pilotTokenBuildConfigValue: Provider<String> = providers.fileContents(pilotTokenFile).asText
+    .map { raw ->
+        val token = raw.trim()
+        if (token.length !in 32..512 || !Regex("^[A-Za-z0-9._~+/-]+=*$").matches(token)) {
+            throw GradleException(
+                "pilot-token.local is not a valid pilot token. Run ./scripts/init.sh --pilot-token-save again.",
+            )
+        }
+        "\"$token\""
+    }
+    .orElse("null")
 
 kotlin {
     compilerOptions {
@@ -18,6 +38,14 @@ dependencies {
 
     implementation(libs.compose.uiToolingPreview)
     debugImplementation(libs.compose.uiTooling)
+
+    // Test-only: the instrumented local smoke check (./scripts/init.sh --local-smoke). It runs in the
+    // debug app's process; the release dependency graph is unchanged.
+    androidTestImplementation(libs.androidx.test.runner)
+    androidTestImplementation(libs.androidx.test.espresso.core)
+    androidTestImplementation(libs.androidx.test.junit)
+    androidTestImplementation(libs.androidx.compose.uiTestJunit4)
+    debugImplementation(libs.androidx.compose.uiTestManifest)
 }
 
 android {
@@ -30,6 +58,7 @@ android {
         targetSdk = libs.versions.android.targetSdk.get().toInt()
         versionCode = 1
         versionName = "1.0"
+        testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         buildConfigField("String", "ASK_BASE_URL", "\"${providers.gradleProperty("manijeroAskBaseUrl").orElse("http://10.0.2.2:8000").get()}\"")
     }
     packaging {
@@ -46,6 +75,7 @@ android {
         buildConfig = true
     }
     buildTypes {
+        // Only debug carries the pilot token; release gets PILOT_TOKEN = null. See androidComponents.
         debug { manifestPlaceholders["usesCleartextTraffic"] = "true" }
         release {
             manifestPlaceholders["usesCleartextTraffic"] = "false"
@@ -55,5 +85,61 @@ android {
                 "proguard-rules.pro"
             )
         }
+    }
+}
+
+// Only debug (test) builds may carry the pilot token (owner decision 5): debug gets the quoted
+// token when one is saved, or the literal `null`. Every other build type, including release, gets a
+// constant `null` that never touches the token file, so the field stays declared for src/main but
+// the token is never read, validated, or a release task input. MainActivity turns the field into a
+// PilotToken, which re-checks the shape.
+androidComponents {
+    onVariants { variant ->
+        if (variant.buildType == "debug") {
+            variant.buildConfigFields?.put(
+                "PILOT_TOKEN",
+                pilotTokenBuildConfigValue.map { BuildConfigField("String", it, null) },
+            )
+        } else {
+            variant.buildConfigFields?.put("PILOT_TOKEN", BuildConfigField("String", "null", null))
+        }
+    }
+}
+
+// The instrumented local smoke check runs on API 37. Espresso before 3.6 reflects on
+// InputManager.getInstance, which API 34+ removed, so the test crashes before it starts. This
+// offline check resolves the androidTest classpath and fails when espresso-core is older than
+// 3.6.1 (local_end_to_end_smoke focused verification).
+fun espressoCoreVersions() = configurations.named("debugAndroidTestRuntimeClasspath").flatMap { classpath ->
+    classpath.incoming.resolutionResult.rootComponent.map { root ->
+        val seen = mutableSetOf<org.gradle.api.artifacts.result.ResolvedComponentResult>()
+        val queue = ArrayDeque(listOf(root))
+        val versions = mutableListOf<String>()
+        while (queue.isNotEmpty()) {
+            val component = queue.removeFirst()
+            if (!seen.add(component)) continue
+            val id = component.moduleVersion
+            if (id != null && id.group == "androidx.test.espresso" && id.name == "espresso-core") versions += id.version
+            component.dependencies
+                .filterIsInstance<org.gradle.api.artifacts.result.ResolvedDependencyResult>()
+                .forEach { queue.addLast(it.selected) }
+        }
+        versions.distinct().joinToString(",")
+    }
+}
+
+tasks.register("verifyAndroidTestDependencies") {
+    group = "verification"
+    description = "Fail when the androidTest classpath resolves espresso-core older than 3.6.1 (API 34+ support)."
+    // Configured lazily, after AGP has created the androidTest configurations.
+    val resolved = espressoCoreVersions()
+    inputs.property("espressoCore", resolved)
+    doLast {
+        val versions = resolved.get().split(',').filter(String::isNotBlank)
+        check(versions.size == 1) { "expected exactly one espresso-core on debugAndroidTestRuntimeClasspath, found $versions" }
+        val parts = versions.single().split('.', '-').take(3).map { it.toIntOrNull() ?: 0 }
+        val (major, minor, patch) = parts + List(3 - parts.size) { 0 }
+        val supported = major > 3 || (major == 3 && (minor > 6 || (minor == 6 && patch >= 1)))
+        check(supported) { "espresso-core ${versions.single()} is older than 3.6.1 and crashes on API 34+" }
     }
 }
