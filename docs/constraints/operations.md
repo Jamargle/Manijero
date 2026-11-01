@@ -14,6 +14,7 @@ Owner decision (2026-11-01): the owner runs every environment alone and is not f
 - **MUST**: each operation is documented in the owner guide (`docs/owner-guide.md`, created by the first feature that needs it) as numbered copy-paste steps with the expected result and what to do if it differs; internals stay in `backend/README.md`.
 - **MUST**: a feature that changes an existing operator CLI (for example `pilot_ops.py`, `knowledge_release.py`, `knowledge_review.py`, `run_source_updates.py`) also exposes that operation through a named command above.
 - **MUST**: acceptance includes a walkthrough that runs every documented operation exactly as the owner guide writes it, from a fresh checkout, including at least one missing-prerequisite case and one recovery.
+- **MUST**: a setup command downloads only artifacts named by a reviewed pin, from the pin's own upstream location, and verifies each one against the pin before use; it **MUST NOT** edit a pin to make a mismatch pass, and the answer service itself never downloads. Reason: [`local_rag_bootstrap`](../specs/local_rag_bootstrap.md).
 
 ## Monitoring
 
