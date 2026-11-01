@@ -109,3 +109,9 @@ Do not over-claim.
   not-ready service, and the remembered address after restart were not exercised in the Desktop or
   emulator GUI, and the packaged Desktop app was not opened to confirm the card is absent. See the
   [acceptance record](../validations/local_service_connection.md).
+- The full local answer service (`./scripts/init.sh --local-rag-start`, `local_full_rag_stack`) was
+  walked through on the owner's Mac only, without sending an app question. Its status reports the
+  start configuration and live probes, not what each answer used; the first question after a start
+  may fall back to extractive while Ollama loads the model. Loopback only. See the
+  [acceptance record](../validations/local_full_rag_stack.md) and
+  [risks](../risks-and-open-questions.md).

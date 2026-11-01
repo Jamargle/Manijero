@@ -1,4 +1,5 @@
-"""The owner commands through ``./scripts/init.sh``: dispatch, early stops, and read-only status.
+"""The owner commands through ``./scripts/init.sh``: dispatch, early stops, read-only status, and
+the local answer service commands (which never start a service here).
 
 Each run uses a temporary ``MANIJERO_LOCAL_HOME`` and an empty ``MANIJERO_VENV_ROOT`` (so no
 shared hybrid environment is found or linked), and either a missing or a fake
@@ -8,6 +9,7 @@ loopback Ollama probe the commands make themselves.
 
 from __future__ import annotations
 
+import json
 import os
 import socket
 import subprocess
@@ -113,4 +115,81 @@ def test_an_extra_argument_is_misuse(tmp_path: Path, mode: str) -> None:
     completed = run_init(tmp_path, mode, "now")
 
     assert completed.returncode == 2
+    assert not (tmp_path / "home").exists()
+
+
+# --- The local answer service commands (never start a service) ----------------------------
+
+
+def free_port() -> str:
+    with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as probe:
+        probe.bind(("127.0.0.1", 0))
+        return str(probe.getsockname()[1])
+
+
+def run_service(tmp_path: Path, *args: str, extra: Optional[Dict[str, str]] = None) -> subprocess.CompletedProcess:
+    return run_init(tmp_path, *args, extra={"MANIJERO_LOCAL_RAG_PORT": free_port(), **(extra or {})})
+
+
+def test_start_before_setup_names_the_setup_command_and_writes_nothing(tmp_path: Path) -> None:
+    completed = run_service(tmp_path, "--local-rag-start")
+
+    assert completed.returncode == 1, completed.stdout + completed.stderr
+    assert completed.stdout.splitlines()[-1] == (
+        "Result: the local answer service did not start. Run ./scripts/init.sh --local-rag-setup."
+    )
+    assert "Traceback" not in completed.stdout + completed.stderr
+    assert not (tmp_path / "home").exists()
+
+
+def test_service_status_before_any_start_says_how_to_start(tmp_path: Path) -> None:
+    completed = run_service(tmp_path, "--local-rag-service-status")
+
+    assert completed.returncode == 1, completed.stdout + completed.stderr
+    assert completed.stdout.splitlines()[-1] == (
+        "Result: the local answer service is not running. Start it with ./scripts/init.sh --local-rag-start."
+    )
+    assert not (tmp_path / "home").exists()
+
+
+def test_stop_when_nothing_runs_has_nothing_to_stop(tmp_path: Path) -> None:
+    completed = run_service(tmp_path, "--local-rag-stop")
+
+    assert completed.returncode == 0, completed.stdout + completed.stderr
+    assert completed.stdout.splitlines() == ["Result: the local answer service was not running, so there was nothing to stop."]
+    assert not (tmp_path / "home").exists()
+
+
+@pytest.mark.parametrize("mode", ["--local-rag-service-status", "--local-rag-stop"])
+def test_a_record_for_another_program_is_cleared_and_that_program_keeps_running(tmp_path: Path, mode: str) -> None:
+    sleeper = subprocess.Popen(["sleep", "60"])
+    try:
+        record = tmp_path / "home" / "run" / "service.json"
+        record.parent.mkdir(parents=True)
+        record.write_text(
+            json.dumps({"pid": sleeper.pid, "port": 8000, "started_at": "2026-11-01T09:30:00Z", "release_id": "r", "log": "x"}),
+            encoding="utf-8",
+        )
+
+        completed = run_service(tmp_path, mode)
+
+        lines = completed.stdout.splitlines()
+        assert lines[0] == "An earlier local answer service ended without being stopped; its leftover record was cleared."
+        assert completed.returncode == (1 if mode.endswith("status") else 0), completed.stdout + completed.stderr
+        assert not record.exists()
+        assert sleeper.poll() is None  # never signalled
+    finally:
+        sleeper.kill()
+        sleeper.wait()
+
+
+@pytest.mark.parametrize("mode", ["--local-rag-start", "--local-rag-service-status", "--local-rag-stop"])
+def test_an_extra_argument_or_a_bad_port_is_misuse_for_the_service_commands(tmp_path: Path, mode: str) -> None:
+    extra = run_service(tmp_path, mode, "now")
+    assert extra.returncode == 2 and "on its own" in extra.stderr
+
+    for value in ("0", "65536", "abc"):
+        bad_port = run_init(tmp_path, mode, extra={"MANIJERO_LOCAL_RAG_PORT": value})
+        assert bad_port.returncode == 2 and "between 1 and 65535" in bad_port.stderr
+        assert not bad_port.stdout
     assert not (tmp_path / "home").exists()
