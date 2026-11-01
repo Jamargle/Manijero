@@ -95,3 +95,8 @@ Do not over-claim.
   are the earlier citation/critical-fact misses and one is a newly measured out-of-scope
   reclamación answer. No answer-quality, legal-correctness, or independent-review claim is
   supported.
+- The mock answer service (`./scripts/init.sh --mock`) serves only the fixed contract example
+  responses, chosen by request shape; they are not real or legal answers and say nothing about
+  answer quality. It listens on `127.0.0.1` only, so it serves Desktop and the Android emulator,
+  not physical devices or other machines. See the
+  [`mock_answer_server`](../specs/mock_answer_server.md) contract.
