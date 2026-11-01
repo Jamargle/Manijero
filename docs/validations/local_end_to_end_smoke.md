@@ -17,6 +17,6 @@
 ## Limits
 
 - Walked through once, on one Mac and one API 37 emulator, from the integration worktree `integration/2026-11-01-batch-3`.
-- Whether the emulator app kept its lands after the run was not separately reported; the owner confirmed all steps matched the guide. The optional emulator-closed step was not reported.
+- Whether the emulator app kept its lands could not be observed: the owner reported (2026-11-01) that the emulator app had no lands before the run. Data retention rests on the install-without-clear code path and its offline tests, not on this walkthrough. The optional emulator-closed step was not reported.
 - "Desktop" is the shared app drawn offscreen with the Desktop connection settings, not the real window.
 - A pass proves the apps reach the local service and render a grounded answer or an honest abstention. It makes no answer-quality or legal-coverage claim.

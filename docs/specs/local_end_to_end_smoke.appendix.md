@@ -167,7 +167,7 @@ Owner walkthrough, 2026-11-01 (recorded by the orchestrator from the owner's rep
 - Step 4 (service stopped, then `--local-smoke`): the `Result: the smoke test did not run. Start it with ./scripts/init.sh --local-rag-start, then run this command again.` line.
 - Step 5 (recovery): passed again, as in step 3.
 - Final `--local-rag-stop`: the service stopped. The owner reported this as "step 6". It is step 7 in the current guide, where step 6 (emulator closed) is optional; that optional step was not separately reported.
-- Emulator app still showing its earlier lands: not separately reported; owner confirmed all steps matched the guide.
+- Emulator app still showing its earlier lands: not observable; the owner reported (2026-11-01) that no lands had been added on the emulator before the run.
 - Not reported: the exact `PASS` line wording beyond the outcomes above, the answered/abstained split per platform, the source counts, the elapsed time, and whether the retry was used. On the earlier failed run (repair 3), Desktop showed an answer with 1 source card.
 
 ## Validator checklist
