@@ -10,7 +10,7 @@ contracts, raw evidence, and acceptance records remain in their owning files. La
 **Feature status** — 76 of 120 features are accepted, including `backend_container_image` (build,
 start, status, and stop commands for the answer service in Docker Desktop; owner walkthrough on the
 owner's Mac), `client_pilot_credentials` (build-time
-pilot token in test builds only, sent on `/ask` over https or loopback; debug-only revision re-accepted 2026-11-01; owner walkthrough not run), `local_end_to_end_smoke` (one command
+pilot token in test builds only, sent on `/ask` over https or loopback; debug-only revision re-accepted 2026-11-01; owner walkthrough passed), `local_end_to_end_smoke` (one command
 that checks Desktop and the Android emulator against the running local service; owner walkthrough on the
 owner's Mac), `local_full_rag_stack` (start, stop,
 and status commands for the full local service; owner walkthrough on the owner's Mac), `numeric_grounding_check`

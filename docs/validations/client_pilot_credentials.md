@@ -60,4 +60,7 @@ Spec: [`client_pilot_credentials.md`](../specs/client_pilot_credentials.md); imp
   credential path exists. Both points are recorded in
   [`known-limitations.md`](../progress/known-limitations.md) and the risks register.
 - No live pilot-profile answer has been observed from an app, because no named command starts
-  that profile locally yet (`environment_profiles`). The owner walkthrough has not been run.
+  that profile locally yet (`environment_profiles`).
+- Owner walkthrough (2026-11-01): the owner ran the owner-guide steps (empty clipboard, short
+  text, real token, then `--mock` and `--desktop` with a question) and reported that all went
+  as documented. Individual `Result:` lines were not sent.
