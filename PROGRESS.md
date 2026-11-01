@@ -8,7 +8,7 @@ contracts, raw evidence, and acceptance records remain in their owning files. La
 2026-11-01.
 
 **Feature status** — 74 of 120 features are accepted, including `client_pilot_credentials` (build-time
-pilot token in test builds only, sent on `/ask` over https or loopback; debug-only revision re-accepted 2026-11-01; owner walkthrough not run), `local_full_rag_stack` (start, stop,
+pilot token in test builds only, sent on `/ask` over https or loopback; debug-only revision re-accepted 2026-11-01; owner walkthrough passed), `local_full_rag_stack` (start, stop,
 and status commands for the full local service; owner walkthrough on the owner's Mac), `numeric_grounding_check`
 (lexical numeric/date/deadline check on drafts; fixtures only), `local_generation_provider` (off by
 default; measured on the owner's Mac, host decision pending), `knowledge_reindex_release`

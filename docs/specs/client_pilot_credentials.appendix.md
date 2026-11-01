@@ -128,7 +128,7 @@ Implementer self-verification, 2026-11-01 (JDK 21, macOS):
   - Android injects `PILOT_TOKEN` through `androidComponents.onVariants { buildConfigFields.put(...) }` for every variant, not through `defaultConfig.buildConfigField`. The lazy provider reads the file only when `BuildConfig` is generated, so a malformed file fails app builds but not unrelated tasks. The field value is still an input of `generate*BuildConfig`, which AGP requires.
   - `shared/build.gradle.kts` declares the files that `PilotTokenGuardTest` reads as `jvmTest` inputs, so a cached result cannot hide a guard regression.
   - The save command's validation runs in-process, so the token is never a process argument. It also has one extra failure line, `Result: the pilot token could not be saved, and nothing changed. Ask the developer for help.`, for an unwritable target. It is documented in the owner guide.
-- Owner walkthrough (manual, spec "Focused verification"): pending, not run by an agent.
+- Owner walkthrough (manual, spec "Focused verification"): run by the owner on 2026-11-01 on their Mac; owner reported all steps went as documented (empty clipboard refused, short text refused, token saved, mock answer still shown in Desktop). Individual `Result:` lines not sent.
 
 Revision 2026-11-01 (decision 5: debug-only token), implementer self-verification on top of `2e157cc`:
 
