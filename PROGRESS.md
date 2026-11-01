@@ -7,14 +7,16 @@ Routine entry point. Exact feature status lives in [`feature_list.json`](feature
 contracts, raw evidence, and acceptance records remain in their owning files. Last updated:
 2026-11-01.
 
-**Feature status** — 73 of 120 features are accepted, including `local_full_rag_stack` (start, stop,
+**Feature status** — 74 of 120 features are accepted, including `local_end_to_end_smoke` (one command
+that checks Desktop and the Android emulator against the running local service; owner walkthrough on the
+owner's Mac), `local_full_rag_stack` (start, stop,
 and status commands for the full local service; owner walkthrough on the owner's Mac), `numeric_grounding_check`
 (lexical numeric/date/deadline check on drafts; fixtures only), `local_generation_provider` (off by
 default; measured on the owner's Mac, host decision pending), `knowledge_reindex_release`
 (rehearsed locally only; no host step executed), `local_rag_bootstrap` (one guided setup
 command and a status check, walked through on the owner's Mac), `mock_answer_server` (Desktop and
 emulator walkthroughs not yet run), and `local_service_connection` (test builds only);
-`private_pilot_distribution` is `on_hold` by owner decision (2026-11-01). The 46 `not_started` features are the remaining MasterPlanV3 work, ordered
+`private_pilot_distribution` is `on_hold` by owner decision (2026-11-01). The 45 `not_started` features are the remaining MasterPlanV3 work, ordered
 local environment first, then the QA environment for remote real-device testing; prod is not planned yet. `feature_list.json` and the selector remain the status authority;
 this page does not duplicate the feature-id list.
 
@@ -71,6 +73,7 @@ before making any claim in its area.
   manual, synthetic-fixture-backed, and guarantee neither completeness nor currency.
 - The test-build `Conexión` screen has unit, guard, compile, and screenshot evidence only; no GUI run.
 - The full local service (start/stop/status) is walked through on the owner's Mac only, with no app question sent; status shows configuration, not per-answer use.
+- The local smoke test (`--local-smoke`) passed once on the owner's Mac (offscreen Desktop, API 37 emulator); it proves reach and rendering, not answer quality, and lands kept after the run were not separately reported.
 - Hosted operations are prepared but not deployed; no host, domain, tunnel, or release artifacts exist.
 - The mock answer service serves fixed contract examples only (not real or legal answers), on loopback for Desktop and the Android emulator.
 - Local `bge-m3` embeddings and Chroma hybrid retrieval are off the default answer path; measured
@@ -99,6 +102,7 @@ Tiers, cheapest first; `./scripts/init.sh` holds the exact commands.
 - Full gate: `./scripts/init.sh --verify` (`--full`) — `--fast` plus `:shared:testAndroidHostTest`, `:androidApp:assembleDebug`, and `:desktopApp:build`.
 - Backend unit tests alone: `./scripts/init.sh --backend-tests [targets]` — needs pytest; with none available, `--fast` prints the virtualenv recipe, skips the suite locally, and fails under `CI`.
 - Backend Python (3.10+): `./scripts/init.sh --setup-python` builds the shared environment once per requirements change and links it as `backend/.venv` in every checkout and worktree. Start the local API: `./scripts/init.sh --backend` (links that environment if needed and launches Uvicorn). Android build: `./scripts/init.sh --android`; build, boot an emulator if needed, install, and launch: `./scripts/init.sh --android-run` (uses the first configured AVD when none is running). Launch Desktop: `./scripts/init.sh --desktop`.
+- Local smoke test (owner, needs `--local-rag-start` and a booted emulator): `./scripts/init.sh --local-smoke` prints one `PASS`/`FAIL` line for Desktop and the Android emulator, then a `Result:` line; steps in [`docs/owner-guide.md`](docs/owner-guide.md).
 - Mock answer service (no Python): `./scripts/init.sh --mock` starts it in the background on the apps' default address and prints it, `--mock-status` reports it, `--mock-stop` stops it; owner steps in [`docs/owner-guide.md`](docs/owner-guide.md).
 - Output is compact: one line per passing check and the tail of a failing log; full logs stay in `build/verify-logs/` (`MANIJERO_VERBOSE=1` prints them inline, `MANIJERO_FAIL_TAIL=<n>` sets the tail length).
 - The offline checks pin `--as-of 2026-10-13` so runs are deterministic; override with `MANIJERO_AS_OF=YYYY-MM-DD`.

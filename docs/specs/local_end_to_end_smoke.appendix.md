@@ -160,6 +160,16 @@ Repair 3, 2026-11-01 (Android instrumentation crash, found by the owner walkthro
 
 Not run here (owner walkthrough, recorded by the orchestrator): the real `--local-smoke` run against the service and emulator, AGP `installDebug` keeping app data, and the `ACCESS_LOCAL_NETWORK` grant on API 37.
 
+Owner walkthrough, 2026-11-01 (recorded by the orchestrator from the owner's report). It ran on the owner's Mac from the integration worktree `integration/2026-11-01-batch-3`, which contains repairs 2 and 3. The emulator was `Medium_Phone_API_37.0`, and Java came from the scripts' own resolution (`scripts/java-env.sh`); the owner had also been asked to install Temurin 21. In the owner's words, "the results were exactly as the steps say":
+
+- Steps 1–2 (`--local-rag-start`, `--android-run`): as the guide says.
+- Step 3 `--local-smoke`: `PASS  Desktop`, `PASS  Android emulator`, `Result: the smoke test passed on Desktop and the Android emulator.`
+- Step 4 (service stopped, then `--local-smoke`): the `Result: the smoke test did not run. Start it with ./scripts/init.sh --local-rag-start, then run this command again.` line.
+- Step 5 (recovery): passed again, as in step 3.
+- Final `--local-rag-stop`: the service stopped. The owner reported this as "step 6". It is step 7 in the current guide, where step 6 (emulator closed) is optional; that optional step was not separately reported.
+- Emulator app still showing its earlier lands: not separately reported; owner confirmed all steps matched the guide.
+- Not reported: the exact `PASS` line wording beyond the outcomes above, the answered/abstained split per platform, the source counts, the elapsed time, and whether the retry was used. On the earlier failed run (repair 3), Desktop showed an answer with 1 source card.
+
 ## Validator checklist
 
 - [ ] `--local-smoke` exists in `init.sh` early dispatch, `usage`, and `--check`. Misuse gives exit `2`, and no tier runs it.

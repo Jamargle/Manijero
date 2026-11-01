@@ -115,3 +115,10 @@ Do not over-claim.
   may fall back to extractive while Ollama loads the model. Loopback only. See the
   [acceptance record](../validations/local_full_rag_stack.md) and
   [risks](../risks-and-open-questions.md).
+- The local smoke test (`./scripts/init.sh --local-smoke`, `local_end_to_end_smoke`) passed once in the
+  owner walkthrough, on one Mac and the `Medium_Phone_API_37.0` emulator. "Desktop" is the shared app
+  drawn offscreen with the Desktop connection settings, not the real window. A pass proves the apps
+  reach the local service and render a grounded answer or an honest abstention; it makes no
+  answer-quality or legal-coverage claim. Whether the emulator app kept its lands was not separately
+  reported, though the owner confirmed all steps matched the guide. Physical devices are never used. See the
+  [acceptance record](../validations/local_end_to_end_smoke.md).
