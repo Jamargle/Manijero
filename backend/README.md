@@ -2106,7 +2106,11 @@ Desktop in the result file, Android as instrumentation status `manijero_smoke_re
 are `answered`, `abstained`, `answered_without_sources`, `land_clarification`, `unreachable`,
 `service_error`, `not_ready`, `ready_unknown`, `not_manijero`, `other_address`, `no_answer`, and
 `error`. Only `answered` with at least one source card, or `abstained`, passes. A timeout, a
-non-zero exit, or a missing or malformed line prints the "could not run" line with the log path.
+non-zero exit, or a missing or malformed line prints the "could not run" line with the log path; an
+instrumentation crash with no result line that names a missing method or class
+(`NoSuchMethodException`, `NoClassDefFoundError`, ...) prints "the Android test tools do not match
+this emulator's Android version" with the log path instead. `:androidApp:verifyAndroidTestDependencies`
+fails offline when androidTest resolves `espresso-core` older than 3.6.1 (it crashes on API 34+).
 For `other_address`, the `Usar la dirección predeterminada` fix is named only when the saved
 address hides a build default that equals the service address. The build default is
 `MANIJERO_ASK_BASE_URL` for Desktop and `ORG_GRADLE_PROJECT_manijeroAskBaseUrl` for Android,

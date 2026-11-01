@@ -281,7 +281,7 @@ version of the app over the existing one and keeps its data.
 | `FAIL  Android emulator: adb was not found. ...` | Android Studio's Platform-Tools are missing. | Install them as the line says, then run it again. |
 | `FAIL  <app>: the app uses <address>, not <address>. Open Ayuda > Herramientas de prueba > Conexión, ...` | That app was set to another address. | In that app, do what the line says, then run it again. |
 | `FAIL  <app>: the app could not reach ...`, `... cannot answer questions right now ...`, `... with an error ...`, or `... no reply within 90 seconds ...` | The app reached the service, or tried, but got no usable reply. | Run `./scripts/init.sh --local-rag-service-status` and do its first step, then run it again. |
-| `FAIL  <app>: the check could not run. Details are in build/local-smoke/<app>.log; ...` or another `FAIL` line naming a log | The build, install, or check itself failed. | Send that log file to a developer. |
+| `FAIL  <app>: the check could not run. Details are in build/local-smoke/<app>.log; ...`, `FAIL  Android emulator: the Android test tools do not match this emulator's Android version. ...`, or another `FAIL` line naming a log | The build, install, or check itself failed. | Send that log file to a developer. |
 | `The smoke test was stopped.` | You pressed Ctrl+C. | Run it again when you are ready. |
 
 ## Owner walkthrough: local smoke test

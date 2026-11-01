@@ -429,6 +429,34 @@ def test_an_android_install_or_run_failure_could_not_run(s: Smoke, arrange) -> N
     assert s.lines[-1] == "Result: the smoke test failed on the Android emulator. Do the first step shown above."
 
 
+ESPRESSO_CRASH = (
+    "INSTRUMENTATION_STATUS: class=com.jamarglex.manijero.smoke.AndroidLocalSmokeTest\r\n"
+    "INSTRUMENTATION_STATUS: stack=java.lang.NoSuchMethodException: android.hardware.input.InputManager.getInstance []\r\n"
+    "\tat androidx.test.espresso.base.InputManagerEventInjectionStrategy.initialize(InputManagerEventInjectionStrategy.java:12)\r\n"
+    "INSTRUMENTATION_STATUS_CODE: -2\r\n"
+    "INSTRUMENTATION_RESULT: stream=\r\nFAILURES!!!\r\nTests run: 1,  Failures: 1\r\nINSTRUMENTATION_CODE: -1\r\n"
+)
+
+
+@pytest.mark.parametrize("missing", ["NoSuchMethodException", "NoSuchMethodError", "NoClassDefFoundError", "ClassNotFoundException"])
+def test_a_tools_crash_on_the_device_is_named_plainly_without_a_stack_trace(s: Smoke, missing: str) -> None:
+    s.runner.instrument = ESPRESSO_CRASH.replace("NoSuchMethodException", missing)
+
+    assert s.run() == 1
+    assert s.lines[4] == (
+        "FAIL  Android emulator: the Android test tools do not match this emulator's Android version. "
+        "Details are in {}; send that file to a developer.".format(s.dir / "android.log")
+    )
+    assert not any("InputManager" in line or "at androidx" in line for line in s.lines)
+    assert s.lines[-1] == "Result: the smoke test failed on the Android emulator. Do the first step shown above."
+
+
+def test_a_well_formed_status_wins_over_a_tools_crash_marker(s: Smoke) -> None:
+    s.runner.instrument = instrumentation_output(ANDROID_OK, "INSTRUMENTATION_STATUS: stack=java.lang.ClassNotFoundException: x\r\n")
+
+    assert s.run() == 0, s.lines
+
+
 def test_a_failed_assertion_with_a_well_formed_status_reports_the_outcome(s: Smoke) -> None:
     failing = ANDROID_OK.replace("abstained", "land_clarification")
     s.runner.instrument = instrumentation_output(failing).replace("OK (1 test)", "FAILURES!!! Tests run: 1,  Failures: 1")

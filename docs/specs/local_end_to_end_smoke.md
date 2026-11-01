@@ -121,8 +121,8 @@ Given any run, these hold:
 - `desktopApp/src/main/.../main.kt` — modify: use it.
 - `shared/src/jvmTest/.../smoke/SmokeUiScript.kt`, `DesktopSmokeDriverTest.kt`, `DesktopLocalSmokeRun.kt`, and `platform/LocalSmokeGuardTest.kt` — create.
 - `shared/build.gradle.kts` — modify: jvmTest exclusion, `runDesktopLocalSmoke`, jvmTest `ktor-client-cio`.
-- `androidApp/build.gradle.kts` — modify: `testInstrumentationRunner`, test dependencies.
-- `gradle/libs.versions.toml` — modify: `androidx-test-runner`.
+- `androidApp/build.gradle.kts` — modify: `testInstrumentationRunner`, test dependencies, the androidTest-only `espresso-core` pin, and the offline `verifyAndroidTestDependencies` task (fails when the resolved `espresso-core` is older than 3.6.1, which crashes on API 34+).
+- `gradle/libs.versions.toml` — modify: `androidx-test-runner`, `androidx-test-espresso-core` (3.7.0).
 - `androidApp/src/androidTest/kotlin/com/jamarglex/manijero/smoke/AndroidLocalSmokeTest.kt` — create.
 - Not changed: `androidApp/src/release/**`, `MainActivity.kt`, every backend service module, `contracts/`, `knowledge/`, `strings.xml`, and screenshot goldens.
 
@@ -152,6 +152,7 @@ bash -n scripts/java-env.sh
 MANIJERO_PYTHON="${MANIJERO_PYTHON:-backend/.venv/bin/python}" ./scripts/init.sh --backend-tests tests/test_local_smoke.py tests/test_local_rag_commands.py tests/test_local_rag_service.py tests/test_java_resolution.py -q
 ./gradlew --quiet :shared:jvmTest --tests 'com.jamarglex.manijero.smoke.*' --tests 'com.jamarglex.manijero.connection.*' --tests 'com.jamarglex.manijero.chat.*' --tests 'com.jamarglex.manijero.platform.*'
 ./gradlew --quiet :androidApp:compileDebugAndroidTestKotlin :androidApp:compileReleaseKotlin :desktopApp:compileKotlin
+./gradlew --quiet :androidApp:verifyAndroidTestDependencies :androidApp:assembleDebugAndroidTest
 ./gradlew --quiet :shared:runDesktopLocalSmoke --dry-run
 ./gradlew :shared:verifyDesktopScreenshots --tests 'com.jamarglex.manijero.screenshots.ChatHomeScreenshotsTest'
 ./gradlew :shared:verifyAndroidScreenshots --tests 'com.jamarglex.manijero.screenshots.ChatHomeAndroidScreenshotsTest'

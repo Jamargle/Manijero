@@ -19,6 +19,10 @@ roborazzi = "1.77.0"
 robolectric = "4.17"
 androidx-test = "1.7.0"
 androidx-test-junit = "1.3.0"
+# Espresso 3.6.0+ no longer reflects on InputManager.getInstance, which API 34+ removed. The Compose
+# UI test artifact pulls in 3.5.0, so androidApp androidTest pins it; verifyAndroidTestDependencies
+# fails offline if the resolved version drops below 3.6.1.
+androidx-test-espresso = "3.7.0"
 
 [libraries]
 kotlin-test = { module = "org.jetbrains.kotlin:kotlin-test", version.ref = "kotlin" }
@@ -41,6 +45,7 @@ androidx-compose-uiTestManifest = { module = "androidx.compose.ui:ui-test-manife
 androidx-test-core = { module = "androidx.test:core", version.ref = "androidx-test" }
 # Test-only: runs the instrumented local smoke check (androidApp androidTest, ./scripts/init.sh --local-smoke).
 androidx-test-runner = { module = "androidx.test:runner", version.ref = "androidx-test" }
+androidx-test-espresso-core = { module = "androidx.test.espresso:espresso-core", version.ref = "androidx-test-espresso" }
 androidx-test-junit = { module = "androidx.test.ext:junit", version.ref = "androidx-test-junit" }
 roborazzi-composeDesktop = { module = "io.github.takahirom.roborazzi:roborazzi-compose-desktop", version.ref = "roborazzi" }
 roborazzi-core = { module = "io.github.takahirom.roborazzi:roborazzi", version.ref = "roborazzi" }

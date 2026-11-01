@@ -145,6 +145,19 @@ Repair 2026-11-01 (Java detection, found by the owner walkthrough; owner decisio
 - Validator revise (docs only): the verify block now runs `bash -n scripts/java-env.sh` and `tests/test_java_resolution.py`; `./scripts/init.sh --feature local_end_to_end_smoke` passed (backend 153 passed, 2 skipped).
 - Deviation: the resolution lives in the sourced `scripts/java-env.sh` rather than inline in `init.sh`, so tests can run it alone. `init.sh` remains the only caller.
 
+Repair 3, 2026-11-01 (Android instrumentation crash, found by the owner walkthrough step 3; Desktop passed with 1 source card):
+
+- Defect: `AndroidLocalSmokeTest` crashed with `NoSuchMethodException: InputManager.getInstance`, thrown from `InputManagerEventInjectionStrategy.initialize`. Espresso before 3.6 reflects on that hidden API, and API 34+ removed it. `ui-test-junit4` pulled in Espresso 3.5.0.
+- Resolved `debugAndroidTestRuntimeClasspath`, before → after:
+  - `espresso-core` 3.5.0 → 3.7.0; `espresso-idling-resource` 3.5.0 → 3.7.0.
+  - Unchanged and already aligned: `core` 1.7.0, `runner` 1.7.0, `monitor` 1.8.0, `ext:junit` 1.3.0, `services:storage` 1.6.0.
+- Fix: the catalog gains `androidx-test-espresso = "3.7.0"` and `androidx-test-espresso-core`, added only as `androidTestImplementation` in `androidApp`.
+- Offline guard: new `:androidApp:verifyAndroidTestDependencies` resolves the androidTest classpath and fails unless exactly one `espresso-core` ≥ 3.6.1 resolves. With the pin set to 3.5.0 it failed ("espresso-core 3.5.0 is older than 3.6.1 and crashes on API 34+"), then I reverted the pin. It is wired into the focused block.
+- Plain owner line: an instrumentation run with no result line that names a missing method, field, or class now prints `FAIL  Android emulator: the Android test tools do not match this emulator's Android version. Details are in <android.log>; send that file to a developer.` No stack trace is printed. A well-formed status line still takes precedence. 5 new fake-output tests cover this.
+- `./scripts/init.sh --feature local_end_to_end_smoke`: passed (backend 158 passed, 2 skipped). This includes `verifyAndroidTestDependencies` and `:androidApp:assembleDebugAndroidTest`, which I added to the focused block.
+  - A direct `./gradlew :androidApp:assembleDebugAndroidTest` stopped at "SDK location not found": this shell has no `local.properties` and no `ANDROID_HOME`, and I did not create them. It ran through `init.sh` instead, which exports `ANDROID_HOME`, and `androidApp-debug-androidTest.apk` was built.
+- `CI=true ./scripts/init.sh --fast`: all 9 checks passed. `./scripts/init.sh --verify`: passed. I reran it because the Gradle build and the catalog changed.
+
 Not run here (owner walkthrough, recorded by the orchestrator): the real `--local-smoke` run against the service and emulator, AGP `installDebug` keeping app data, and the `ACCESS_LOCAL_NETWORK` grant on API 37.
 
 ## Validator checklist

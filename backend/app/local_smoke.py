@@ -72,6 +72,9 @@ _RESULT = re.compile(
         RESULT_PREFIX, "|".join(CODES)
     )
 )
+# A crash before the test reports anything, because a method or class the test tools need is
+# missing on the device (for example Espresso before 3.6 on API 34+).
+_TOOLS_MISMATCH = re.compile(r"\b(NoSuchMethodException|NoSuchMethodError|NoSuchFieldError|NoClassDefFoundError|ClassNotFoundException)\b")
 _STATUS_LINE = re.compile(r"INSTRUMENTATION_STATUS: {}=(.*)".format(STATUS_KEY))
 
 MSG_BUSY = "Another smoke test is running in another Terminal window."
@@ -234,6 +237,13 @@ def platform_line(platform: str, result: SmokeResult, expected: str, default_url
     if code not in texts:  # "error": the driver itself could not finish
         return could_not_run(platform, log_shown)
     return "FAIL  {}: {}".format(platform, texts[code])
+
+
+def tools_mismatch(platform: str, log_shown: str) -> str:
+    return (
+        "FAIL  {}: the Android test tools do not match this emulator's Android version. Details are in "
+        "{}; send that file to a developer.".format(platform, log_shown)
+    )
 
 
 def final_result(failed: Sequence[str]) -> str:
@@ -453,6 +463,8 @@ def _android_line(
         timeout=INSTRUMENT_TIMEOUT_SECONDS,
     )
     result = parse_instrumentation(instrument.output) if instrument.ok else None
+    if result is None and not instrument.timed_out and _TOOLS_MISMATCH.search(instrument.output):
+        return tools_mismatch(ANDROID, shown)
     return _line_for(ANDROID, result, expected, build_default(ANDROID, ports.environ), shown)
 
 
