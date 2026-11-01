@@ -115,3 +115,9 @@ Do not over-claim.
   may fall back to extractive while Ollama loads the model. Loopback only. See the
   [acceptance record](../validations/local_full_rag_stack.md) and
   [risks](../risks-and-open-questions.md).
+- The answer service container (`./scripts/init.sh --container-*`, `backend_container_image`) was
+  walked through on the owner's Apple-silicon Mac only (Docker Desktop 4.97.0), without sending an app
+  question; automated checks fake Docker. It is built for arm64 only, binds loopback only, drafts
+  through Ollama on the host, and each image (about 5.6 GB) is never pruned. See the
+  [acceptance record](../validations/backend_container_image.md) and
+  [risks](../risks-and-open-questions.md).

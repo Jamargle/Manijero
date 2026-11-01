@@ -125,6 +125,14 @@
 - `CI=true ./scripts/init.sh --verify`: Fast tier passed; Full tier passed (Android host tests, debug APK, Desktop build).
 - The session 1 blockers (digest, Java) are resolved. The owner walkthrough (steps 1–10) is still outstanding and needs Docker Desktop.
 
+2026-11-01, owner walkthrough "Owner walkthrough: container" (owner-reported, recorded by the orchestrator):
+
+- Run on the owner's Mac from the integration worktree `integration/2026-11-01-batch-3`, which contains this branch unchanged since holding commit `8f2d03c`. Docker Desktop 4.97.0 (244584).
+- Steps 1–10: the owner reported each one "exactly as mentioned in the guide". Individual `Result:` lines and exit codes were not sent; the owner confirmed each matched the guide's expected result, including step 3 (missing prerequisite: Docker Desktop closed) and step 9 (recovery: Ollama quit, then reopened).
+- Step 4: first build took about 2–3 minutes (the guide and the command say 10 to 30 minutes; kept as a cautious upper bound because the guide quotes the line the command prints and a slower network takes longer). Image size 5.6 GB as shown by Docker Desktop. Breakdown supplied by the orchestrator: `bge-m3` artifact 2,293,315,747 bytes, the CPU-only Python search runtime, the Debian/Python base, and the knowledge release (under 1 MB); the drafting model is not in the image.
+- Step 4 build log: `grep -c -i nvidia ~/manijero/local/logs/container-build*.log` printed one line, `0`; no NVIDIA package is in the build log.
+- Steps 6–8 matching the guide imply the container started on `127.0.0.1:8000`, a re-run started nothing new, and `--container-status` showed four `OK` lines, including `OK  Drafting`, so the container reached host Ollama through the relay. No app question was sent; image tag and release id were not reported.
+
 ## Validator checklist
 
 - [ ] Scope matches the contract; non-goals respected (no Ollama in the image, no service, pin, requirements, contract, or settings-key change, no pilot path, no LAN publish, no registry).
