@@ -10,8 +10,10 @@ import kotlin.test.assertTrue
  * Repo-level guard for the pilot token rules (`client_pilot_credentials`): the token comes only
  * from the git-ignored `pilot-token.local` (or the `MANIJERO_PILOT_TOKEN_FILE` override), never from
  * `local.properties`; it never becomes a Desktop JVM property, environment entry, or `jvmArgs`
- * value; no client source set installs a Ktor logging plugin; and every Android variant and both
- * service branches on each host receive it. It reads only checked-in files, never a token file.
+ * value; no client source set installs a Ktor logging plugin; only test builds carry it (owner
+ * decision 5: the Android debug build type and the Desktop `run` task, never release or packaged
+ * outputs); and both service branches on each host receive it. It reads only checked-in files,
+ * never a token file.
  */
 class PilotTokenGuardTest {
     private val root = repositoryRoot()
@@ -45,14 +47,64 @@ class PilotTokenGuardTest {
         assertFalse("inputs.property" in desktopScript, "the token value must never be a task input property")
         val systemProperties = Regex("""systemProperty\s*\(([^)]*)\)""").findAll(desktopScript).map { it.groupValues[1] }.toList()
         assertEquals(listOf("\"manijero.testBuild\", \"true\""), systemProperties)
-        assertTrue("resources.srcDir(generatePilotTokenResource)" in desktopScript)
     }
 
     @Test
-    fun `every android variant gets the PILOT_TOKEN field`() {
-        assertTrue(Regex("""onVariants\s*\{[^}]*buildConfigFields\??\.put\(\s*"PILOT_TOKEN"""").containsMatchIn(androidScript))
-        assertFalse("onVariants(selector()" in androidScript, "the field must not be limited to some variants")
-        assertEquals(1, Regex("\"PILOT_TOKEN\"").findAll(androidScript).count())
+    fun `only the desktop run task gets the generated token folder`() {
+        val runStart = Regex("""tasks\.withType<JavaExec>\(\)\.matching \{ it\.name == "run" \}\.configureEach \{""")
+            .find(desktopScript) ?: error("desktopApp/build.gradle.kts must configure the run task by name")
+        val runBlock = bracedBlock(desktopScript, runStart.range.last)
+        assertTrue("dependsOn(generatePilotTokenResource)" in runBlock)
+        assertTrue("layout.buildDirectory.dir(\"generated/pilotToken\")" in runBlock)
+        assertTrue(Regex("""doFirst \{ \(this as JavaExec\)\.classpath\(pilotTokenFolder\) \}""").containsMatchIn(runBlock))
+
+        // Outside the run block the task name appears only at its registration, and the folder only
+        // as that task's output: never a resource dir, dependency, file collection, or packaging input.
+        val outsideRun = desktopScript.removeRange(runStart.range.first, runStart.range.last + runBlock.length + 2)
+        assertEquals(
+            listOf("val generatePilotTokenResource = tasks.register(\"generatePilotTokenResource\") {"),
+            outsideRun.lines().map { it.trim() }.filter { "generatePilotTokenResource" in it },
+        )
+        assertEquals(1, Regex(Regex.escape("generated/pilotToken")).findAll(outsideRun).count())
+        listOf("resources.srcDir", "runtimeOnly", "implementation(files", "files(generatePilotTokenResource", "pilotTokenFolder")
+            .forEach { assertFalse(it in outsideRun, "\"$it\" must not carry the token outside the run task") }
+    }
+
+    @Test
+    fun `only android debug reads the token file and release still declares a null field`() {
+        val onVariants = Regex("""onVariants \{ variant ->""").find(androidScript) ?: error("androidComponents.onVariants is required")
+        val variantsBlock = bracedBlock(androidScript, onVariants.range.first + "onVariants ".length)
+        val debugStart = Regex("""if \(variant\.buildType == "debug"\) \{""").find(variantsBlock)
+            ?: error("the file-backed field must be limited to the debug build type")
+        val debugBlock = bracedBlock(variantsBlock, debugStart.range.last)
+        val elseStart = Regex("""\}\s*else\s*\{""").find(variantsBlock, debugStart.range.last + debugBlock.length)
+            ?: error("other build types need their own PILOT_TOKEN field")
+        val elseBlock = bracedBlock(variantsBlock, elseStart.range.last)
+
+        assertTrue("pilotTokenBuildConfigValue" in debugBlock)
+        assertFalse("pilotTokenBuildConfigValue" in elseBlock)
+        assertTrue("put(\"PILOT_TOKEN\", BuildConfigField(\"String\", \"null\", null))" in elseBlock)
+        // Defined once, used once (under debug): no other path reads the token file.
+        assertEquals(2, Regex("""\bpilotTokenBuildConfigValue\b""").findAll(androidScript).count())
+        assertEquals(1, Regex("""\bpilotTokenFile\b\)""").findAll(androidScript).count())
+        assertEquals(2, Regex("\"PILOT_TOKEN\"").findAll(androidScript).count())
+        assertFalse(
+            Regex("""buildConfigField\s*\(\s*"String"\s*,\s*"PILOT_TOKEN"""").containsMatchIn(androidScript),
+            "a defaultConfig or buildTypes field would bypass the debug-only rule",
+        )
+    }
+
+    /** The text between the `{` at [openIndex] and its matching `}`, both excluded. */
+    private fun bracedBlock(text: String, openIndex: Int): String {
+        require(text[openIndex] == '{') { "expected '{' at $openIndex" }
+        var depth = 0
+        for (index in openIndex until text.length) {
+            when (text[index]) {
+                '{' -> depth++
+                '}' -> if (--depth == 0) return text.substring(openIndex + 1, index)
+            }
+        }
+        error("unbalanced braces after index $openIndex")
     }
 
     @Test

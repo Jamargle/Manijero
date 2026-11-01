@@ -59,6 +59,9 @@ Durable MUST/MUST NOT rules for hosted pilot operations and provider boundaries.
   from `local.properties`, a JVM system property, an environment entry, or `jvmArgs` of a Desktop
   task. It MUST be sent only on `POST /ask` over `https` or `http` to a loopback host (`localhost`,
   `127.0.0.1`, `[::1]`, `10.0.2.2`), and MUST NOT be shown, logged, committed, put in state or
-  exceptions, or sent on `/health` or `/ready`. Reason:
+  exceptions, or sent on `/health` or `/ready`. It MUST NOT be built into an Android release variant
+  or a packaged/release Desktop output, even when the file exists; only Android debug and the
+  Desktop `run` task may carry it. Reason:
   [`client_pilot_credentials`](../specs/client_pilot_credentials.md) — the token is a per-client
-  access credential, and a cleartext LAN request or a logged header would hand it to anyone on the path.
+  access credential, and a cleartext LAN request or a logged header would hand it to anyone on the
+  path; decision 5 keeps it out of anything that could be distributed.

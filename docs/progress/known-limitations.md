@@ -82,11 +82,13 @@ Do not over-claim.
   first-deploy credential ownership path, the stop/restore/start sequence, and the
   service-readable `0644` restore mode are repaired and exercised locally, but not on a
   host or through systemd.
-- Android and Desktop builds can carry a pilot bearer token saved with
+- Only test builds (Android debug, Desktop `run`) can carry a pilot bearer token saved with
   `./scripts/init.sh --pilot-token-save` ([`client_pilot_credentials`](../specs/client_pilot_credentials.md)).
-  The token is built into the app, so anyone holding a built app can extract it: it gates
-  access per client and is revocable, but it is not secret from the device holder. Every
-  build gets the same saved token (no per-environment builds yet), it is sent only over
+  Release and packaged apps never carry it, so they cannot reach a pilot-profile service until a
+  release credential path exists (`client_environment_builds` or a later decision). In a test
+  build the token is built in, so anyone holding that build can extract it: it gates access per
+  client and is revocable, but it is not secret from the device holder. Every test build gets
+  the same saved token (no per-environment builds yet), it is sent only over
   `https` or to a loopback address, and the auth flow is tested only against an in-process
   fake of the pilot guard. No app has yet been observed getting a live answer from a
   pilot-profile service, because no named command starts one locally.

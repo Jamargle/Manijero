@@ -45,9 +45,9 @@ if [[ "${1:-}" == "--pilot-token-save" ]]; then
     exit 1
   fi
   if (( pilot_token_replaced )); then
-    printf 'Result: the pilot token is saved; it replaced the previous one. The next app build will send it.\n'
+    printf 'Result: the pilot token is saved; it replaced the previous one. The next test build will send it.\n'
   else
-    printf 'Result: the pilot token is saved. The next app build will send it.\n'
+    printf 'Result: the pilot token is saved. The next test build will send it.\n'
   fi
   exit 0
 fi
@@ -257,8 +257,8 @@ Usage: ./scripts/init.sh [--check|--fast|--verify|--feature <id>|--backend-tests
                             Ollama on this Mac)
   --container-status        Say whether the container runs, can answer, and where
   --container-stop          Stop and remove the answer service container
-  --pilot-token-save        Save the copied pilot token (macOS clipboard) for the next Android and
-                            Desktop builds; it never prints the token
+  --pilot-token-save        Save the copied pilot token (macOS clipboard) for the next test builds
+                            (Android debug, --desktop); it never prints the token
   --local-smoke             With the local answer service running, ask it one fixed question through
                             the Desktop app and the app on the running Android emulator; one PASS or
                             FAIL line each (installs the debug app over the existing one, data kept)
