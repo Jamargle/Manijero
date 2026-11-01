@@ -6,9 +6,12 @@ import io.ktor.client.engine.HttpClientEngine
 import io.ktor.client.plugins.HttpTimeout
 import io.ktor.client.plugins.ResponseException
 import io.ktor.client.plugins.contentnegotiation.ContentNegotiation
+import io.ktor.client.request.header
 import io.ktor.client.request.post
 import io.ktor.client.request.setBody
 import io.ktor.http.ContentType
+import io.ktor.http.HttpHeaders
+import io.ktor.http.Url
 import io.ktor.http.contentType
 import io.ktor.serialization.ContentConvertException
 import io.ktor.serialization.kotlinx.json.json
@@ -138,16 +141,25 @@ interface AnswerService {
  *
  * [baseUrl] is read on every [ask], so a test build's `Conexión` address applies to the next
  * question without a restart. Release wiring uses the fixed-[String] constructor.
+ *
+ * [pilotToken], when the build has one, is added as `Authorization: Bearer …` to an `/ask` request
+ * only when the address resolved for that question may carry it ([mayCarryPilotToken]). Without a
+ * token the request is exactly what it was before the pilot credential existed.
  */
 class KtorAnswerService(
     private val client: HttpClient,
     private val baseUrl: () -> String,
+    private val pilotToken: PilotToken? = null,
 ) : AnswerService {
-    constructor(client: HttpClient, baseUrl: String) : this(client, { baseUrl })
+    constructor(client: HttpClient, baseUrl: String, pilotToken: PilotToken? = null) :
+        this(client, { baseUrl }, pilotToken)
 
     override suspend fun ask(request: AskRequest): AskResponse = try {
-        client.post("${baseUrl().trimEnd('/')}/ask") {
+        val askUrl = "${baseUrl().trimEnd('/')}/ask"
+        val bearer = pilotToken?.takeIf { mayCarryPilotToken(Url(askUrl)) }?.bearerHeaderValue()
+        client.post(askUrl) {
             contentType(ContentType.Application.Json)
+            if (bearer != null) header(HttpHeaders.Authorization, bearer)
             setBody(request)
         }.body()
     } catch (cancellation: CancellationException) {

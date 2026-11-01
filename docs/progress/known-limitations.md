@@ -77,11 +77,19 @@ Do not over-claim.
   writes one request-metadata line with no question or land values, and ships preflight,
   hashed backup, verified restore, and smoke commands plus service/tunnel templates. Those
   gates and the corpus restore rehearsal are local evidence only: no host, domain, tunnel,
-  TLS edge, provider account, external monitoring, or measured capacity exists, the client
-  cannot yet send a token, and Android/macOS release artifacts are not implemented. The
+  TLS edge, provider account, external monitoring, or measured capacity exists, and
+  Android/macOS release artifacts are not implemented. The
   first-deploy credential ownership path, the stop/restore/start sequence, and the
   service-readable `0644` restore mode are repaired and exercised locally, but not on a
   host or through systemd.
+- Android and Desktop builds can carry a pilot bearer token saved with
+  `./scripts/init.sh --pilot-token-save` ([`client_pilot_credentials`](../specs/client_pilot_credentials.md)).
+  The token is built into the app, so anyone holding a built app can extract it: it gates
+  access per client and is revocable, but it is not secret from the device holder. Every
+  build gets the same saved token (no per-environment builds yet), it is sent only over
+  `https` or to a loopback address, and the auth flow is tested only against an in-process
+  fake of the pilot guard. No app has yet been observed getting a live answer from a
+  pilot-profile service, because no named command starts one locally.
 - Local embeddings are implemented but **off the answer path**: a pinned `BAAI/bge-m3` revision
   (`5617a9f…`, MIT), per-file SHA-256 verification, a derived `passage-embedding-index-v1` file
   outside `knowledge/`, and a rebuild/staleness check. Only this development Mac (Apple M1 Max,

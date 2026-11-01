@@ -15,6 +15,39 @@ dependencies {
     implementation(libs.compose.uiToolingPreview)
 }
 
+// Pilot bearer token (client_pilot_credentials): only from the git-ignored `pilot-token.local` at the
+// repository root, or the file named by MANIJERO_PILOT_TOKEN_FILE (tests and checks use fake files).
+// The task declares the file, never its value, as an input, and writes the classpath resource that
+// `desktopPilotToken()` reads, so `run` and packaged apps both get it. No token file: no resource.
+val pilotTokenFile: Provider<RegularFile> = rootProject.layout.projectDirectory.file(
+    providers.environmentVariable("MANIJERO_PILOT_TOKEN_FILE").orElse("pilot-token.local"),
+)
+val generatePilotTokenResource = tasks.register("generatePilotTokenResource") {
+    val tokenFile = pilotTokenFile
+    val outputDirectory = layout.buildDirectory.dir("generated/pilotToken")
+    inputs.files(tokenFile).withPropertyName("pilotTokenFile").withPathSensitivity(PathSensitivity.NONE)
+    outputs.dir(outputDirectory)
+    doLast {
+        val output = outputDirectory.get().asFile
+        output.deleteRecursively()
+        output.mkdirs()
+        val source = tokenFile.get().asFile
+        if (source.isFile) {
+            val token = source.readText().trim()
+            if (token.length !in 32..512 || !Regex("^[A-Za-z0-9._~+/-]+=*$").matches(token)) {
+                throw GradleException(
+                    "pilot-token.local is not a valid pilot token. Run ./scripts/init.sh --pilot-token-save again.",
+                )
+            }
+            output.resolve("manijero").mkdirs()
+            output.resolve("manijero/pilot-token.txt").writeText(token)
+        }
+    }
+}
+sourceSets.named("main") {
+    resources.srcDir(generatePilotTokenResource)
+}
+
 compose.desktop {
     application {
         mainClass = "com.jamarglex.manijero.MainKt"
