@@ -73,6 +73,33 @@ if [[ "${1:-}" == "--local-rag-start" || "${1:-}" == "--local-rag-stop" || "${1:
   exec "$LOCAL_RAG_PYTHON" "$REPO_ROOT/backend/scripts/local_rag.py" "$LOCAL_RAG_COMMAND"
 fi
 
+# Owner commands for the answer service as a container in Docker Desktop (docs/owner-guide.md).
+# The image packages the local knowledge release and search model; Ollama stays on this Mac.
+# MANIJERO_DOCKER_CLI is for tests only; MANIJERO_LOCAL_RAG_PORT for tests and developers only.
+if [[ "${1:-}" == "--container-build" || "${1:-}" == "--container-start" || "${1:-}" == "--container-status" || "${1:-}" == "--container-stop" ]]; then
+  REPO_ROOT="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")/.." && pwd)"
+  if (( $# > 1 )); then
+    printf 'Run %s on its own, with nothing after it.\n' "$1" >&2
+    exit 2
+  fi
+  LOCAL_RAG_PORT="${MANIJERO_LOCAL_RAG_PORT:-8000}"
+  if [[ ! "$LOCAL_RAG_PORT" =~ ^[0-9]{1,5}$ ]] || (( 10#$LOCAL_RAG_PORT < 1 || 10#$LOCAL_RAG_PORT > 65535 )); then
+    printf 'MANIJERO_LOCAL_RAG_PORT must be a port number between 1 and 65535.\n' >&2
+    exit 2
+  fi
+  LOCAL_RAG_PYTHON="$REPO_ROOT/backend/.venv/bin/python"
+  if [[ ! -x "$LOCAL_RAG_PYTHON" ]] && ! "$REPO_ROOT/scripts/python-env.sh" dev --if-present >/dev/null 2>&1; then
+    if [[ "$1" == "--container-stop" ]]; then
+      printf 'Result: the answer service in the container was not running, so there was nothing to stop.\n'
+      exit 0
+    fi
+    printf 'The local answer tools are not set up yet. Run ./scripts/init.sh --local-rag-setup to set them up.\n'
+    printf 'Result: setup has not run yet.\n'
+    exit 1
+  fi
+  exec "$LOCAL_RAG_PYTHON" "$REPO_ROOT/backend/scripts/local_rag.py" "${1#--}"
+fi
+
 if [[ "${1:-}" == "--backend" ]]; then
   REPO_ROOT="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")/.." && pwd)"
   BACKEND_DIR="$REPO_ROOT/backend"
@@ -123,7 +150,7 @@ AS_OF="${MANIJERO_AS_OF:-2026-10-13}"
 
 usage() {
   cat <<'EOF'
-Usage: ./scripts/init.sh [--check|--fast|--verify|--feature <id>|--backend-tests [targets]|--setup-python [dev|hybrid]|--backend|--mock|--mock-status|--mock-stop|--local-rag-setup|--local-rag-status|--local-rag-start|--local-rag-service-status|--local-rag-stop|--android|--android-run|--desktop|--help]
+Usage: ./scripts/init.sh [--check|--fast|--verify|--feature <id>|--backend-tests [targets]|--setup-python [dev|hybrid]|--backend|--mock|--mock-status|--mock-stop|--local-rag-setup|--local-rag-status|--local-rag-start|--local-rag-service-status|--local-rag-stop|--container-build|--container-start|--container-status|--container-stop|--android|--android-run|--desktop|--help]
 
   --check                   Check Java and the Gradle wrapper, then print standard commands (default)
   --fast                    Shared host tests, contract examples, backend unit tests, and the five
@@ -148,6 +175,12 @@ Usage: ./scripts/init.sh [--check|--fast|--verify|--feature <id>|--backend-tests
   --local-rag-service-status
                             Say whether the local answer service runs, can answer, and where
   --local-rag-stop          Stop the local answer service
+  --container-build         Build the answer service image in Docker Desktop with the published
+                            knowledge release and the search model (no drafting model)
+  --container-start         Run that image in the background on 127.0.0.1 (drafting through
+                            Ollama on this Mac)
+  --container-status        Say whether the container runs, can answer, and where
+  --container-stop          Stop and remove the answer service container
   --android                 Build the Android debug APK
   --android-run             Build, start an emulator if needed, install, and launch the app
   --desktop                 Launch the Desktop app
@@ -571,8 +604,8 @@ mock_start() {
   owner="$(mock_port_owner "$port")"
   case "$owner" in
     backend)
-      printf 'Port %s is in use by the real local answer service (./scripts/init.sh --local-rag-start or ./scripts/init.sh --backend).\n' "$port" >&2
-      printf 'Result: the mock answer service did not start. Stop the local answer service with ./scripts/init.sh --local-rag-stop (or Ctrl+C in the window where ./scripts/init.sh --backend runs), then run ./scripts/init.sh --mock again.\n' >&2
+      printf 'Port %s is in use by the real local answer service (./scripts/init.sh --local-rag-start, ./scripts/init.sh --container-start, or ./scripts/init.sh --backend).\n' "$port" >&2
+      printf 'Result: the mock answer service did not start. Stop the local answer service with ./scripts/init.sh --local-rag-stop or ./scripts/init.sh --container-stop (or Ctrl+C in the window where ./scripts/init.sh --backend runs), then run ./scripts/init.sh --mock again.\n' >&2
       return 1
       ;;
     mock)
@@ -702,6 +735,8 @@ Build and run:
   ./scripts/init.sh --local-rag-setup  # set up the local answer tools once (see docs/owner-guide.md)
   ./scripts/init.sh --local-rag-status # check the local answer tools in plain words
   ./scripts/init.sh --local-rag-start  # start the real local answer service in the background (--local-rag-service-status, --local-rag-stop)
+  ./scripts/init.sh --container-build  # build the answer service image in Docker Desktop (see docs/owner-guide.md)
+  ./scripts/init.sh --container-start  # run it in the background (--container-status, --container-stop)
   ./scripts/init.sh --android    # androidApp/build/outputs/apk/debug/androidApp-debug.apk
   ./scripts/init.sh --android-run # build and launch on an Android emulator
   ./scripts/init.sh --desktop    # launch the Desktop app

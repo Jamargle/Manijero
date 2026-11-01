@@ -656,9 +656,11 @@ def _check_port(probe: ServiceProbe, port: int) -> None:
         raise _StartStop(
             [
                 "Port {} is in use by a Manijero answer service that this command did not start "
-                "(for example ./scripts/init.sh --backend in another window).".format(port)
+                "(for example ./scripts/init.sh --backend in another window, or the answer service in a "
+                "container).".format(port)
             ],
-            "Press Ctrl+C in the window where ./scripts/init.sh --backend runs, then run this command again.",
+            "Run ./scripts/init.sh --container-stop if the answer service runs in a container; otherwise "
+            "press Ctrl+C in the window where ./scripts/init.sh --backend runs. Then run this command again.",
         )
     raise _StartStop(
         ["Port {} is in use by another program.".format(port)],

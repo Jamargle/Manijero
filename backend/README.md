@@ -2072,3 +2072,84 @@ sends `/ask`.
 **Exit codes**: `0` started, already running and OK, running and OK, stopped, or nothing to
 stop; `1` a prerequisite or check failed, or not running (status); `2` an extra argument or a
 `MANIJERO_LOCAL_RAG_PORT` (tests and developers only; default `8000`) outside `1`–`65535`.
+
+### Container image
+
+`./scripts/init.sh --container-build`, `--container-start`, `--container-status`, and
+`--container-stop` (owner steps in [`docs/owner-guide.md`](../docs/owner-guide.md)) run
+`scripts/local_rag.py container-build|container-start|container-status|container-stop`,
+implemented by `app/local_container.py` (operator-only, stdlib at import, never imported by the
+service). Docker is reached only through `${MANIJERO_DOCKER_CLI:-docker}`; the override exists for
+tests only, and every automated test uses a fake. Without a dev environment, build, start, and
+status print the "not set up yet" pair and exit `1`; stop exits `0` with "nothing to stop".
+
+**Files** (`backend/container/`): `Dockerfile`; `Dockerfile.dockerignore`, the allowlist for the
+repository-root context (`*`, then `backend/app`, `backend/config`, the three runtime
+requirements files, `backend/deploy/requirements-production.txt`, `backend/container`; tests,
+virtualenvs, `*.env`, `*.example`, and caches are excluded even inside those); `base-image.json`
+(`image`, `digest` = the multi-platform index digest, `reviewed_on`, `reason`; build refuses an
+invalid or empty pin); `entrypoint.py` (starts the relay, then `uvicorn.run("app.main:app",
+host="0.0.0.0", port=8000, reload=False, access_log=False)` inside the container);
+`ollama_relay.py` (stdlib TCP forwarder from the constant `127.0.0.1:11434` to the constant
+`host.docker.internal:11434`, at most 32 connections; `--check` exits `0` when `/api/tags`
+answers through it).
+
+**Build** checks, before anything is built or written: Docker installed and its daemon answers
+`docker info`; no setup running; `settings.env` and the pins; the `Search model`, `Vector store`,
+and `Knowledge release` parts of `inspect` are `OK`; `git status --porcelain
+--untracked-files=all` over the copied paths is clean; the base pin is valid; no other container
+command holds `<home>/.container.lock`. Every failed check prints its line; the result names the
+first fix. An image already tagged `manijero-backend:<release>-<commit12>` whose labels match is
+reused (`docker tag` to `local`). Otherwise, under the lock:
+
+```text
+docker build --file backend/container/Dockerfile
+  --build-context knowledge-release=<home>/knowledge-releases/releases/<id>
+  --build-context embedding-model=<home>/models/bge-m3
+  --build-arg BASE_IMAGE=<image>@<digest> --build-arg RELEASE_ID=<id> --build-arg LOCAL_MODEL=<record model>
+  --label org.manijero.managed=1 --label org.opencontainers.image.revision=<commit>
+  --label org.manijero.knowledge-release=<id> --label org.manijero.campaign=<settings>
+  --label org.manijero.embedding-revision=<pin revision> --label org.manijero.local-model=<record model>
+  --label org.manijero.base-image=<image>@<digest>
+  --tag manijero-backend:<id>-<commit12> --tag manijero-backend:local --progress plain <repo root>
+```
+
+Build output goes only to `<home>/logs/container-build-<UTC>.log`; a minute ticker prints on
+screen. Tags move only when the build succeeds and the built image's labels match; Ctrl+C ends
+the build and moves nothing. The image installs torch from the CPU wheel index alone, then
+`requirements-hybrid.txt` together with the production pins as requirements (pip rejects the
+`uvicorn[standard]` extra in a constraints file), saves `pip freeze` as
+`/opt/manijero/pip-freeze.txt`, copies the release (owned by uid `10001`, because Chroma opens
+the store in place) and the model, links `knowledge-releases/current`, and runs as uid `10001`.
+Image environment: the six `--local-rag-start` keys with `/opt/manijero/...` paths;
+`MANIJERO_ACTIVE_CAMPAIGN` comes from the settings file at start.
+
+**Start** checks: Docker; a `manijero-backend` container without the label (refused, never
+touched); a running labelled one (report status, start nothing); setup, settings, pins; the
+`local` image exists and its release, campaign, and model labels equal the published release,
+the settings, and the record; the drafting part of `inspect` is `OK`; the container lock; the
+port owner (free; mock; the `--local-rag-start` record; another `manijero-backend`; other).
+Then, under the lock, it removes a stopped labelled leftover (logs saved first) and runs:
+
+```text
+docker run --detach --init --name manijero-backend --label org.manijero.managed=1
+  --publish 127.0.0.1:<port>:8000 --env MANIJERO_ACTIVE_CAMPAIGN=<settings>
+  --cap-drop ALL --security-opt no-new-privileges --restart no manijero-backend:local
+```
+
+It waits up to 120 s for `/health` to report `manijero-backend` while the container runs, then
+requires `/ready` `200 ready`. Any failure or Ctrl+C saves `docker logs` to
+`<home>/logs/container-<UTC>.log` and removes the container.
+
+**Status** (no probe when Docker is missing or closed, or no labelled container runs):
+`Container` (versioned tag from the image labels, start time UTC); `Answers` (`/health`,
+`/ready`); `Search` (image release equals `current`); `Drafting` (host `/api/tags` lists the
+pinned tag and digest, then `docker exec manijero-backend python
+/opt/manijero/backend/container/ollama_relay.py --check`). **Stop**: only after `docker
+container inspect` shows the label: `docker stop --time 10`, `docker logs` into the log, `docker
+rm --force`; images, Docker Desktop, and Ollama are left as they are.
+
+**Exit codes**: as for the local answer service; build also `0` when up to date. **Honest
+limits**: no real Docker ran in automated checks; images are never pruned; transitive packages
+are not hash-locked, so the same inputs can rebuild with different transitive versions; native
+platform only; the image is a default-profile local runtime, not a pilot launcher.
