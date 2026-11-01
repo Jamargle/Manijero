@@ -41,6 +41,38 @@ if [[ "${1:-}" == "--local-rag-setup" || "${1:-}" == "--local-rag-status" ]]; th
   exec "$LOCAL_RAG_PYTHON" "$REPO_ROOT/backend/scripts/local_rag.py" status
 fi
 
+# Owner commands for the local answer service over those tools (docs/owner-guide.md). The service
+# runs from backend/.venv-hybrid on 127.0.0.1 only; MANIJERO_LOCAL_RAG_PORT is for tests and
+# developers only.
+if [[ "${1:-}" == "--local-rag-start" || "${1:-}" == "--local-rag-stop" || "${1:-}" == "--local-rag-service-status" ]]; then
+  REPO_ROOT="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")/.." && pwd)"
+  if (( $# > 1 )); then
+    printf 'Run %s on its own, with nothing after it.\n' "$1" >&2
+    exit 2
+  fi
+  LOCAL_RAG_PORT="${MANIJERO_LOCAL_RAG_PORT:-8000}"
+  if [[ ! "$LOCAL_RAG_PORT" =~ ^[0-9]{1,5}$ ]] || (( 10#$LOCAL_RAG_PORT < 1 || 10#$LOCAL_RAG_PORT > 65535 )); then
+    printf 'MANIJERO_LOCAL_RAG_PORT must be a port number between 1 and 65535.\n' >&2
+    exit 2
+  fi
+  LOCAL_RAG_PYTHON="$REPO_ROOT/backend/.venv/bin/python"
+  if [[ ! -x "$LOCAL_RAG_PYTHON" ]] && ! "$REPO_ROOT/scripts/python-env.sh" dev --if-present >/dev/null 2>&1; then
+    if [[ "$1" == "--local-rag-stop" ]]; then
+      printf 'Result: the local answer service was not running, so there was nothing to stop.\n'
+      exit 0
+    fi
+    printf 'The local answer tools are not set up yet. Run ./scripts/init.sh --local-rag-setup to set them up.\n'
+    printf 'Result: setup has not run yet.\n'
+    exit 1
+  fi
+  case "$1" in
+    --local-rag-start) LOCAL_RAG_COMMAND=start ;;
+    --local-rag-stop) LOCAL_RAG_COMMAND=stop ;;
+    *) LOCAL_RAG_COMMAND=service-status ;;
+  esac
+  exec "$LOCAL_RAG_PYTHON" "$REPO_ROOT/backend/scripts/local_rag.py" "$LOCAL_RAG_COMMAND"
+fi
+
 if [[ "${1:-}" == "--backend" ]]; then
   REPO_ROOT="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")/.." && pwd)"
   BACKEND_DIR="$REPO_ROOT/backend"
@@ -91,7 +123,7 @@ AS_OF="${MANIJERO_AS_OF:-2026-10-13}"
 
 usage() {
   cat <<'EOF'
-Usage: ./scripts/init.sh [--check|--fast|--verify|--feature <id>|--backend-tests [targets]|--setup-python [dev|hybrid]|--backend|--mock|--mock-status|--mock-stop|--local-rag-setup|--local-rag-status|--android|--android-run|--desktop|--help]
+Usage: ./scripts/init.sh [--check|--fast|--verify|--feature <id>|--backend-tests [targets]|--setup-python [dev|hybrid]|--backend|--mock|--mock-status|--mock-stop|--local-rag-setup|--local-rag-status|--local-rag-start|--local-rag-service-status|--local-rag-stop|--android|--android-run|--desktop|--help]
 
   --check                   Check Java and the Gradle wrapper, then print standard commands (default)
   --fast                    Shared host tests, contract examples, backend unit tests, and the five
@@ -111,6 +143,11 @@ Usage: ./scripts/init.sh [--check|--fast|--verify|--feature <id>|--backend-tests
   --local-rag-setup         Guided one-time setup of the local answer tools: shows the download
                             sizes, asks, then downloads and builds what is missing (needs Ollama)
   --local-rag-status        Read-only check of the six local answer-tool parts, in plain words
+  --local-rag-start         Start the real local answer service in the background (hybrid search,
+                            local drafting, 127.0.0.1 only) once all six parts are ready
+  --local-rag-service-status
+                            Say whether the local answer service runs, can answer, and where
+  --local-rag-stop          Stop the local answer service
   --android                 Build the Android debug APK
   --android-run             Build, start an emulator if needed, install, and launch the app
   --desktop                 Launch the Desktop app
@@ -534,8 +571,8 @@ mock_start() {
   owner="$(mock_port_owner "$port")"
   case "$owner" in
     backend)
-      printf 'Port %s is in use by the real local answer service (./scripts/init.sh --backend).\n' "$port" >&2
-      printf 'Result: the mock answer service did not start. Stop the local answer service with Ctrl+C in its window, then run ./scripts/init.sh --mock again.\n' >&2
+      printf 'Port %s is in use by the real local answer service (./scripts/init.sh --local-rag-start or ./scripts/init.sh --backend).\n' "$port" >&2
+      printf 'Result: the mock answer service did not start. Stop the local answer service with ./scripts/init.sh --local-rag-stop (or Ctrl+C in the window where ./scripts/init.sh --backend runs), then run ./scripts/init.sh --mock again.\n' >&2
       return 1
       ;;
     mock)
@@ -664,12 +701,13 @@ Build and run:
   ./scripts/init.sh --mock       # start the mock answer service: fixed example answers, no Python (--mock-status, --mock-stop)
   ./scripts/init.sh --local-rag-setup  # set up the local answer tools once (see docs/owner-guide.md)
   ./scripts/init.sh --local-rag-status # check the local answer tools in plain words
+  ./scripts/init.sh --local-rag-start  # start the real local answer service in the background (--local-rag-service-status, --local-rag-stop)
   ./scripts/init.sh --android    # androidApp/build/outputs/apk/debug/androidApp-debug.apk
   ./scripts/init.sh --android-run # build and launch on an Android emulator
   ./scripts/init.sh --desktop    # launch the Desktop app
 
-The Android and Desktop apps use the local /ask service. Keep --backend running in a separate terminal while trying either app,
-or start the mock answer service with --mock to try every answer state without Python.
+The Android and Desktop apps use the local /ask service. Start it with --local-rag-start (or keep --backend running in a separate
+terminal) while trying either app, or start the mock answer service with --mock to try every answer state without Python.
 EOF
     ;;
   --fast)

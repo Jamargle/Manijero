@@ -15,6 +15,7 @@ Owner decision (2026-11-01): the owner runs every environment alone and is not f
 - **MUST**: a feature that changes an existing operator CLI (for example `pilot_ops.py`, `knowledge_release.py`, `knowledge_review.py`, `run_source_updates.py`) also exposes that operation through a named command above.
 - **MUST**: acceptance includes a walkthrough that runs every documented operation exactly as the owner guide writes it, from a fresh checkout, including at least one missing-prerequisite case and one recovery.
 - **MUST**: a setup command downloads only artifacts named by a reviewed pin, from the pin's own upstream location, and verifies each one against the pin before use; it **MUST NOT** edit a pin to make a mismatch pass, and the answer service itself never downloads. Reason: [`local_rag_bootstrap`](../specs/local_rag_bootstrap.md).
+- **MUST**: a local start command binds only loopback (`127.0.0.1`), runs the service without reload in the default profile, passes only an allowlisted environment (no inherited `MANIJERO_*`), and starts only when the status check it mirrors is all `OK`; it is not a pilot launcher. Reason: [`local_full_rag_stack`](../specs/local_full_rag_stack.md).
 
 ## Monitoring
 
