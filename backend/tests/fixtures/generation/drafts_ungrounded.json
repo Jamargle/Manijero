@@ -114,6 +114,39 @@
     "expected_issue": "no_markers",
     "question": "¿Cómo se presenta la solicitud única?"
   },
+  "numeric_fact_unsupported": {
+    "draft": {
+      "answer": "La solicitud sintética de prueba admite doce trámites ficticios. [1]",
+      "source_markers": [
+        1
+      ],
+      "status": "answered"
+    },
+    "expected_issue": "numeric_fact_unsupported",
+    "question": "¿Cómo se presenta la solicitud única?"
+  },
+  "numeric_fact_unsupported_deadline_unit": {
+    "draft": {
+      "answer": "El ejemplo sintético de prueba fija 3 semanas. [1]",
+      "source_markers": [
+        1
+      ],
+      "status": "answered"
+    },
+    "expected_issue": "numeric_fact_unsupported",
+    "question": "¿Cuántos documentos ficticios menciona el ejemplo?"
+  },
+  "numeric_fact_unsupported_month": {
+    "draft": {
+      "answer": "La solicitud sintética de prueba se presenta en mayo. [1]",
+      "source_markers": [
+        1
+      ],
+      "status": "answered"
+    },
+    "expected_issue": "numeric_fact_unsupported",
+    "question": "¿Cómo se presenta la solicitud única?"
+  },
   "uncited_sentence": {
     "draft": {
       "answer": "Fragmento sintético de prueba sobre la solicitud única: describe el trámite anual de forma genérica y no fija ningún plazo ni cuantía real. [1] Segunda frase sintética de prueba sin cita.",

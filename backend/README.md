@@ -956,7 +956,8 @@ It is standard-library only, offline, and configured with **no model provider**.
 The default and only enabled generator is the code-composed extractive one; a
 draft is re-checked by `verify_draft` before assembly, so a citation marker that
 resolves to nothing, an uncited sentence, a figure or date absent from the cited
-passage, a non-literal `critical` claim, or an eligibility assertion
+passage, a number word, month, written date, or duration absent from it
+(`numeric_fact_unsupported`), a non-literal `critical` claim, or an eligibility assertion
 (`tienes derecho a`) rejects the whole draft. The extractive generator writes
 each claim on its own line before verification, and a line break is a claim
 boundary, so an excerpt without terminal punctuation cannot merge with the next

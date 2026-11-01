@@ -910,6 +910,10 @@ def _outcome_cases() -> list:
         ("verifier_rejected", lambda clock: FakeOpener(chat=lambda body: _chat(
             _draft(f"Tienes derecho a cobrar 500 euros [{_solicitud_handle(body)}].", [_solicitud_handle(body)])
         ))),
+        # Well formed and cited; its only problem is a month the cited passage lacks.
+        ("verifier_rejected", lambda clock: FakeOpener(chat=lambda body: _chat(
+            _draft(f"Se presenta una vez al año, en mayo [{_solicitud_handle(body)}].", [_solicitud_handle(body)])
+        ))),
     ]
 
 
@@ -935,11 +939,12 @@ def test_every_failure_on_ask_equals_the_extractive_baseline(
 
     assert response.status_code == 200
     assert response.json() == baseline
+    assert no_network == []
     lines = _generation_lines(captured_log)
     assert [(line["provider"], line["outcome"]) for line in lines] == [("local", expected)]
     assert set(lines[0]) == {"event", "time", "provider", "outcome"}
     text = captured_log.getvalue()
-    for forbidden in ("Olivos", "Martos", "solicitud", "opaque", "secreto", "euros", MODEL):
+    for forbidden in ("Olivos", "Martos", "solicitud", "opaque", "secreto", "euros", "mayo", MODEL):
         assert forbidden not in text
 
 

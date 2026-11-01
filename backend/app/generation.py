@@ -21,6 +21,11 @@ Durable rules:
 * Every sentence of an ``answered`` draft must carry at least one marker.
 * Every figure or date in a sentence must also appear in the text of the
   passage(s) that sentence cites.
+* Every number word, month, day–month or full written date, and day, week,
+  month, or year duration (with any ``hábiles``/``naturales`` qualifier) in a
+  sentence must appear, in an equivalent written form, in the passage(s) that
+  sentence cites (``numeric_fact_unsupported``). ``extract_figures`` stays
+  digit-only, because the abstention and land-safety checks depend on it.
 * For a passage flagged ``critical`` the sentence must be a literal substring of
   one of its cited ``critical`` excerpts after whitespace/case/diacritic
   normalization, so a critical figure is copied, never paraphrased.
@@ -100,8 +105,13 @@ GROUNDING_FAILURE_CODES: FrozenSet[str] = frozenset(
         "marker_mismatch",
         "uncited_sentence",
         "figure_unsupported",
+        "numeric_fact_unsupported",
         "critical_not_literal",
     }
+)
+
+NUMERIC_FACT_DETAIL = (
+    "a number, date, or deadline in the claim is absent from the cited passage(s)"
 )
 
 _MARKER = re.compile(r"\[(\d+)\]")
@@ -405,6 +415,412 @@ def _canonical_date(year: str, month: str, day: str) -> str:
         return "{}-{}-{}".format(year, month, day)
 
 
+# --- numeric facts in words, months, and durations ---------------------------
+#
+# Closed Spanish vocabulary in ``normalize_text`` spelling (lowercase, no
+# diacritics), so "dieciséis" and "dieciseis" match and "año" reads "ano".
+
+_UNIT_WORDS: Dict[str, int] = {
+    "un": 1,
+    "una": 1,
+    "uno": 1,
+    "dos": 2,
+    "tres": 3,
+    "cuatro": 4,
+    "cinco": 5,
+    "seis": 6,
+    "siete": 7,
+    "ocho": 8,
+    "nueve": 9,
+}
+# ``un/una/uno`` alone is usually an article ("una vez", "un plazo"): it counts
+# only as a duration's number or as a day.
+_ARTICLE_WORDS: FrozenSet[str] = frozenset({"un", "una", "uno"})
+_SMALL_WORDS: Dict[str, int] = {
+    "diez": 10,
+    "once": 11,
+    "doce": 12,
+    "trece": 13,
+    "catorce": 14,
+    "quince": 15,
+    "dieciseis": 16,
+    "diecisiete": 17,
+    "dieciocho": 18,
+    "diecinueve": 19,
+    "veinte": 20,
+    "veintiun": 21,
+    "veintiuna": 21,
+    "veintiuno": 21,
+    "veintidos": 22,
+    "veintitres": 23,
+    "veinticuatro": 24,
+    "veinticinco": 25,
+    "veintiseis": 26,
+    "veintisiete": 27,
+    "veintiocho": 28,
+    "veintinueve": 29,
+}
+_TENS_WORDS: Dict[str, int] = {
+    "treinta": 30,
+    "cuarenta": 40,
+    "cincuenta": 50,
+    "sesenta": 60,
+    "setenta": 70,
+    "ochenta": 80,
+    "noventa": 90,
+}
+_HUNDRED_WORDS: Dict[str, int] = {
+    "cien": 100,
+    "ciento": 100,
+    "doscientos": 200,
+    "doscientas": 200,
+    "trescientos": 300,
+    "trescientas": 300,
+    "cuatrocientos": 400,
+    "cuatrocientas": 400,
+    "quinientos": 500,
+    "quinientas": 500,
+    "seiscientos": 600,
+    "seiscientas": 600,
+    "setecientos": 700,
+    "setecientas": 700,
+    "ochocientos": 800,
+    "ochocientas": 800,
+    "novecientos": 900,
+    "novecientas": 900,
+}
+_NUMBER_WORDS: FrozenSet[str] = frozenset(
+    {"cero", "mil", *_UNIT_WORDS, *_SMALL_WORDS, *_TENS_WORDS, *_HUNDRED_WORDS}
+)
+_MONTHS: Dict[str, int] = {
+    "enero": 1,
+    "febrero": 2,
+    "marzo": 3,
+    "abril": 4,
+    "mayo": 5,
+    "junio": 6,
+    "julio": 7,
+    "agosto": 8,
+    "septiembre": 9,
+    "setiembre": 9,
+    "octubre": 10,
+    "noviembre": 11,
+    "diciembre": 12,
+}
+_DURATION_UNITS: Dict[str, str] = {
+    "dia": "dia",
+    "dias": "dia",
+    "semana": "semana",
+    "semanas": "semana",
+    "mes": "mes",
+    "meses": "mes",
+    "ano": "ano",
+    "anos": "ano",
+}
+# Only a day count takes a qualifier.
+_DAY_QUALIFIERS: Dict[str, str] = {
+    "habil": "habiles",
+    "habiles": "habiles",
+    "natural": "naturales",
+    "naturales": "naturales",
+}
+
+# One token of normalized text: a parenthetical digit restatement "(15)", a digit
+# number with an optional ordinal mark ("1.º" normalizes to "1.o"), a word, or a
+# single punctuation character, which ends any number-word run.
+_NUMERIC_TOKEN = re.compile(
+    r"(?P<paren>\(\s*\d+(?:[.,]\d+)*\s*\))"
+    r"|(?P<digits>\d+(?:[.,]\d+)*)(?P<ordinal>\.?o(?![a-z0-9]))?"
+    r"|(?P<word>[a-z]+)"
+    r"|(?P<other>\S)"
+)
+_YEAR = re.compile(r"\d{4}")
+
+
+@dataclass(frozen=True)
+class _Token:
+    kind: str  # "paren", "digits", "word", or "other"
+    text: str
+    ordinal: bool = False
+
+
+def _numeric_tokens(normalized: str) -> Tuple[_Token, ...]:
+    tokens: List[_Token] = []
+    for match in _NUMERIC_TOKEN.finditer(normalized):
+        if match.group("digits") is not None:
+            ordinal = match.group("ordinal") is not None
+            tokens.append(_Token("digits", match.group("digits"), ordinal))
+        else:
+            tokens.append(_Token(match.lastgroup or "other", match.group(0)))
+    return tuple(tokens)
+
+
+def _word_at(tokens: Sequence[_Token], index: int) -> str:
+    if 0 <= index < len(tokens) and tokens[index].kind == "word":
+        return tokens[index].text
+    return ""
+
+
+def _canonical_value(token: str) -> str:
+    """Canonicalize a digit number like :func:`_canonical_figure`, without leading zeros."""
+
+    canonical = _canonical_figure(token)
+    percent = canonical.endswith("%")
+    core = canonical[:-1] if percent else canonical
+    if core.isdigit():
+        core = str(int(core))
+    return core + ("%" if percent else "")
+
+
+def _number_run_end(tokens: Sequence[_Token], start: int) -> int:
+    """Return the end of the maximal number-word run starting at ``start``.
+
+    ``y`` joins the run only between a tens word and a unit ("treinta y uno").
+    """
+
+    index = start
+    while index < len(tokens):
+        word = _word_at(tokens, index)
+        if word in _NUMBER_WORDS:
+            index += 1
+        elif (
+            word == "y"
+            and _word_at(tokens, index - 1) in _TENS_WORDS
+            and _word_at(tokens, index + 1) in _UNIT_WORDS
+        ):
+            index += 1
+        else:
+            break
+    return index
+
+
+def _parse_below_thousand(words: Sequence[str]) -> Optional[int]:
+    """Parse 1–999 written in words, or return ``None`` for an invalid run."""
+
+    index = 0
+    total = 0
+    if index < len(words) and words[index] in _HUNDRED_WORDS:
+        hundred = words[index]
+        total = _HUNDRED_WORDS[hundred]
+        index += 1
+        if hundred == "cien" and index < len(words):
+            return None
+        if hundred == "ciento" and index == len(words):
+            return None
+    if index < len(words):
+        word = words[index]
+        if word in _TENS_WORDS:
+            total += _TENS_WORDS[word]
+            index += 1
+            if index < len(words) and words[index] == "y":
+                if index + 1 < len(words) and words[index + 1] in _UNIT_WORDS:
+                    total += _UNIT_WORDS[words[index + 1]]
+                    index += 2
+                else:
+                    return None
+        elif word in _SMALL_WORDS:
+            total += _SMALL_WORDS[word]
+            index += 1
+        elif word in _UNIT_WORDS:
+            total += _UNIT_WORDS[word]
+            index += 1
+    if index != len(words) or total == 0:
+        return None
+    return total
+
+
+def _parse_cardinal(words: Sequence[str]) -> Optional[int]:
+    """Parse a Spanish cardinal from 0 to 999 999, or return ``None``."""
+
+    if list(words) == ["cero"]:
+        return 0
+    if "mil" not in words:
+        return _parse_below_thousand(words)
+    if list(words).count("mil") > 1:
+        return None
+    at = list(words).index("mil")
+    head, tail = words[:at], words[at + 1 :]
+    thousands = _parse_below_thousand(head) if head else 1
+    if thousands is None or (head and thousands == 1):
+        return None
+    rest = _parse_below_thousand(tail) if tail else 0
+    if rest is None:
+        return None
+    return thousands * 1000 + rest
+
+
+def _read_number(
+    tokens: Sequence[_Token],
+    end: int,
+    value: Optional[str],
+    facts: Dict[str, None],
+    *,
+    as_duration: bool,
+    as_free: bool,
+    free_fact: Optional[str],
+) -> int:
+    """Record the fact a number ending at ``end`` states; return the next index.
+
+    A day–month (and full date) wins, then a duration, then a percent, then a
+    free-standing number fact.
+    """
+
+    month = _MONTHS.get(_word_at(tokens, end + 1))
+    if (
+        value is not None
+        and value.isdigit()
+        and 1 <= int(value) <= 31
+        and _word_at(tokens, end) == "de"
+        and month is not None
+    ):
+        day = int(value)
+        facts["m:{}".format(month)] = None
+        facts["dm:{}-{}".format(day, month)] = None
+        after = end + 2
+        if (
+            _word_at(tokens, after) in ("de", "del")
+            and after + 1 < len(tokens)
+            and tokens[after + 1].kind == "digits"
+            and _YEAR.fullmatch(tokens[after + 1].text)
+        ):
+            facts[
+                "d:" + _canonical_date(
+                    tokens[after + 1].text, "{:02d}".format(month), "{:02d}".format(day)
+                )
+            ] = None
+            return after + 2
+        return after
+
+    if value is not None and as_duration:
+        index = end
+        if index < len(tokens) and tokens[index].kind == "paren":
+            index += 1
+        unit = _DURATION_UNITS.get(_word_at(tokens, index))
+        if unit is not None:
+            fact = "dur:{}:{}".format(value, unit)
+            index += 1
+            qualifier = _DAY_QUALIFIERS.get(_word_at(tokens, index))
+            if unit == "dia" and qualifier is not None:
+                fact += ":" + qualifier
+                index += 1
+            facts[fact] = None
+            return index
+
+    if not as_free:
+        return end
+    percent = _word_at(tokens, end) == "por" and _word_at(tokens, end + 1) == "ciento"
+    if value is not None and percent:
+        facts["n:{}%".format(value)] = None
+        return end + 2
+    if free_fact is not None:
+        facts[free_fact] = None
+    return end
+
+
+def _read_numeric_fact(tokens: Sequence[_Token], index: int, facts: Dict[str, None]) -> int:
+    """Record the fact starting at ``index``, if any; return the next index."""
+
+    token = tokens[index]
+    if token.kind == "digits":
+        # A bare digit figure is the digit rule's job; here digits only anchor a
+        # day, a duration, or a percent.
+        return _read_number(
+            tokens,
+            index + 1,
+            _canonical_value(token.text),
+            facts,
+            as_duration=not token.ordinal,
+            as_free=not token.ordinal,
+            free_fact=None,
+        )
+    if token.kind != "word":
+        return index + 1
+    word = token.text
+    if word == "por" and _word_at(tokens, index + 1) == "ciento":
+        return index + 2
+    if word in _MONTHS:
+        facts["m:{}".format(_MONTHS[word])] = None
+        return index + 1
+    if word == "primero":
+        return _read_number(
+            tokens, index + 1, "1", facts, as_duration=False, as_free=False, free_fact=None
+        )
+    if word not in _NUMBER_WORDS:
+        return index + 1
+    end = _number_run_end(tokens, index)
+    words = [run_token.text for run_token in tokens[index:end]]
+    parsed = _parse_cardinal(words)
+    value = None if parsed is None else str(parsed)
+    article = len(words) == 1 and words[0] in _ARTICLE_WORDS
+    return _read_number(
+        tokens,
+        end,
+        value,
+        facts,
+        as_duration=True,
+        as_free=not article,
+        free_fact="w:" + " ".join(words) if value is None else "n:" + value,
+    )
+
+
+def extract_numeric_facts(text: str) -> FrozenSet[str]:
+    """Return the numeric facts ``text`` states in words, month names, or durations.
+
+    The text is read through :func:`normalize_text`. Each fact is a canonical
+    token with a stable prefix:
+
+    * ``n:<value>`` — a Spanish cardinal written in words (0–999 999), or
+      ``n:<value>%`` for ``<number> por ciento`` (in digits or words). A bare
+      digit figure is not a fact here: :func:`extract_figures` checks it.
+    * ``w:<run>`` — a number-word run that is not a valid cardinal.
+    * ``m:<month>`` — a month name (``enero`` … ``diciembre``, ``setiembre``).
+    * ``dm:<day>-<month>`` — ``<day> de <month>``, the day in digits (an ordinal
+      mark allowed), in words, or ``primero``.
+    * ``d:<yyyy-mm-dd>`` — ``<day> de <month> de <yyyy>``.
+    * ``dur:<value>:<unit>[:<qualifier>]`` — a number (digits, words, or
+      ``un/una``, optionally restated as ``(15)``) followed by ``dia``,
+      ``semana``, ``mes``, or ``ano``; a day count keeps ``habiles`` or
+      ``naturales``.
+
+    ``un/una/uno`` alone counts only as a duration's number or as a day, so
+    articles ("una vez", "un plazo") state no fact.
+    """
+
+    if not isinstance(text, str) or not text:
+        return frozenset()
+    tokens = _numeric_tokens(normalize_text(text))
+    facts: Dict[str, None] = {}
+    index = 0
+    while index < len(tokens):
+        index = _read_numeric_fact(tokens, index, facts)
+    return frozenset(facts)
+
+
+def _numeric_support(passages: Sequence[RetrievedPassage]) -> FrozenSet[str]:
+    """Return the numeric facts the cited ``passages`` support, in any written form.
+
+    That is every :func:`extract_numeric_facts` token, an ``n:`` token for each
+    non-date digit figure, and the month, day–month, and full-date tokens of each
+    ISO or ``d/m/yyyy`` date.
+    """
+
+    support: Dict[str, None] = {}
+    for passage in passages:
+        excerpt = passage.excerpt if isinstance(passage.excerpt, str) else ""
+        support.update(dict.fromkeys(extract_numeric_facts(excerpt)))
+        for figure in extract_figures(excerpt):
+            if "-" not in figure:
+                support["n:" + _canonical_value(figure)] = None
+        dates = [match.groups() for match in _ISO_DATE.finditer(excerpt)] + [
+            tuple(reversed(match.groups())) for match in _SLASH_DATE.finditer(excerpt)
+        ]
+        for year, month, day in dates:
+            support["m:{}".format(int(month))] = None
+            support["dm:{}-{}".format(int(day), int(month))] = None
+            support["d:" + _canonical_date(year, month.zfill(2), day.zfill(2))] = None
+    return frozenset(support)
+
+
 _NORMALIZED_ELIGIBILITY_PHRASES: Tuple[str, ...] = tuple(
     normalize_text(phrase) for phrase in ELIGIBILITY_PHRASES
 )
@@ -540,6 +956,11 @@ def verify_draft(
                             "figure_unsupported",
                             "a figure or date in the claim is absent from the cited passage(s)",
                         )
+                    )
+                elif extract_numeric_facts(text) - _numeric_support(cited):
+                    # At most one numeric code per claim: the digit rule wins.
+                    claim_issues.append(
+                        GroundingIssue("numeric_fact_unsupported", NUMERIC_FACT_DETAIL)
                     )
                 critical = [passage for passage in cited if passage.critical]
                 if critical and not any(

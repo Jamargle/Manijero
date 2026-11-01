@@ -10,7 +10,7 @@ current implementation limits and manual checks.
 
 | Risk | Why it matters | Current mitigation / next action |
 |---|---|---|
-| Unsupported or outdated legal answer | A user could act on incorrect deadlines, amounts, or requirements | Use approved official sources, visible citations and verification dates, abstention, and targeted evaluation for critical claims. Assign a human owner for corpus review before real-user release. |
+| Unsupported or outdated legal answer | A user could act on incorrect deadlines, amounts, or requirements | Use approved official sources, visible citations and verification dates, abstention, and targeted evaluation for critical claims; numeric support (numbers, months, written dates, durations) is checked lexically against the cited passages, while semantic support stays open. Assign a human owner for corpus review before real-user release. |
 | Backend legal coverage is bounded | A working route could be mistaken for broad legal coverage | Publish the approved corpus boundary, cite only reviewed source passages, and abstain outside the three-topic Andalusia PAC 2026 slice. |
 | Land context is wrong or incomplete | An answer could appear personalized while applying to the wrong land | Treat unknown as unknown; use all lands by default; ask for a land choice when answers differ; show which land context was used. Never infer eligibility from stored details. |
 | Low digital confidence blocks adoption | The intended audience may abandon setup or misread a result | Keep the first journey short, explain terms in plain Spanish, allow general questions without setup, and observe low-confidence users completing key tasks. |
