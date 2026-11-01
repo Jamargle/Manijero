@@ -30,6 +30,7 @@ import androidx.compose.ui.semantics.LiveRegionMode
 import androidx.compose.ui.semantics.heading
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.platform.testTag
 import com.jamarglex.manijero.ChatHomeAction
 import com.jamarglex.manijero.ChatHomeState
 import com.jamarglex.manijero.SubmissionPhase
@@ -234,7 +235,7 @@ private fun ChatComposer(state: ChatHomeState, onAction: (ChatHomeAction) -> Uni
         OutlinedTextField(
             value = state.question,
             onValueChange = { onAction(ChatHomeAction.QuestionChanged(it)) },
-            modifier = Modifier.fillMaxWidth(),
+            modifier = Modifier.fillMaxWidth().testTag(ChatTestTags.QUESTION_FIELD),
             label = { Text(stringResource(Res.string.chat_home_question_label)) },
             placeholder = { Text(stringResource(Res.string.chat_home_question_hint)) },
             isError = state.isOverCharacterLimit,
@@ -257,7 +258,7 @@ private fun ChatComposer(state: ChatHomeState, onAction: (ChatHomeAction) -> Uni
         Button(
             onClick = { onAction(ChatHomeAction.AskClicked) },
             enabled = state.canAsk,
-            modifier = Modifier.fillMaxWidth(),
+            modifier = Modifier.fillMaxWidth().testTag(ChatTestTags.ASK_BUTTON),
         ) {
             ManijeroIcon(
                 resource = Res.drawable.ic_send,

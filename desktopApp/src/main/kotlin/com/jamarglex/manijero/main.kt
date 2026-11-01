@@ -7,6 +7,7 @@ import com.jamarglex.manijero.connection.ActiveServiceAddress
 import com.jamarglex.manijero.connection.ConnectionTools
 import com.jamarglex.manijero.connection.FileServiceAddressStore
 import com.jamarglex.manijero.connection.KtorServiceStatusChecker
+import com.jamarglex.manijero.connection.desktopConnectionStorePath
 import com.jamarglex.manijero.connection.desktopTestBuildEnabled
 import com.jamarglex.manijero.lands.AwtBackupFileChooser
 import com.jamarglex.manijero.lands.DesktopLandBackupFiles
@@ -23,9 +24,6 @@ import com.jamarglex.manijero.platform.desktopAskBaseUrl
 /** One stable local file for the lands this person manages on this computer. */
 private const val LAND_STORE_DIRECTORY = ".manijero"
 private const val LAND_STORE_FILE = "lands-v1.txt"
-
-/** Test builds only: the remembered answer-service address, next to the land store. */
-private const val CONNECTION_STORE_FILE = "connection-v1.txt"
 
 fun main() = application {
     val answerClient = remember { answerHttpClient(CIO.create()) }
@@ -57,7 +55,7 @@ fun main() = application {
 private fun testBuildConnectionTools(defaultUrl: String, client: HttpClient): ConnectionTools? =
     if (desktopTestBuildEnabled()) {
         ConnectionTools(
-            address = ActiveServiceAddress(defaultUrl, FileServiceAddressStore(manijeroPath(CONNECTION_STORE_FILE))),
+            address = ActiveServiceAddress(defaultUrl, FileServiceAddressStore(desktopConnectionStorePath())),
             checker = KtorServiceStatusChecker(client),
         )
     } else {

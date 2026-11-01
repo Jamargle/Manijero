@@ -8,6 +8,7 @@ The owner never runs this file directly::
     ./scripts/init.sh --local-rag-start           # start the local answer service in the background
     ./scripts/init.sh --local-rag-service-status  # is it running, can it answer, which addresses
     ./scripts/init.sh --local-rag-stop            # stop it
+    ./scripts/init.sh --local-smoke               # ask it once through the Desktop and emulator apps
 
 Every run prints plain sentences and ends with one ``Result:`` line. An unexpected error
 prints one sentence and the path of a log file under ``<local home>/logs/``; the traceback
@@ -31,6 +32,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
 from app import local_rag_bootstrap as bootstrap  # noqa: E402  (path setup must run first)
 from app import local_rag_service as service  # noqa: E402
+from app import local_smoke as smoke  # noqa: E402
 from app.pinned_download import https_opener  # noqa: E402
 
 SERVICE_COMMANDS = ("start", "stop", "service-status")
@@ -98,13 +100,15 @@ def main(
     service_ports: Optional[service.ServicePorts] = None,
 ) -> int:
     parser = argparse.ArgumentParser(description="Set up, check, start, or stop the local answer tools.")
-    parser.add_argument("command", choices=("setup", "status") + SERVICE_COMMANDS)
+    parser.add_argument("command", choices=("setup", "status", "smoke") + SERVICE_COMMANDS)
     args = parser.parse_args(argv)
     warnings.simplefilter("ignore")
 
     context = ctx or bootstrap.default_context(sys.executable)
     if args.command in SERVICE_COMMANDS:
         return _run_service_command(args.command, context, service_ports)
+    if args.command == "smoke":
+        return _run_smoke_command(context, service_ports)
 
     active_ports = ports or build_ports(context)
     out = active_ports.out
@@ -171,6 +175,37 @@ def _run_service_command(
             "this log file to a developer: {}".format(path)
         )
         out(failed_result)
+        return 1
+
+
+def _run_smoke_command(context: bootstrap.Context, service_ports: Optional[service.ServicePorts]) -> int:
+    active = service_ports or build_service_ports(context)
+    ports = smoke.SmokePorts(
+        service=active,
+        runner=smoke.SubprocessRunner(),
+        tools=smoke.SystemTools(os.environ),
+        environ=dict(os.environ),
+    )
+    out = active.out
+    log = bootstrap.RunLog(context.paths.logs, "smoke", active.clock.now)
+    try:
+        return smoke.run_smoke(context, ports)
+    except bootstrap.BootstrapError as stop:
+        out(stop.message)
+        out("{} {}".format(smoke.NOT_RUN_RESULT, smoke.FIX_SHOWN))
+        return 1
+    except KeyboardInterrupt:
+        out("")
+        out(smoke.STOPPED_LINE)
+        out(smoke.STOPPED_RESULT)
+        return 1
+    except Exception:  # noqa: BLE001 - every unexpected failure becomes one sentence plus a log
+        path = log.write_traceback()
+        out(
+            "Something unexpected went wrong. Run the same command again; if it happens again, send "
+            "this log file to a developer: {}".format(path)
+        )
+        out("Result: the smoke test could not finish.")
         return 1
 
 

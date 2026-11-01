@@ -39,6 +39,8 @@ compose-uiTestJunit4Desktop = { module = "org.jetbrains.compose.ui:ui-test-junit
 androidx-compose-uiTestJunit4 = { module = "androidx.compose.ui:ui-test-junit4", version.ref = "composeMultiplatform" }
 androidx-compose-uiTestManifest = { module = "androidx.compose.ui:ui-test-manifest", version.ref = "composeMultiplatform" }
 androidx-test-core = { module = "androidx.test:core", version.ref = "androidx-test" }
+# Test-only: runs the instrumented local smoke check (androidApp androidTest, ./scripts/init.sh --local-smoke).
+androidx-test-runner = { module = "androidx.test:runner", version.ref = "androidx-test" }
 androidx-test-junit = { module = "androidx.test.ext:junit", version.ref = "androidx-test-junit" }
 roborazzi-composeDesktop = { module = "io.github.takahirom.roborazzi:roborazzi-compose-desktop", version.ref = "roborazzi" }
 roborazzi-core = { module = "io.github.takahirom.roborazzi:roborazzi", version.ref = "roborazzi" }
