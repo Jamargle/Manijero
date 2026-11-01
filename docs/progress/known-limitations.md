@@ -100,3 +100,8 @@ Do not over-claim.
   answer quality. It listens on `127.0.0.1` only, so it serves Desktop and the Android emulator,
   not physical devices or other machines. See the
   [`mock_answer_server`](../specs/mock_answer_server.md) contract.
+- The `Conexión` test-build screen (`local_service_connection`) is verified by unit, guard, compile,
+  and `Ayuda` screenshot checks only. Typing an address, `Comprobar` against a running, stopped, or
+  not-ready service, and the remembered address after restart were not exercised in the Desktop or
+  emulator GUI, and the packaged Desktop app was not opened to confirm the card is absent. See the
+  [acceptance record](../validations/local_service_connection.md).

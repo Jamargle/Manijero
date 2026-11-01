@@ -4,6 +4,7 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
@@ -24,8 +25,16 @@ import org.jetbrains.compose.resources.stringResource
 import manijero.shared.generated.resources.Res
 import manijero.shared.generated.resources.*
 
+/**
+ * The `Ayuda` screen. [onOpenTestTools] is non-null only in test builds that inject the connection
+ * tools; then a `Herramientas de prueba` card ends the screen. Without it the screen is unchanged.
+ */
 @Composable
-fun CoverageScreen(onPrivacyClick: () -> Unit, modifier: Modifier = Modifier) {
+fun CoverageScreen(
+    onPrivacyClick: () -> Unit,
+    modifier: Modifier = Modifier,
+    onOpenTestTools: (() -> Unit)? = null,
+) {
     ManijeroScreen(modifier) {
         Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
             Text(stringResource(Res.string.coverage_title), style = MaterialTheme.typography.headlineMedium, modifier = Modifier.semantics { heading() })
@@ -44,6 +53,13 @@ fun CoverageScreen(onPrivacyClick: () -> Unit, modifier: Modifier = Modifier) {
             ManijeroSectionHeader(stringResource(Res.string.coverage_section_help), heading = true)
             CoverageLines(listOf(Res.string.coverage_help_body))
             TextButton(onClick = onPrivacyClick, modifier = Modifier.fillMaxWidth()) { Text(stringResource(Res.string.coverage_privacy_link)) }
+        }
+        if (onOpenTestTools != null) {
+            ManijeroCard(tone = ManijeroCardTone.Outlined) {
+                ManijeroSectionHeader(stringResource(Res.string.connection_tools_title), heading = true)
+                Text(stringResource(Res.string.connection_tools_note), style = MaterialTheme.typography.bodyLarge, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                OutlinedButton(onClick = onOpenTestTools, modifier = Modifier.fillMaxWidth()) { Text(stringResource(Res.string.connection_tools_open)) }
+            }
         }
     }
 }
@@ -71,3 +87,4 @@ private fun CoverageLines(lines: List<StringResource>) {
 @Preview(name = "Coverage") @Composable private fun CoveragePreview() { ManijeroTheme { CoverageScreen({}) } }
 @Preview(name = "Coverage dark") @Composable private fun CoverageDarkPreview() { ManijeroTheme(darkTheme = true) { CoverageScreen({}) } }
 @Preview(name = "Coverage narrow, large text", widthDp = 320, fontScale = 2f) @Composable private fun CoverageLargePreview() { ManijeroTheme { CoverageScreen({}) } }
+@Preview(name = "Coverage with test tools (test builds only)") @Composable private fun CoverageTestToolsPreview() { ManijeroTheme { CoverageScreen({}, onOpenTestTools = {}) } }

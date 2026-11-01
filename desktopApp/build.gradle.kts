@@ -26,3 +26,10 @@ compose.desktop {
         }
     }
 }
+
+// Test-build tools (`Conexión`): only the development `run` task (`./scripts/init.sh --desktop`)
+// marks the JVM as a test build. Packaged apps, `runDistributable`, and `runRelease` never carry the
+// property; `TestBuildGatingGuardTest` keeps it that way.
+tasks.withType<JavaExec>().matching { it.name == "run" }.configureEach {
+    systemProperty("manijero.testBuild", "true")
+}

@@ -84,6 +84,7 @@ class AppNavigationTest {
                 AppDestination.RemovedLands,
                 AppDestination.PermanentlyDeleteLand,
                 AppDestination.LandBackup,
+                AppDestination.Connection,
             ).forEach { destination ->
                 assertEquals(remembered, rememberedSectionAfterBack(destination, remembered))
             }
@@ -207,6 +208,19 @@ class AppNavigationTest {
             backTarget(AppDestination.LandBackup, AppSection.Lands, AppDestination.Chat),
         )
         assertTrue(navigationVisible(AppDestination.LandBackup))
+    }
+
+    @Test
+    fun `the test-build connection route sits under help, keeps the bars and returns to help`() {
+        AppSection.entries.forEach { fallback ->
+            assertEquals(AppSection.Help, tabForDestination(AppDestination.Connection, fallback))
+            assertEquals(
+                AppDestination.Coverage,
+                backTarget(AppDestination.Connection, fallback, AppDestination.Chat),
+            )
+            assertEquals(fallback, rememberedSectionAfterBack(AppDestination.Coverage, fallback))
+        }
+        assertTrue(navigationVisible(AppDestination.Connection))
     }
 
     @Test

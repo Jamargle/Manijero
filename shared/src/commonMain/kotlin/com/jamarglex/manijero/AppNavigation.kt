@@ -24,6 +24,9 @@ internal enum class AppDestination {
     LandBackup,
     Privacy,
     Coverage,
+
+    /** The test-build `Conexión` route under `Ayuda`; it exists only when a host injects the tools. */
+    Connection,
 }
 
 /** The destinations the shell may show, in tab order. */
@@ -65,7 +68,9 @@ internal fun tabForDestination(destination: AppDestination, fallback: AppSection
         AppDestination.LandBackup,
         -> AppSection.Lands
 
-        AppDestination.Coverage -> AppSection.Help
+        AppDestination.Coverage,
+        AppDestination.Connection,
+        -> AppSection.Help
         AppDestination.Privacy -> fallback
     }
 
@@ -125,4 +130,5 @@ internal fun backTarget(
     }
 
     AppDestination.Privacy -> privacyReturn
+    AppDestination.Connection -> AppDestination.Coverage
 }

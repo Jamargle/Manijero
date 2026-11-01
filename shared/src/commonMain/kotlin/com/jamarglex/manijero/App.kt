@@ -1,6 +1,7 @@
 package com.jamarglex.manijero
 
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -12,6 +13,9 @@ import androidx.compose.ui.backhandler.BackHandler
 import com.jamarglex.manijero.chat.AnswerService
 import com.jamarglex.manijero.chat.ChatHomeScreen
 import com.jamarglex.manijero.chat.UnavailableAnswerService
+import com.jamarglex.manijero.connection.ConnectionController
+import com.jamarglex.manijero.connection.ConnectionScreen
+import com.jamarglex.manijero.connection.ConnectionTools
 import com.jamarglex.manijero.coverage.CoverageScreen
 import com.jamarglex.manijero.lands.AddLandAction
 import com.jamarglex.manijero.lands.AddLandScreen
@@ -73,6 +77,10 @@ internal fun initialLandListState(repository: LandRepository?): LandListState =
  * [landBackupFiles] is the platform file picker for the portable backup. `Copia en un archivo` is
  * offered only when both it and [landRepository] are injected (Android and Desktop).
  *
+ * [connectionTools] is the test-build `Conexión` capability. Only Android debug builds and the
+ * Desktop development `run` task inject it; when it is `null` the `Ayuda` test-tools card and the
+ * `Conexión` route do not exist.
+ *
  * Every destination renders inside the one [AppShell]; the route table itself is pure and lives in
  * `AppNavigation.kt`.
  */
@@ -83,6 +91,7 @@ fun App(
     landRepository: LandRepository? = null,
     answerService: AnswerService = UnavailableAnswerService,
     landBackupFiles: LandBackupFiles? = null,
+    connectionTools: ConnectionTools? = null,
 ) {
     val scope = rememberCoroutineScope()
     // The chat reads the land list at submit time and again on every retry, so a land added, edited
@@ -194,6 +203,11 @@ fun App(
         }
     }
 
+    // The test-build connection check. It exists only when a host injects the tools.
+    val connection = remember(connectionTools, scope) {
+        connectionTools?.let { tools -> ConnectionController(tools.address, tools.checker, scope) }
+    }
+
     // Which tab reads as selected. Privacy keeps the section it was opened from (its own `Volver`
     // destination), so a detail route never drops or invents a selection.
     val selectedSection = tabForDestination(
@@ -280,7 +294,26 @@ fun App(
                         privacyReturn = AppDestination.Coverage
                         destination = AppDestination.Privacy
                     },
+                    onOpenTestTools = connection?.let { controller ->
+                        {
+                            controller.open()
+                            destination = AppDestination.Connection
+                        }
+                    },
                 )
+
+                // Test builds only. Leaving the route, by `Volver`, back, or a tab, cancels a
+                // running check; the saved address stays.
+                AppDestination.Connection -> connection?.let { controller ->
+                    DisposableEffect(controller) { onDispose { controller.leave() } }
+                    ConnectionScreen(
+                        state = controller.state,
+                        onInputChange = controller::onInputChange,
+                        onCheck = controller::check,
+                        onReset = controller::resetToDefault,
+                        onBack = { destination = AppDestination.Coverage },
+                    )
+                }
 
                 AppDestination.LandList -> LandListScreen(
                     state = landListState,

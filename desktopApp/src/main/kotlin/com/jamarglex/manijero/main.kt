@@ -3,6 +3,11 @@ package com.jamarglex.manijero
 import androidx.compose.runtime.remember
 import androidx.compose.ui.window.Window
 import androidx.compose.ui.window.application
+import com.jamarglex.manijero.connection.ActiveServiceAddress
+import com.jamarglex.manijero.connection.ConnectionTools
+import com.jamarglex.manijero.connection.FileServiceAddressStore
+import com.jamarglex.manijero.connection.KtorServiceStatusChecker
+import com.jamarglex.manijero.connection.desktopTestBuildEnabled
 import com.jamarglex.manijero.lands.AwtBackupFileChooser
 import com.jamarglex.manijero.lands.DesktopLandBackupFiles
 import com.jamarglex.manijero.lands.FileLandStorage
@@ -10,6 +15,7 @@ import com.jamarglex.manijero.lands.LandRepository
 import java.nio.file.Path
 import java.nio.file.Paths
 import io.ktor.client.engine.cio.CIO
+import io.ktor.client.HttpClient
 import com.jamarglex.manijero.chat.KtorAnswerService
 import com.jamarglex.manijero.chat.answerHttpClient
 import com.jamarglex.manijero.platform.desktopAskBaseUrl
@@ -18,10 +24,21 @@ import com.jamarglex.manijero.platform.desktopAskBaseUrl
 private const val LAND_STORE_DIRECTORY = ".manijero"
 private const val LAND_STORE_FILE = "lands-v1.txt"
 
+/** Test builds only: the remembered answer-service address, next to the land store. */
+private const val CONNECTION_STORE_FILE = "connection-v1.txt"
+
 fun main() = application {
     val answerClient = remember { answerHttpClient(CIO.create()) }
+    val defaultAskBaseUrl = remember { desktopAskBaseUrl() }
+    // Only the Gradle development `run` task marks a test build; packaged and release runs keep the
+    // fixed answer URL and have no `Conexión` screen.
+    val connectionTools = remember { testBuildConnectionTools(defaultAskBaseUrl, answerClient) }
     val answerService = remember {
-        KtorAnswerService(answerClient, desktopAskBaseUrl())
+        if (connectionTools != null) {
+            KtorAnswerService(answerClient, connectionTools.address::current)
+        } else {
+            KtorAnswerService(answerClient, defaultAskBaseUrl)
+        }
     }
     val landRepository = remember {
         LandRepository(FileLandStorage(landStorePath()))
@@ -33,12 +50,24 @@ fun main() = application {
     ) {
         // The portable backup uses the native file dialog, owned by this window so it opens on top.
         val landBackupFiles = remember(window) { DesktopLandBackupFiles(AwtBackupFileChooser(window)) }
-        App(landRepository, answerService, landBackupFiles)
+        App(landRepository, answerService, landBackupFiles, connectionTools)
     }
 }
 
-private fun landStorePath(): Path = Paths.get(
+private fun testBuildConnectionTools(defaultUrl: String, client: HttpClient): ConnectionTools? =
+    if (desktopTestBuildEnabled()) {
+        ConnectionTools(
+            address = ActiveServiceAddress(defaultUrl, FileServiceAddressStore(manijeroPath(CONNECTION_STORE_FILE))),
+            checker = KtorServiceStatusChecker(client),
+        )
+    } else {
+        null
+    }
+
+private fun landStorePath(): Path = manijeroPath(LAND_STORE_FILE)
+
+private fun manijeroPath(file: String): Path = Paths.get(
     System.getProperty("user.home"),
     LAND_STORE_DIRECTORY,
-    LAND_STORE_FILE,
+    file,
 )
