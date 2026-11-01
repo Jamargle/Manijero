@@ -1964,8 +1964,8 @@ it with `./scripts/init.sh --local-rag-status`; the copy-paste steps are in
 [`docs/owner-guide.md`](../docs/owner-guide.md). The code is `app/local_rag_bootstrap.py`
 (orchestration), `app/pinned_download.py` (stdlib pinned-file downloader), and
 `scripts/local_rag.py` (entry point). The service never imports them. Neither command starts the
-service or enables `MANIJERO_RETRIEVAL_MODE=hybrid` or `MANIJERO_GENERATION_PROVIDER=local`.
-Neither command installs Ollama; setup stops and names the install step.
+service; that is `--local-rag-start` (see "Local answer service" below). Neither command installs
+Ollama; setup stops and names the install step.
 
 **Local home** (`~/manijero/local`; `local_paths(home)` returns the layout for later features):
 
@@ -2024,3 +2024,51 @@ builds nothing, needs no `torch`/`chromadb`, and calls only loopback Ollama.
 Terminal messages are fixed sentences without corpus text. Subprocess output and tracebacks go
 only to the printed log path. `MANIJERO_LOCAL_HOME` and `MANIJERO_OLLAMA_CLI` exist for tests
 only.
+
+### Local answer service
+
+`./scripts/init.sh --local-rag-start`, `--local-rag-service-status`, and `--local-rag-stop`
+(owner steps in [`docs/owner-guide.md`](../docs/owner-guide.md)) run `scripts/local_rag.py
+start|service-status|stop`, implemented by `app/local_rag_service.py` (operator-only, stdlib at
+import, never imported by the service). Without a dev environment, start and status print the
+"not set up yet" pair and exit `1`; stop exits `0` with "nothing to stop".
+
+**Start** checks, before any write or process: the run record (running and verified: report
+status, start nothing); the setup lock; `settings.env` exists and parses; the pins load; all six
+`inspect` parts are `OK`; the service lock; and the port owner by `GET /health` (refused: free;
+`manijero-mock`; a `manijero-backend` without a record; anything else). Then, holding
+`<home>/.service.lock`, it launches, writes the record, waits up to 60 s for `/health` to report
+`manijero-backend`, and requires `/ready` `200 ready`. Any failure or Ctrl+C ends the child
+(TERM, then KILL after 10 s only while still verified) and removes the record.
+
+```text
+argv  backend/.venv-hybrid/bin/python -m uvicorn app.main:app --app-dir <repo>/backend
+      --host 127.0.0.1 --port <port> --no-access-log      (cwd backend/, new session, stdin /dev/null)
+env   PATH HOME TMPDIR LANG LC_ALL (when set) plus exactly
+      MANIJERO_ACTIVE_CAMPAIGN=<settings>  MANIJERO_KNOWLEDGE_RELEASE_ROOT=<home>/knowledge-releases
+      MANIJERO_RETRIEVAL_MODE=hybrid  MANIJERO_VECTOR_STORE=<home>/knowledge-releases/releases/<current id>/vector-store
+      MANIJERO_EMBEDDING_ARTIFACT=<home>/models/bge-m3
+      MANIJERO_GENERATION_PROVIDER=local  MANIJERO_LOCAL_MODEL=<record model>
+```
+
+No other `MANIJERO_*` key is inherited, so no pilot profile, retention store, or Gemini setting
+reaches the service. The vector store is resolved once at start, so a later publish needs a stop
+and start for hybrid ranking (status reports it).
+
+**Run record** `<home>/run/service.json` (mode `0600`, atomic): `pid`, `port`, `started_at`
+(UTC), `release_id`, `log`. It counts as running only when the pid is alive and
+`ps -ww -p <pid> -o command=` contains the tokens `uvicorn app.main:app`, `--host 127.0.0.1`,
+and `--port <port>`; anything else is stale, cleared with one sentence, and never signalled.
+One service per local home. **Log** `<home>/logs/service-<UTC>.log` holds the server's
+startup and error output (no access log).
+
+**Service status** never inspects the six parts and writes nothing except clearing a stale
+record: `Answers` = `/health` and `/ready`; `Search` = the record `release_id` equals
+`current`; `Drafting` = loopback Ollama `/api/tags` lists the pinned tag with the pinned
+digest. It cannot tell which ranking or provider served a given answer (both fall back
+silently). Probes use a no-proxy, no-redirect loopback opener with a 2 s timeout; no command
+sends `/ask`.
+
+**Exit codes**: `0` started, already running and OK, running and OK, stopped, or nothing to
+stop; `1` a prerequisite or check failed, or not running (status); `2` an extra argument or a
+`MANIJERO_LOCAL_RAG_PORT` (tests and developers only; default `8000`) outside `1`–`65535`.
