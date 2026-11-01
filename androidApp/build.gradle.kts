@@ -66,7 +66,7 @@ android {
         buildConfig = true
     }
     buildTypes {
-        // Every variant (debug and release) gets the same PILOT_TOKEN field; see androidComponents.
+        // Only debug carries the pilot token; release gets PILOT_TOKEN = null. See androidComponents.
         debug { manifestPlaceholders["usesCleartextTraffic"] = "true" }
         release {
             manifestPlaceholders["usesCleartextTraffic"] = "false"
@@ -79,13 +79,20 @@ android {
     }
 }
 
-// `PILOT_TOKEN` is the quoted token when one is saved and the literal `null` otherwise, for every
-// variant. MainActivity turns it into a PilotToken, which re-checks the shape.
+// Only debug (test) builds may carry the pilot token (owner decision 5): debug gets the quoted
+// token when one is saved, or the literal `null`. Every other build type, including release, gets a
+// constant `null` that never touches the token file, so the field stays declared for src/main but
+// the token is never read, validated, or a release task input. MainActivity turns the field into a
+// PilotToken, which re-checks the shape.
 androidComponents {
     onVariants { variant ->
-        variant.buildConfigFields?.put(
-            "PILOT_TOKEN",
-            pilotTokenBuildConfigValue.map { BuildConfigField("String", it, null) },
-        )
+        if (variant.buildType == "debug") {
+            variant.buildConfigFields?.put(
+                "PILOT_TOKEN",
+                pilotTokenBuildConfigValue.map { BuildConfigField("String", it, null) },
+            )
+        } else {
+            variant.buildConfigFields?.put("PILOT_TOKEN", BuildConfigField("String", "null", null))
+        }
     }
 }

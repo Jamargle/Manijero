@@ -382,8 +382,9 @@ cases to exercise.
 - Rotate tunnel credentials and the Cloudflare account per the provider's own procedure;
   R2 presigned links (artifact delivery only) cannot be revoked individually before expiry,
   so keep them short-lived.
-- **Client token:** Android and Desktop builds send the client's bearer token on `POST /ask`
-  once the owner saves it with `./scripts/init.sh --pilot-token-save` (see
+- **Client token:** Android debug and Desktop `run` (test) builds send the client's bearer
+  token on `POST /ask`; release and packaged builds never carry it. They send it once the
+  owner saves it with `./scripts/init.sh --pilot-token-save` (see
   [`docs/owner-guide.md`](../docs/owner-guide.md) "Give the apps the pilot token" and
   [`client_pilot_credentials`](../docs/specs/client_pilot_credentials.md)). It is built in,
   so after rotating or revoking a client here, save the new token and rebuild that client's

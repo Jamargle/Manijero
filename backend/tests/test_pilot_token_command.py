@@ -22,8 +22,8 @@ INIT = REPO_ROOT / "scripts" / "init.sh"
 FAKE_TOKEN = "fakeTokenForTestsOnly-0123456789abcdefABCDEF+/="
 OTHER_FAKE_TOKEN = "otherFakeTokenForTestsOnly-0123456789abcdef~._"
 
-SAVED = "Result: the pilot token is saved. The next app build will send it."
-REPLACED = "Result: the pilot token is saved; it replaced the previous one. The next app build will send it."
+SAVED = "Result: the pilot token is saved. The next test build will send it."
+REPLACED = "Result: the pilot token is saved; it replaced the previous one. The next test build will send it."
 EMPTY = "Result: the clipboard is empty. Copy the pilot token first, then run this command again."
 NOT_A_TOKEN = (
     "Result: the clipboard does not hold a pilot token. Copy the whole token again, "

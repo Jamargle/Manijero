@@ -53,6 +53,17 @@
 10. Add `scripts/check-pilot-token-build.sh` (fake valid, fake invalid, none, then a final clean regeneration).
 11. Update the durable docs listed in the contract, then `PROGRESS.md` and the feature evidence.
 
+### Revision 2026-11-01 (decision 5: debug-only token)
+
+Steps 1–11 are done and accepted. The delta, in order:
+
+1. Android: in `onVariants`, put the file-backed `pilotTokenBuildConfigValue` only when `variant.buildType == "debug"`; every other variant gets a constant `BuildConfigField("String", "null", null)`, so release never reads or validates the file.
+2. Desktop: remove `sourceSets.main { resources.srcDir(generatePilotTokenResource) }`; add `classpath(generatePilotTokenResource)` inside the existing `run`-only block (the `systemProperty` line stays the only one). Confirm locally, without committing, that the `run` classpath keeps the entry after Compose configures it; if Compose overwrites it, append it in the same block via a provider-based `classpath` update instead, still `run`-only.
+3. `PilotTokenGuardTest`: replace the `resources.srcDir` assertion with: `generatePilotTokenResource` appears only at its registration and inside the `run` block's `classpath(...)`; no `resources.srcDir`, `runtimeOnly`, `implementation`, or `files(` dependency uses it; the Android file provider is referenced only under the `debug` condition; release still gets a `PILOT_TOKEN` field.
+4. `scripts/check-pilot-token-build.sh`: switch the task list to the contract's four tasks and add the release/jar assertions (scenario 2a), keeping the final clean regeneration. Inspect the jar with `unzip -l` and `unzip -p … | grep -aqF`.
+5. `scripts/init.sh` save messages and `test_pilot_token_command.py`: "The next app build" becomes "The next test build" in both success lines.
+6. Durable docs per the contract's revision list; append a dated revision block to `Feature evidence` with one line per focused command, including the check script's new PASS lines.
+
 ## Verification plan
 
 Tests, each named with the behavior it covers:
@@ -85,7 +96,8 @@ Tests, each named with the behavior it covers:
   - empty, short, multi-line, or internal-space input exits non-zero and leaves the previous file byte-identical;
   - a missing clipboard tool gives the plain message;
   - the command runs with an empty `MANIJERO_VENV_ROOT`.
-- `check-pilot-token-build.sh`: runs the scenarios in the contract's verification note, using `:androidApp:generateDebugBuildConfig :androidApp:generateReleaseBuildConfig :desktopApp:processResources`.
+- `check-pilot-token-build.sh`: runs the scenarios in the contract's verification note, using the four tasks named there (revision: `:desktopApp:processResources` is replaced by `:desktopApp:generatePilotTokenResource :desktopApp:jar`).
+- Revision `PilotTokenGuardTest`: the debug-only Android provider and the run-only Desktop classpath (plan revision step 3).
 - `ServiceStatusCheckerTest` and `mock.*` run unchanged to prove the no-token and probe paths.
 
 E2E: no persistent E2E command exists for the client. In-process fakes cover the auth flow, as owner decision 4 requires.
@@ -117,12 +129,31 @@ Implementer self-verification, 2026-11-01 (JDK 21, macOS):
   - `shared/build.gradle.kts` declares the files that `PilotTokenGuardTest` reads as `jvmTest` inputs, so a cached result cannot hide a guard regression.
   - The save command's validation runs in-process, so the token is never a process argument. It also has one extra failure line, `Result: the pilot token could not be saved, and nothing changed. Ask the developer for help.`, for an unwritable target. It is documented in the owner guide.
 - Owner walkthrough (manual, spec "Focused verification"): pending, not run by an agent.
+
+Revision 2026-11-01 (decision 5: debug-only token), implementer self-verification on top of `2e157cc`:
+
+- `./scripts/init.sh --feature client_pilot_credentials`: focused tier passed (4 command lines).
+  - `:shared:jvmTest` filtered set: passed; `PilotTokenGuardTest` 7 (2 new: run-only Desktop folder, debug-only Android provider), `TestBuildGatingGuardTest` 5, 0 failures.
+  - `test_pilot_token_command.py`: 15 passed ("The next test build" lines).
+  - Host compiles: passed.
+  - `check-pilot-token-build.sh` (tasks `generateDebugBuildConfig generateReleaseBuildConfig generatePilotTokenResource jar`), 5 PASS lines and the `Result:` line:
+    - valid fake reaches the debug `BuildConfig` and the generated folder;
+    - with it present, release `PILOT_TOKEN = null`, and the jar (`unzip -l`, `unzip -p | grep -a`) and `build/resources/main` hold no token;
+    - the `run` classpath holds the folder when the task starts, and `jar`/`createDistributable`/`createReleaseDistributable`/`runDistributable`/`runRelease` never depend on it;
+    - an invalid fake fails the debug `BuildConfig` and `generatePilotTokenResource` without its content, while release `BuildConfig` and the jar still build;
+    - no file gives `null` in both variants and no resource.
+- Run-classpath proof without a GUI: a throwaway init script in the `mktemp` folder (`--no-configuration-cache`) adds an action just before `run`'s `JavaExec` action. The action prints `PILOT_RUN_PROBE classpath=… resource=…` (yes/no only) and stops the task with `StopExecutionException`, so no app JVM starts. Negative control: with the append disabled locally (not kept), the probe printed `classpath=no` and the check failed.
+- `CI=true ./scripts/init.sh --verify`: passed, including its `--fast` stage (all 9 offline checks passed; backend 1533 passed, 4 skipped), Android host tests, debug APK, and the Desktop build.
+- Deviation (anticipated by plan revision step 2): `classpath(generatePilotTokenResource)` in the `run` block was overwritten by Compose; a dry run showed no dependency. The block now has `dependsOn(generatePilotTokenResource)` and `doFirst { (this as JavaExec).classpath(pilotTokenFolder) }`, still `run`-only.
+- Tokens: only fake values in `mktemp` folders; no real token was read, printed, or created.
 - Independent validation, 2026-11-01: `accept`; see [acceptance record](../validations/client_pilot_credentials.md). The orchestrator restored the `--android` column in `usage()` (validator nit; help text only).
+- Independent validation of the debug-only revision (decision 5), 2026-11-01: `accept`, no findings; see the "Revision 2026-11-01" section of the [acceptance record](../validations/client_pilot_credentials.md).
 
 ## Validator checklist
 
 - [ ] Scenario 1: with no token file, no request has an `Authorization` header, and existing chat, connection, and mock tests are unchanged.
 - [ ] Scenarios 2–3: the header goes only on `/ask`, only over https or the four loopback hosts, and is re-evaluated for each question.
+- [ ] Scenario 2a (revision): with a valid or malformed fake present, release `BuildConfig.PILOT_TOKEN` is `null`, the Desktop jar and `build/resources/main` hold no token resource or characters, and only the `run` task's classpath gets the generated folder.
 - [ ] Scenario 4: the fake mirrors `pilot_guard.py` (gated paths, statuses, headers), and the outcomes match the table.
 - [ ] Scenario 5: there is no logging plugin and no token in `toString`, exceptions, state, or UI. A malformed file fails the build without echoing. `.gitignore` covers the file.
 - [ ] Scenario 6: the command output matches the table, writes `0600` atomically, and never prints the token or its length.

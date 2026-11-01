@@ -280,10 +280,12 @@ anything that looked different from this guide) and send them to the developer.
 
 ## Give the apps the pilot token
 
-When you are given a pilot token for the pilot answer service, save it once. The Android and
-Desktop apps you build after that send it with every question, so the pilot service answers them.
-The people testing the apps never see or type it. Without a saved token the apps work as before
-with the mock and local answer services.
+When you are given a pilot token for the pilot answer service, save it once. The test apps you
+build after that send it with every question, so the pilot service answers them. Test apps are the
+Android app from `./scripts/init.sh --android` and the Desktop app from
+`./scripts/init.sh --desktop`. Release or packaged apps never carry the token. The people testing
+the apps never see or type it. Without a saved token the apps work as before with the mock and
+local answer services.
 
 1. **Copy the token.** Select the whole token you were given and copy it (Command-C). Copy
    nothing else after it.
@@ -293,14 +295,14 @@ with the mock and local answer services.
    ./scripts/init.sh --pilot-token-save
    ```
 
-   - Expected: `Result: the pilot token is saved. The next app build will send it.`
+   - Expected: `Result: the pilot token is saved. The next test build will send it.`
    - The command never shows the token. It keeps it in the file `pilot-token.local` in the
      Manijero folder, which is never shared or uploaded. Do not send that file to anyone.
-3. **Build the apps again** (for example `./scripts/init.sh --android` or
-   `./scripts/init.sh --desktop`). Only apps built after step 2 send the token.
+3. **Build the test apps again** with `./scripts/init.sh --android` or
+   `./scripts/init.sh --desktop`. Only test apps built after step 2 send the token.
 
 To use a new token, copy it and run the same command again. Expect
-`Result: the pilot token is saved; it replaced the previous one. The next app build will send it.`
+`Result: the pilot token is saved; it replaced the previous one. The next test build will send it.`
 
 ### If the result differs
 

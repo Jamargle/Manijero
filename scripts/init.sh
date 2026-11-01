@@ -45,9 +45,9 @@ if [[ "${1:-}" == "--pilot-token-save" ]]; then
     exit 1
   fi
   if (( pilot_token_replaced )); then
-    printf 'Result: the pilot token is saved; it replaced the previous one. The next app build will send it.\n'
+    printf 'Result: the pilot token is saved; it replaced the previous one. The next test build will send it.\n'
   else
-    printf 'Result: the pilot token is saved. The next app build will send it.\n'
+    printf 'Result: the pilot token is saved. The next test build will send it.\n'
   fi
   exit 0
 fi
@@ -199,8 +199,8 @@ Usage: ./scripts/init.sh [--check|--fast|--verify|--feature <id>|--backend-tests
   --local-rag-service-status
                             Say whether the local answer service runs, can answer, and where
   --local-rag-stop          Stop the local answer service
-  --pilot-token-save        Save the copied pilot token (macOS clipboard) for the next Android and
-                            Desktop builds; it never prints the token
+  --pilot-token-save        Save the copied pilot token (macOS clipboard) for the next test builds
+                            (Android debug, --desktop); it never prints the token
   --android                 Build the Android debug APK
   --android-run             Build, start an emulator if needed, install, and launch the app
   --desktop                 Launch the Desktop app
