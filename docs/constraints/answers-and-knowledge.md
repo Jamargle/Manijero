@@ -19,6 +19,15 @@ Durable MUST/MUST NOT rules for backend answer path, retrieval, generation, eval
   local positions, so `[n]` selects `sources[n-1]`. Reason: sparse retrieval
   ranks cannot be exposed as response indexes, and the notice is a fixed
   orientative line, not generated prose.
+- **MUST**: every number word, month, day–month or full written date, and day,
+  week, month, or year duration (with any `hábiles`/`naturales` qualifier) in a
+  claim must appear, in an equivalent written form, in the passage(s) that claim
+  cites, or the draft is discarded whole (`numeric_fact_unsupported`).
+  `extract_figures` MUST stay digit-only, because the abstention and land-safety
+  checks depend on it. Reason:
+  [`numeric_grounding_check`](../specs/numeric_grounding_check.md) closed the gap
+  where a reworded claim could change "15 de mayo" to "en junio" or drop "hábiles"
+  against a non-critical passage.
 
 ## Local embeddings
 

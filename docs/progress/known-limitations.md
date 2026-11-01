@@ -18,6 +18,10 @@ Do not over-claim.
   `fecha-modificacion-2026`, and `distingue-fechas-2026` cite a different reviewed passage, and
   `reclamacion-fuera-de-alcance` answers an out-of-scope reclamación. Neither that sample nor the
   fixture metrics are independent legal review or evidence of general accuracy.
+- The numeric-fact check in `verify_draft` ([`numeric_grounding_check`](../specs/numeric_grounding_check.md))
+  is lexical and Spanish-only, not entailment: it rejects some correct paraphrases (ranges, an
+  added year), checks only day/week/month/year durations and `por ciento`, and its effect on the
+  local model's verified-draft rate is unmeasured.
 - The 72 screenshot baselines (38 Desktop, 34 Android) are local host-rendered pixel checks, not
   device, accessibility, usability, or iOS evidence. The procedure and limits are in
   [`docs/screenshot-regression.md`](../screenshot-regression.md). At 2× text, compact navigation

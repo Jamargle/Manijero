@@ -7,12 +7,13 @@ Routine entry point. Exact feature status lives in [`feature_list.json`](feature
 contracts, raw evidence, and acceptance records remain in their owning files. Last updated:
 2026-11-01.
 
-**Feature status** — 71 of 120 features are accepted, including `local_generation_provider` (off by
+**Feature status** — 72 of 120 features are accepted, including `numeric_grounding_check`
+(lexical numeric/date/deadline check on drafts; fixtures only), `local_generation_provider` (off by
 default; measured on the owner's Mac, host decision pending), `knowledge_reindex_release`
 (rehearsed locally only; no host step executed), `local_rag_bootstrap` (one guided setup
 command and a status check, walked through on the owner's Mac), `mock_answer_server` (Desktop and
 emulator walkthroughs not yet run), and `local_service_connection` (test builds only);
-`private_pilot_distribution` is `on_hold` by owner decision (2026-11-01). The 48 `not_started` features are the remaining MasterPlanV3 work, ordered
+`private_pilot_distribution` is `on_hold` by owner decision (2026-11-01). The 47 `not_started` features are the remaining MasterPlanV3 work, ordered
 local environment first, then the QA environment for remote real-device testing; prod is not planned yet. `feature_list.json` and the selector remain the status authority;
 this page does not duplicate the feature-id list.
 
@@ -70,6 +71,8 @@ before making any claim in its area.
 - The mock answer service serves fixed contract examples only (not real or legal answers), on loopback for Desktop and the Android emulator.
 - Local `bge-m3` embeddings and Chroma hybrid retrieval are off the default answer path; measured
   on the development Mac only, with no answer-level improvement over BM25.
+- The numeric-fact draft check is lexical and Spanish-only, rejects some correct paraphrases (ranges,
+  an added year), and its effect on live local drafts is not measured.
 
 **Detail on demand**
 

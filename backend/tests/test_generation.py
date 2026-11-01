@@ -41,7 +41,9 @@ from app.generation import (  # noqa: E402  (path setup must run first)
     NotAnswered,
     contains_eligibility_claim,
     extract_figures,
+    extract_numeric_facts,
     generate_grounded_answer,
+    inline_markers,
     is_literal_substring,
     split_sentences,
     strip_markers,
@@ -300,6 +302,63 @@ def test_extract_figures_never_invents_a_figure() -> None:
     assert extract_figures("texto sin números") == frozenset()
 
 
+def test_extract_figures_is_unchanged_by_the_numeric_check() -> None:
+    # The abstention and land-safety checks read these figures: words stay out.
+    assert extract_figures("hasta el 15 de mayo de 2031") == frozenset({"15", "2031"})
+    assert extract_figures("quince días hábiles en mayo") == frozenset()
+    assert extract_figures("el veinte por ciento") == frozenset()
+
+
+@pytest.mark.parametrize(
+    "text, expected",
+    [
+        ("quince", {"n:15"}),
+        ("dieciséis días", {"dur:16:dia"}),
+        ("dieciseis dias", {"dur:16:dia"}),
+        ("veintiún días", {"dur:21:dia"}),
+        ("el treinta y uno de diciembre", {"dm:31-12", "m:12"}),
+        ("dos mil quinientos euros", {"n:2500"}),
+        ("el primero de mayo", {"dm:1-5", "m:5"}),
+        ("el 1.º de mayo", {"dm:1-5", "m:5"}),
+        ("quince (15) días hábiles", {"dur:15:dia:habiles"}),
+        ("el veinte por ciento", {"n:20%"}),
+        ("un 3,5 por ciento", {"n:3.5%"}),
+        ("en setiembre", {"m:9"}),
+        (
+            "del 1 de abril al 15 de mayo de 2031",
+            {"dm:1-4", "m:4", "dm:15-5", "m:5", "d:2031-05-15"},
+        ),
+        ("10 días naturales", {"dur:10:dia:naturales"}),
+        ("un mes y una semana", {"dur:1:mes", "dur:1:semana"}),
+        ("dos años", {"dur:2:ano"}),
+        ("dos tres", {"w:dos tres"}),
+        ("cero", {"n:0"}),
+    ],
+)
+def test_extract_numeric_facts_reads_words_months_dates_and_durations(
+    text: str, expected: set
+) -> None:
+    assert set(extract_numeric_facts(text)) == expected
+
+
+@pytest.mark.parametrize(
+    "text",
+    [
+        "una parcela",
+        "se presenta una vez al año",
+        "la segunda frase",
+        "uno de los trámites",
+        "el artículo 2.º",
+        "el plazo es de 42",
+        NOTICE,
+        LEAD_IN,
+        "",
+    ],
+)
+def test_extract_numeric_facts_ignores_articles_and_plain_prose(text: str) -> None:
+    assert extract_numeric_facts(text) == frozenset()
+
+
 @pytest.mark.parametrize("phrase", ELIGIBILITY_PHRASES)
 def test_every_starter_eligibility_phrase_is_detected(phrase: str) -> None:
     assert contains_eligibility_claim("Aviso: {} la ayuda.".format(phrase))
@@ -498,6 +557,194 @@ def test_every_recorded_draft_case_declares_a_known_issue_code() -> None:
         assert case["expected_issue"] in known, name
         # Every recorded case is either an issue code or a documented variant of one.
         assert name == case["expected_issue"] or name.startswith(case["expected_issue"])
+
+
+# --- the numeric-fact rule --------------------------------------------------
+
+NUMERIC_DETAIL = "a number, date, or deadline in the claim is absent from the cited passage(s)"
+RANGE_EXCERPT = (
+    "Texto sintético de prueba (cifra inventada): el plazo ficticio va del 1 de abril "
+    "al 15 de mayo de 2031."
+)
+HABILES_EXCERPT = (
+    "Texto sintético de prueba (cifra inventada): hay un plazo de 10 días hábiles."
+)
+SLASH_DATE_EXCERPT = (
+    "Texto sintético de prueba (cifra inventada): el plazo ficticio termina el 15/05/2031."
+)
+QUINCE_HABILES_EXCERPT = (
+    "Texto sintético de prueba (cifra inventada): el plazo ficticio es de 15 días hábiles."
+)
+CAMPAIGN_EXCERPT = (
+    "Texto sintético de prueba (cifra inventada): para la campaña 2031 el plazo "
+    "ficticio finalizará el 15 de junio."
+)
+MAYO_EXCERPT = (
+    "Texto sintético de prueba (cifra inventada): el plazo ficticio termina el 15 de mayo."
+)
+
+
+def verify_claim(answer: str, *excerpts: str):
+    """Verify ``answer`` against non-critical candidates 1..n built from ``excerpts``."""
+
+    numbered = tuple(
+        (rank, make_passage(excerpt, passage_id="fixture-num-{}".format(rank), rank=rank))
+        for rank, excerpt in enumerate(excerpts, start=1)
+    )
+    draft = DraftAnswer(
+        status="answered",
+        answer=answer,
+        source_markers=tuple(sorted(set(inline_markers(answer)))),
+    )
+    return verify_draft(draft, numbered)
+
+
+@pytest.mark.parametrize(
+    "claim",
+    [
+        "El plazo sintético llega hasta el 15 de junio [1].",
+        "El plazo sintético llega hasta el 1 de mayo [1].",
+    ],
+)
+def test_a_changed_month_or_day_is_rejected_without_a_figure_code(claim: str) -> None:
+    report = verify_claim(claim, RANGE_EXCERPT)
+
+    assert not report.ok
+    assert report.codes() == ("numeric_fact_unsupported",)
+    assert verify_claim("El plazo sintético llega hasta el 15 de mayo [1].", RANGE_EXCERPT).ok
+
+
+@pytest.mark.parametrize(
+    "claim",
+    [
+        "La solicitud sintética se presenta en mayo [1].",
+        "La solicitud sintética dispone de quince días [1].",
+        "La solicitud sintética cubre el veinte por ciento [1].",
+    ],
+)
+def test_number_words_and_months_without_digits_are_checked(claim: str) -> None:
+    # No digit: the figure rule alone would accept each claim.
+    assert extract_figures(strip_markers(claim)) == frozenset()
+
+    report = verify_claim(claim, SOLICITUD_EXCERPT)
+
+    assert not report.ok
+    assert report.codes() == ("numeric_fact_unsupported",)
+
+
+@pytest.mark.parametrize(
+    "claim, ok",
+    [
+        ("El plazo sintético es de 10 días naturales [1].", False),
+        ("El plazo sintético es de 10 días [1].", False),
+        ("El plazo sintético es de 10 semanas [1].", False),
+        ("El plazo sintético es de diez días hábiles [1].", True),
+        ("El plazo sintético es de 10 días hábiles [1].", True),
+    ],
+)
+def test_a_deadline_unit_or_qualifier_must_match(claim: str, ok: bool) -> None:
+    report = verify_claim(claim, HABILES_EXCERPT)
+
+    assert report.ok is ok, report.codes()
+    assert report.codes() == (() if ok else ("numeric_fact_unsupported",))
+
+
+@pytest.mark.parametrize(
+    "excerpt, claim",
+    [
+        (SLASH_DATE_EXCERPT, "El plazo sintético llega hasta el 15 de mayo [1]."),
+        (SLASH_DATE_EXCERPT, "El plazo sintético termina en mayo [1]."),
+        (QUINCE_HABILES_EXCERPT, "El plazo sintético es de quince (15) días hábiles [1]."),
+    ],
+)
+def test_equivalent_written_forms_pass_and_an_added_year_does_not(
+    excerpt: str, claim: str
+) -> None:
+    assert verify_claim(claim, excerpt).ok, verify_claim(claim, excerpt).codes()
+
+    # Both digits are in the passage, but the full date is not.
+    added_year = verify_claim(
+        "El plazo sintético acaba el 15 de junio de 2031 [1].", CAMPAIGN_EXCERPT
+    )
+    assert added_year.codes() == ("numeric_fact_unsupported",)
+
+
+def test_numeric_support_is_the_union_of_cited_passages() -> None:
+    both = verify_claim(
+        "El plazo sintético acaba el 15 de mayo y dura diez días hábiles [1][2].",
+        MAYO_EXCERPT,
+        HABILES_EXCERPT,
+    )
+    only_first = verify_claim(
+        "El plazo sintético acaba el 15 de mayo y dura diez días hábiles [1].",
+        MAYO_EXCERPT,
+        HABILES_EXCERPT,
+    )
+
+    assert both.ok, both.codes()
+    assert only_first.codes() == ("numeric_fact_unsupported",)
+
+
+def test_a_digit_only_problem_keeps_only_figure_unsupported() -> None:
+    # Each claim also misstates a month; the old digit code wins on its own.
+    for claim in (
+        "El plazo sintético acaba el 16 de junio [1].",
+        "El plazo sintético acaba el 2031-12-31, en junio [1].",
+    ):
+        assert verify_claim(claim, MAYO_EXCERPT).codes() == ("figure_unsupported",), claim
+
+    retriever = build_retriever()
+    for name, case in recorded_drafts().items():
+        if case["expected_issue"] == "numeric_fact_unsupported":
+            continue
+        payload = case["draft"]
+        draft = DraftAnswer(
+            status=payload["status"],
+            answer=payload["answer"],
+            source_markers=tuple(payload["source_markers"]),
+        )
+        codes = verify_draft(draft, numbered_candidates(retriever, case["question"])).codes()
+        assert "numeric_fact_unsupported" not in codes, name
+
+
+# Two abstention fixtures fail on purpose for a non-numeric rule.
+DELIBERATELY_REJECTED_EXTRACTIVE = {
+    "fixture-abs-riego-1": ("uncited_sentence",),
+    "fixture-abs-ayuda-1": ("eligibility_claim",),
+}
+
+
+def test_every_committed_passage_verifies_as_an_extractive_draft() -> None:
+    files = [REPO_ROOT / "knowledge" / "passages.json"] + sorted(
+        (BACKEND_ROOT / "tests" / "fixtures").glob("*/passages.json")
+    )
+    assert len(files) >= 7
+    checked = 0
+    for path in files:
+        for entry in json.loads(path.read_text(encoding="utf-8"))["passages"]:
+            passage = make_passage(
+                entry["text"], passage_id=entry["id"], critical=bool(entry.get("critical"))
+            )
+            numbered = ((1, passage),)
+            draft = ExtractiveGroundingGenerator().generate("pregunta", numbered)
+
+            codes = verify_draft(draft, numbered).codes()
+
+            assert codes == DELIBERATELY_REJECTED_EXTRACTIVE.get(entry["id"], ()), entry["id"]
+            checked += 1
+    assert checked >= 30
+
+
+def test_numeric_rejection_detail_is_fixed_and_content_free() -> None:
+    claim = "La solicitud sintética se presenta en mayo durante quince días [1]."
+    report = verify_claim(claim, SOLICITUD_EXCERPT)
+
+    assert [(issue.code, issue.detail) for issue in report.issues] == [
+        ("numeric_fact_unsupported", NUMERIC_DETAIL)
+    ]
+    diagnostics = report.issues[0].detail
+    for content in ("mayo", "quince", "15", "dur:", "m:", "solicitud", "Fragmento"):
+        assert content not in diagnostics
 
 
 def test_rejection_messages_contain_no_question_or_excerpt_text() -> None:
@@ -858,6 +1105,30 @@ def test_a_rejected_draft_emits_no_text_at_all() -> None:
     assert isinstance(result, NotAnswered)
     assert not hasattr(result, "answer")
     assert "4242" not in json.dumps(
+        [issue.detail for issue in result.issues], ensure_ascii=False
+    )
+
+
+def test_numeric_rejection_is_grounding_failed_and_emits_no_text() -> None:
+    draft = DraftAnswer(
+        status="answered",
+        answer="La solicitud sintética de prueba se presenta en mayo. [1]",
+        source_markers=(1,),
+    )
+
+    result = generate_grounded_answer(
+        SOLICITUD_QUESTION,
+        build_retriever(),
+        k=5,
+        as_of=as_of_date(),
+        generator=RecordedGenerator(draft),
+    )
+
+    assert isinstance(result, NotAnswered)
+    assert result.reason == "grounding_failed"
+    assert result.codes() == ("numeric_fact_unsupported",)
+    assert not hasattr(result, "answer")
+    assert "mayo" not in json.dumps(
         [issue.detail for issue in result.issues], ensure_ascii=False
     )
 
