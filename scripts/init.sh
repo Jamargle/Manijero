@@ -8,6 +8,39 @@ if [[ "${1:-}" == "--setup-python" ]]; then
   exec "$(dirname -- "${BASH_SOURCE[0]}")/python-env.sh" "$@"
 fi
 
+# Owner commands for the local answer tools (docs/owner-guide.md). Like --backend, they
+# need no Android SDK, Java, or local.properties. MANIJERO_OLLAMA_CLI is for tests only.
+if [[ "${1:-}" == "--local-rag-setup" || "${1:-}" == "--local-rag-status" ]]; then
+  REPO_ROOT="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")/.." && pwd)"
+  if (( $# > 1 )); then
+    printf 'Run %s on its own, with nothing after it.\n' "$1" >&2
+    exit 2
+  fi
+  LOCAL_RAG_PYTHON="$REPO_ROOT/backend/.venv/bin/python"
+  if [[ "$1" == "--local-rag-setup" ]]; then
+    if ! command -v "${MANIJERO_OLLAMA_CLI:-ollama}" >/dev/null 2>&1; then
+      printf 'Ollama is not installed on this computer. Install it from https://ollama.com/download, open it once, then run ./scripts/init.sh --local-rag-setup again.\n'
+      printf 'Result: setup stopped before changing anything.\n'
+      exit 1
+    fi
+    if [[ ! -x "$LOCAL_RAG_PYTHON" ]]; then
+      printf 'Preparing the setup tools (first time only)...\n'
+      if ! "$REPO_ROOT/scripts/python-env.sh" dev; then
+        printf 'The setup tools could not be prepared. Follow the step printed above, then run ./scripts/init.sh --local-rag-setup again.\n'
+        printf 'Result: setup stopped.\n'
+        exit 1
+      fi
+    fi
+    exec "$LOCAL_RAG_PYTHON" "$REPO_ROOT/backend/scripts/local_rag.py" setup
+  fi
+  if [[ ! -x "$LOCAL_RAG_PYTHON" ]] && ! "$REPO_ROOT/scripts/python-env.sh" dev --if-present >/dev/null 2>&1; then
+    printf 'The local answer tools are not set up yet. Run ./scripts/init.sh --local-rag-setup to set them up.\n'
+    printf 'Result: setup has not run yet.\n'
+    exit 1
+  fi
+  exec "$LOCAL_RAG_PYTHON" "$REPO_ROOT/backend/scripts/local_rag.py" status
+fi
+
 if [[ "${1:-}" == "--backend" ]]; then
   REPO_ROOT="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")/.." && pwd)"
   BACKEND_DIR="$REPO_ROOT/backend"
@@ -58,7 +91,7 @@ AS_OF="${MANIJERO_AS_OF:-2026-10-13}"
 
 usage() {
   cat <<'EOF'
-Usage: ./scripts/init.sh [--check|--fast|--verify|--feature <id>|--backend-tests [targets]|--setup-python [dev|hybrid]|--backend|--android|--android-run|--desktop|--help]
+Usage: ./scripts/init.sh [--check|--fast|--verify|--feature <id>|--backend-tests [targets]|--setup-python [dev|hybrid]|--backend|--local-rag-setup|--local-rag-status|--android|--android-run|--desktop|--help]
 
   --check                   Check Java and the Gradle wrapper, then print standard commands (default)
   --fast                    Shared host tests, contract examples, backend unit tests, and the five
@@ -71,6 +104,9 @@ Usage: ./scripts/init.sh [--check|--fast|--verify|--feature <id>|--backend-tests
   --setup-python [profile]  Build or reuse the shared backend virtualenv (dev, or hybrid for
                             torch/chromadb) and link it as backend/.venv (or backend/.venv-hybrid)
   --backend                 Link the shared backend virtualenv if needed and launch the local API
+  --local-rag-setup         Guided one-time setup of the local answer tools: shows the download
+                            sizes, asks, then downloads and builds what is missing (needs Ollama)
+  --local-rag-status        Read-only check of the six local answer-tool parts, in plain words
   --android                 Build the Android debug APK
   --android-run             Build, start an emulator if needed, install, and launch the app
   --desktop                 Launch the Desktop app
@@ -397,6 +433,8 @@ Verification tiers:
 Build and run:
   ./scripts/init.sh --setup-python # build or reuse the shared backend virtualenv (once per requirements change)
   ./scripts/init.sh --backend    # start the local API (Ctrl+C to stop)
+  ./scripts/init.sh --local-rag-setup  # set up the local answer tools once (see docs/owner-guide.md)
+  ./scripts/init.sh --local-rag-status # check the local answer tools in plain words
   ./scripts/init.sh --android    # androidApp/build/outputs/apk/debug/androidApp-debug.apk
   ./scripts/init.sh --android-run # build and launch on an Android emulator
   ./scripts/init.sh --desktop    # launch the Desktop app

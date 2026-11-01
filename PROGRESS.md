@@ -5,12 +5,13 @@
 Routine entry point. Exact feature status lives in [`feature_list.json`](feature_list.json); use
 [`./scripts/select-feature.sh --status`](scripts/select-feature.sh) to read the board. Feature
 contracts, raw evidence, and acceptance records remain in their owning files. Last updated:
-2026-10-31.
+2026-11-01.
 
-**Feature status** — 68 of 120 features are accepted, including `local_generation_provider` (off by
-default; measured on the owner's Mac, host decision pending) and `knowledge_reindex_release`
-(rehearsed locally only; no host step executed); `private_pilot_distribution` is `on_hold` by owner
-decision (2026-11-01). The 51 `not_started` features are the remaining MasterPlanV3 work, ordered
+**Feature status** — 69 of 120 features are accepted, including `local_generation_provider` (off by
+default; measured on the owner's Mac, host decision pending), `knowledge_reindex_release`
+(rehearsed locally only; no host step executed), and `local_rag_bootstrap` (one guided setup
+command and a status check, walked through on the owner's Mac); `private_pilot_distribution` is
+`on_hold` by owner decision (2026-11-01). The 50 `not_started` features are the remaining MasterPlanV3 work, ordered
 local environment first, then the QA environment for remote real-device testing; prod is not planned yet. `feature_list.json` and the selector remain the status authority;
 this page does not duplicate the feature-id list.
 
@@ -40,8 +41,9 @@ recommendation), and the pending pilot review keeps it out of the pilot profile.
 Reviewed knowledge can now be packaged into immutable, hash-addressed releases that pass structure,
 BM25-fingerprint, citation, and no-regression gates before an atomic publish with rollback
 (`knowledge_reindex_release`); the service reads them only when the opt-in
-`MANIJERO_KNOWLEDGE_RELEASE_ROOT` is set. It was rehearsed only in a local temporary root; the
-Chroma packaging path is untested and no release root exists on any host.
+`MANIJERO_KNOWLEDGE_RELEASE_ROOT` is set. It was rehearsed only in a local temporary root. `./scripts/init.sh --local-rag-setup`
+(`local_rag_bootstrap`) has since built every local artifact and a Chroma-packaged release in
+`~/manijero/local` on the owner's Mac only; no release root exists on any host.
 
 **Known limitations (do not over-claim)** — one line each; the exact wording, numbers, and links
 are in [`docs/progress/known-limitations.md`](docs/progress/known-limitations.md). Read the full item
