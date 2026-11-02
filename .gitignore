@@ -95,3 +95,8 @@ __pycache__/
 
 # Pilot bearer token for local app builds (./scripts/init.sh --pilot-token-save). Never commit it.
 /pilot-token.local
+
+# Environment access keys: made by ./scripts/init.sh --local-rag-setup and --qa-settings-setup
+# outside this folder; these patterns only guard against an accidental copy. Never commit them.
+*.token
+pilot-clients*.json

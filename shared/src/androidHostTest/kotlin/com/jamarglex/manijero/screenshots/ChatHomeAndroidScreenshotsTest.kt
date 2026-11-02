@@ -71,4 +71,19 @@ class ChatHomeAndroidScreenshotsTest : AndroidScreenshotTestSupport() {
                 )
             }
         }
+
+    /** First use: the welcome card above the hero, light appearance. */
+    @Test
+    fun chatHomeWelcomeLight() =
+        capture("chat_home_welcome_light") {
+            ManijeroTheme(darkTheme = false) {
+                ChatHomeScreen(
+                    state = ScreenshotFixtures.idleChat,
+                    onAction = {},
+                    onPrivacyClick = {},
+                    onCoverageClick = {},
+                    showWelcome = true,
+                )
+            }
+        }
 }

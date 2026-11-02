@@ -34,6 +34,7 @@ fun CoverageScreen(
     onPrivacyClick: () -> Unit,
     modifier: Modifier = Modifier,
     onOpenTestTools: (() -> Unit)? = null,
+    onShowWelcome: (() -> Unit)? = null,
 ) {
     ManijeroScreen(modifier) {
         Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
@@ -53,6 +54,9 @@ fun CoverageScreen(
             ManijeroSectionHeader(stringResource(Res.string.coverage_section_help), heading = true)
             CoverageLines(listOf(Res.string.coverage_help_body))
             TextButton(onClick = onPrivacyClick, modifier = Modifier.fillMaxWidth()) { Text(stringResource(Res.string.coverage_privacy_link)) }
+        }
+        if (onShowWelcome != null) {
+            TextButton(onClick = onShowWelcome, modifier = Modifier.fillMaxWidth()) { Text(stringResource(Res.string.coverage_show_welcome)) }
         }
         if (onOpenTestTools != null) {
             ManijeroCard(tone = ManijeroCardTone.Outlined) {
@@ -87,4 +91,5 @@ private fun CoverageLines(lines: List<StringResource>) {
 @Preview(name = "Coverage") @Composable private fun CoveragePreview() { ManijeroTheme { CoverageScreen({}) } }
 @Preview(name = "Coverage dark") @Composable private fun CoverageDarkPreview() { ManijeroTheme(darkTheme = true) { CoverageScreen({}) } }
 @Preview(name = "Coverage narrow, large text", widthDp = 320, fontScale = 2f) @Composable private fun CoverageLargePreview() { ManijeroTheme { CoverageScreen({}) } }
+@Preview(name = "Coverage with welcome link") @Composable private fun CoverageWelcomeLinkPreview() { ManijeroTheme { CoverageScreen({}, onShowWelcome = {}) } }
 @Preview(name = "Coverage with test tools (test builds only)") @Composable private fun CoverageTestToolsPreview() { ManijeroTheme { CoverageScreen({}, onOpenTestTools = {}) } }

@@ -17,6 +17,7 @@ import androidx.compose.material3.AssistChip
 import androidx.compose.material3.Button
 import androidx.compose.material3.Checkbox
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -64,6 +65,12 @@ import manijero.shared.generated.resources.ic_chat
 import manijero.shared.generated.resources.ic_help
 import manijero.shared.generated.resources.ic_info
 import manijero.shared.generated.resources.ic_send
+import manijero.shared.generated.resources.welcome_can
+import manijero.shared.generated.resources.welcome_dismiss
+import manijero.shared.generated.resources.welcome_lands
+import manijero.shared.generated.resources.welcome_limits
+import manijero.shared.generated.resources.welcome_privacy
+import manijero.shared.generated.resources.welcome_title
 import org.jetbrains.compose.resources.stringResource
 
 /**
@@ -85,6 +92,8 @@ internal fun ChatHomeScreen(
     onCoverageClick: (() -> Unit)? = null,
     clarificationLands: List<Land>? = null,
     modifier: Modifier = Modifier,
+    showWelcome: Boolean = false,
+    onDismissWelcome: () -> Unit = {},
 ) {
     val transcriptEndRequester = remember { BringIntoViewRequester() }
     val scrollKey = transcriptScrollKey(state)
@@ -94,6 +103,7 @@ internal fun ChatHomeScreen(
     }
 
     ManijeroScreen(modifier = modifier) {
+        if (showWelcome) WelcomeCard(onDismiss = onDismissWelcome)
         ChatHero()
 
         Column(
@@ -149,6 +159,32 @@ internal fun ChatHomeScreen(
             onPrivacyClick = onPrivacyClick,
             onCoverageClick = onCoverageClick,
         )
+    }
+}
+
+/**
+ * The first-use welcome card: what the assistant answers, what it does not, and how land data is
+ * handled, in the accepted facts only. It is dismissible, blocks nothing, and adds no heading
+ * semantics (the chat keeps exactly one heading).
+ */
+@Composable
+private fun WelcomeCard(onDismiss: () -> Unit) {
+    ManijeroCard(tone = ManijeroCardTone.Outlined) {
+        Text(
+            text = stringResource(Res.string.welcome_title),
+            style = MaterialTheme.typography.titleMedium,
+        )
+        listOf(
+            Res.string.welcome_can,
+            Res.string.welcome_limits,
+            Res.string.welcome_privacy,
+            Res.string.welcome_lands,
+        ).forEach { line ->
+            Text(text = stringResource(line), style = MaterialTheme.typography.bodyLarge)
+        }
+        OutlinedButton(onClick = onDismiss, modifier = Modifier.fillMaxWidth()) {
+            Text(stringResource(Res.string.welcome_dismiss))
+        }
     }
 }
 

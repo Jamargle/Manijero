@@ -13,6 +13,8 @@ import com.jamarglex.manijero.lands.AwtBackupFileChooser
 import com.jamarglex.manijero.lands.DesktopLandBackupFiles
 import com.jamarglex.manijero.lands.FileLandStorage
 import com.jamarglex.manijero.lands.LandRepository
+import com.jamarglex.manijero.welcome.FileWelcomeNoticeStore
+import com.jamarglex.manijero.welcome.desktopWelcomeStorePath
 import java.nio.file.Path
 import java.nio.file.Paths
 import io.ktor.client.engine.cio.CIO
@@ -45,6 +47,7 @@ fun main() = application {
     val landRepository = remember {
         LandRepository(FileLandStorage(landStorePath()))
     }
+    val welcomeNotice = remember { FileWelcomeNoticeStore(desktopWelcomeStorePath()) }
 
     Window(
         onCloseRequest = { answerClient.close(); exitApplication() },
@@ -52,7 +55,7 @@ fun main() = application {
     ) {
         // The portable backup uses the native file dialog, owned by this window so it opens on top.
         val landBackupFiles = remember(window) { DesktopLandBackupFiles(AwtBackupFileChooser(window)) }
-        App(landRepository, answerService, landBackupFiles, connectionTools)
+        App(landRepository, answerService, landBackupFiles, connectionTools, welcomeNotice)
     }
 }
 

@@ -59,6 +59,24 @@ private fun ChatHomePreview() {
     ManijeroTheme { ChatHomeScreen(ChatHomeState(), {}) }
 }
 
+@Preview(name = "Chat home with welcome card")
+@Composable
+private fun ChatHomeWelcomePreview() {
+    ManijeroTheme { ChatHomeScreen(ChatHomeState(), {}, showWelcome = true) }
+}
+
+@Preview(name = "Chat home with welcome card, dark")
+@Composable
+private fun ChatHomeWelcomeDarkPreview() {
+    ManijeroTheme(darkTheme = true) { ChatHomeScreen(ChatHomeState(), {}, showWelcome = true) }
+}
+
+@Preview(name = "Chat home with welcome card, narrow, large text", widthDp = 320, fontScale = 2f)
+@Composable
+private fun ChatHomeWelcomeNarrowLargeTextPreview() {
+    ManijeroTheme { ChatHomeScreen(ChatHomeState(), {}, showWelcome = true) }
+}
+
 @Preview(name = "Chat home with privacy summary and control")
 @Composable
 private fun ChatHomePrivacyPreview() {

@@ -36,6 +36,7 @@ from datetime import date
 from pathlib import Path
 from typing import Any, Dict, FrozenSet, List, Optional, Protocol, Sequence, Tuple
 
+from app import answer_trace
 from app.source_catalog import (
     ValidationIssue,
     is_non_blank_string,
@@ -530,6 +531,17 @@ class Retriever:
     def search(self, question: str, k: int = DEFAULT_K) -> Tuple[RetrievedPassage, ...]:
         """Return up to ``k`` candidate passages ranked best-first.
 
+        The optional answer trace only observes the call; it never changes the result.
+        """
+
+        started = answer_trace.note_search_begin()
+        candidates = self._search(question, k)
+        answer_trace.note_search_end(started, candidates)
+        return candidates
+
+    def _search(self, question: str, k: int) -> Tuple[RetrievedPassage, ...]:
+        """Return up to ``k`` candidate passages ranked best-first.
+
         A blank question, a question made only of stopwords, an empty index, and
         an out-of-vocabulary question all return an empty tuple: passages without
         any lexical match are never returned with a fabricated score. That lexical
@@ -550,6 +562,7 @@ class Retriever:
         )
         if not lexical:
             return ()
+        answer_trace.note_lexical(lexical)
         ranked: Sequence[Tuple[str, float]] = lexical
         if self._ranker is not None:
             ranked = self._ranker.rank(question, lexical)

@@ -534,17 +534,54 @@ Nothing is saved, and any token saved before stays as it was.
 If an app build stops with `pilot-token.local is not a valid pilot token. Run ./scripts/init.sh --pilot-token-save again.`,
 copy the token and do step 2 again.
 
+## Your environments
+
+Manijero has three environments: local (your computer, the default), QA (a test copy on a server
+that is not chosen yet), and prod (not planned yet). To see what each one has:
+
+1. In the Manijero folder, run `./scripts/init.sh --environments-status`.
+2. Expect three lines (`OK`, `ATTENTION`, `PROBLEM`, or `NOT SET UP` for local, QA, and prod) and a
+   `Result:` line. It changes nothing and contacts no server.
+
+| What it shows | What to do |
+|---|---|
+| `Result: the local environment is not set up yet. Run ./scripts/init.sh --local-rag-setup.` | Run that command (see "Set up the local answer tools"). |
+| `ATTENTION  local: the settings file does not say it is for the local environment` | Run `./scripts/init.sh --local-rag-setup`; it adds two lines to your settings file and changes nothing else. |
+| `ATTENTION  local: the local access keys are missing or incomplete` | Run `./scripts/init.sh --local-rag-setup`; it makes them. |
+| `PROBLEM  QA: ...` | Do what the line says, usually `./scripts/init.sh --qa-settings-setup`. |
+
+## Prepare QA on this computer
+
+This makes the QA settings file and QA access keys on this computer only. Nothing is deployed and no
+server is contacted.
+
+1. Run `./scripts/init.sh --qa-settings-setup`.
+2. Expect `Result: QA is prepared on this computer. Nothing was deployed.` The QA address is a
+   placeholder until a QA server is chosen. The access key is never shown on screen.
+3. Run it again any time: `Result: QA was already prepared; nothing was changed.`
+
+| What it shows | What to do |
+|---|---|
+| `The QA access keys are incomplete ...` then `Make new QA access keys? Type yes and press Enter:` | Type `yes` to replace both key files; any copy of the old QA key stops working. Anything else changes nothing. |
+| `... in a Terminal window to make new QA access keys.` | Open the Terminal app, go to the Manijero folder, and run the command there. |
+| `... must say MANIJERO_DEPLOYMENT_PROFILE=pilot; it is never treated as local` | Open the QA settings file named in the message in TextEdit and fix the line it names. |
+| `The folder ... is inside the Manijero folder` | Ask a developer; the QA folder must be outside the Manijero folder. |
+
 ## Your settings file
 
 The setup creates one settings file, `settings.env`, in the `manijero/local` folder inside your
-home folder. It holds one value: the PAC campaign year the answers use
-(`MANIJERO_ACTIVE_CAMPAIGN=2026`). The setup never overwrites it. If a developer asks you to
-change the year, edit only the four digits after the `=` sign in TextEdit and save. Then run the
-setup again: it rebuilds the knowledge for the new year without downloading anything.
+home folder. It holds the PAC campaign year the answers use (`MANIJERO_ACTIVE_CAMPAIGN=2026`) and
+two lines that say this file is for the local environment (`MANIJERO_ENVIRONMENT=local` and
+`MANIJERO_DEPLOYMENT_PROFILE=development`); leave those two alone. The setup never overwrites the
+file; on an older file it only adds the two lines. If a developer asks you to change the year, edit
+only the four digits after the `=` sign in TextEdit and save. Then run the setup again: it rebuilds
+the knowledge for the new year without downloading anything. The QA settings file is in
+`manijero/qa` and works the same way.
 
 ## Where things are kept
 
 Everything the setup downloads or builds is kept in the `manijero/local` folder inside your home
 folder, except the Ollama model (Ollama keeps it) and the search software (kept with the
-Manijero folder). Log files are in `manijero/local/logs`. Do not delete or move these folders.
-Removing the downloaded tools is not supported yet.
+Manijero folder). Log files are in `manijero/local/logs`. The access keys are in the `credentials`
+folder of each environment (`manijero/local` and `manijero/qa`); never share, copy, or move them.
+Do not delete or move these folders. Removing the downloaded tools is not supported yet.

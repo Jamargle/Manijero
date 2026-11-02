@@ -14,6 +14,7 @@ changing the local workflow.
 from __future__ import annotations
 
 from datetime import date
+import os
 from typing import Literal, Union
 
 from fastapi import Depends, FastAPI
@@ -21,6 +22,7 @@ from fastapi.exceptions import RequestValidationError
 from fastapi.responses import JSONResponse
 from pydantic import BaseModel
 
+from app.answer_trace import AnswerTrace, load_answer_trace
 from app.ask_api import (
     CorpusDocuments,
     get_as_of_date,
@@ -54,6 +56,7 @@ class ReadinessResponse(BaseModel):
 
 
 _RETENTION_FROM_ENV = object()
+_TRACE_FROM_ENV = object()
 
 
 def create_app(
@@ -63,6 +66,7 @@ def create_app(
     generation_transport: GeminiTransport | None = None,
     generation_clock: GenerationClock | None = None,
     local_transport: GeminiTransport | None = None,
+    answer_trace: AnswerTrace | object = _TRACE_FROM_ENV,
 ) -> FastAPI:
     """Build the FastAPI application for the configured service profile.
 
@@ -104,6 +108,10 @@ def create_app(
             operational_log("retention_disabled", reason=error.code)
             retention_store = None
     application.state.retention_store = retention_store
+    if answer_trace is _TRACE_FROM_ENV:
+        answer_trace = load_answer_trace(os.environ, resolved.profile)
+    answer_trace.startup()
+    application.state.answer_trace = answer_trace
     generation = resolve_startup_generation(
         gemini_transport=generation_transport,
         local_transport=local_transport,

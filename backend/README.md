@@ -178,6 +178,7 @@ Read from the process environment; secrets live in an operator-owned file, never
 | `MANIJERO_MAX_REQUEST_BYTES` | both | Default `65536`, minimum `1024`, maximum `1048576`. |
 | `MANIJERO_RETENTION_DB` | both (optional) | Unset = product-improvement retention off. Otherwise an owner-only SQLite path outside the repository (see "Product-improvement retention and the privacy gate"). |
 | `MANIJERO_GENERATION_PROVIDER` | both (optional) | `extractive` (default), `gemini`, or `local`. `gemini` selects the gated drafting path only when every gate input passes (see "Gated Gemini drafting"); today no transport exists and the gates are closed, so it stays extractive. `local` selects loopback Ollama drafting (see "Local open-weight drafting (Ollama)"); in the pilot profile it also needs a passed pilot review, which is pending, so it is development-only today. The value is exact (`Local` is not `local`). Any other value is a preflight problem. |
+| `MANIJERO_ANSWER_TRACE` | both (optional) | `on` writes a local debug trace per question (see "Answer pipeline trace"); unset, empty, or `off` is off. Any other value stays off and logs `answer_trace state=off reason=value_invalid`. Never set it in `pilot.env`. |
 | `MANIJERO_GEMINI_MODEL` | both (optional) | The exact model the Gemini review approved; read only by the gate and, when it passes, sent as the request's model id. |
 | `MANIJERO_LOCAL_MODEL` | both (optional) | Read only when the provider is `local`; must equal `model` in `config/local_generation_model.json` exactly (`local_model_mismatch` otherwise). |
 
@@ -391,7 +392,7 @@ cases to exercise.
   apps; an old build keeps getting `401`. The header is sent only over `https` or to a
   loopback address, never on `/health` or `/ready`. **Remaining gap:** no app has yet been
   observed getting a live answer from a pilot-profile service; that waits for a service the
-  owner can start (`environment_profiles`).
+  owner can start (`qa_server_deployment`).
 
 ### Outage response
 
@@ -574,6 +575,30 @@ The measured numbers from this Mac are in
 [`docs/archive/specs/local_generation_provider.appendix.md`](../docs/archive/specs/local_generation_provider.appendix.md)
 ("Feature evidence"). Limits: one host, 14 author-only cases, the untuned Gemini instruction, and
 a lexical verifier; Ollama's own server logs and update checks are outside the app's control.
+
+## Answer pipeline trace (local debugging, off by default)
+
+For a developer who wants to see why an answer came out as it did. Not an endpoint and not part
+of the API contract; the files are read from disk.
+
+- **Turn on:** start the service with `MANIJERO_ANSWER_TRACE=on`. For the full local service add
+  the line `MANIJERO_ANSWER_TRACE=on` to `~/manijero/local/settings.env` (a new settings file shows
+  it commented out as `off`; an existing file is never rewritten). Only the exact word `on`
+  enables it. The container image does not carry the setting, so tracing is off there.
+- **Where:** one file per question, `build/answer-traces/<UTC yyyymmddThhmmssZ>-<32 hex>.json`,
+  schema `answer-trace-v1`. The folder is fixed (no setting), git-ignored by the `build` rule,
+  mode `0700`, files `0600`, written atomically. Remove the folder to delete everything.
+- **What:** retrieval (mode, BM25 ranking, vector matches or fallback code, candidates, timing),
+  drafting (provider, fixed outcome code, status, cited markers), verification (rule codes per
+  claim), and the outcome. A stage that did not run is `null`.
+- **Text only locally:** the question, final answer, and draft text (4000 characters at most) are
+  recorded only when the profile is exactly `development`. Any other profile (`pilot`, and any
+  future `qa` or `prod`) writes ids, scores, timings, and codes only (`text_included: false`).
+  Land values, client id, token, IP, the retention flag, issue detail strings, and excerpts are
+  never recorded.
+- **Deleted after 7 days:** files whose name time is 7 days or older are deleted at startup (even
+  when tracing is off) and before each write. Nothing is deleted while the service is stopped.
+- A trace failure never changes an answer; it logs `answer_trace_skipped reason=<code>` only.
 
 ## Offline retrieval baseline
 
@@ -2029,6 +2054,29 @@ builds nothing, needs no `torch`/`chromadb`, and calls only loopback Ollama.
 Terminal messages are fixed sentences without corpus text. Subprocess output and tracebacks go
 only to the printed log path. `MANIJERO_LOCAL_HOME` and `MANIJERO_OLLAMA_CLI` exist for tests
 only.
+
+### Environment profiles
+
+`app/environment_profiles.py` (entry `scripts/environments.py`, behind `./scripts/init.sh
+--environments-status` and `--qa-settings-setup`) is the one reader later environment features use
+([spec](../docs/specs/environment_profiles.md)). Operator-only; the service never imports it.
+
+- **Homes**: `~/manijero/local` (profile `development`, `MANIJERO_ENVIRONMENT=local`) and
+  `~/manijero/qa` (profile `pilot`, `MANIJERO_ENVIRONMENT=qa`); prod is unconfigured and never read.
+  `MANIJERO_LOCAL_HOME`/`MANIJERO_QA_HOME` (tests only) must be outside the checkout.
+- **QA settings** (`backend/deploy/environments/qa.settings.env.example`, `@QA_HOME@` filled in): exactly
+  `MANIJERO_ENVIRONMENT`, `MANIJERO_DEPLOYMENT_PROFILE`, `MANIJERO_ACTIVE_CAMPAIGN`,
+  `MANIJERO_PUBLIC_URL` (`https://`, `.invalid` host is a placeholder), `MANIJERO_PILOT_CLIENTS_FILE`,
+  `MANIJERO_KNOWLEDGE_RELEASE_ROOT` (absolute, outside the checkout, not overlapping the local root). Never sourced.
+- **`read_profile_settings(name)`** returns `ProfileSettings` or raises `ProfileSettingsError(code, sentence)`:
+  `prod_not_configured`, `unknown_environment`, `settings_missing`, `settings_unreadable`, `line_invalid`,
+  `key_unknown`, `key_repeated`, `key_missing`, `environment_mismatch`, `profile_mismatch`,
+  `campaign_invalid`, `url_invalid`, `path_relative`, `path_in_checkout`, `release_root_overlaps_local`,
+  `local_settings_invalid`. A file is never defaulted to local.
+- **Credentials**: `<home>/credentials/` (`0700`) holds `<client>.token` (`secrets.token_urlsafe(48)`, `0600`) and
+  `pilot-clients.json` (digest only, via `pilot_ops.upsert_client`, `0600`); clients `local-test-device` and
+  `qa-test-device`, 20 requests per minute. Local keys come from `--local-rag-setup` and are not enforced by
+  the local service; `.gitignore` guards `*.token` and `pilot-clients*.json`.
 
 ### Local answer service
 

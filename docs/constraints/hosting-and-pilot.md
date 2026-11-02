@@ -65,3 +65,12 @@ Durable MUST/MUST NOT rules for hosted pilot operations and provider boundaries.
   [`client_pilot_credentials`](../specs/client_pilot_credentials.md) — the token is a per-client
   access credential, and a cleartext LAN request or a logged header would hand it to anyone on the
   path; decision 5 keeps it out of anything that could be distributed.
+- **MUST**: the answer pipeline trace (`backend/app/answer_trace.py`) MUST be off by default and
+  turned on only by the exact `MANIJERO_ANSWER_TRACE=on`; it MUST record question, answer, or draft
+  text only when `MANIJERO_DEPLOYMENT_PROFILE` is explicitly set to exactly `development` (an unset
+  profile, and every other profile, gets the
+  metadata-only allowlist `METADATA_KEYS`); it MUST write only to the fixed git-ignored
+  `build/answer-traces/` folder and delete files after 7 days. Reason: owner decisions 1-3 in
+  [`docs/specs/answer_pipeline_trace.md`](../specs/answer_pipeline_trace.md); the explicit-profile
+  rule was added in the batch 4 integration (owner decision 2026-11-02), and the local service start
+  states `development`.

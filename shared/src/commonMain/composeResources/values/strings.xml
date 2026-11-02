@@ -274,4 +274,11 @@
     <string name="connection_storage_failed">No se pudo guardar la dirección en este dispositivo. Inténtalo de nuevo.</string>
     <string name="connection_reset_done">Se usará la dirección predeterminada: %1$s</string>
     <string name="connection_back">Volver</string>
+    <string name="welcome_title">Antes de empezar</string>
+    <string name="welcome_can">La app está preparada para responder sobre algunos trámites y ayudas del olivar, según los documentos oficiales revisados. No siempre tendrá una respuesta.</string>
+    <string name="welcome_limits">No responde cuánto cobrarías, si te corresponde una ayuda ni las prácticas concretas de tu cooperativa. Para eso, habla con tu oficina comarcal agraria o con tu cooperativa.</string>
+    <string name="welcome_privacy">Tus terrenos se guardan en este dispositivo. Al preguntar, se puede enviar tu pregunta y algún dato del terreno. La respuesta se prepara con ayuda de un servicio externo.</string>
+    <string name="welcome_lands">Puedes empezar sin añadir ningún terreno. Más detalles en Ayuda, donde también puedes volver a ver este mensaje.</string>
+    <string name="welcome_dismiss">Entendido</string>
+    <string name="coverage_show_welcome">Ver bienvenida</string>
 </resources>

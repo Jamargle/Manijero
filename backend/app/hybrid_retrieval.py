@@ -37,6 +37,7 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import Any, Callable, Dict, Mapping, Optional, Protocol, Sequence, Tuple
 
+from app import answer_trace
 from app.embeddings import EmbeddingError, EmbeddingModel, EmbeddingModelSpec
 from app.pilot_logging import operational_log
 from app.retrieval import Retriever
@@ -177,6 +178,7 @@ class HybridRanker:
         except Exception as error:  # any failure keeps the accepted BM25 ranking
             reason = failure_code(error)
             self.last_trace = RankTrace(used_vector=False, fallback_reason=reason)
+            answer_trace.note_vector(False, reason, ())
             operational_log("hybrid_retrieval_fallback", reason=reason)
             return lexical
         vector_ids = [
@@ -185,6 +187,9 @@ class HybridRanker:
             if match.similarity > self._settings.vector_min_similarity
         ]
         self.last_trace = RankTrace(used_vector=True, fallback_reason=None)
+        answer_trace.note_vector(
+            True, None, [(match.passage_id, match.similarity) for match in matches]
+        )
         return reciprocal_rank_fusion(
             [[passage_id for passage_id, _ in lexical], vector_ids],
             rrf_k=self._settings.rrf_k,
