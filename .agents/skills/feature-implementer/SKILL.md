@@ -81,7 +81,7 @@ Rules:
 
 Run the spec's verification plan and the repo's standard gate, cheapest tier first: `./scripts/init.sh --feature <feature-id>` (the focused block the spec publishes), then `./scripts/init.sh --fast`, and `./scripts/init.sh --verify` when the change touches the Android/Desktop surface, packaging, or shared public behavior. If a required check cannot run, document exactly why and what is missing.
 
-Iterate on the focused tier; run `--fast` once the focused tier is green, and `--verify` once at the end rather than after every edit. The tiers print one line per passing check; when one fails, read or grep only its log in `build/verify-logs/`.
+Iterate on the focused tier; run `--fast` once the focused tier is green, and `--verify` once at the end rather than after every edit. In a repair, rerun only what the repair touches: the focused tier while iterating, `--fast` once, and `--verify` only when the repair touched the Android/Desktop surface, Gradle, or packaging. The tiers print one line per passing check; when one fails, read or grep only its log in `build/verify-logs/`.
 
 If the feature creates or updates `scripts/init.sh`, make it an executable non-blocking gate: some invocation (a checks-running default, or named tiers such as `--feature`/`--fast`/`--verify`) must run the standard verification checks for the current repo state and fail on error, and none may start long-running dev servers. A print-only invocation is acceptable only as the cheapest informational tier when the script also exposes real checks-running tiers; a script that can *only* print the checks is not enough unless the repo is still pre-bootstrap.
 
@@ -102,7 +102,7 @@ After verification:
 - record exact evidence for checks that passed in the `Feature evidence` section of `../../../docs/specs/<feature-id>.appendix.md`: each command with its one-line result (for example `1346 passed, 2 skipped`), at most about 40 lines per session, no pasted logs; never copy the same verification elsewhere,
 - do not append verification prose to `../../../docs/progress/session-log.md`; the main orchestrator adds one pointer line when the feature is accepted. Update the `../../../PROGRESS.md` status board only when the accepted set, open items, or known limitations change (a new limitation gets its full text in `../../../docs/progress/known-limitations.md` and a one-line digest in `PROGRESS.md`),
 - update the session handoff note if it exists or if the session leaves meaningful incomplete state,
-- update durable docs required by the spec or discovered during implementation.
+- update durable docs required by the spec or discovered during implementation, within the spec's owner-guide and README budgets (see `$feature-spec` Size budget); a doc section that grows past its budget is a sign to link the spec instead of restating it.
 
 Constraints rule: read the `../../../CONSTRAINTS.md` index and the area files the feature touches before implementing (see Inputs To Read First). When implementation or verification reveals a durable operational constraint (a MUST/MUST NOT rule future features have to respect), add it to the matching section of the matching `../../../docs/constraints/<area>.md` file with a link to the spec that established it. Do not add speculative rules or restate what the spec, `../../../AGENTS.md`, or `../../../ARCHITECTURE.md` already cover; follow the durable documentation rules in `references/implementation-rules.md`.
 

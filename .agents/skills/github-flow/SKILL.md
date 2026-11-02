@@ -23,7 +23,7 @@ All four inputs are required. If any is missing, ask before doing anything.
 - Without explicit push permission there is no push. Push permission is granted per run by the user; the default is denied. `execute` keeps commits local; `publish` pushes and opens PRs only with that permission.
 - Merge is always out of scope. Never merge a PR and never enable auto-merge.
 - If a request repeats, reuse the existing issue, worktree, and PR. Never duplicate them. Never delete or rewrite existing work: no worktree removal, branch deletion, force push, or issue/PR closing.
-- One feature per session. Never two features in the same session. One independent session per worktree via `opencode run --dir <worktree>`.
+- One feature per session. Never two features in the same session. One independent session per worktree, started from that worktree with `./scripts/feature-session.sh --headless [--agent claude|codex|opencode] <feature-id>`.
 - All worktrees branch from one common base SHA fixed at the start of `execute`.
 - A blocked feature is reported with its blocking dependency ids. Never silently skip it and never substitute a later feature.
 - `feature-flow` owns the role loop and acceptance inside a worktree session; its commit and validation rules still apply there.
@@ -59,7 +59,7 @@ Read-only. Produce the plan report only.
 1. Resolve inputs; read `feature_list.json`, the **Current state** section of `PROGRESS.md`, git state (`git status --porcelain`, `git rev-parse <base_branch>`, `git worktree list`, `git branch --list`) and gh state (`gh auth status`, issue and PR lookups). Read other progress sections only when needed. Never `git fetch`.
 2. Evaluate the four preconditions per feature. For blocked features, report the missing `accepted` dependency ids.
 3. Planned base SHA = current `git rev-parse <base_branch>`.
-4. For each ready feature, resolve reuse targets (issue, worktree, branch, PR) and the planned session command `opencode run --dir <worktree> ...`.
+4. For each ready feature, resolve reuse targets (issue, worktree, branch, PR) and the planned session command `(cd <worktree> && ./scripts/feature-session.sh --headless <feature-id>)`.
 5. Emit the output report with status `planned` and `pr: none`. Nothing is created.
 
 ## Mode: execute (ejecutar)
@@ -70,8 +70,8 @@ Read-only. Produce the plan report only.
 4. For each ready feature, independently:
    1. Reuse or create the issue (lookup first).
    2. Reuse or create the worktree and branch from `base_sha`: `git worktree add <worktrees-root>/<feature-id> -b feature/<feature-id> <base_sha>`.
-   3. Launch exactly one session: `opencode run --dir <worktrees-root>/<feature-id> "Use feature-flow for <feature-id> only, until accepted."` Never two features in one session. Different features use different worktrees and different sessions; they may run concurrently because the environments are independent.
-   4. Collect the `feature-flow` outcome (validator `accept` / `revise` / `block`) and the local commit created on accept.
+   3. Launch exactly one session: `(cd <worktrees-root>/<feature-id> && ./scripts/feature-session.sh --headless [--agent <runtime>] [--note "<owner decisions>"] <feature-id>)`. Put owner decisions in `--note` rather than relying on the session to ask. Never two features in one session. Different features use different worktrees and different sessions; they may run concurrently because the environments are independent, but sequential runs use the owner's usage allowance more evenly. If a session stops early, start a fresh one the same way; it continues from the appendix `## Handoff` (see `../feature-flow/SKILL.md` Stopping And Resuming).
+   4. Collect the `feature-flow` outcome (validator `accept`, `accept` pending owner walkthrough, `revise`, or `block`), the local commit, and the session's usage line from `build/agent-sessions/usage.tsv` when the runtime reports one.
    5. Keep the issue body updated with status and evidence (GitHub writes are allowed here; push is still gated).
 5. Emit the output report.
 
@@ -89,9 +89,10 @@ Header: mode, repository, base branch, base SHA, push permission (granted/denied
 Per feature, one row/block with exactly these fields:
 
 - `feature`: feature id.
-- `session`: the `opencode run --dir ...` command, or `none` in plan mode.
+- `session`: the `feature-session.sh --headless` command, or `none` in plan mode.
 - `branch`: `feature/<id> @ <base_sha>`.
 - `status`: gate verdict or feature status: `blocked`, `planned`, `in_progress`, `passing`, `accepted`, `published`, `refused`.
 - `commit`: hash and subject, or `none`.
 - `evidence`: verification or acceptance summary.
+- `usage`: the session's usage line, or `not reported`.
 - `pr`: PR URL when a PR exists or was published, otherwise `none`.
