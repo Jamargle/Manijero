@@ -96,6 +96,27 @@ if [[ "${1:-}" == "--local-rag-setup" || "${1:-}" == "--local-rag-status" ]]; th
   exec "$LOCAL_RAG_PYTHON" "$REPO_ROOT/backend/scripts/local_rag.py" status
 fi
 
+# Owner commands for the three environments (docs/owner-guide.md "Your environments"): a read-only
+# status of local, QA, and prod, and QA settings plus access keys prepared on this computer. Nothing
+# is deployed and no server is contacted. MANIJERO_LOCAL_HOME and MANIJERO_QA_HOME are for tests only.
+if [[ "${1:-}" == "--environments-status" || "${1:-}" == "--qa-settings-setup" ]]; then
+  REPO_ROOT="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")/.." && pwd)"
+  if (( $# > 1 )); then
+    printf 'Run %s on its own, with nothing after it.\n' "$1" >&2
+    exit 2
+  fi
+  LOCAL_RAG_PYTHON="$REPO_ROOT/backend/.venv/bin/python"
+  if [[ ! -x "$LOCAL_RAG_PYTHON" ]] && ! "$REPO_ROOT/scripts/python-env.sh" dev --if-present >/dev/null 2>&1; then
+    printf 'The local answer tools are not set up yet. Run ./scripts/init.sh --local-rag-setup to set them up.\n'
+    printf 'Result: setup has not run yet.\n'
+    exit 1
+  fi
+  if [[ "$1" == "--environments-status" ]]; then
+    exec "$LOCAL_RAG_PYTHON" "$REPO_ROOT/backend/scripts/environments.py" status
+  fi
+  exec "$LOCAL_RAG_PYTHON" "$REPO_ROOT/backend/scripts/environments.py" qa-setup
+fi
+
 # Owner commands for the local answer service over those tools (docs/owner-guide.md). The service
 # runs from backend/.venv-hybrid on 127.0.0.1 only; MANIJERO_LOCAL_RAG_PORT is for tests and
 # developers only.
@@ -233,7 +254,7 @@ AS_OF="${MANIJERO_AS_OF:-2026-10-13}"
 
 usage() {
   cat <<'EOF'
-Usage: ./scripts/init.sh [--check|--fast|--verify|--feature <id>|--backend-tests [targets]|--setup-python [dev|hybrid]|--backend|--mock|--mock-status|--mock-stop|--local-rag-setup|--local-rag-status|--local-rag-start|--local-rag-service-status|--local-rag-stop|--container-build|--container-start|--container-status|--container-stop|--pilot-token-save|--local-smoke|--android|--android-run|--desktop|--help]
+Usage: ./scripts/init.sh [--check|--fast|--verify|--feature <id>|--backend-tests [targets]|--setup-python [dev|hybrid]|--backend|--mock|--mock-status|--mock-stop|--local-rag-setup|--local-rag-status|--local-rag-start|--local-rag-service-status|--local-rag-stop|--container-build|--container-start|--container-status|--container-stop|--pilot-token-save|--local-smoke|--environments-status|--qa-settings-setup|--android|--android-run|--desktop|--help]
 
   --check                   Check Java and the Gradle wrapper, then print standard commands (default)
   --fast                    Shared host tests, contract examples, backend unit tests, and the five
@@ -269,6 +290,10 @@ Usage: ./scripts/init.sh [--check|--fast|--verify|--feature <id>|--backend-tests
   --local-smoke             With the local answer service running, ask it one fixed question through
                             the Desktop app and the app on the running Android emulator; one PASS or
                             FAIL line each (installs the debug app over the existing one, data kept)
+  --environments-status     Read-only: say in plain words what the local, QA, and prod
+                            environments each have (nothing is deployed or contacted)
+  --qa-settings-setup       Prepare the QA settings file and access keys on this computer
+                            (placeholder server address; nothing is deployed)
   --android                 Build the Android debug APK
   --android-run             Build, start an emulator if needed, install, and launch the app
   --desktop                 Launch the Desktop app
@@ -827,6 +852,8 @@ Build and run:
   ./scripts/init.sh --container-build  # build the answer service image in Docker Desktop (see docs/owner-guide.md)
   ./scripts/init.sh --container-start  # run it in the background (--container-status, --container-stop)
   ./scripts/init.sh --local-smoke      # with it running: ask it once through the Desktop and Android emulator apps
+  ./scripts/init.sh --environments-status # what the local, QA, and prod environments each have
+  ./scripts/init.sh --qa-settings-setup   # prepare QA settings and access keys on this computer (deploys nothing)
   ./scripts/init.sh --android    # androidApp/build/outputs/apk/debug/androidApp-debug.apk
   ./scripts/init.sh --android-run # build and launch on an Android emulator
   ./scripts/init.sh --desktop    # launch the Desktop app

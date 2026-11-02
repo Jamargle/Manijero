@@ -138,3 +138,8 @@ Do not over-claim.
   answer-quality or legal-coverage claim. Whether the emulator app keeps its lands could not be
   observed: the emulator had no lands before the run. Physical devices are never used. See the
   [acceptance record](../validations/local_end_to_end_smoke.md).
+- Environment profiles (`environment_profiles`): only local is complete. QA is a commented template
+  with a placeholder `.invalid` host and an empty knowledge-release folder; no QA host is chosen or
+  contacted (that belongs to `qa_server_deployment`), and prod is not configured. Local access keys
+  are generated but the local service does not check them. Everything was tested in temporary
+  folders with fake tokens only. See the [acceptance record](../validations/environment_profiles.md).

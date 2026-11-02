@@ -79,6 +79,10 @@ LOCAL_HOME_ENV = "MANIJERO_LOCAL_HOME"  # tests only
 OLLAMA_CLI_ENV = "MANIJERO_OLLAMA_CLI"  # tests only
 CAMPAIGN_KEY = "MANIJERO_ACTIVE_CAMPAIGN"
 DEFAULT_CAMPAIGN = "2026"  # the same default as ./scripts/init.sh --backend
+ENVIRONMENT_KEY = "MANIJERO_ENVIRONMENT"
+PROFILE_KEY = "MANIJERO_DEPLOYMENT_PROFILE"
+LOCAL_ENVIRONMENT = "local"
+LOCAL_PROFILE = "development"
 
 # The hybrid environment measured 1.2 GB on the development Mac (backend/README.md).
 HYBRID_RUNTIME_BYTES = 1_200_000_000
@@ -317,7 +321,16 @@ def local_paths(home: Optional[Path] = None) -> LocalPaths:
 @dataclass(frozen=True)
 class Settings:
     active_campaign: str
+    environment: Optional[str] = None  # None: the file does not say (an older local file)
+    deployment_profile: Optional[str] = None
 
+    @property
+    def names_environment(self) -> bool:
+        return self.environment is not None and self.deployment_profile is not None
+
+
+_ENVIRONMENT_NOTE = "# The environment this file is for. Leave it as local."
+_PROFILE_NOTE = "# The service profile this file starts. Leave it as development."
 
 SETTINGS_TEMPLATE = """\
 # Manijero local settings.
@@ -326,9 +339,28 @@ SETTINGS_TEMPLATE = """\
 # Change a value only after the word or number after the = sign, then run
 # {status} to check that everything is still ready.
 
+{environment_note}
+{environment_key}={environment}
+
+{profile_note}
+{profile_key}={profile}
+
 # The PAC campaign year the answers use: four digits, for example 2026.
 {key}={campaign}
-""".format(setup=SETUP_COMMAND, status=STATUS_COMMAND, key=CAMPAIGN_KEY, campaign=DEFAULT_CAMPAIGN)
+""".format(
+    setup=SETUP_COMMAND,
+    status=STATUS_COMMAND,
+    environment_note=_ENVIRONMENT_NOTE,
+    environment_key=ENVIRONMENT_KEY,
+    environment=LOCAL_ENVIRONMENT,
+    profile_note=_PROFILE_NOTE,
+    profile_key=PROFILE_KEY,
+    profile=LOCAL_PROFILE,
+    key=CAMPAIGN_KEY,
+    campaign=DEFAULT_CAMPAIGN,
+)
+
+_LOCAL_VALUES = {ENVIRONMENT_KEY: LOCAL_ENVIRONMENT, PROFILE_KEY: LOCAL_PROFILE}
 
 
 def read_settings(path: Path) -> Optional[Settings]:
@@ -356,12 +388,20 @@ def read_settings(path: Path) -> Optional[Settings]:
         if "=" not in line:
             raise _line_error(target, number, "it must look like NAME=value")
         key, value = (part.strip() for part in line.split("=", 1))
-        if key != CAMPAIGN_KEY:
+        if key not in (CAMPAIGN_KEY, ENVIRONMENT_KEY, PROFILE_KEY):
             raise _line_error(target, number, "it is not a setting this tool knows")
         if key in values:
             raise _line_error(target, number, "this setting appears twice")
         value = _unquote(value)
-        if len(value) != 4 or not value.isdigit():
+        if key in _LOCAL_VALUES:
+            if value != _LOCAL_VALUES[key]:
+                raise _line_error(
+                    target,
+                    number,
+                    "this file is for the local environment, so it must say {}={}; it is never "
+                    "treated as another environment".format(key, _LOCAL_VALUES[key]),
+                )
+        elif len(value) != 4 or not value.isdigit():
             raise _line_error(target, number, "the campaign must be a four-digit year, for example 2026")
         values[key] = value
     if CAMPAIGN_KEY not in values:
@@ -369,7 +409,11 @@ def read_settings(path: Path) -> Optional[Settings]:
             "The settings file {} does not set the campaign. Add the line {}={}, then run the same "
             "command again.".format(target, CAMPAIGN_KEY, DEFAULT_CAMPAIGN)
         )
-    return Settings(active_campaign=values[CAMPAIGN_KEY])
+    return Settings(
+        active_campaign=values[CAMPAIGN_KEY],
+        environment=values.get(ENVIRONMENT_KEY),
+        deployment_profile=values.get(PROFILE_KEY),
+    )
 
 
 def create_settings(path: Path) -> bool:
@@ -384,6 +428,48 @@ def create_settings(path: Path) -> bool:
     with os.fdopen(handle, "w", encoding="utf-8") as stream:
         stream.write(SETTINGS_TEMPLATE)
     return True
+
+
+def append_environment_lines(path: Path) -> bool:
+    """Append the missing environment lines (with notes) to an older settings file.
+
+    Every existing byte stays; returns whether anything was appended. The file must already
+    have passed :func:`read_settings`.
+    """
+
+    target = Path(path)
+    settings = read_settings(target)
+    if settings is None or settings.names_environment:
+        return False
+    current = target.read_text(encoding="utf-8")
+    addition = ""
+    if settings.environment is None:
+        addition += "\n{}\n{}={}\n".format(_ENVIRONMENT_NOTE, ENVIRONMENT_KEY, LOCAL_ENVIRONMENT)
+    if settings.deployment_profile is None:
+        addition += "\n{}\n{}={}\n".format(_PROFILE_NOTE, PROFILE_KEY, LOCAL_PROFILE)
+    if current and not current.endswith("\n"):
+        addition = "\n" + addition
+    with target.open("a", encoding="utf-8") as stream:
+        stream.write(addition)
+    return True
+
+
+def _ensure_environment(ctx: "Context", out: Callable[[str], None]) -> None:
+    """Add the environment lines to an older settings file and make the local access keys."""
+
+    from app import environment_profiles as profiles  # lazy: that module imports this one
+
+    if append_environment_lines(ctx.paths.settings):
+        out(
+            "Added the environment lines to the settings file {}; nothing else in it changed.".format(
+                ctx.paths.settings
+            )
+        )
+    done = profiles.ensure_local_credentials(ctx.paths.home)
+    for name in done.tightened:
+        out("Made {} private: only you can read it now.".format(name))
+    if done.created:
+        out("Made the local access keys in {}.".format(ctx.paths.home / profiles.CREDENTIALS_DIR))
 
 
 def _line_error(path: Path, number: int, problem: str) -> SettingsError:
@@ -942,6 +1028,8 @@ def run_setup(ctx: Context, ports: Ports, log: RunLog) -> int:
         out(stop.message)
         out("Result: setup stopped before changing anything.")
         return 1
+
+    _ensure_environment(ctx, out)
 
     if plan.empty and settings is not None:
         for line in status_lines(inspection):

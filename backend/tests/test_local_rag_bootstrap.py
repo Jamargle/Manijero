@@ -426,7 +426,7 @@ def test_first_run_shows_downloads_asks_then_builds_everything_in_order(env: Env
 
     settings_text = env.paths.settings.read_text(encoding="utf-8")
     assert settings_text.startswith("# ") and "MANIJERO_ACTIVE_CAMPAIGN=2026" in settings_text
-    assert lrb.read_settings(env.paths.settings) == lrb.Settings("2026")
+    assert lrb.read_settings(env.paths.settings) == lrb.Settings("2026", "local", "development")
 
     prepare = next(call for call in env.runner.calls if env.runner.kind(call) == "prepare")
     assert prepare[0] == HYBRID_PYTHON
@@ -453,7 +453,7 @@ def test_confirmation_sizes_come_from_the_pins(tmp_path: Path) -> None:
     assert "  - Search model bge-m3: 2.3 GB" in out
     assert "  - Drafting model ({}): 15.2 GB".format(RECORD["model"]) in out
     assert "  Total: about 18.7 GB" in out
-    assert not env.paths.home.exists()
+    assert not env.paths.settings.exists()  # only the local access keys are kept on a cancel
 
     # Without the hybrid line the total is exact, and a different pin changes the figure.
     record = dict(RECORD, size_bytes=5_000_000_000)
@@ -522,7 +522,9 @@ def test_declining_changes_nothing(env: Env, answer: Optional[str]) -> None:
 
     assert code == 1
     assert "Nothing was changed." in env.output
-    assert not env.paths.home.exists()
+    # Only the local access keys exist (a cancelled download keeps them); no settings, no downloads.
+    assert [path.name for path in env.paths.home.iterdir()] == ["credentials"]
+    assert not env.paths.settings.exists()
     assert not env.runner.calls and not env.opener.requests and not env.ollama.pulls
 
 
@@ -547,8 +549,99 @@ def test_existing_settings_file_is_never_overwritten(env: Env) -> None:
     env.paths.settings.write_text(custom, encoding="utf-8")
 
     assert env.setup("yes") == 0
-    assert env.paths.settings.read_text(encoding="utf-8") == custom
+    after = env.paths.settings.read_text(encoding="utf-8")
+    assert after.startswith(custom)  # every existing byte stays; only the environment lines follow
     assert "Created the settings file" not in env.output
+    assert after[len(custom):].count("MANIJERO_ENVIRONMENT=local") == 1
+
+
+def test_new_settings_file_names_the_environment_and_the_profile(env: Env) -> None:
+    assert env.setup("yes") == 0
+
+    text = env.paths.settings.read_text(encoding="utf-8")
+    assert "MANIJERO_ENVIRONMENT=local\n" in text and "MANIJERO_DEPLOYMENT_PROFILE=development\n" in text
+    settings = lrb.read_settings(env.paths.settings)
+    assert settings is not None and settings.names_environment
+    assert "Added the environment lines" not in env.output
+
+
+@pytest.mark.parametrize(
+    "text",
+    ["MANIJERO_ACTIVE_CAMPAIGN=2026\n", "MANIJERO_ACTIVE_CAMPAIGN=2026", '# note\nMANIJERO_ACTIVE_CAMPAIGN="2026"\nMANIJERO_ENVIRONMENT=local\n'],
+    ids=["trailing-newline", "no-trailing-newline", "one-line-present"],
+)
+def test_setup_appends_only_the_missing_environment_lines_and_makes_local_keys(env: Env, text: str) -> None:
+    env.paths.home.mkdir(parents=True)
+    env.paths.settings.write_text(text, encoding="utf-8")
+
+    assert env.setup("yes") == 0, env.output
+
+    after = env.paths.settings.read_text(encoding="utf-8")
+    assert after.startswith(text)
+    settings = lrb.read_settings(env.paths.settings)
+    assert settings is not None and (settings.environment, settings.deployment_profile) == ("local", "development")
+    assert after.count("MANIJERO_ENVIRONMENT=") == 1 and after.count("MANIJERO_DEPLOYMENT_PROFILE=") == 1
+    assert "Added the environment lines to the settings file {}; nothing else in it changed.".format(env.paths.settings) in env.output
+    credentials = env.paths.home / "credentials"
+    assert sorted(path.name for path in credentials.iterdir()) == ["local-test-device.token", "pilot-clients.json"]
+    assert "Made the local access keys in {}.".format(credentials) in env.output
+    token = (credentials / "local-test-device.token").read_text(encoding="utf-8")
+    assert token not in env.output and token not in "\n".join(env.all_output)
+
+
+def test_the_already_set_up_path_adds_the_lines_and_keys_then_changes_nothing_more(ready: Env) -> None:
+    old = "MANIJERO_ACTIVE_CAMPAIGN=2026\n"
+    ready.paths.settings.write_text(old, encoding="utf-8")
+    import shutil
+
+    shutil.rmtree(ready.paths.home / "credentials")
+
+    assert ready.setup() == 0
+    assert ready.lines[-1] == "Result: everything is already set up. Nothing was downloaded or changed."
+    assert ready.paths.settings.read_text(encoding="utf-8").startswith(old)
+    assert "Added the environment lines" in ready.output and "Made the local access keys" in ready.output
+    before = snapshot(ready.tmp)
+
+    assert ready.setup() == 0
+    assert snapshot(ready.tmp) == before
+    assert "Added the environment lines" not in ready.output and "Made the local access keys" not in ready.output
+
+
+def test_a_stopped_prerequisite_adds_no_lines_and_no_keys(env: Env) -> None:
+    env.paths.home.mkdir(parents=True)
+    old = "MANIJERO_ACTIVE_CAMPAIGN=2026\n"
+    env.paths.settings.write_text(old, encoding="utf-8")
+    env.ollama.running = False
+    before = snapshot(env.tmp)
+
+    assert env.setup("yes") == 1
+
+    assert env.paths.settings.read_text(encoding="utf-8") == old
+    assert snapshot(env.tmp) == before
+
+
+def test_old_campaign_only_file_is_still_accepted_by_read_settings(env: Env) -> None:
+    env.paths.home.mkdir(parents=True)
+    env.paths.settings.write_text("MANIJERO_ACTIVE_CAMPAIGN=2026\n", encoding="utf-8")
+
+    settings = lrb.read_settings(env.paths.settings)
+
+    assert settings == lrb.Settings("2026") and not settings.names_environment
+
+
+@pytest.mark.parametrize(
+    "line, number",
+    [("MANIJERO_ENVIRONMENT=qa", 2), ("MANIJERO_DEPLOYMENT_PROFILE=pilot", 2), ("MANIJERO_ENVIRONMENT=", 2)],
+)
+def test_local_settings_refuse_non_local_environment_values(env: Env, line: str, number: int) -> None:
+    env.paths.home.mkdir(parents=True)
+    env.paths.settings.write_text("MANIJERO_ACTIVE_CAMPAIGN=2026\n{}\n".format(line), encoding="utf-8")
+
+    for command in ("setup", "status"):
+        env.lines.clear()
+        assert local_cli.main([command], ctx=env.ctx, ports=env.ports) == 1
+        assert "has a problem on line {}".format(number) in env.output and "never treated as another environment" in env.output
+    assert not (env.paths.home / "credentials").exists()
 
 
 # --- 7. Interrupted or damaged model files -------------------------------------------------
