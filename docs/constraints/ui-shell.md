@@ -62,4 +62,6 @@ Durable MUST/MUST NOT rules for brand vectors, the shared component layer, and a
   visible screen.
 - **MUST**: test-build tools (`Conexión`) are reachable only when a host injects them; the Android
   release source set and every Desktop packaging or release task MUST NOT inject them, and
-  `TestBuildGatingGuardTest` guards this. See [`local_service_connection`](../specs/local_service_connection.md).
+  `TestBuildGatingGuardTest` guards this. See [`local_service_connection`](../specs/local_service_connection.md). The development-only answer inspector follows the same gating: only a test-tools host passes
+  `acceptInspection = true`, the fixed-URL `KtorAnswerService` constructor cannot accept it, and the
+  extended `TestBuildGatingGuardTest` checks both ([`rag_inspector_view`](../specs/rag_inspector_view.md)).

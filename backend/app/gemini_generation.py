@@ -43,7 +43,7 @@ import threading
 import time
 from typing import Any, Callable, Iterable, List, Mapping, Optional, Protocol, Sequence, Tuple
 
-from app import answer_trace
+from app import answer_trace, health_metrics
 from app.generation import (
     LEAD_IN,
     MAX_ANSWER_CHARS,
@@ -421,6 +421,7 @@ class GatedGeminiGenerator:
         outcome, draft = self._gemini_draft(question, numbered_candidates)
         answer_trace.note_provider(self.provider_name, outcome)
         self.log("generation", provider=self.provider_name, outcome=outcome)
+        health_metrics.note_generation(self.provider_name, outcome, self.used_outcome)
         if draft is not None:
             return draft
         return ExtractiveGroundingGenerator(max_claims=self.max_claims).generate(

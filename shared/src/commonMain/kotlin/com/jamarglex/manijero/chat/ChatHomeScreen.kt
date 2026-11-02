@@ -34,6 +34,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.platform.testTag
 import com.jamarglex.manijero.ChatHomeAction
 import com.jamarglex.manijero.ChatHomeState
+import com.jamarglex.manijero.ChatMessage
 import com.jamarglex.manijero.SubmissionPhase
 import com.jamarglex.manijero.design.ManijeroBrandMark
 import com.jamarglex.manijero.design.ManijeroCard
@@ -94,6 +95,7 @@ internal fun ChatHomeScreen(
     modifier: Modifier = Modifier,
     showWelcome: Boolean = false,
     onDismissWelcome: () -> Unit = {},
+    onInspect: ((ChatMessage) -> Unit)? = null,
 ) {
     val transcriptEndRequester = remember { BringIntoViewRequester() }
     val scrollKey = transcriptScrollKey(state)
@@ -111,7 +113,7 @@ internal fun ChatHomeScreen(
             verticalArrangement = Arrangement.spacedBy(ManijeroSpacing.Small),
         ) {
             state.messages.forEach { message ->
-                ChatMessageBubble(message = message)
+                ChatMessageBubble(message = message, onInspect = onInspect)
             }
 
             // A failure is state, never a transcript entry, so it can never be read as an

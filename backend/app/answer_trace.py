@@ -183,6 +183,9 @@ class TraceCollector:
     drafting: Optional[Dict[str, Any]] = None
     verification: Optional[Dict[str, Any]] = None
     outcome: Dict[str, Any] = field(default_factory=dict)
+    # Candidate title/location/excerpt for the development-only inspection. Private: the
+    # trace document builder never reads it.
+    details: Dict[str, Tuple[str, str, str]] = field(default_factory=dict)
 
 
 _ACTIVE: ContextVar[Optional[TraceCollector]] = ContextVar("answer_trace_collector", default=None)
@@ -217,6 +220,7 @@ def note_search_begin() -> Optional[float]:
     collector.lexical = []
     collector.vector = None
     collector.candidates = []
+    collector.details = {}
     return time.monotonic()
 
 
@@ -254,6 +258,9 @@ def note_search_end(started: Optional[float], candidates: Sequence[Any]) -> None
         }
         for c in candidates
     ]
+    collector.details = {
+        str(c.passage_id): (str(c.title), str(c.location), str(c.excerpt)) for c in candidates
+    }
     if started is not None:
         collector.retrieval_seconds += time.monotonic() - started
 
@@ -436,8 +443,8 @@ class AnswerTrace:
             fields["reason"] = self.reason
         operational_log("answer_trace", **fields)
 
-    def open(self) -> "TraceSession":
-        return TraceSession(self if self.enabled else None)
+    def open(self, collect: bool = False) -> "TraceSession":
+        return TraceSession(self if self.enabled else None, collect=collect)
 
 
 def load_answer_trace(
@@ -460,16 +467,22 @@ def load_answer_trace(
 class TraceSession:
     """One request's collector; ``finish`` writes the file and never raises."""
 
-    def __init__(self, trace: Optional[AnswerTrace]) -> None:
+    def __init__(self, trace: Optional[AnswerTrace], collect: bool = False) -> None:
         self._trace = trace
         self._collector: Optional[TraceCollector] = None
         self._token: Optional[Token] = None
-        if trace is not None:
+        if trace is not None or collect:
             try:
                 self._collector = TraceCollector()
                 self._token = _ACTIVE.set(self._collector)
             except Exception:  # noqa: BLE001
                 self._collector = None
+
+    @property
+    def collector(self) -> Optional[TraceCollector]:
+        """What this request noted, for the development-only inspection."""
+
+        return self._collector
 
     def release(self) -> None:
         if self._token is not None:

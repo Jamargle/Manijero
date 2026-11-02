@@ -211,6 +211,19 @@ class AppNavigationTest {
     }
 
     @Test
+    fun `the inspector route sits under the assistant tab, keeps the bars and returns to the chat`() {
+        AppSection.entries.forEach { fallback ->
+            assertEquals(AppSection.Assistant, tabForDestination(AppDestination.Inspector, fallback))
+            assertEquals(
+                AppDestination.Chat,
+                backTarget(AppDestination.Inspector, fallback, AppDestination.Coverage),
+            )
+            assertEquals(fallback, rememberedSectionAfterBack(AppDestination.Inspector, fallback))
+        }
+        assertTrue(navigationVisible(AppDestination.Inspector))
+    }
+
+    @Test
     fun `the test-build connection route sits under help, keeps the bars and returns to help`() {
         AppSection.entries.forEach { fallback ->
             assertEquals(AppSection.Help, tabForDestination(AppDestination.Connection, fallback))

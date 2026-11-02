@@ -1,6 +1,7 @@
 package com.jamarglex.manijero.screenshots
 
 import com.jamarglex.manijero.chat.ChatHomeScreen
+import com.jamarglex.manijero.inspector.AnswerInspectorScreen
 import com.jamarglex.manijero.theme.ManijeroTheme
 import kotlin.test.Test
 import org.junit.runner.RunWith
@@ -56,6 +57,45 @@ class ChatHomeAndroidScreenshotsTest : AndroidScreenshotTestSupport() {
                     onPrivacyClick = {},
                     onCoverageClick = {},
                 )
+            }
+        }
+
+    /** A local test build's answered entry with the `Inspeccionar` link. */
+    @Test
+    fun chatAnsweredInspectLinkLight() =
+        capture("chat_answered_inspect_link_light") {
+            ManijeroTheme(darkTheme = false) {
+                ChatHomeScreen(
+                    state = ScreenshotFixtures.answeredInspectedChat,
+                    onAction = {},
+                    onPrivacyClick = {},
+                    onCoverageClick = {},
+                    onInspect = {},
+                )
+            }
+        }
+
+    /** A local test build's abstention with the `Inspeccionar` link. */
+    @Test
+    fun chatAbstentionInspectLinkDark() =
+        capture("chat_abstention_inspect_link_dark") {
+            ManijeroTheme(darkTheme = true) {
+                ChatHomeScreen(
+                    state = ScreenshotFixtures.abstainedInspectedChat,
+                    onAction = {},
+                    onPrivacyClick = {},
+                    onCoverageClick = {},
+                    onInspect = {},
+                )
+            }
+        }
+
+    /** The inspector with 2x text, dark appearance. */
+    @Test
+    fun inspectorLargeTextDark() =
+        capture("inspector_large_text_dark", fontScale = 2f) {
+            ManijeroTheme(darkTheme = true) {
+                AnswerInspectorScreen(inspection = ScreenshotFixtures.answeredInspection, onBack = {})
             }
         }
 

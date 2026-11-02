@@ -17,4 +17,5 @@ object ChatTestTags {
     const val FAILURE_UNREACHABLE = "chat.failureUnreachable"
     const val FAILURE_SERVICE = "chat.failureService"
     const val RETRY = "chat.retry"
+    const val INSPECT = "chat.inspect"
 }

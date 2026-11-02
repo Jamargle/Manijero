@@ -254,7 +254,7 @@ AS_OF="${MANIJERO_AS_OF:-2026-10-13}"
 
 usage() {
   cat <<'EOF'
-Usage: ./scripts/init.sh [--check|--fast|--verify|--feature <id>|--backend-tests [targets]|--setup-python [dev|hybrid]|--backend|--mock|--mock-status|--mock-stop|--local-rag-setup|--local-rag-status|--local-rag-start|--local-rag-service-status|--local-rag-stop|--container-build|--container-start|--container-status|--container-stop|--pilot-token-save|--local-smoke|--environments-status|--qa-settings-setup|--android|--android-run|--desktop|--help]
+Usage: ./scripts/init.sh [--check|--fast|--verify|--feature <id>|--backend-tests [targets]|--setup-python [dev|hybrid]|--backend|--mock|--mock-status|--mock-stop|--local-rag-setup|--local-rag-status|--local-rag-start|--local-rag-service-status|--local-rag-stop|--container-build|--container-start|--container-status|--container-stop|--pilot-token-save|--local-smoke|--environments-status|--qa-settings-setup|--android|--android-run|--desktop|--android-qa|--desktop-qa|--help]
 
   --check                   Check Java and the Gradle wrapper, then print standard commands (default)
   --fast                    Shared host tests, contract examples, backend unit tests, and the five
@@ -297,7 +297,9 @@ Usage: ./scripts/init.sh [--check|--fast|--verify|--feature <id>|--backend-tests
   --android                 Build the Android debug APK
   --android-run             Build, start an emulator if needed, install, and launch the app
   --desktop                 Launch the Desktop app
-  --help                    Show this help
+  --android-qa              Build the Manijero QA Android debug APK (its own app, QA address and key)
+  --desktop-qa              Launch the Manijero QA Desktop app (its own data folder, QA address and key)
+  --help                   Show this help
 
 Tiers keep a small change cheap to check: --feature for one feature, --fast for the
 whole no-device surface, --verify for the release-shaped gate.
@@ -858,6 +860,8 @@ Build and run:
   ./scripts/init.sh --android    # androidApp/build/outputs/apk/debug/androidApp-debug.apk
   ./scripts/init.sh --android-run # build and launch on an Android emulator
   ./scripts/init.sh --desktop    # launch the Desktop app
+  ./scripts/init.sh --android-qa # build the Manijero QA Android app (installs beside the local one)
+  ./scripts/init.sh --desktop-qa # launch the Manijero QA Desktop app
 
 The Android and Desktop apps use the local /ask service. Start it with --local-rag-start (or keep --backend running in a separate
 terminal) while trying either app, or start the mock answer service with --mock to try every answer state without Python.
@@ -906,6 +910,21 @@ EOF
     ;;
   --desktop)
     ./gradlew :desktopApp:run
+    ;;
+  --android-qa)
+    if (( $# > 1 )); then
+      printf 'Run %s on its own, with nothing after it.\n' "$1" >&2
+      exit 2
+    fi
+    ./gradlew :androidApp:assembleDebug -PmanijeroEnvironment=qa
+    printf 'Result: the Manijero QA app was built: androidApp/build/outputs/apk/debug/androidApp-debug.apk\n'
+    ;;
+  --desktop-qa)
+    if (( $# > 1 )); then
+      printf 'Run %s on its own, with nothing after it.\n' "$1" >&2
+      exit 2
+    fi
+    ./gradlew :desktopApp:run -PmanijeroEnvironment=qa
     ;;
   --help|-h)
     usage

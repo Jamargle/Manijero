@@ -52,3 +52,12 @@ fun mayCarryPilotToken(url: Url): Boolean = when (url.protocol) {
     URLProtocol.HTTP -> url.host.lowercase() in LOOPBACK_HOSTS
     else -> false
 }
+
+/**
+ * Whether [url] is `http` or `https` to this computer (or the emulator's view of it). The answer
+ * service keeps the development-only `inspection` only for such an address, so a remote QA host
+ * never qualifies.
+ */
+internal fun isLoopbackServiceUrl(url: Url): Boolean =
+    (url.protocol == URLProtocol.HTTP || url.protocol == URLProtocol.HTTPS) &&
+        url.host.lowercase() in LOOPBACK_HOSTS

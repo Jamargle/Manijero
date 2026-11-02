@@ -85,13 +85,17 @@ Do not over-claim.
 - Only test builds (Android debug, Desktop `run`) can carry a pilot bearer token saved with
   `./scripts/init.sh --pilot-token-save` ([`client_pilot_credentials`](../specs/client_pilot_credentials.md)).
   Release and packaged apps never carry it, so they cannot reach a pilot-profile service until a
-  release credential path exists (`client_environment_builds` or a later decision). In a test
+  release credential path exists (a later decision). In a test
   build the token is built in, so anyone holding that build can extract it: it gates access per
-  client and is revocable, but it is not secret from the device holder. Every test build gets
-  the same saved token (no per-environment builds yet), it is sent only over
+  client and is revocable, but it is not secret from the device holder. A local test build gets
+  the saved `pilot-token.local` token and a QA test build the QA access key, it is sent only over
   `https` or to a loopback address, and the auth flow is tested only against an in-process
   fake of the pilot guard. No app has yet been observed getting a live answer from a
   pilot-profile service, because no named command starts one locally.
+- QA test builds (`./scripts/init.sh --android-qa`, `--desktop-qa`,
+  [`client_environment_builds`](../specs/client_environment_builds.md)) point at the placeholder
+  `https://qa.manijero.invalid` until `qa_server_deployment` chooses a host (then the address goes
+  in the git-ignored `qa-address.local`). No QA build has been installed or run on a device.
 - Local embeddings are implemented but **off the answer path**: a pinned `BAAI/bge-m3` revision
   (`5617a9f…`, MIT), per-file SHA-256 verification, a derived `passage-embedding-index-v1` file
   outside `knowledge/`, and a rebuild/staleness check. Only this development Mac (Apple M1 Max,
@@ -144,8 +148,16 @@ Do not over-claim.
   the profile is explicitly `development` (stated by the local service start); the container image
   states no profile, so a trace turned on there records no text. See
   the [acceptance record](../validations/answer_pipeline_trace.md).
+- The answer inspector (`rag_inspector_view`) appears only in test builds (Android debug, Desktop
+  `run`) whose service address is loopback (`localhost`, `127.0.0.1`, `10.0.2.2`), and the service
+  sends inspection data only when the profile is explicitly `development` (stated by
+  `--local-rag-start`). A real device on a LAN address never shows it; QA and prod never do. Until
+  `client_environment_builds` is accepted, "local build" means test tools plus a loopback address.
+  Verified by unit, interaction, and screenshot tests only; no GUI or device run. See the
+  [acceptance record](../validations/rag_inspector_view.md).
 - Environment profiles (`environment_profiles`): only local is complete. QA is a commented template
   with a placeholder `.invalid` host and an empty knowledge-release folder; no QA host is chosen or
   contacted (that belongs to `qa_server_deployment`), and prod is not configured. Local access keys
   are generated but the local service does not check them. Everything was tested in temporary
   folders with fake tokens only. See the [acceptance record](../validations/environment_profiles.md).
+- The health metrics page (`GET /metrics`, `backend_health_metrics`) counts per process and resets on restart, so it is never cluster-wide. Source-update recency appears only when `MANIJERO_SOURCE_UPDATE_STATE_DIR` is already set (no start command sets it), and it reports scheduler run recency, not legal freshness. Verified by in-process tests only; no live scrape, dashboard, or hosted service was observed. See the [spec](../specs/backend_health_metrics.md).

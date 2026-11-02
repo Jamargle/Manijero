@@ -23,4 +23,5 @@ class FileWelcomeNoticeStore(private val path: Path) : WelcomeNoticeStore {
 /** The Desktop file for the welcome flag, `~/.manijero/welcome-v1.txt`. */
 fun desktopWelcomeStorePath(
     home: String = System.getProperty("user.home"),
-): Path = Paths.get(home, ".manijero", "welcome-v1.txt")
+    folder: String = ".manijero",
+): Path = Paths.get(home, folder, "welcome-v1.txt")

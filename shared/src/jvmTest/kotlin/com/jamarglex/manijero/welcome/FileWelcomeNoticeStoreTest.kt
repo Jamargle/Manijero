@@ -37,5 +37,11 @@ class FileWelcomeNoticeStoreTest {
     @Test
     fun defaultPathIsUnderTheManijeroFolder() {
         assertEquals("welcome-v1.txt", desktopWelcomeStorePath("/home/x").fileName.toString())
+        assertEquals(".manijero", desktopWelcomeStorePath("/home/x").parent.fileName.toString())
+    }
+
+    @Test
+    fun qaPathIsUnderTheSeparateQaFolder() {
+        assertEquals(".manijero-qa", desktopWelcomeStorePath("/home/x", ".manijero-qa").parent.fileName.toString())
     }
 }

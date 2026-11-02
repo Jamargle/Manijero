@@ -1,11 +1,15 @@
 package com.jamarglex.manijero.screenshots
 
 import com.jamarglex.manijero.chat.ChatHomeScreen
+import com.jamarglex.manijero.inspector.AnswerInspectorScreen
 import com.jamarglex.manijero.theme.ManijeroTheme
 import kotlin.test.Test
 
 /** Pixel regression captures for the shared chat home screen in light and dark appearance. */
 class ChatHomeScreenshotsTest : ScreenshotTestSupport() {
+    private companion object {
+        const val INSPECTOR_HEIGHT = 1600
+    }
 
     /** Chat home in light appearance, before any question: the default entry surface. */
     @Test
@@ -82,6 +86,59 @@ class ChatHomeScreenshotsTest : ScreenshotTestSupport() {
                     onPrivacyClick = {},
                     onCoverageClick = {},
                 )
+            }
+        }
+
+    /** A local test build's answered entry with the `Inspeccionar` link below the source card. */
+    @Test
+    fun chatAnsweredInspectLinkLight() =
+        capture(name = "chat_answered_inspect_link_light", width = CHAT_WIDTH, height = CHAT_HEIGHT) {
+            ManijeroTheme(darkTheme = false) {
+                ChatHomeScreen(
+                    state = ScreenshotFixtures.answeredInspectedChat,
+                    onAction = {},
+                    onPrivacyClick = {},
+                    onCoverageClick = {},
+                    onInspect = {},
+                )
+            }
+        }
+
+    /** A local test build's abstention with the `Inspeccionar` link below the caution card. */
+    @Test
+    fun chatAbstentionInspectLinkDark() =
+        capture(name = "chat_abstention_inspect_link_dark", width = CHAT_WIDTH, height = CHAT_HEIGHT) {
+            ManijeroTheme(darkTheme = true) {
+                ChatHomeScreen(
+                    state = ScreenshotFixtures.abstainedInspectedChat,
+                    onAction = {},
+                    onPrivacyClick = {},
+                    onCoverageClick = {},
+                    onInspect = {},
+                )
+            }
+        }
+
+    /** The inspector for an answered question, light appearance. */
+    @Test
+    fun inspectorAnsweredLight() =
+        capture(name = "inspector_answered_light", width = CHAT_WIDTH, height = INSPECTOR_HEIGHT) {
+            ManijeroTheme(darkTheme = false) {
+                AnswerInspectorScreen(inspection = ScreenshotFixtures.answeredInspection, onBack = {})
+            }
+        }
+
+    /** The inspector at phone width with 2x text, dark appearance: the compact case. */
+    @Test
+    fun inspectorPhoneLargeTextDark() =
+        capture(
+            name = "inspector_phone_large_text_dark",
+            width = PHONE_WIDTH,
+            height = PHONE_HEIGHT,
+            fontScale = 2f,
+        ) {
+            ManijeroTheme(darkTheme = true) {
+                AnswerInspectorScreen(inspection = ScreenshotFixtures.abstainedInspection, onBack = {})
             }
         }
 

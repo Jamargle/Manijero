@@ -10,6 +10,8 @@ import com.jamarglex.manijero.chat.AnswerSource
 import com.jamarglex.manijero.chat.AnswerStatus
 import com.jamarglex.manijero.chat.LandContextMode
 import com.jamarglex.manijero.chat.RequestFailure
+import com.jamarglex.manijero.inspector.AnswerInspection
+import com.jamarglex.manijero.inspector.InspectionOutcome
 import com.jamarglex.manijero.lands.Land
 import com.jamarglex.manijero.lands.LandVariety
 import com.jamarglex.manijero.lands.ProductionMethod
@@ -546,6 +548,34 @@ private fun ChatHomeClarificationNarrowLargeTextPreview() {
                     waterRegime = WaterRegime.DRYLAND,
                 ),
             ),
+        )
+    }
+}
+
+@Preview(name = "Answered entry with the development-only Inspeccionar link")
+@Composable
+private fun ChatInspectLinkPreview() {
+    val inspection = AnswerInspection(
+        schema = "answer-inspection-v1",
+        outcome = InspectionOutcome(cited_passage_ids = emptyList()),
+        total_ms = 0,
+    )
+    ManijeroTheme {
+        ChatHomeScreen(
+            ChatHomeState(
+                messages = listOf(
+                    ChatMessage(
+                        Speaker.ASSISTANT,
+                        ANSWERED_SAMPLE,
+                        AnswerStatus.answered,
+                        SOURCE_SAMPLE,
+                        LandContextMode.general,
+                        inspection,
+                    ),
+                ),
+            ),
+            {},
+            onInspect = {},
         )
     }
 }

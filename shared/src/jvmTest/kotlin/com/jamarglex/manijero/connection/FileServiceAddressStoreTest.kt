@@ -69,4 +69,11 @@ class FileServiceAddressStoreTest {
         assertTrue(Files.isDirectory(blocked))
         assertEquals("http://192.168.1.20:8000", store.load())
     }
+
+    @Test
+    fun `the test-build file lives under the environment folder`() {
+        assertEquals(".manijero", desktopConnectionStorePath("/home/x").parent.fileName.toString())
+        assertEquals(".manijero-qa", desktopConnectionStorePath("/home/x", ".manijero-qa").parent.fileName.toString())
+        assertEquals("connection-v1.txt", desktopConnectionStorePath("/home/x", ".manijero-qa").fileName.toString())
+    }
 }

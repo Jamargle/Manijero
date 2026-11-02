@@ -11,9 +11,9 @@ from typing import Annotated, Any, Dict, Literal
 from fastapi import APIRouter, Depends, HTTPException, Request
 from fastapi.exceptions import RequestValidationError
 from fastapi.responses import JSONResponse
-from pydantic import AnyHttpUrl, BaseModel, ConfigDict, Field, StrictBool, StrictStr, model_validator
+from pydantic import AnyHttpUrl, BaseModel, ConfigDict, Field, StrictBool, StrictFloat, StrictInt, StrictStr, model_validator
 
-from app import answer_trace
+from app import answer_inspection, answer_trace, health_metrics
 from app.abstention import (
     Abstention,
     prepare_corpus,
@@ -93,12 +93,82 @@ class AnswerSource(ClosedModel):
     excerpt: StrictStr = Field(min_length=1, max_length=2000)
 
 
+class InspectionVector(ClosedModel):
+    used: StrictBool
+    fallback_code: StrictStr | None
+
+
+class InspectionPassage(ClosedModel):
+    rank: StrictInt
+    passage_id: StrictStr
+    source_id: StrictStr
+    title: StrictStr
+    location: StrictStr
+    score: StrictFloat | StrictInt
+    lexical_rank: StrictInt | None
+    lexical_score: StrictFloat | StrictInt | None
+    vector_similarity: StrictFloat | StrictInt | None
+    cited: StrictBool
+    excerpt: StrictStr = Field(max_length=2000)
+
+
+class InspectionRetrieval(ClosedModel):
+    mode: Literal["bm25", "hybrid"]
+    k: StrictInt
+    search_calls: StrictInt
+    duration_ms: StrictInt
+    vector: InspectionVector | None
+    passages: list[InspectionPassage]
+
+
+class InspectionDrafting(ClosedModel):
+    provider: StrictStr | None
+    outcome: StrictStr | None
+    status: StrictStr | None
+    cited_markers: list[StrictInt]
+    duration_ms: StrictInt | None
+
+
+class InspectionClaim(ClosedModel):
+    index: StrictInt
+    markers: list[StrictInt]
+    ok: StrictBool
+    issues: list[StrictStr]
+
+
+class InspectionVerification(ClosedModel):
+    ok: StrictBool
+    issues: list[StrictStr]
+    claims: list[InspectionClaim]
+    duration_ms: StrictInt | None
+
+
+class InspectionOutcome(ClosedModel):
+    abstention_reason: StrictStr | None
+    generation_reason: StrictStr | None
+    cited_passage_ids: list[StrictStr]
+
+
+class AnswerInspection(ClosedModel):
+    """Development-profile-only debug view of one answer; never sent in pilot, QA, or prod."""
+
+    schema_version: Literal["answer-inspection-v1"] = Field(alias="schema")
+    retrieval: InspectionRetrieval | None
+    drafting: InspectionDrafting | None
+    verification: InspectionVerification | None
+    outcome: InspectionOutcome
+    total_ms: StrictInt
+
+    model_config = ConfigDict(extra="forbid", strict=True, populate_by_name=True)
+
+
 class AskResponse(ClosedModel):
     status: Literal["answered", "abstained", "needs_land_clarification"]
     answer: StrictStr = Field(max_length=1200)
     sources: list[AnswerSource]
     land_scope: Literal["general", "all_active", "selected"]
     land_ids_to_choose: list[Annotated[StrictStr, Field(min_length=1, max_length=128)]]
+    inspection: AnswerInspection | None = None
 
 
 class CorpusDocuments(ClosedModel):
@@ -179,6 +249,14 @@ def _note_release_outcome(release_id: str | None, state: str, reason: str) -> No
     operational_log("knowledge_release", release_id=release_id or "none", state=state, reason=reason)
 
 
+def last_release_outcome() -> tuple[str | None, str] | None:
+    """The last ``(release_id, state)`` a request saw, for ``/metrics``; ``None`` if none yet."""
+
+    with _RELEASE_OUTCOME_LOCK:
+        outcome = _LAST_RELEASE_OUTCOME
+    return None if outcome is None else (outcome[0], outcome[1])
+
+
 def get_corpus_documents() -> CorpusDocuments:
     """FastAPI dependency seam for local files and fixture-backed route tests."""
 
@@ -203,6 +281,12 @@ def get_answer_trace(request: Request) -> AnswerTrace | None:
     return getattr(request.app.state, "answer_trace", None)
 
 
+def get_answer_inspection(request: Request) -> bool:
+    """Whether ``create_app`` resolved the development-only inspection as on."""
+
+    return bool(getattr(request.app.state, "answer_inspection", False))
+
+
 router = APIRouter()
 
 
@@ -211,6 +295,7 @@ router = APIRouter()
     operation_id="askQuestion",
     summary="Ask for a source-grounded answer",
     response_model=AskResponse,
+    response_model_exclude_unset=True,
     responses={
         400: {"description": "Malformed JSON request."},
         422: {"description": "Request shape, bounds, enum, or land-context validation failed."},
@@ -227,10 +312,15 @@ def ask_question(
     retrieval_backend: RetrievalBackend = Depends(get_retrieval_backend),
     generation: ProviderResolution | None = Depends(get_generation_provider),
     trace: AnswerTrace | None = Depends(get_answer_trace),
+    inspect: bool = Depends(get_answer_inspection),
 ) -> Dict[str, Any]:
     """Run accepted corpus and answer decisions, then the separate opt-in retention step."""
 
-    session = (trace.open() if trace is not None else answer_trace.TraceSession(None))
+    session = (
+        trace.open(collect=inspect)
+        if trace is not None
+        else answer_trace.TraceSession(None, collect=inspect)
+    )
     land_scope = request.land_context.mode
     try:
         response = _answer(
@@ -261,6 +351,12 @@ def ask_question(
     )
     if outcome in {"redaction_failed", "store_failed"}:
         operational_log("retention_skipped", outcome=outcome)
+    if inspect:
+        # Attached last, so it is never traced or retained, and a failure only omits it.
+        try:
+            return dict(response, inspection=answer_inspection.build_inspection(session.collector))
+        except answer_inspection.InspectionError as error:
+            operational_log("answer_inspection_skipped", reason=error.code)
     return response
 
 
@@ -277,6 +373,7 @@ def _answer(
         years = set(re.findall(r"(?<!\d)\d{4}(?!\d)", request.question))
         if len(years) > 1 or (years and years != {active_campaign}):
             answer_trace.note_outcome(abstention_reason="no_evidence")
+            health_metrics.note_answer("abstained", "no_evidence")
             return to_abstention_response(Abstention(reason="no_evidence", issues=()), land_scope=request.land_context.mode)
         corpus = _prepare_runtime_corpus(corpus_documents, as_of, active_campaign)
     except (CatalogReadError, CatalogRejectedError, PassageSetError, RuntimeError, ValueError):
@@ -309,16 +406,19 @@ def _answer(
         generator=generator,
     )
     if isinstance(result, NeedsLandClarification):
+        health_metrics.note_answer("needs_land_clarification")
         return to_clarification_response(result)
     if isinstance(result, Abstention):
         answer_trace.note_outcome(
             abstention_reason=result.reason, generation_reason=result.generation_reason
         )
+        health_metrics.note_answer("abstained", result.reason)
         return to_abstention_response(result, land_scope=request.land_context.mode)
     if isinstance(result, Answered):
         answer_trace.note_outcome(
             cited_passage_ids=[passage.passage_id for passage in result.sources]
         )
+        health_metrics.note_answer("answered")
         return to_answer_response(result)
     raise _unavailable_corpus_error()
 

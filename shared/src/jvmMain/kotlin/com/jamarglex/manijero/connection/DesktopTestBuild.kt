@@ -17,9 +17,10 @@ fun desktopTestBuildEnabled(
 
 /**
  * The Desktop test-build file for the remembered answer-service address,
- * `~/.manijero/connection-v1.txt`. The development `run` task and the local smoke test read the
+ * `~/.manijero/connection-v1.txt` (`~/.manijero-qa/` in a QA build). The development `run` task and the local smoke test read the
  * same file, so the smoke test checks the address the Desktop app really uses.
  */
 fun desktopConnectionStorePath(
     home: String = System.getProperty("user.home"),
-): Path = Paths.get(home, ".manijero", "connection-v1.txt")
+    folder: String = ".manijero",
+): Path = Paths.get(home, folder, "connection-v1.txt")

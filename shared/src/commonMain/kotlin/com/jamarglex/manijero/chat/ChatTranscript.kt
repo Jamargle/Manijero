@@ -7,7 +7,9 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.material3.Surface
+import androidx.compose.material3.TextButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -32,6 +34,7 @@ import com.jamarglex.manijero.theme.ManijeroShapes
 import com.jamarglex.manijero.theme.ManijeroSpacing
 import manijero.shared.generated.resources.Res
 import manijero.shared.generated.resources.chat_answer_state_abstained
+import manijero.shared.generated.resources.chat_inspect_link
 import manijero.shared.generated.resources.chat_land_scope_all_active
 import manijero.shared.generated.resources.chat_land_scope_general
 import manijero.shared.generated.resources.chat_land_scope_selected
@@ -48,7 +51,15 @@ import org.jetbrains.compose.resources.stringResource
  * neutral card; an abstention keeps the caution pair and both of its labels.
  */
 @Composable
-internal fun ChatMessageBubble(message: ChatMessage, modifier: Modifier = Modifier) {
+internal fun ChatMessageBubble(
+    message: ChatMessage,
+    modifier: Modifier = Modifier,
+    onInspect: ((ChatMessage) -> Unit)? = null,
+) {
+    // The development-only `Inspeccionar` link: only for an answered or abstained assistant entry
+    // that kept an inspection (a local test build), as its own node below the entry.
+    val inspect: (() -> Unit)? =
+        if (onInspect != null && message.inspection != null) ({ onInspect(message) }) else null
     when (message.speaker) {
         Speaker.USER -> Row(
             modifier = modifier.fillMaxWidth(),
@@ -91,24 +102,51 @@ internal fun ChatMessageBubble(message: ChatMessage, modifier: Modifier = Modifi
                     if (presentation.cards.isNotEmpty()) {
                         SourceCardsSection(cards = presentation.cards)
                     }
+                    if (inspect != null) InspectLink(onClick = inspect)
                 }
             }
 
             // An abstention is a decoded answer, not a failure: it stays in the transcript with the
             // caution tokens, an explicit text state label, and the server message verbatim. The
             // limitation and next step are the sentences already inside that message.
-            AnswerStatus.abstained -> ChatAbstentionCard(
-                modifier = modifier.testTag(ChatTestTags.ABSTAINED),
-                scopeLabel = stringResource(landScopeCaption(message.landScope)),
-                stateLabel = stringResource(Res.string.chat_answer_state_abstained),
-                text = message.text,
-            )
+            AnswerStatus.abstained -> if (inspect == null) {
+                ChatAbstentionCard(
+                    modifier = modifier.testTag(ChatTestTags.ABSTAINED),
+                    scopeLabel = stringResource(landScopeCaption(message.landScope)),
+                    stateLabel = stringResource(Res.string.chat_answer_state_abstained),
+                    text = message.text,
+                )
+            } else {
+                Column(
+                    modifier = modifier.fillMaxWidth(),
+                    verticalArrangement = Arrangement.spacedBy(ManijeroSpacing.Small),
+                ) {
+                    ChatAbstentionCard(
+                        modifier = Modifier.testTag(ChatTestTags.ABSTAINED),
+                        scopeLabel = stringResource(landScopeCaption(message.landScope)),
+                        stateLabel = stringResource(Res.string.chat_answer_state_abstained),
+                        text = message.text,
+                    )
+                    InspectLink(onClick = inspect)
+                }
+            }
 
             // A clarification appends no entry today (its answer is empty), so this stays a neutral
             // rendering and makes the mapping exhaustive, so a new status cannot fall through.
             AnswerStatus.needs_land_clarification ->
                 ChatAssistantCard(text = message.text, modifier = modifier.fillMaxWidth())
         }
+    }
+}
+
+/** The `Inspeccionar` text button: its own focusable node, outside the entry's merged node. */
+@Composable
+private fun InspectLink(onClick: () -> Unit) {
+    TextButton(
+        onClick = onClick,
+        modifier = Modifier.heightIn(min = ManijeroLayout.MinTouchTarget).testTag(ChatTestTags.INSPECT),
+    ) {
+        Text(stringResource(Res.string.chat_inspect_link))
     }
 }
 

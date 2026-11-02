@@ -17,6 +17,7 @@ import com.jamarglex.manijero.connection.ConnectionController
 import com.jamarglex.manijero.connection.ConnectionScreen
 import com.jamarglex.manijero.connection.ConnectionTools
 import com.jamarglex.manijero.coverage.CoverageScreen
+import com.jamarglex.manijero.inspector.AnswerInspectorScreen
 import com.jamarglex.manijero.welcome.WelcomeNotice
 import com.jamarglex.manijero.welcome.WelcomeNoticeStore
 import com.jamarglex.manijero.lands.AddLandAction
@@ -118,6 +119,8 @@ fun App(
     var previousSection by remember { mutableStateOf(initialSection(landsAvailable)) }
     // Where the privacy notice's own `Volver` returns to. Privacy is a detail route, not a tab.
     var privacyReturn by remember { mutableStateOf(initialDestination(landsAvailable)) }
+    // The transcript entry whose `Inspeccionar` link was tapped. In memory only; never persisted.
+    var inspected by remember { mutableStateOf<ChatMessage?>(null) }
     var addLandState by remember { mutableStateOf(AddLandState()) }
     // Hydrate the launch list once in memory so the default `Mis terrenos` frame never flashes the
     // empty state before a post-composition read can answer. The fold is the same guarded one used
@@ -285,7 +288,20 @@ fun App(
                         previousSection = selectedSection
                         destination = AppDestination.Coverage
                     },
+                    // `Inspeccionar` exists only for an entry that kept an inspection, which the
+                    // answer service allows only for a test build's loopback address.
+                    onInspect = { message ->
+                        inspected = message
+                        destination = AppDestination.Inspector
+                    },
                 )
+
+                AppDestination.Inspector -> inspected?.inspection?.let { inspection ->
+                    AnswerInspectorScreen(
+                        inspection = inspection,
+                        onBack = { destination = AppDestination.Chat },
+                    )
+                }
 
                 // The notice needs no repository, so this destination is always reachable on
                 // Android and Desktop; it reads no land and writes nothing.
