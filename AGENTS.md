@@ -20,7 +20,7 @@ Read the row that matches the work in front of you; a routine feature change nee
 
 ## Start and verify
 
-Use `./scripts/select-feature.sh --next` to pick the next feature and role, or `--status` for the board; do not re-derive selection from `feature_list.json`. Start each feature in a fresh session with `./scripts/feature-session.sh [--agent claude|codex|opencode] [feature-id]` (`--headless` for orchestrated worktree sessions). To resume an interrupted feature, start a fresh session that reads the appendix's `## Handoff`; do not replay the old session (`feature-flow` Stopping And Resuming). See [PROGRESS.md](PROGRESS.md) "Start and verify" for the cheapest-first verification tiers. The bare `./scripts/init.sh` only checks the toolchain and prints the commands.
+Use `./scripts/select-feature.sh --next` to pick the next feature and role, or `--status` for the board; do not re-derive selection from `feature_list.json`. Start each feature in a fresh session with `./scripts/feature-session.sh [--agent claude|codex|opencode] [feature-id]` (`--headless` for orchestrated worktree sessions). For a batch of features (one at a time from the selector, then one integration PR to `main`), use `./scripts/batch.sh next`, then `./scripts/batch.sh integrate` (`status` shows the batch). It stops whenever a person must decide: owner decisions, a code conflict, a failing check, or a PR awaiting review. To resume an interrupted feature, start a fresh session that reads the appendix's `## Handoff`; do not replay the old session (`feature-flow` Stopping And Resuming). See [PROGRESS.md](PROGRESS.md) "Start and verify" for the cheapest-first verification tiers. The bare `./scripts/init.sh` only checks the toolchain and prints the commands.
 
 ## Keep context lean
 
