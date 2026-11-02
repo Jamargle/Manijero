@@ -22,7 +22,7 @@ Record per eval: verdict `pass`/`fail` and the observed report lines that prove 
 
 - Input: mode `plan`, `feature_ids = ["ai-provider-config", "catalog-list"]`.
 - State: `ai-provider-config` depends_on `["bootstrap-stack"]` (`accepted`); `catalog-list` depends_on `["bootstrap-seed"]` (`accepted`).
-- Expected: both features available; one common base SHA shared by both; two independent worktrees (one per feature) and one planned session per worktree (`opencode run --dir <worktree> ...`); never two features in the same session. Per feature the report includes session, branch, status, commit, evidence, and PR URL.
+- Expected: both features available; one common base SHA shared by both; two independent worktrees (one per feature) and one planned session per worktree (`(cd <worktree> && ./scripts/feature-session.sh --headless <feature-id>)`); never two features in the same session. Per feature the report includes session, branch, status, commit, evidence, usage, and PR URL.
 - Pass criteria: both features report status `planned`; the base SHA is identical for both; the two worktree paths differ; no session is shared; zero side effects.
 
 ## Eval 3 — repeated request is idempotent

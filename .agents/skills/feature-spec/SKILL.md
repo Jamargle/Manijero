@@ -65,7 +65,7 @@ Record inspected files in the appendix as one line each (path and why it matters
 
 ### 3. Write The Contract And Its Appendix
 
-Keep the spec concise but operational. A good default target is 100-250 lines. If it grows far 
+Keep the spec concise but operational. A good default target is 80-150 lines. If it grows far 
 beyond that, the feature may need splitting. Create or update `../../../docs/specs/<feature-id>.md` 
 using `references/spec-template.md`.
 
@@ -98,9 +98,10 @@ The appendix must include, in order:
 
 Size budget (every later role rereads these files, so length is paid for several times):
 
-- Contract: at most 200 lines. Scenarios state observable results, not implementation steps.
-- Appendix before `Feature evidence`: at most 200 lines. Plan steps are one line each; tests are named with the behavior they cover, not written out.
+- Contract: at most 150 lines. Scenarios state observable results, not implementation steps; group failure cases that share one fix into one scenario.
+- Appendix before `Feature evidence`: at most 150 lines. Plan steps are one line each; tests are named with the behavior they cover, not written out.
 - Say each fact once: the contract owns behavior and verification, the appendix owns research and plan. Link instead of restating `CONSTRAINTS.md`, `ARCHITECTURE.md`, or another spec.
+- Owner-facing docs the spec asks for: at most about 60 lines of `docs/owner-guide.md` per feature (steps, expected `Result:` lines, and a table of only the messages the owner can actually reach), and at most about 30 lines per feature in `backend/README.md`. Link the spec for everything else.
 - Focused verification block: the cheapest commands that touch what the feature changes, using targeted pytest files or Gradle test filters rather than whole suites, and quiet flags such as `pytest -q`.
 
 For a sense of the level of detail, look at an accepted compact pair such as `../../../docs/specs/recover_removed_lands.md` with its appendix.

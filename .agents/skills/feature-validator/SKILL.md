@@ -74,6 +74,8 @@ Run the repo standard gate and focused checks when practical. If checks are expe
 
 If `scripts/init.sh` exists after a runnable baseline has been created, treat it as the standard non-blocking startup/verification gate. At least one invocation must execute the relevant checks and fail on errors; a print-only bare default is fine only when the script also exposes real checks-running tiers (for example `--feature`/`--fast`/`--verify`). If the script *only* prints commands and never runs checks while the repo is already bootstrapped, raise a `revise` finding with a concrete repair brief. It must not start long-running processes such as a dev server.
 
+When re-validating after a repair, rerun the focused tier and `--fast`, plus `--verify` only when the repair touched the surfaces listed below. Do not repeat a tier you already ran in this validation on unchanged inputs.
+
 Spend the cheapest useful tier first: `./scripts/init.sh --feature <feature-id>` runs the focused block the spec publishes, `./scripts/init.sh --fast` covers the no-device surface, and `./scripts/init.sh --verify` is the full gate. Rerun `--verify` yourself only when the diff touches `shared/`, `androidApp/`, `desktopApp/`, Gradle files, or packaging; otherwise `--feature` plus `--fast` is the independent rerun, and you say that `--verify` was not rerun and why. Read a failing check's log in `build/verify-logs/` rather than rerunning verbose. Confirm independently that the feature's published focused block is accurate and still runs; a stale or wrong block is a `revise` finding.
 
 Use this hierarchy:
@@ -119,6 +121,8 @@ Return one of:
 - `accept`: feature satisfies the spec, verification evidence is adequate, and harness/docs are consistent.
 - `revise`: feature is close but needs specific fixes; list required changes.
 - `block`: validation cannot continue or the implementation is fundamentally unsafe/wrong; list blocker and required next action.
+
+When the spec names an owner walkthrough as its manual acceptance check and that walkthrough is the only thing missing, return `accept` with the condition `pending owner walkthrough`, not `block`. List what only the walkthrough can show, one line each. The orchestrator then keeps the feature `passing` and persists `accepted` after the owner reports the walkthrough matched the guide, without another validation (see `$feature-flow` Spend Rules). Use `block` only when something besides the walkthrough is missing.
 
 For each finding that leads to `revise` or `block`, include:
 

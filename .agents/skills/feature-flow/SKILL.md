@@ -25,7 +25,7 @@ The main agent is the orchestrator. It chooses the next role, launches the right
 - If validation returns `revise`, route the repair brief back to `implementer` for the same feature, continuing the same implementer subagent when the runtime allows it (see Repair loop).
 - Verification is tiered, and each tier must be reachable: a spec that publishes no focused command block is incomplete, and implementer/validator runs use `./scripts/init.sh --feature <feature-id>` and `./scripts/init.sh --fast` before paying for `./scripts/init.sh --verify`.
 - After a `revise` repair, route the same feature back to `validator`; do not stop after the repair unless the user explicitly asked for a single role step.
-- If validation returns `block`, stop and report the blocker.
+- If validation returns `block`, stop and report the blocker. An `accept` with the condition `pending owner walkthrough` is not a block; follow Spend Rules.
 - After validation returns `accept`, stage only the accepted feature's changes and create a Conventional Commit before selecting or reporting the next feature.
 - After every accepted feature pass, the main orchestrator must report what changed and how the user can try it locally. The implementer supplies raw verification notes, the validator checks they are real, and the orchestrator presents the final user-facing testing steps after the commit.
 - Do not push commits unless the user explicitly asks for a push.
@@ -35,7 +35,7 @@ The main agent is the orchestrator. It chooses the next role, launches the right
 1. `../../../AGENTS.md` — skip re-reading it when it is already in context (Claude Code loads it through `CLAUDE.md`)
 2. The **Current state** section of `../../../PROGRESS.md`; read other sections only when the task needs them
 3. `./scripts/select-feature.sh --next` (feature selection); read `feature_list.json` only when you must update a feature's status
-4. Only the selected feature's files: `docs/specs/<feature-id>.md` and `docs/validations/<feature-id>.md` when present. Never list-read the `docs/specs/` or `docs/validations/` directories.
+4. Only the selected feature's files: `docs/specs/<feature-id>.md` and `docs/validations/<feature-id>.md` when present, plus the `## Handoff` section of its appendix when one exists (`grep -n '^## Handoff' docs/specs/<feature-id>.appendix.md`; see Stopping And Resuming). Never list-read the `docs/specs/` or `docs/validations/` directories.
 5. Current git status (`git status --short`)
 
 ## Feature Selection
@@ -90,6 +90,26 @@ Mode summary: until-accepted is the default full pipeline for one feature; one-s
 - Repair loop: if validator returns `revise`, send the repair brief to `implementer`, then run `validator` again for the same feature. Continue the implementer subagent that built the feature instead of launching a new one, so it keeps the spec, code, and docs it already read: in Claude Code, `SendMessage` to that implementer's agent id or name with the repair brief. Launch a fresh implementer only when that one cannot be continued (for example, the runtime has no continuation or the session was restarted), and then hand it the spec path plus the repair brief. Re-validation still runs a fresh `validator`, so acceptance stays independent of the earlier verdict.
 - One-step mode: run only the next required role and report the result only when the user explicitly asks for a single step, dry run, preview, or next-role-only execution.
 - Next-feature mode: after accept, select the next feature and report its id and next role; never start it in this session (see Hard Rules).
+
+## Spend Rules
+
+Each subagent launch re-reads the repository context, and the validator reruns the gates, so launches are the main cost. Use the cheapest path that keeps acceptance independent:
+
+- **Evidence-only updates need no subagent.** When the only change is recording what the owner reported (a walkthrough result, a device or version detail, a correction to how evidence is worded), the orchestrator edits the acceptance record, the appendix `Feature evidence`, and the `PROGRESS.md` / session-log lines directly, commits `docs: record <what> for <feature-id>`, and runs no validator. Record only what the owner said; mark anything not reported as not reported. Anything that changes code, a spec scenario, or a command is not evidence-only.
+- **Owner walkthrough features take one validator pass.** When the spec names an owner walkthrough as its manual acceptance check, the validator reviews the `passing` work once and may return `accept` with the condition `pending owner walkthrough` (see `$feature-validator`). The orchestrator then makes a holding commit (`chore: hold <feature-id> at passing pending owner walkthrough`), keeps the status `passing`, and gives the owner the walkthrough steps. When the owner reports that every step matched the guide, the orchestrator records it as an evidence-only update, sets the status to `accepted`, and commits `feat: complete <feature-id>`, with no second validator. If the walkthrough shows a defect, it is a repair (next rule).
+- **Repairs are small loops.** A repair from a `revise` verdict or a walkthrough defect goes to the implementer (continued when the runtime allows), which reruns only the focused tier while iterating and `--fast` once at the end. One fresh validator then reviews all repairs together; do not validate after each one when several are queued.
+- **Do not rerun an unchanged tier.** The orchestrator does not rerun `--feature`, `--fast`, or `--verify` that a subagent just ran on unchanged inputs; it checks the reported one-line results instead.
+- **Ask before launching.** Before the first subagent, resolve what would stop it: missing owner decisions (titles are often the only requirement), tools the feature needs (for example Docker, an emulator, network access to fetch a pin), and permissions for a headless session. Ask the owner once, with all open questions together, and pass the answers in the handoff.
+
+## Stopping And Resuming
+
+A session can stop before `accept`: a usage limit, a `block`, or an owner question. Before ending, the orchestrator replaces the `## Handoff` section at the end of `docs/specs/<feature-id>.appendix.md` with at most 10 lines: status, next role, what is done and uncommitted, the open question, and the last check results. Uncommitted work stays in the worktree.
+
+Resume in a new session (`./scripts/feature-session.sh <feature-id>`, adding `--note "<owner answer>"` when the owner answered something). The new session reads `## Handoff` with the spec and continues from the role it names. Do not resume a long session by replaying it (`claude --continue`, `codex resume`, or an OpenCode session continue) unless it stopped only minutes ago: a replay pays for the whole earlier history again, usually without a warm cache. Delete the `## Handoff` section when the feature is accepted.
+
+## Headless Sessions
+
+`github-flow` and other orchestrators start each feature with `./scripts/feature-session.sh --headless [--agent claude|codex|opencode] [--note "<text>"] <feature-id>` from the feature's worktree. It runs non-interactively with edits allowed inside the checkout and push refused, gives the session a working Java, and saves the output under `build/agent-sessions/`. For Claude it also prints one usage line (turns, minutes, tokens, cost at API prices) and appends it to `build/agent-sessions/usage.tsv`, so the cost of each feature is measured rather than guessed.
 
 ## Commit On Acceptance
 

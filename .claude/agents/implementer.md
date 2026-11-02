@@ -1,6 +1,7 @@
 ---
 name: implementer
 description: Wrapper agent that delegates implementation work to the feature-implementer skill.
+model: sonnet
 tools: Read, Glob, Grep, Edit, Write, Bash, Skill
 skills:
   - feature-implementer
