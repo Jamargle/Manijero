@@ -19,19 +19,23 @@ from typing import Literal, Union
 
 from fastapi import Depends, FastAPI
 from fastapi.exceptions import RequestValidationError
-from fastapi.responses import JSONResponse
+from fastapi.responses import JSONResponse, Response
 from pydantic import BaseModel
 
+from app import health_metrics
 from app.answer_trace import AnswerTrace, load_answer_trace
 from app.ask_api import (
+    KNOWLEDGE_RELEASE_ROOT_ENV,
     CorpusDocuments,
     get_as_of_date,
     get_corpus_documents,
+    last_release_outcome,
     router as ask_router,
     sanitize_request_validation,
 )
 from app.gemini_generation import GeminiTransport, GenerationClock
 from app.local_generation import resolve_startup_generation
+from app.health_metrics import HealthMetrics
 from app.pilot_config import PilotConfig, load_config
 from app.pilot_guard import PilotGuardMiddleware
 from app.pilot_logging import configure_operational_logging, operational_log
@@ -95,7 +99,10 @@ def create_app(
         redoc_url=None if pilot else "/redoc",
         openapi_url=None if pilot else "/openapi.json",
     )
-    application.add_middleware(PilotGuardMiddleware, config=resolved)
+    registry = HealthMetrics()
+    registry.set_service(resolved.profile, application.version)
+    application.state.health_metrics = registry
+    application.add_middleware(PilotGuardMiddleware, config=resolved, metrics=registry)
     application.include_router(ask_router)
     application.add_exception_handler(RequestValidationError, sanitize_request_validation)
     application.add_exception_handler(Exception, unhandled_exception)
@@ -124,6 +131,7 @@ def create_app(
         blockers=",".join(generation.blockers),
     )
     application.state.generation_provider = generation
+    registry.set_provider(generation.provider)
 
     @application.get("/health", response_model=HealthResponse, summary="Check service health")
     def health() -> HealthResponse:
@@ -160,7 +168,36 @@ def create_app(
             return JSONResponse(status_code=503, content=payload)
         return ReadinessResponse(**payload)
 
+    @application.get("/metrics", include_in_schema=False, response_class=Response)
+    def metrics(
+        corpus_documents: CorpusDocuments = Depends(get_corpus_documents),
+        as_of: date = Depends(get_as_of_date),
+        active_campaign: Union[str, None] = Depends(get_configured_campaign),
+    ) -> Response:
+        """Counts and timings only, in Prometheus text format; gated in the pilot profile."""
+
+        verdict = evaluate_readiness(corpus_documents, as_of, active_campaign)
+        body = registry.render(
+            ready=verdict.ready,
+            problems=verdict.problems,
+            release=_release_label(),
+            source_updates=health_metrics.read_source_updates(),
+        )
+        return Response(content=body, media_type=health_metrics.CONTENT_TYPE)
+
     return application
+
+
+def _release_label() -> tuple[str, str]:
+    """The served or refused release id, or ``none``/``repository`` without a release root."""
+
+    if not os.environ.get(KNOWLEDGE_RELEASE_ROOT_ENV, "").strip():
+        return "none", "repository"
+    outcome = last_release_outcome()
+    if outcome is None:
+        return "none", "refused"
+    release_id, state = outcome
+    return (release_id or "none"), state
 
 
 async def unhandled_exception(request: object, exc: Exception) -> JSONResponse:

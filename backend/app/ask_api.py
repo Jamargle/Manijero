@@ -13,7 +13,7 @@ from fastapi.exceptions import RequestValidationError
 from fastapi.responses import JSONResponse
 from pydantic import AnyHttpUrl, BaseModel, ConfigDict, Field, StrictBool, StrictStr, model_validator
 
-from app import answer_trace
+from app import answer_trace, health_metrics
 from app.abstention import (
     Abstention,
     prepare_corpus,
@@ -179,6 +179,14 @@ def _note_release_outcome(release_id: str | None, state: str, reason: str) -> No
     operational_log("knowledge_release", release_id=release_id or "none", state=state, reason=reason)
 
 
+def last_release_outcome() -> tuple[str | None, str] | None:
+    """The last ``(release_id, state)`` a request saw, for ``/metrics``; ``None`` if none yet."""
+
+    with _RELEASE_OUTCOME_LOCK:
+        outcome = _LAST_RELEASE_OUTCOME
+    return None if outcome is None else (outcome[0], outcome[1])
+
+
 def get_corpus_documents() -> CorpusDocuments:
     """FastAPI dependency seam for local files and fixture-backed route tests."""
 
@@ -277,6 +285,7 @@ def _answer(
         years = set(re.findall(r"(?<!\d)\d{4}(?!\d)", request.question))
         if len(years) > 1 or (years and years != {active_campaign}):
             answer_trace.note_outcome(abstention_reason="no_evidence")
+            health_metrics.note_answer("abstained", "no_evidence")
             return to_abstention_response(Abstention(reason="no_evidence", issues=()), land_scope=request.land_context.mode)
         corpus = _prepare_runtime_corpus(corpus_documents, as_of, active_campaign)
     except (CatalogReadError, CatalogRejectedError, PassageSetError, RuntimeError, ValueError):
@@ -309,16 +318,19 @@ def _answer(
         generator=generator,
     )
     if isinstance(result, NeedsLandClarification):
+        health_metrics.note_answer("needs_land_clarification")
         return to_clarification_response(result)
     if isinstance(result, Abstention):
         answer_trace.note_outcome(
             abstention_reason=result.reason, generation_reason=result.generation_reason
         )
+        health_metrics.note_answer("abstained", result.reason)
         return to_abstention_response(result, land_scope=request.land_context.mode)
     if isinstance(result, Answered):
         answer_trace.note_outcome(
             cited_passage_ids=[passage.passage_id for passage in result.sources]
         )
+        health_metrics.note_answer("answered")
         return to_answer_response(result)
     raise _unavailable_corpus_error()
 

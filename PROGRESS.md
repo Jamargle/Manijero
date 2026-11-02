@@ -7,7 +7,9 @@ Routine entry point. Exact feature status lives in [`feature_list.json`](feature
 contracts, raw evidence, and acceptance records remain in their owning files. Last updated:
 2026-11-02.
 
-**Feature status** — 79 of 120 features are accepted, including `welcome_first_use` (dismissible
+**Feature status** — 80 of 120 features are accepted, including `backend_health_metrics`
+(privacy-safe `GET /metrics` in Prometheus text format, open locally and pilot-token gated in QA;
+validator accept, no owner walkthrough by owner decision), `welcome_first_use` (dismissible
 first-use welcome card in the chat, reopened from `Ayuda` with `Ver bienvenida`; validator accept,
 no owner walkthrough by owner decision), `answer_pipeline_trace` (off-by-default
 local answer trace; question and answer text only in the `development` profile; 7-day purge),
@@ -97,6 +99,7 @@ before making any claim in its area.
 - The numeric-fact draft check is lexical and Spanish-only, rejects some correct paraphrases (ranges,
   an added year), and its effect on live local drafts is not measured.
 - The answer trace is off by default and local-only tested; old traces are purged only while the service runs.
+- Health metrics (`GET /metrics`) are per-process counts that reset on restart; source-update recency shows only when its state folder is set; in-process tests only.
 
 **Detail on demand**
 
