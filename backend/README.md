@@ -392,7 +392,7 @@ cases to exercise.
   apps; an old build keeps getting `401`. The header is sent only over `https` or to a
   loopback address, never on `/health` or `/ready`. **Remaining gap:** no app has yet been
   observed getting a live answer from a pilot-profile service; that waits for a service the
-  owner can start (`environment_profiles`).
+  owner can start (`qa_server_deployment`).
 
 ### Outage response
 
@@ -2054,6 +2054,29 @@ builds nothing, needs no `torch`/`chromadb`, and calls only loopback Ollama.
 Terminal messages are fixed sentences without corpus text. Subprocess output and tracebacks go
 only to the printed log path. `MANIJERO_LOCAL_HOME` and `MANIJERO_OLLAMA_CLI` exist for tests
 only.
+
+### Environment profiles
+
+`app/environment_profiles.py` (entry `scripts/environments.py`, behind `./scripts/init.sh
+--environments-status` and `--qa-settings-setup`) is the one reader later environment features use
+([spec](../docs/specs/environment_profiles.md)). Operator-only; the service never imports it.
+
+- **Homes**: `~/manijero/local` (profile `development`, `MANIJERO_ENVIRONMENT=local`) and
+  `~/manijero/qa` (profile `pilot`, `MANIJERO_ENVIRONMENT=qa`); prod is unconfigured and never read.
+  `MANIJERO_LOCAL_HOME`/`MANIJERO_QA_HOME` (tests only) must be outside the checkout.
+- **QA settings** (`backend/deploy/environments/qa.settings.env.example`, `@QA_HOME@` filled in): exactly
+  `MANIJERO_ENVIRONMENT`, `MANIJERO_DEPLOYMENT_PROFILE`, `MANIJERO_ACTIVE_CAMPAIGN`,
+  `MANIJERO_PUBLIC_URL` (`https://`, `.invalid` host is a placeholder), `MANIJERO_PILOT_CLIENTS_FILE`,
+  `MANIJERO_KNOWLEDGE_RELEASE_ROOT` (absolute, outside the checkout, not overlapping the local root). Never sourced.
+- **`read_profile_settings(name)`** returns `ProfileSettings` or raises `ProfileSettingsError(code, sentence)`:
+  `prod_not_configured`, `unknown_environment`, `settings_missing`, `settings_unreadable`, `line_invalid`,
+  `key_unknown`, `key_repeated`, `key_missing`, `environment_mismatch`, `profile_mismatch`,
+  `campaign_invalid`, `url_invalid`, `path_relative`, `path_in_checkout`, `release_root_overlaps_local`,
+  `local_settings_invalid`. A file is never defaulted to local.
+- **Credentials**: `<home>/credentials/` (`0700`) holds `<client>.token` (`secrets.token_urlsafe(48)`, `0600`) and
+  `pilot-clients.json` (digest only, via `pilot_ops.upsert_client`, `0600`); clients `local-test-device` and
+  `qa-test-device`, 20 requests per minute. Local keys come from `--local-rag-setup` and are not enforced by
+  the local service; `.gitignore` guards `*.token` and `pilot-clients*.json`.
 
 ### Local answer service
 

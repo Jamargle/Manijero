@@ -297,6 +297,19 @@ def test_the_launch_environment_carries_the_answer_trace_only_when_on(ready: boo
     assert {key: value for key, value in on.items() if key != "MANIJERO_ANSWER_TRACE"} == off
 
 
+def test_the_launch_environment_has_no_profile_environment_or_credential_key(ready: boot.Env) -> None:
+    _, model = lrb.load_pins(ready.ctx, boot.NOW.date())
+    release_id = kr.current_release_id(ready.paths.releases)
+    settings = lrb.read_settings(ready.paths.settings)
+    assert settings is not None and settings.names_environment
+
+    environment = svc.launch_environment(ready.ctx, settings, model, release_id, {"PATH": "/bin"})
+
+    for key in ("MANIJERO_DEPLOYMENT_PROFILE", "MANIJERO_ENVIRONMENT", "MANIJERO_PILOT_CLIENTS_FILE"):
+        assert key not in environment
+    assert not any("TOKEN" in key or "CREDENTIAL" in key for key in environment)
+
+
 def test_a_custom_port_has_no_default_address_note(harness: Harness) -> None:
     assert harness.start(port=8765) == 0, harness.output
     assert "These are the apps' default addresses" not in harness.output
@@ -684,7 +697,10 @@ def test_no_output_record_or_log_contains_corpus_text(running: Harness) -> None:
 
 
 def test_the_service_never_imports_the_operator_modules() -> None:
-    operator = ("local_rag_service", "local_rag_bootstrap", "pinned_download", "local_container", "local_smoke")
+    operator = (
+        "local_rag_service", "local_rag_bootstrap", "pinned_download", "local_container", "local_smoke",
+        "environment_profiles",
+    )
     pattern = re.compile(r"^\s*(from app(\.| import )|import app\.)({})".format("|".join(operator)), re.MULTILINE)
     for path in (REPO_ROOT / "backend" / "app").glob("*.py"):
         if path.stem in operator:
