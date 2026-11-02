@@ -5,10 +5,11 @@ Durable MUST/MUST NOT rules for hosted pilot operations and provider boundaries.
 ## Hosted pilot and provider boundaries
 
 - **MUST**: a QA test build takes its pilot token only from the QA access key (`<QA home>/credentials/qa-test-device.token`, or the `MANIJERO_PILOT_TOKEN_FILE` test override) and **MUST NOT** read `pilot-token.local`; a local build **MUST NOT** read the QA key or the QA address file. Reason: [`client_environment_builds`](../specs/client_environment_builds.md).
-- **MUST**: a managed tunnel is transport only; any public pilot API MUST enforce its own
+- **MUST**: a managed tunnel (Cloudflare Tunnel for a pilot; Tailscale Funnel for QA only) is transport only; any public pilot API MUST enforce its own
   authentication, authorization, per-client rate limiting, and request-size limits. Reason:
   `hosting_provider_review` found that Cloudflare Tunnel removes the public origin IP but does not
   authenticate the application, and the current OpenAPI contract declares no security scheme.
+- **MUST**: QA runs on the owner's Mac behind Tailscale Funnel with made-up test data only, and only `./scripts/init.sh --qa-deploy` (or `--qa-update`/`--qa-rollback`) starts it. The pilot launcher accepts a `pending` privacy review (never `rejected`, invalid, or unreadable) and local drafting is enabled only when the environment is exactly `MANIJERO_DEPLOYMENT_PROFILE=pilot`, `MANIJERO_ENVIRONMENT=qa`, and `MANIJERO_QA_TEST_DATA_ONLY=yes`; it prints a plain test-data-only warning. The flag is set only in the QA `docker run` arguments, never in a settings file. Pilot, prod, and Gemini stay blocked by the review. The launcher's public-bind acknowledgement is allowed only inside the container, whose host publish is `127.0.0.1`. Reason: owner decision 2026-11-02, [`qa_server_deployment`](../specs/qa_server_deployment.md).
 - **MUST NOT**: let a real-user question transit a host, tunnel, or generation provider until the
   current terms, data flow, log/retention behavior, and qualified privacy review are recorded and
   approved. Reason: the 2026-10-27 decision keeps the owned-server path blocked on owner attestation

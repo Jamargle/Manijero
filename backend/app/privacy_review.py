@@ -24,6 +24,13 @@ the pilot profile, requires the pilot review gate here to pass. The Gemini decis
 reports ``gemini_not_configured`` for it, unchanged.
 
 Blockers are fixed codes; no record value is echoed.
+
+QA exception (owner decision 2026-11-02, docs/specs/qa_server_deployment.md, scenario 9): the
+*pilot* gate, and only through :func:`pilot_gate`, also passes a review whose status is exactly
+``pending`` when the environment carries exactly ``MANIJERO_DEPLOYMENT_PROFILE=pilot``,
+``MANIJERO_ENVIRONMENT=qa``, and ``MANIJERO_QA_TEST_DATA_ONLY=yes``. That mode is for made-up test
+questions only. ``rejected``, invalid, or unreadable records, every other environment, and the
+Gemini gate are unchanged.
 """
 
 from __future__ import annotations
@@ -59,6 +66,11 @@ _SECTION_KEYS = frozenset(
     {"status", "reviewed_on", "reviewer_qualification", "scope", "conditions", "evidence_reference"}
 )
 _GEMINI_EXTRA_KEYS = frozenset({"model", "data_sent"})
+QA_TEST_DATA_MODE = (
+    ("MANIJERO_DEPLOYMENT_PROFILE", "pilot"),
+    ("MANIJERO_ENVIRONMENT", "qa"),
+    ("MANIJERO_QA_TEST_DATA_ONLY", "yes"),
+)
 
 
 @dataclass(frozen=True)
@@ -98,6 +110,48 @@ def evaluate_pilot_review(record: Mapping[str, Any] | None, *, as_of: date) -> G
     if set(section) != _SECTION_KEYS:
         blockers.insert(0, "privacy_review_invalid")
     return GateResult(not blockers, tuple(blockers))
+
+
+@dataclass(frozen=True)
+class PilotGate:
+    """The pilot gate decision; ``qa_test_data`` is True when only the QA exception let it pass."""
+
+    result: GateResult
+    qa_test_data: bool = False
+
+    @property
+    def passed(self) -> bool:
+        return self.result.passed
+
+    @property
+    def blockers(self) -> Tuple[str, ...]:
+        return self.result.blockers
+
+
+def qa_test_data_mode(env: Mapping[str, str] | None = None) -> bool:
+    """True only for the exact QA test-data-only environment (no trimming, no case folding)."""
+
+    source = os.environ if env is None else env
+    return all(source.get(key) == value for key, value in QA_TEST_DATA_MODE)
+
+
+def pilot_gate(
+    record: Mapping[str, Any] | None, env: Mapping[str, str] | None = None, *, as_of: date
+) -> PilotGate:
+    """The pilot review gate, with the QA test-data-only exception for a ``pending`` review."""
+
+    review = evaluate_pilot_review(record, as_of=as_of)
+    if review.passed or not qa_test_data_mode(env):
+        return PilotGate(review)
+    section = record.get("pilot_review") if isinstance(record, Mapping) else None
+    if (
+        not isinstance(section, Mapping)
+        or section.get("status") != "pending"
+        or set(section) != _SECTION_KEYS
+        or _section(record, "pilot_review") is not section
+    ):
+        return PilotGate(review)
+    return PilotGate(GateResult(True), qa_test_data=True)
 
 
 def evaluate_gemini_review(

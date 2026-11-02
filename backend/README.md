@@ -2252,6 +2252,23 @@ limits**: no real Docker ran in automated checks; images are never pruned; trans
 are not hash-locked, so the same inputs can rebuild with different transitive versions; native
 platform only; the image is a default-profile local runtime, not a pilot launcher.
 
+### QA deployment
+
+`./scripts/init.sh --qa-deploy`, `--qa-update`, `--qa-rollback`, `--qa-status`, and `--qa-stop` (owner
+steps in [`docs/owner-guide.md`](../docs/owner-guide.md)) run `scripts/qa_service.py <operation>`,
+implemented by `app/qa_deployment.py` (operator-only, never imported by the service; spec
+[`qa_server_deployment`](../docs/specs/qa_server_deployment.md)). QA is container `manijero-qa` from
+tag `manijero-backend:qa-current` (update promotes `:local` and keeps `:qa-previous`; rollback swaps
+them), published on `127.0.0.1:8100` only, started through `serve_pilot.py` by the image entry point
+when `MANIJERO_DEPLOYMENT_PROFILE=pilot`. The fixed `docker run` arguments are `qa_deployment.run_argv`;
+the environment is the campaign, `pilot`, `qa`, `MANIJERO_QA_TEST_DATA_ONLY=yes` (the only way the
+pending privacy review is accepted, `privacy_review.pilot_gate`), and a read-only mount of the digest-only
+clients file. The Tailscale forms live in one block of `qa_deployment.py`: `status --json`,
+`funnel status --json`, `funnel --bg --https=443 http://127.0.0.1:8100`, and `funnel --https=443 off`;
+the owner walkthrough confirms them on a real Mac. Test-only variables: `MANIJERO_TAILSCALE_CLI`,
+`MANIJERO_DOCKER_CLI`, `MANIJERO_QA_PORT`, `MANIJERO_QA_HOME`, `MANIJERO_QA_ADDRESS_FILE`.
+Logs: `<QA home>/logs/qa-<operation>-<UTC>.log` (container output only; no tokens or question text).
+
 ### Local smoke test
 
 `./scripts/init.sh --local-smoke` (owner steps in [`docs/owner-guide.md`](../docs/owner-guide.md))

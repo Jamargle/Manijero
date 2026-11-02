@@ -300,6 +300,40 @@ def _read_qa(home: Optional[Path]) -> ProfileSettings:
     )
 
 
+def write_public_url(home: Path, url: str) -> None:
+    """Replace the ``MANIJERO_PUBLIC_URL`` line of the QA settings file, keeping the rest and the mode.
+
+    Written to a private temporary file in the same folder, then renamed over the original.
+    Used by ``--qa-deploy`` only; the URL is validated first.
+    """
+
+    if not _valid_https_url(url):
+        raise ProfileSettingsError("url_invalid", "The QA address must start with https:// and name a host.")
+    path = Path(home) / SETTINGS_NAME
+    mode = path.stat().st_mode & 0o777
+    replaced = False
+    lines: List[str] = []
+    for raw in path.read_text(encoding="utf-8").splitlines():
+        key = raw.split("=", 1)[0].strip() if "=" in raw and not raw.strip().startswith("#") else ""
+        if key == PUBLIC_URL_KEY:
+            lines.append("{}={}".format(PUBLIC_URL_KEY, url))
+            replaced = True
+        else:
+            lines.append(raw)
+    if not replaced:
+        lines.append("{}={}".format(PUBLIC_URL_KEY, url))
+    descriptor, temporary = tempfile.mkstemp(dir=str(path.parent), prefix=".settings-")
+    try:
+        with os.fdopen(descriptor, "w", encoding="utf-8") as stream:
+            stream.write("\n".join(lines) + "\n")
+        os.chmod(temporary, mode)
+        os.replace(temporary, path)
+    except BaseException:
+        if os.path.exists(temporary):
+            os.unlink(temporary)
+        raise
+
+
 def _valid_https_url(value: str) -> bool:
     if not value or any(character.isspace() for character in value):
         return False
