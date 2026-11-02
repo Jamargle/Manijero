@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""The batch loop behind ./scripts/batch.sh: next, integrate, and status.
+"""The batch loop behind .agents/skills/github-flow/scripts/batch.sh: next, integrate, and status.
 
 A batch is up to BATCH_SIZE features taken one at a time in selector order, each in its own
 worktree and headless session from one common main SHA, then merged into one integration branch
@@ -26,7 +26,16 @@ from difflib import SequenceMatcher
 from pathlib import Path
 from typing import Callable, Dict, List, Optional, Sequence, Tuple
 
-REPO_ROOT = Path(__file__).resolve().parents[1]
+def _repository_root(start: Path) -> Path:
+    """The checkout this copy of the script belongs to: the nearest folder with a `.git` entry."""
+
+    for folder in start.parents:
+        if (folder / ".git").exists():
+            return folder
+    raise SystemExit("batch_flow.py must live inside a git checkout")
+
+
+REPO_ROOT = _repository_root(Path(__file__).resolve())
 WORKTREES_ROOT = REPO_ROOT.parent / (REPO_ROOT.name + "-worktrees")
 STATE_FILE = REPO_ROOT / "build" / "batches" / "current.json"
 BASE_BRANCH = "main"
@@ -251,9 +260,9 @@ def build_pr_body(state: dict, details: Dict[str, dict]) -> str:
     base = state["base_sha"][:7]
     features = state["features"]
     lines = [
-        "Batch {}: {} feature{}, taken one at a time with `./scripts/batch.sh next` from `{}` `{}`. Each was "
+        "Batch {}: {} feature{}, taken one at a time with `.agents/skills/github-flow/scripts/batch.sh next` from `{}` `{}`. Each was "
         "planned, implemented, and validated in its own worktree and session, then merged here with "
-        "`./scripts/batch.sh integrate`.".format(state["number"], len(features), "" if len(features) == 1 else "s",
+        "`.agents/skills/github-flow/scripts/batch.sh integrate`.".format(state["number"], len(features), "" if len(features) == 1 else "s",
                                                   BASE_BRANCH, base),
         "",
         "## Features",
@@ -326,7 +335,7 @@ def require_base_checkout() -> None:
     common = Path(git("rev-parse", "--git-common-dir"))
     common = common if common.is_absolute() else (REPO_ROOT / common)
     if git_dir.resolve() != common.resolve():
-        raise Stop("Run ./scripts/batch.sh from the main checkout ({}), not from a worktree.".format(REPO_ROOT))
+        raise Stop("Run .agents/skills/github-flow/scripts/batch.sh from the main checkout ({}), not from a worktree.".format(REPO_ROOT))
 
 
 def require_clean_main() -> None:
@@ -465,12 +474,12 @@ def cmd_next(note: str, no_decisions: bool) -> int:
             entry["note"] = (entry.get("note", "") + " " + note).strip()
     else:
         if len(accepted) >= BATCH_SIZE:
-            raise Stop("Batch {} already has {} accepted features. Run ./scripts/batch.sh integrate.".format(
+            raise Stop("Batch {} already has {} accepted features. Run .agents/skills/github-flow/scripts/batch.sh integrate.".format(
                 state["number"], len(accepted)), EXIT_WAIT)
         selector = run(["./scripts/select-feature.sh", "--status"]).stdout
         feature_id = choose_feature(selector, [entry["id"] for entry in state["features"]])
         if feature_id is None:
-            hint = " Run ./scripts/batch.sh integrate --partial to ship them." if accepted else ""
+            hint = " Run .agents/skills/github-flow/scripts/batch.sh integrate --partial to ship them." if accepted else ""
             raise Stop("No other feature is ready in batch {}: the rest wait on features that are not on main "
                        "yet.{}".format(state["number"], hint), EXIT_WAIT)
         feature = features_by_id(REPO_ROOT)[feature_id]
@@ -479,8 +488,8 @@ def cmd_next(note: str, no_decisions: bool) -> int:
             say("Next feature: {}".format(feature_id))
             say("  {}".format(feature["title"]))
             say("It has no spec yet, so the title is its only requirement.")
-            say("Result: {} needs the owner's decisions first. Run ./scripts/batch.sh next --note \"...\" "
-                "with them, or ./scripts/batch.sh next --no-decisions if none are needed.".format(feature_id))
+            say("Result: {} needs the owner's decisions first. Run .agents/skills/github-flow/scripts/batch.sh next --note \"...\" "
+                "with them, or .agents/skills/github-flow/scripts/batch.sh next --no-decisions if none are needed.".format(feature_id))
             return EXIT_DECISIONS
         entry = {"id": feature_id, "status": "not_started", "note": note, "issue": None, "commit": None}
         state["features"].append(entry)
@@ -511,14 +520,14 @@ def cmd_next(note: str, no_decisions: bool) -> int:
     accepted_now = sum(1 for item in state["features"] if item["status"] == "accepted")
     say("")
     if entry["status"] != "accepted":
-        say("Result: {} is {}, not accepted. Read the report above; run ./scripts/batch.sh next to continue "
+        say("Result: {} is {}, not accepted. Read the report above; run .agents/skills/github-flow/scripts/batch.sh next to continue "
             "it in a fresh session.".format(entry["id"], entry["status"].replace("_", " ")))
         return EXIT_NOT_ACCEPTED
     say("Result: {} is accepted ({}); {}.".format(entry["id"], entry["commit"], cost))
     if accepted_now >= BATCH_SIZE:
-        say("Batch {} is full. Next: ./scripts/batch.sh integrate".format(state["number"]))
+        say("Batch {} is full. Next: .agents/skills/github-flow/scripts/batch.sh integrate".format(state["number"]))
     else:
-        say("Batch {}: {} of {} accepted. Next: ./scripts/batch.sh next".format(state["number"], accepted_now,
+        say("Batch {}: {} of {} accepted. Next: .agents/skills/github-flow/scripts/batch.sh next".format(state["number"], accepted_now,
                                                                               BATCH_SIZE))
     return 0
 
@@ -581,18 +590,18 @@ def cmd_integrate(partial: bool) -> int:
     require_base_checkout()
     state = load_state()
     if state is None:
-        raise Stop("There is no batch in progress. Start one with ./scripts/batch.sh next.", EXIT_WAIT)
+        raise Stop("There is no batch in progress. Start one with .agents/skills/github-flow/scripts/batch.sh next.", EXIT_WAIT)
     if state.get("pr"):
         say("Batch {} is already in PR #{}: {}".format(state["number"], state["pr"], state.get("pr_url", "")))
         return 0
     unfinished = [entry["id"] for entry in state["features"] if entry["status"] != "accepted"]
     if unfinished:
-        raise Stop("Not accepted yet: {}. Run ./scripts/batch.sh next to finish it.".format(", ".join(unfinished)),
+        raise Stop("Not accepted yet: {}. Run .agents/skills/github-flow/scripts/batch.sh next to finish it.".format(", ".join(unfinished)),
                    EXIT_WAIT)
     if not state["features"]:
-        raise Stop("Batch {} has no features yet. Run ./scripts/batch.sh next.".format(state["number"]), EXIT_WAIT)
+        raise Stop("Batch {} has no features yet. Run .agents/skills/github-flow/scripts/batch.sh next.".format(state["number"]), EXIT_WAIT)
     if len(state["features"]) < BATCH_SIZE and not partial:
-        raise Stop("Batch {} has {} of {} features. Run ./scripts/batch.sh next, or integrate --partial to ship "
+        raise Stop("Batch {} has {} of {} features. Run .agents/skills/github-flow/scripts/batch.sh next, or integrate --partial to ship "
                    "it now.".format(state["number"], len(state["features"]), BATCH_SIZE), EXIT_WAIT)
 
     worktree = ensure_worktree(WORKTREES_ROOT / "integration-batch-{}".format(state["number"]), state["branch"],
@@ -601,7 +610,7 @@ def cmd_integrate(partial: bool) -> int:
         left = unmerged_files(worktree)
         if left:
             raise Stop("These files still have conflicts in {}: {}. Resolve them, `git add` them, and run "
-                       "./scripts/batch.sh integrate again.".format(worktree, ", ".join(left)), EXIT_CONFLICT)
+                       ".agents/skills/github-flow/scripts/batch.sh integrate again.".format(worktree, ", ".join(left)), EXIT_CONFLICT)
         git("commit", "--no-edit", cwd=worktree)
         state["manual"] += state.get("pending_manual") or []
         state["pending_manual"] = []
@@ -629,7 +638,7 @@ def cmd_integrate(partial: bool) -> int:
             state["pending_manual"] = ["{} ({})".format(relative, entry["id"]) for relative in left]
             save_state(state)
             raise Stop("Merging {} left conflicts that need a person: {}. They are in {}. Resolve them, `git add` "
-                       "them, and run ./scripts/batch.sh integrate again.".format(
+                       "them, and run .agents/skills/github-flow/scripts/batch.sh integrate again.".format(
                            branch, ", ".join(left), worktree), EXIT_CONFLICT)
         git("commit", "--no-edit", cwd=worktree)
         save_state(state)
@@ -676,7 +685,7 @@ def cmd_integrate(partial: bool) -> int:
     save_state(state)
     say("")
     say("Result: batch {} is ready for review in PR #{}: {}".format(state["number"], state["pr"], state["pr_url"]))
-    say("After it is merged, run ./scripts/batch.sh next to start the next batch.")
+    say("After it is merged, run .agents/skills/github-flow/scripts/batch.sh next to start the next batch.")
     return 0
 
 
@@ -686,7 +695,7 @@ def cmd_integrate(partial: bool) -> int:
 def cmd_status() -> int:
     state = load_state()
     if state is None:
-        say("Result: no batch is in progress. Start one with ./scripts/batch.sh next.")
+        say("Result: no batch is in progress. Start one with .agents/skills/github-flow/scripts/batch.sh next.")
         return 0
     say("Batch {} from {} {} (branch {}).".format(state["number"], BASE_BRANCH, state["base_sha"][:7],
                                                   state["branch"]))
@@ -704,7 +713,7 @@ def cmd_status() -> int:
 
 
 def main(argv: Optional[Sequence[str]] = None) -> int:
-    parser = argparse.ArgumentParser(prog="./scripts/batch.sh", description=__doc__.split("\n\n")[0])
+    parser = argparse.ArgumentParser(prog=".agents/skills/github-flow/scripts/batch.sh", description=__doc__.split("\n\n")[0])
     commands = parser.add_subparsers(dest="command", required=True)
     next_parser = commands.add_parser("next", help="run the next feature of the batch in its own session")
     next_parser.add_argument("--note", default="", help="the owner's decisions for this feature")

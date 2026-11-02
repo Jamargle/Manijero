@@ -1,4 +1,4 @@
-"""The batch loop ``./scripts/batch.sh`` (``scripts/batch_flow.py``).
+"""The batch loop ``.agents/skills/github-flow/scripts/batch.sh`` (``batch_flow.py`` beside it).
 
 Unit tests cover the conflict resolvers and helpers. The end-to-end tests build a throwaway
 project in a temporary folder: a bare ``origin``, a main checkout with the real batch scripts and
@@ -19,10 +19,11 @@ from pathlib import Path
 
 import pytest
 
-REPO_ROOT = Path(__file__).resolve().parents[2]
-SCRIPTS = REPO_ROOT / "scripts"
+SKILL_SCRIPTS = Path(__file__).resolve().parents[1] / "scripts"
+REPO_ROOT = Path(__file__).resolve().parents[4]
+BATCH = ".agents/skills/github-flow/scripts/batch.sh"
 
-_spec = importlib.util.spec_from_file_location("batch_flow", SCRIPTS / "batch_flow.py")
+_spec = importlib.util.spec_from_file_location("batch_flow", SKILL_SCRIPTS / "batch_flow.py")
 bf = importlib.util.module_from_spec(_spec)
 _spec.loader.exec_module(bf)
 
@@ -229,8 +230,10 @@ def project(tmp_path: Path):
     git("clone", "-q", str(origin), str(main), cwd=tmp_path)
     git("checkout", "-q", "-b", "main", cwd=main)
     (main / "scripts").mkdir()
-    for name in ("batch.sh", "batch_flow.py", "select-feature.sh"):
-        shutil.copy2(SCRIPTS / name, main / "scripts" / name)
+    shutil.copy2(REPO_ROOT / "scripts" / "select-feature.sh", main / "scripts" / "select-feature.sh")
+    (main / BATCH).parent.mkdir(parents=True)
+    for name in ("batch.sh", "batch_flow.py"):
+        shutil.copy2(SKILL_SCRIPTS / name, (main / BATCH).parent / name)
     _write_tool(main / "scripts" / "feature-session.sh", FAKE_SESSION)
     _write_tool(main / "scripts" / "init.sh", FAKE_INIT)
     features = [{"id": fid, "area": "x", "title": "Do " + fid.upper(), "status": "not_started", "depends_on": deps,
@@ -254,7 +257,7 @@ def project(tmp_path: Path):
     git("push", "-q", "-u", "origin", "main", cwd=main)
 
     def batch(*args: str) -> subprocess.CompletedProcess:
-        return subprocess.run(["./scripts/batch.sh", *args], cwd=main, env=environment, text=True,
+        return subprocess.run(["./" + BATCH, *args], cwd=main, env=environment, text=True,
                               capture_output=True)
 
     def calls() -> list:
@@ -368,9 +371,9 @@ def test_integrate_refuses_a_short_batch_without_partial_and_a_worktree_run(proj
     short = batch("integrate")
     assert short.returncode == bf.EXIT_WAIT and "1 of 3 features" in short.stdout
 
-    from_worktree = subprocess.run(["./scripts/batch.sh", "status"], cwd=project["worktrees"] / "a", text=True,
+    from_worktree = subprocess.run(["./" + BATCH, "status"], cwd=project["worktrees"] / "a", text=True,
                                    capture_output=True, env=dict(os.environ, MANIJERO_PYTHON=sys.executable))
     assert from_worktree.returncode == 0  # status only reads; next and integrate refuse
-    refused = subprocess.run(["./scripts/batch.sh", "integrate"], cwd=project["worktrees"] / "a", text=True,
+    refused = subprocess.run(["./" + BATCH, "integrate"], cwd=project["worktrees"] / "a", text=True,
                              capture_output=True, env=dict(os.environ, MANIJERO_PYTHON=sys.executable))
     assert refused.returncode == bf.EXIT_ERROR and "not from a worktree" in refused.stdout

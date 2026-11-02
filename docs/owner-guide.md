@@ -534,29 +534,6 @@ Nothing is saved, and any token saved before stays as it was.
 If an app build stops with `pilot-token.local is not a valid pilot token. Run ./scripts/init.sh --pilot-token-save again.`,
 copy the token and do step 2 again.
 
-## Run a batch of features
-
-A batch is up to three features, built one at a time, then sent to you as one pull request. Claude
-normally runs these commands for you; you can also run them yourself. Each step is one command,
-and each ends with a `Result:` line.
-
-1. Run `./scripts/batch.sh next`. It picks the next feature and builds it in its own session.
-   That takes 10 to 20 minutes. Expect `Result: <feature> is accepted`.
-2. Repeat step 1 until it says `Batch <n> is full`.
-3. Run `./scripts/batch.sh integrate`. It combines the three features, runs every check, and opens
-   the pull request. Expect `Result: batch <n> is ready for review in PR #<number>`.
-4. Review and merge the pull request on GitHub. The next `./scripts/batch.sh next` starts a new batch.
-
-To see where the batch is, run `./scripts/batch.sh status`. It changes nothing.
-
-| What it shows | What to do |
-|---|---|
-| `Result: <feature> needs the owner's decisions first` | The feature has only a title. Decide what you want, then run `./scripts/batch.sh next --note "<your decisions>"`. |
-| `Result: <feature> is ... not accepted` | Run `./scripts/batch.sh next` again; a fresh session continues where the last one stopped. |
-| `Result: Merging ... left conflicts that need a person` | Ask Claude to resolve them, then run `./scripts/batch.sh integrate` again. |
-| `Result: The check ... failed on the integration branch` | Ask Claude to look at the failure, then run `./scripts/batch.sh integrate` again. |
-| `Result: Batch <n> is waiting for review in PR #<number>` | Merge or comment on that pull request first. |
-
 ## Your environments
 
 Manijero has three environments: local (your computer, the default), QA (a test copy on a server

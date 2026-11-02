@@ -82,6 +82,16 @@ Read-only. Produce the plan report only.
 3. Push `feature/<feature-id>` and reuse or create the PR into `base_branch` with acceptance evidence in the body.
 4. Never merge. Report the PR URL per published feature.
 
+## Batch Loop Script
+
+For the owner's batch loop (up to 3 features taken one at a time in selector order, then one integration PR to `base_branch`), run `scripts/batch.sh` in this skill folder from the main checkout instead of doing `execute` and the integration by hand:
+
+- `.agents/skills/github-flow/scripts/batch.sh next [--note "<owner decisions>"|--no-decisions]` runs the next feature: reuses or creates the issue and worktree from the batch's common base SHA, runs `feature-session.sh --headless`, and records status, commit, and usage. It refuses a fourth feature, and it stops with exit 3 when a feature has no spec and no owner decisions: ask the owner, then rerun with `--note`.
+- `... batch.sh integrate [--partial]` merges the accepted `feature/<id>` branches into `integration/<date>-batch-<n>`, resolves the conflicts every batch has (`feature_list.json` statuses, `PROGRESS.md` and `docs/progress/*.md` prose, the accepted and not-started counts), runs each focused tier and `--verify`, pushes only that branch, and opens one PR with the features, owner decisions, usage, and session reports. A conflict anywhere else stops with exit 4 and leaves the merge in progress: resolve and `git add` it, then rerun `integrate`. A failing check stops with exit 5.
+- `... batch.sh status` shows the batch. State lives in `build/batches/current.json`. After the owner merges the PR, the next `next` archives it and starts a new batch from updated `base_branch`; while the PR is open, `next` stops with exit 6.
+
+Running `integrate` is the owner's push permission for the integration branch only. The script never merges, force-pushes, or deletes anything. Read the PR's session reports and add owner-facing risks to the PR before telling the owner it is ready. Its tests are in `tests/` here and run in the fast tier as `harness-tests`.
+
 ## Output Report
 
 Header: mode, repository, base branch, base SHA, push permission (granted/denied), reused vs created artifacts.

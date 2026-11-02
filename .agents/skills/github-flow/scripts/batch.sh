@@ -3,11 +3,11 @@ set -euo pipefail
 
 # The batch loop, one command per step (logic in scripts/batch_flow.py):
 #
-#   ./scripts/batch.sh next [--note "<owner decisions>"] [--no-decisions]
+#   .agents/skills/github-flow/scripts/batch.sh next [--note "<owner decisions>"] [--no-decisions]
 #       Run the next feature of the batch in its own worktree and headless session.
-#   ./scripts/batch.sh integrate [--partial]
+#   .agents/skills/github-flow/scripts/batch.sh integrate [--partial]
 #       Merge the batch's accepted features, run the checks, push, and open one PR to main.
-#   ./scripts/batch.sh status
+#   .agents/skills/github-flow/scripts/batch.sh status
 #       Show the current batch.
 #
 # Run it from the main checkout. It stops with a plain message whenever a person must decide.
