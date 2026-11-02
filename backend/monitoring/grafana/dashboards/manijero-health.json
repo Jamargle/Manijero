@@ -1,0 +1,917 @@
+{
+  "uid": "manijero-health",
+  "title": "Manijero health",
+  "editable": false,
+  "graphTooltip": 0,
+  "schemaVersion": 39,
+  "version": 1,
+  "refresh": "30s",
+  "time": {
+    "from": "now-1h",
+    "to": "now"
+  },
+  "timepicker": {
+    "hidden": true
+  },
+  "tags": [
+    "manijero"
+  ],
+  "annotations": {
+    "list": []
+  },
+  "templating": {
+    "list": []
+  },
+  "links": [],
+  "panels": [
+    {
+      "id": 1,
+      "type": "text",
+      "title": "How to read this page",
+      "gridPos": {
+        "x": 0,
+        "y": 0,
+        "w": 24,
+        "h": 7
+      },
+      "options": {
+        "mode": "markdown",
+        "content": "## How to read this page\n\nEach box is one check. The first word is the state: **OK**, **Warning**, **Problem**, or a grey **Not enough data** / **Not set up yet**. The rest says what it means and the first thing to do. Colour is only a help; the word always comes first.\n\n- **Local** is the answer service on this Mac. **QA** shows *Not set up yet* until the QA service is deployed.\n- A grey *No information yet* means the dashboard has no data for that box. Run `./scripts/init.sh --monitoring-status`.\n- This page runs only on this Mac while Docker Desktop is open. It does not send alerts.\n"
+      }
+    },
+    {
+      "id": 2,
+      "type": "row",
+      "title": "Local",
+      "collapsed": false,
+      "gridPos": {
+        "x": 0,
+        "y": 7,
+        "w": 24,
+        "h": 1
+      },
+      "panels": []
+    },
+    {
+      "id": 3,
+      "type": "stat",
+      "title": "Local: Service",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "manijero-prometheus"
+      },
+      "gridPos": {
+        "x": 0,
+        "y": 8,
+        "w": 12,
+        "h": 6
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "manijero:status_service{env=\"local\"}",
+          "instant": true,
+          "legendFormat": "__auto",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "manijero-prometheus"
+          }
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "mappings": [
+            {
+              "type": "value",
+              "options": {
+                "0": {
+                  "index": 0,
+                  "color": "green",
+                  "text": "OK. The answer service is running and ready to answer. Nothing to do."
+                },
+                "1": {
+                  "index": 1,
+                  "color": "orange",
+                  "text": "Warning. The answer service works now, but it was down or not ready at some point in the last 5 minutes. First thing to do: wait a few minutes and look again. Run ./scripts/init.sh --local-rag-service-status (or ./scripts/init.sh --container-status if you use the container)."
+                },
+                "2": {
+                  "index": 2,
+                  "color": "red",
+                  "text": "Problem. The dashboard cannot reach the answer service, so nobody can ask questions. First thing to do: run ./scripts/init.sh --local-rag-start (or ./scripts/init.sh --container-start)."
+                },
+                "3": {
+                  "index": 3,
+                  "color": "red",
+                  "text": "Problem. The answer service is running but not ready to answer. First thing to do: run ./scripts/init.sh --local-rag-service-status (or ./scripts/init.sh --container-status if you use the container)."
+                },
+                "4": {
+                  "index": 4,
+                  "color": "text",
+                  "text": "Not set up yet. This environment has no running service for the dashboard to watch. Nothing to do until the QA service is deployed."
+                }
+              }
+            },
+            {
+              "type": "special",
+              "options": {
+                "match": "null+nan",
+                "result": {
+                  "index": 5,
+                  "color": "text",
+                  "text": "No information yet. The dashboard has not received data for this check. First thing to do: wait one minute, then run ./scripts/init.sh --monitoring-status."
+                }
+              }
+            }
+          ],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "text",
+                "value": null
+              }
+            ]
+          },
+          "color": {
+            "mode": "fixed",
+            "fixedColor": "text"
+          },
+          "noValue": "No information yet. The dashboard has not received data for this check. First thing to do: wait one minute, then run ./scripts/init.sh --monitoring-status."
+        },
+        "overrides": []
+      },
+      "options": {
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "textMode": "value",
+        "colorMode": "background",
+        "graphMode": "none",
+        "justifyMode": "left",
+        "orientation": "auto",
+        "text": {
+          "valueSize": 16
+        }
+      }
+    },
+    {
+      "id": 4,
+      "type": "stat",
+      "title": "Local: Answer speed",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "manijero-prometheus"
+      },
+      "gridPos": {
+        "x": 12,
+        "y": 8,
+        "w": 12,
+        "h": 6
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "manijero:status_speed{env=\"local\"}",
+          "instant": true,
+          "legendFormat": "__auto",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "manijero-prometheus"
+          }
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "mappings": [
+            {
+              "type": "value",
+              "options": {
+                "-1": {
+                  "index": 0,
+                  "color": "text",
+                  "text": "Not enough data. No question was answered in the last 15 minutes, so there is nothing to judge. Nothing to do."
+                },
+                "0": {
+                  "index": 1,
+                  "color": "green",
+                  "text": "OK. Answers arrive quickly: 9 out of 10 take less than 10 seconds. Nothing to do."
+                },
+                "1": {
+                  "index": 2,
+                  "color": "orange",
+                  "text": "Warning. Answers are slow: 1 in 10 takes between 10 and 30 seconds. First thing to do: wait and look again in a few minutes; if it stays, tell a developer."
+                },
+                "2": {
+                  "index": 3,
+                  "color": "red",
+                  "text": "Problem. Answers are very slow: 1 in 10 takes 30 seconds or more. First thing to do: make sure the drafting program (Ollama) is open, then tell a developer if it stays."
+                },
+                "4": {
+                  "index": 4,
+                  "color": "text",
+                  "text": "Not set up yet. This environment has no running service for the dashboard to watch. Nothing to do until the QA service is deployed."
+                }
+              }
+            },
+            {
+              "type": "special",
+              "options": {
+                "match": "null+nan",
+                "result": {
+                  "index": 5,
+                  "color": "text",
+                  "text": "No information yet. The dashboard has not received data for this check. First thing to do: wait one minute, then run ./scripts/init.sh --monitoring-status."
+                }
+              }
+            }
+          ],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "text",
+                "value": null
+              }
+            ]
+          },
+          "color": {
+            "mode": "fixed",
+            "fixedColor": "text"
+          },
+          "noValue": "No information yet. The dashboard has not received data for this check. First thing to do: wait one minute, then run ./scripts/init.sh --monitoring-status."
+        },
+        "overrides": []
+      },
+      "options": {
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "textMode": "value",
+        "colorMode": "background",
+        "graphMode": "none",
+        "justifyMode": "left",
+        "orientation": "auto",
+        "text": {
+          "valueSize": 16
+        }
+      }
+    },
+    {
+      "id": 5,
+      "type": "stat",
+      "title": "Local: Error rate",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "manijero-prometheus"
+      },
+      "gridPos": {
+        "x": 0,
+        "y": 14,
+        "w": 12,
+        "h": 6
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "manijero:status_errors{env=\"local\"}",
+          "instant": true,
+          "legendFormat": "__auto",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "manijero-prometheus"
+          }
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "mappings": [
+            {
+              "type": "value",
+              "options": {
+                "-1": {
+                  "index": 0,
+                  "color": "text",
+                  "text": "Not enough data. No question was answered in the last 15 minutes, so there is nothing to judge. Nothing to do."
+                },
+                "0": {
+                  "index": 1,
+                  "color": "green",
+                  "text": "OK. Almost every question gets an answer: fewer than 2 in 100 failed. Nothing to do."
+                },
+                "1": {
+                  "index": 2,
+                  "color": "orange",
+                  "text": "Warning. Some questions failed: between 2 and 10 in 100. First thing to do: look again in a few minutes; if it stays, tell a developer."
+                },
+                "2": {
+                  "index": 3,
+                  "color": "red",
+                  "text": "Problem. Many questions failed: 10 or more in 100. First thing to do: run ./scripts/init.sh --local-rag-service-status and do its first step."
+                },
+                "4": {
+                  "index": 4,
+                  "color": "text",
+                  "text": "Not set up yet. This environment has no running service for the dashboard to watch. Nothing to do until the QA service is deployed."
+                }
+              }
+            },
+            {
+              "type": "special",
+              "options": {
+                "match": "null+nan",
+                "result": {
+                  "index": 5,
+                  "color": "text",
+                  "text": "No information yet. The dashboard has not received data for this check. First thing to do: wait one minute, then run ./scripts/init.sh --monitoring-status."
+                }
+              }
+            }
+          ],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "text",
+                "value": null
+              }
+            ]
+          },
+          "color": {
+            "mode": "fixed",
+            "fixedColor": "text"
+          },
+          "noValue": "No information yet. The dashboard has not received data for this check. First thing to do: wait one minute, then run ./scripts/init.sh --monitoring-status."
+        },
+        "overrides": []
+      },
+      "options": {
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "textMode": "value",
+        "colorMode": "background",
+        "graphMode": "none",
+        "justifyMode": "left",
+        "orientation": "auto",
+        "text": {
+          "valueSize": 16
+        }
+      }
+    },
+    {
+      "id": 6,
+      "type": "stat",
+      "title": "Local: Abstention rate",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "manijero-prometheus"
+      },
+      "gridPos": {
+        "x": 12,
+        "y": 14,
+        "w": 12,
+        "h": 6
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "manijero:status_abstentions{env=\"local\"}",
+          "instant": true,
+          "legendFormat": "__auto",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "manijero-prometheus"
+          }
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "mappings": [
+            {
+              "type": "value",
+              "options": {
+                "-1": {
+                  "index": 0,
+                  "color": "text",
+                  "text": "Not enough data. Fewer than 5 answers in the last hour, so there is nothing to judge. Nothing to do."
+                },
+                "0": {
+                  "index": 1,
+                  "color": "green",
+                  "text": "OK. Fewer than 50 in 100 answers say there is not enough evidence. Nothing to do."
+                },
+                "1": {
+                  "index": 2,
+                  "color": "orange",
+                  "text": "Warning. Between 50 and 80 in 100 answers say there is not enough evidence. First thing to do: this can be normal when people ask about topics the sources do not cover; if it lasts, tell a developer."
+                },
+                "2": {
+                  "index": 3,
+                  "color": "red",
+                  "text": "Problem. 80 or more in 100 answers say there is not enough evidence. This can be correct when questions fall outside the covered topics. First thing to do: if it lasts for hours, run ./scripts/init.sh --local-rag-status and tell a developer."
+                },
+                "4": {
+                  "index": 4,
+                  "color": "text",
+                  "text": "Not set up yet. This environment has no running service for the dashboard to watch. Nothing to do until the QA service is deployed."
+                }
+              }
+            },
+            {
+              "type": "special",
+              "options": {
+                "match": "null+nan",
+                "result": {
+                  "index": 5,
+                  "color": "text",
+                  "text": "No information yet. The dashboard has not received data for this check. First thing to do: wait one minute, then run ./scripts/init.sh --monitoring-status."
+                }
+              }
+            }
+          ],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "text",
+                "value": null
+              }
+            ]
+          },
+          "color": {
+            "mode": "fixed",
+            "fixedColor": "text"
+          },
+          "noValue": "No information yet. The dashboard has not received data for this check. First thing to do: wait one minute, then run ./scripts/init.sh --monitoring-status."
+        },
+        "overrides": []
+      },
+      "options": {
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "textMode": "value",
+        "colorMode": "background",
+        "graphMode": "none",
+        "justifyMode": "left",
+        "orientation": "auto",
+        "text": {
+          "valueSize": 16
+        }
+      }
+    },
+    {
+      "id": 7,
+      "type": "row",
+      "title": "QA",
+      "collapsed": false,
+      "gridPos": {
+        "x": 0,
+        "y": 20,
+        "w": 24,
+        "h": 1
+      },
+      "panels": []
+    },
+    {
+      "id": 8,
+      "type": "stat",
+      "title": "QA: Service",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "manijero-prometheus"
+      },
+      "gridPos": {
+        "x": 0,
+        "y": 21,
+        "w": 12,
+        "h": 6
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "manijero:status_service{env=\"qa\"}",
+          "instant": true,
+          "legendFormat": "__auto",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "manijero-prometheus"
+          }
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "mappings": [
+            {
+              "type": "value",
+              "options": {
+                "0": {
+                  "index": 0,
+                  "color": "green",
+                  "text": "OK. The answer service is running and ready to answer. Nothing to do."
+                },
+                "1": {
+                  "index": 1,
+                  "color": "orange",
+                  "text": "Warning. The answer service works now, but it was down or not ready at some point in the last 5 minutes. First thing to do: wait a few minutes and look again. Ask a developer to check the QA service."
+                },
+                "2": {
+                  "index": 2,
+                  "color": "red",
+                  "text": "Problem. The dashboard cannot reach the answer service, so nobody can ask questions. First thing to do: ask a developer to start the QA service."
+                },
+                "3": {
+                  "index": 3,
+                  "color": "red",
+                  "text": "Problem. The answer service is running but not ready to answer. First thing to do: ask a developer to check the QA service."
+                },
+                "4": {
+                  "index": 4,
+                  "color": "text",
+                  "text": "Not set up yet. This environment has no running service for the dashboard to watch. Nothing to do until the QA service is deployed."
+                }
+              }
+            },
+            {
+              "type": "special",
+              "options": {
+                "match": "null+nan",
+                "result": {
+                  "index": 5,
+                  "color": "text",
+                  "text": "No information yet. The dashboard has not received data for this check. First thing to do: wait one minute, then run ./scripts/init.sh --monitoring-status."
+                }
+              }
+            }
+          ],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "text",
+                "value": null
+              }
+            ]
+          },
+          "color": {
+            "mode": "fixed",
+            "fixedColor": "text"
+          },
+          "noValue": "No information yet. The dashboard has not received data for this check. First thing to do: wait one minute, then run ./scripts/init.sh --monitoring-status."
+        },
+        "overrides": []
+      },
+      "options": {
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "textMode": "value",
+        "colorMode": "background",
+        "graphMode": "none",
+        "justifyMode": "left",
+        "orientation": "auto",
+        "text": {
+          "valueSize": 16
+        }
+      }
+    },
+    {
+      "id": 9,
+      "type": "stat",
+      "title": "QA: Answer speed",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "manijero-prometheus"
+      },
+      "gridPos": {
+        "x": 12,
+        "y": 21,
+        "w": 12,
+        "h": 6
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "manijero:status_speed{env=\"qa\"}",
+          "instant": true,
+          "legendFormat": "__auto",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "manijero-prometheus"
+          }
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "mappings": [
+            {
+              "type": "value",
+              "options": {
+                "-1": {
+                  "index": 0,
+                  "color": "text",
+                  "text": "Not enough data. No question was answered in the last 15 minutes, so there is nothing to judge. Nothing to do."
+                },
+                "0": {
+                  "index": 1,
+                  "color": "green",
+                  "text": "OK. Answers arrive quickly: 9 out of 10 take less than 10 seconds. Nothing to do."
+                },
+                "1": {
+                  "index": 2,
+                  "color": "orange",
+                  "text": "Warning. Answers are slow: 1 in 10 takes between 10 and 30 seconds. First thing to do: wait and look again in a few minutes; if it stays, tell a developer."
+                },
+                "2": {
+                  "index": 3,
+                  "color": "red",
+                  "text": "Problem. Answers are very slow: 1 in 10 takes 30 seconds or more. First thing to do: make sure the drafting program (Ollama) is open, then tell a developer if it stays."
+                },
+                "4": {
+                  "index": 4,
+                  "color": "text",
+                  "text": "Not set up yet. This environment has no running service for the dashboard to watch. Nothing to do until the QA service is deployed."
+                }
+              }
+            },
+            {
+              "type": "special",
+              "options": {
+                "match": "null+nan",
+                "result": {
+                  "index": 5,
+                  "color": "text",
+                  "text": "No information yet. The dashboard has not received data for this check. First thing to do: wait one minute, then run ./scripts/init.sh --monitoring-status."
+                }
+              }
+            }
+          ],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "text",
+                "value": null
+              }
+            ]
+          },
+          "color": {
+            "mode": "fixed",
+            "fixedColor": "text"
+          },
+          "noValue": "No information yet. The dashboard has not received data for this check. First thing to do: wait one minute, then run ./scripts/init.sh --monitoring-status."
+        },
+        "overrides": []
+      },
+      "options": {
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "textMode": "value",
+        "colorMode": "background",
+        "graphMode": "none",
+        "justifyMode": "left",
+        "orientation": "auto",
+        "text": {
+          "valueSize": 16
+        }
+      }
+    },
+    {
+      "id": 10,
+      "type": "stat",
+      "title": "QA: Error rate",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "manijero-prometheus"
+      },
+      "gridPos": {
+        "x": 0,
+        "y": 27,
+        "w": 12,
+        "h": 6
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "manijero:status_errors{env=\"qa\"}",
+          "instant": true,
+          "legendFormat": "__auto",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "manijero-prometheus"
+          }
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "mappings": [
+            {
+              "type": "value",
+              "options": {
+                "-1": {
+                  "index": 0,
+                  "color": "text",
+                  "text": "Not enough data. No question was answered in the last 15 minutes, so there is nothing to judge. Nothing to do."
+                },
+                "0": {
+                  "index": 1,
+                  "color": "green",
+                  "text": "OK. Almost every question gets an answer: fewer than 2 in 100 failed. Nothing to do."
+                },
+                "1": {
+                  "index": 2,
+                  "color": "orange",
+                  "text": "Warning. Some questions failed: between 2 and 10 in 100. First thing to do: look again in a few minutes; if it stays, tell a developer."
+                },
+                "2": {
+                  "index": 3,
+                  "color": "red",
+                  "text": "Problem. Many questions failed: 10 or more in 100. First thing to do: run the QA status check and do its first step."
+                },
+                "4": {
+                  "index": 4,
+                  "color": "text",
+                  "text": "Not set up yet. This environment has no running service for the dashboard to watch. Nothing to do until the QA service is deployed."
+                }
+              }
+            },
+            {
+              "type": "special",
+              "options": {
+                "match": "null+nan",
+                "result": {
+                  "index": 5,
+                  "color": "text",
+                  "text": "No information yet. The dashboard has not received data for this check. First thing to do: wait one minute, then run ./scripts/init.sh --monitoring-status."
+                }
+              }
+            }
+          ],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "text",
+                "value": null
+              }
+            ]
+          },
+          "color": {
+            "mode": "fixed",
+            "fixedColor": "text"
+          },
+          "noValue": "No information yet. The dashboard has not received data for this check. First thing to do: wait one minute, then run ./scripts/init.sh --monitoring-status."
+        },
+        "overrides": []
+      },
+      "options": {
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "textMode": "value",
+        "colorMode": "background",
+        "graphMode": "none",
+        "justifyMode": "left",
+        "orientation": "auto",
+        "text": {
+          "valueSize": 16
+        }
+      }
+    },
+    {
+      "id": 11,
+      "type": "stat",
+      "title": "QA: Abstention rate",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "manijero-prometheus"
+      },
+      "gridPos": {
+        "x": 12,
+        "y": 27,
+        "w": 12,
+        "h": 6
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "manijero:status_abstentions{env=\"qa\"}",
+          "instant": true,
+          "legendFormat": "__auto",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "manijero-prometheus"
+          }
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "mappings": [
+            {
+              "type": "value",
+              "options": {
+                "-1": {
+                  "index": 0,
+                  "color": "text",
+                  "text": "Not enough data. Fewer than 5 answers in the last hour, so there is nothing to judge. Nothing to do."
+                },
+                "0": {
+                  "index": 1,
+                  "color": "green",
+                  "text": "OK. Fewer than 50 in 100 answers say there is not enough evidence. Nothing to do."
+                },
+                "1": {
+                  "index": 2,
+                  "color": "orange",
+                  "text": "Warning. Between 50 and 80 in 100 answers say there is not enough evidence. First thing to do: this can be normal when people ask about topics the sources do not cover; if it lasts, tell a developer."
+                },
+                "2": {
+                  "index": 3,
+                  "color": "red",
+                  "text": "Problem. 80 or more in 100 answers say there is not enough evidence. This can be correct when questions fall outside the covered topics. First thing to do: if it lasts for hours, run the QA status check and tell a developer."
+                },
+                "4": {
+                  "index": 4,
+                  "color": "text",
+                  "text": "Not set up yet. This environment has no running service for the dashboard to watch. Nothing to do until the QA service is deployed."
+                }
+              }
+            },
+            {
+              "type": "special",
+              "options": {
+                "match": "null+nan",
+                "result": {
+                  "index": 5,
+                  "color": "text",
+                  "text": "No information yet. The dashboard has not received data for this check. First thing to do: wait one minute, then run ./scripts/init.sh --monitoring-status."
+                }
+              }
+            }
+          ],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "text",
+                "value": null
+              }
+            ]
+          },
+          "color": {
+            "mode": "fixed",
+            "fixedColor": "text"
+          },
+          "noValue": "No information yet. The dashboard has not received data for this check. First thing to do: wait one minute, then run ./scripts/init.sh --monitoring-status."
+        },
+        "overrides": []
+      },
+      "options": {
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "textMode": "value",
+        "colorMode": "background",
+        "graphMode": "none",
+        "justifyMode": "left",
+        "orientation": "auto",
+        "text": {
+          "valueSize": 16
+        }
+      }
+    }
+  ]
+}

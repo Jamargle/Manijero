@@ -1,0 +1,50 @@
+{
+  "groups": [
+    {
+      "name": "manijero_status",
+      "interval": "15s",
+      "rules": [
+        {
+          "record": "manijero:ask_requests_15m",
+          "expr": "sum by (env) (increase(manijero_http_requests_total{route=\"/ask\"}[15m]))"
+        },
+        {
+          "record": "manijero:ask_errors_15m",
+          "expr": "sum by (env) (increase(manijero_http_requests_total{route=\"/ask\",code=~\"5..\"}[15m])) or manijero:ask_requests_15m * 0"
+        },
+        {
+          "record": "manijero:ask_p90_seconds_15m",
+          "expr": "histogram_quantile(0.9, sum by (env, le) (increase(manijero_request_duration_seconds_bucket{route=\"/ask\"}[15m]))) and on (env) (manijero:ask_requests_15m > 0)"
+        },
+        {
+          "record": "manijero:ask_error_percent_15m",
+          "expr": "100 * manijero:ask_errors_15m / manijero:ask_requests_15m and on (env) (manijero:ask_requests_15m > 0)"
+        },
+        {
+          "record": "manijero:answers_1h",
+          "expr": "sum by (env) (increase(manijero_answers_total[1h]))"
+        },
+        {
+          "record": "manijero:abstention_percent_1h",
+          "expr": "100 * sum by (env) (increase(manijero_answers_total{status=\"abstained\"}[1h])) / manijero:answers_1h and on (env) (manijero:answers_1h >= 5)"
+        },
+        {
+          "record": "manijero:status_service",
+          "expr": "((max by (env) (up) == 0) * 0 + 2) or (((max by (env) (up) == 1) and on (env) (max by (env) (manijero_ready) == 0)) * 0 + 3) or (((max by (env) (up) == 1) and on (env) (max by (env) (manijero_ready) == 1) and on (env) ((min by (env) (min_over_time(up[5m])) == 0) or (min by (env) (min_over_time(manijero_ready[5m])) == 0))) * 0 + 1) or (((max by (env) (up) == 1) and on (env) (max by (env) (manijero_ready) == 1)) * 0) or (absent(up{env=\"qa\"}) * 4)"
+        },
+        {
+          "record": "manijero:status_speed",
+          "expr": "((manijero:ask_p90_seconds_15m < 10) * 0) or (((manijero:ask_p90_seconds_15m >= 10) < 30) * 0 + 1) or ((manijero:ask_p90_seconds_15m >= 30) * 0 + 2) or (max by (env) (up) * 0 - 1) or (absent(up{env=\"qa\"}) * 4)"
+        },
+        {
+          "record": "manijero:status_errors",
+          "expr": "((manijero:ask_error_percent_15m < 2) * 0) or (((manijero:ask_error_percent_15m >= 2) < 10) * 0 + 1) or ((manijero:ask_error_percent_15m >= 10) * 0 + 2) or (max by (env) (up) * 0 - 1) or (absent(up{env=\"qa\"}) * 4)"
+        },
+        {
+          "record": "manijero:status_abstentions",
+          "expr": "((manijero:abstention_percent_1h < 50) * 0) or (((manijero:abstention_percent_1h >= 50) < 80) * 0 + 1) or ((manijero:abstention_percent_1h >= 80) * 0 + 2) or (max by (env) (up) * 0 - 1) or (absent(up{env=\"qa\"}) * 4)"
+        }
+      ]
+    }
+  ]
+}
