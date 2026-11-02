@@ -4,6 +4,13 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.test.ExperimentalTestApi
+import androidx.compose.ui.semantics.LiveRegionMode
+import androidx.compose.ui.semantics.SemanticsProperties
+import androidx.compose.ui.test.SemanticsMatcher
+import androidx.compose.ui.test.assertCountEquals
+import androidx.compose.ui.test.assertHasClickAction
+import androidx.compose.ui.test.hasAnyAncestor
+import androidx.compose.ui.test.onAllNodesWithText
 import androidx.compose.ui.test.assertIsEnabled
 import androidx.compose.ui.test.assertIsNotEnabled
 import androidx.compose.ui.test.assertIsOff
@@ -16,7 +23,9 @@ import androidx.compose.ui.test.performScrollTo
 import androidx.compose.ui.test.v2.runDesktopComposeUiTest
 import com.jamarglex.manijero.ChatHomeAction
 import com.jamarglex.manijero.ChatHomeState
+import com.jamarglex.manijero.ChatMessage
 import com.jamarglex.manijero.chat.RequestFailure
+import com.jamarglex.manijero.screenshots.ScreenshotFixtures
 import com.jamarglex.manijero.theme.ManijeroTheme
 import kotlin.test.Test
 import kotlin.test.assertEquals
@@ -76,6 +85,50 @@ class ChatHomeInteractionTest {
 
             assertEquals(listOf<ChatHomeAction>(ChatHomeAction.SuggestedQuestionSelected(question)), actions)
             assertEquals(question, state.question)
+        }
+
+    @Test
+    fun inspectLinkShowsOnlyOnAnsweredAndAbstainedEntriesWithAnInspection() =
+        runDesktopComposeUiTest(width = 900, height = 1200) {
+            val inspected = mutableListOf<ChatMessage>()
+            var state by mutableStateOf(ScreenshotFixtures.answeredInspectedChat)
+            setContent {
+                ManijeroTheme(darkTheme = false) {
+                    ChatHomeScreen(state = state, onAction = {}, onInspect = { inspected += it })
+                }
+            }
+
+            onNodeWithText("Inspeccionar").performScrollTo().assertHasClickAction()
+            // Its own node: never inside the entry's merged, politely announced live region.
+            onAllNodes(
+                hasText("Inspeccionar") and
+                    hasAnyAncestor(SemanticsMatcher.expectValue(SemanticsProperties.LiveRegion, LiveRegionMode.Polite)),
+            ).assertCountEquals(0)
+            onNodeWithText("Inspeccionar").performClick()
+            assertEquals(
+                listOf(ScreenshotFixtures.answeredInspectedChat.messages.last()),
+                inspected,
+            )
+
+            state = ScreenshotFixtures.abstainedInspectedChat
+            onAllNodesWithText("Inspeccionar").assertCountEquals(1)
+
+            state = ScreenshotFixtures.answeredChat
+            onAllNodesWithText("Inspeccionar").assertCountEquals(0)
+            state = ScreenshotFixtures.abstainedResponse
+            onAllNodesWithText("Inspeccionar").assertCountEquals(0)
+        }
+
+    @Test
+    fun inspectLinkNeverShowsWithoutTheCallback() =
+        runDesktopComposeUiTest(width = 900, height = 1200) {
+            setContent {
+                ManijeroTheme(darkTheme = false) {
+                    ChatHomeScreen(state = ScreenshotFixtures.answeredInspectedChat, onAction = {})
+                }
+            }
+
+            onAllNodesWithText("Inspeccionar").assertCountEquals(0)
         }
 
     @Test

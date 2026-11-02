@@ -1,5 +1,7 @@
 package com.jamarglex.manijero.chat
 
+import com.jamarglex.manijero.inspector.AnswerInspection
+import com.jamarglex.manijero.inspector.decodeInspectionOrNull
 import io.ktor.client.HttpClient
 import io.ktor.client.call.body
 import io.ktor.client.engine.HttpClientEngine
@@ -19,8 +21,11 @@ import kotlinx.coroutines.CancellationException
 import kotlinx.io.IOException
 import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.SerializationException
+import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
+import kotlinx.serialization.Transient
 import kotlinx.serialization.json.Json
+import kotlinx.serialization.json.JsonElement
 
 /** Upper bound declared by the accepted `/ask` contract for `question`. */
 const val MAX_QUESTION_LENGTH = 2_000
@@ -113,6 +118,16 @@ data class AskResponse(
     val sources: List<AnswerSource>,
     val land_scope: LandContextMode,
     val land_ids_to_choose: List<String>,
+    /**
+     * The raw development-only `inspection` as it arrived. It is decoded leniently by
+     * [KtorAnswerService], which clears it; no other code reads it.
+     */
+    @SerialName("inspection") val rawInspection: JsonElement? = null,
+    /**
+     * The decoded development-only inspection: set only by [KtorAnswerService] for a local test
+     * build. Never part of the wire format.
+     */
+    @Transient val inspection: AnswerInspection? = null,
 )
 
 @Serializable
@@ -145,23 +160,34 @@ interface AnswerService {
  * [pilotToken], when the build has one, is added as `Authorization: Bearer …` to an `/ask` request
  * only when the address resolved for that question may carry it ([mayCarryPilotToken]). Without a
  * token the request is exactly what it was before the pilot credential existed.
+ *
+ * [acceptInspection] is true only for a host's test-build tools. Even then the development-only
+ * `inspection` is kept only when the resolved address is a loopback host ([isLoopbackServiceUrl]);
+ * every other response has none. A malformed `inspection` is dropped and never fails the answer.
+ * The fixed-URL constructor has no such parameter, so release and packaged builds cannot accept it.
  */
 class KtorAnswerService(
     private val client: HttpClient,
     private val baseUrl: () -> String,
     private val pilotToken: PilotToken? = null,
+    private val acceptInspection: Boolean = false,
 ) : AnswerService {
     constructor(client: HttpClient, baseUrl: String, pilotToken: PilotToken? = null) :
-        this(client, { baseUrl }, pilotToken)
+        this(client, { baseUrl }, pilotToken, false)
 
     override suspend fun ask(request: AskRequest): AskResponse = try {
         val askUrl = "${baseUrl().trimEnd('/')}/ask"
         val bearer = pilotToken?.takeIf { mayCarryPilotToken(Url(askUrl)) }?.bearerHeaderValue()
-        client.post(askUrl) {
+        val response: AskResponse = client.post(askUrl) {
             contentType(ContentType.Application.Json)
             if (bearer != null) header(HttpHeaders.Authorization, bearer)
             setBody(request)
         }.body()
+        val keep = acceptInspection && isLoopbackServiceUrl(Url(askUrl))
+        response.copy(
+            rawInspection = null,
+            inspection = if (keep) decodeInspectionOrNull(response.rawInspection) else null,
+        )
     } catch (cancellation: CancellationException) {
         throw cancellation
     } catch (_: ResponseException) {

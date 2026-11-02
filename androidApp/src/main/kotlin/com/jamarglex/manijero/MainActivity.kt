@@ -42,7 +42,7 @@ class MainActivity : ComponentActivity() {
     private val answerService by lazy {
         val tools = connectionTools
         if (tools != null) {
-            KtorAnswerService(answerClient, tools.address::current, pilotToken)
+            KtorAnswerService(answerClient, tools.address::current, acceptInspection = true, pilotToken = pilotToken)
         } else {
             KtorAnswerService(answerClient, defaultAskBaseUrl, pilotToken)
         }

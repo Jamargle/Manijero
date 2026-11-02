@@ -27,6 +27,13 @@ internal enum class AppDestination {
 
     /** The test-build `Conexión` route under `Ayuda`; it exists only when a host injects the tools. */
     Connection,
+
+    /**
+     * The development-only `Inspección de la respuesta` detail route under `Asistente`. It is
+     * reachable only from an `Inspeccionar` link, which exists only for an entry that kept an
+     * inspection in a local test build.
+     */
+    Inspector,
 }
 
 /** The destinations the shell may show, in tab order. */
@@ -58,7 +65,9 @@ internal fun sectionDestination(section: AppSection): AppDestination = when (sec
  */
 internal fun tabForDestination(destination: AppDestination, fallback: AppSection): AppSection =
     when (destination) {
-        AppDestination.Chat -> AppSection.Assistant
+        AppDestination.Chat,
+        AppDestination.Inspector,
+        -> AppSection.Assistant
         AppDestination.LandList,
         AppDestination.AddLand,
         AppDestination.EditLand,
@@ -131,4 +140,5 @@ internal fun backTarget(
 
     AppDestination.Privacy -> privacyReturn
     AppDestination.Connection -> AppDestination.Coverage
+    AppDestination.Inspector -> AppDestination.Chat
 }

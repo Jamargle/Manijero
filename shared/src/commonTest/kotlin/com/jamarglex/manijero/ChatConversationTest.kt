@@ -12,6 +12,8 @@ import com.jamarglex.manijero.chat.RequestFailure
 import com.jamarglex.manijero.chat.UnavailableAnswerService
 import com.jamarglex.manijero.chat.WaterRegime
 import com.jamarglex.manijero.chat.generalAskRequest
+import com.jamarglex.manijero.inspector.AnswerInspection
+import com.jamarglex.manijero.inspector.InspectionOutcome
 import com.jamarglex.manijero.lands.Land
 import com.jamarglex.manijero.lands.ProductionMethod as LocalProductionMethod
 import com.jamarglex.manijero.lands.WaterRegime as LocalWaterRegime
@@ -123,6 +125,34 @@ class ChatConversationTest {
         assertEquals(1, conversation.state.messages.count { it.speaker == Speaker.ASSISTANT })
         assertEquals("Respuesta única.", conversation.state.messages.last().text)
         assertEquals(SubmissionPhase.IDLE, conversation.state.phase)
+    }
+
+    @Test
+    fun `each answered and abstained entry keeps its own inspection and a plain one has none`() = runTest {
+        fun inspection(total: Long) = AnswerInspection(
+            schema = "answer-inspection-v1",
+            outcome = InspectionOutcome(cited_passage_ids = emptyList()),
+            total_ms = total,
+        )
+        val responses = listOf(
+            response("Primera.").copy(inspection = inspection(1)),
+            abstainedResponse().copy(inspection = inspection(2)),
+            response("Tercera."),
+        )
+        val service = object : AnswerService {
+            var next = 0
+            override suspend fun ask(request: AskRequest): AskResponse = responses[next++]
+        }
+        val conversation = ChatConversation(service, this)
+
+        repeat(3) { index ->
+            conversation.onAction(ChatHomeAction.QuestionChanged("Pregunta $index"))
+            conversation.onAction(ChatHomeAction.AskClicked)
+            advanceUntilIdle()
+        }
+
+        val assistant = conversation.state.messages.filter { it.speaker == Speaker.ASSISTANT }
+        assertEquals(listOf(1L, 2L, null), assistant.map { it.inspection?.total_ms })
     }
 
     @Test

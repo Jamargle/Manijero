@@ -323,6 +323,11 @@ component layer. These rules are durable:
   row was added below the field). This is a recorded limit of
   the accepted order, not a hidden control: the field and button stay in the same scroll and are
   never icon-only or off the page.
+- **Answer inspector (local test builds only).** An `Inspeccionar` `TextButton` sits below an
+  answered or abstained entry (after its source cards) as its own focusable node, and opens the
+  `Inspección de la respuesta` detail screen: one `heading()` title, a local-testing note, outlined
+  cards for `Búsqueda`, each passage, `Redacción`, `Comprobación`, and `Resultado`, and `Volver`.
+  State is plain text (`Comprobación superada: sí`); it adds no success colour, check, or icon.
 
 ## Help and privacy surfaces (adopted 2026-10-25)
 

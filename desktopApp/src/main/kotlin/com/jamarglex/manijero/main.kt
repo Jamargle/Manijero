@@ -39,7 +39,7 @@ fun main() = application {
     val pilotToken = remember { desktopPilotToken() }
     val answerService = remember {
         if (connectionTools != null) {
-            KtorAnswerService(answerClient, connectionTools.address::current, pilotToken)
+            KtorAnswerService(answerClient, connectionTools.address::current, acceptInspection = true, pilotToken = pilotToken)
         } else {
             KtorAnswerService(answerClient, defaultAskBaseUrl, pilotToken)
         }

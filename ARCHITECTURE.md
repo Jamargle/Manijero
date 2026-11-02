@@ -49,6 +49,8 @@ The data-flow inventory is [`docs/pilot-privacy.md`](docs/pilot-privacy.md). `As
 
 A local-only debug trace (`backend/app/answer_trace.py`) is off unless `MANIJERO_ANSWER_TRACE=on`: it writes one `answer-trace-v1` JSON file per `/ask` to the git-ignored `build/answer-traces/` folder (deleted after 7 days) with question, answer, and draft text only when `MANIJERO_DEPLOYMENT_PROFILE` is explicitly `development` (the local service start states it; an unset profile records no text) and ids, scores, timings, and verification codes everywhere else; it never changes an answer.
 
+In the same explicit `development` profile only, `/ask` adds an optional `inspection` object (`answer-inspection-v1`: retrieved passages, scores, drafting and verification codes; `backend/app/answer_inspection.py`). The client keeps it only for a test-tools host on a loopback address and shows it behind an `Inspeccionar` link.
+
 ## Data and platform boundaries
 
 - Backend processing uses local knowledge artifacts; land records are stored on-device and are not backend storage. Current corpus contents, service availability, and evaluation limitations are tracked in `PROGRESS.md`.

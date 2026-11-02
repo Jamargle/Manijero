@@ -246,6 +246,9 @@ def test_openapi_documents_ask_operation_and_error_statuses(client) -> None:
     ]
     response_schema = document["components"]["schemas"]["AskResponse"]
     assert set(response_schema["properties"]) == {
+        "status", "answer", "sources", "land_scope", "land_ids_to_choose", "inspection"
+    }
+    assert set(response_schema["required"]) == {
         "status", "answer", "sources", "land_scope", "land_ids_to_choose"
     }
     assert document["paths"]["/health"]["get"]["operationId"] == "health_health_get"

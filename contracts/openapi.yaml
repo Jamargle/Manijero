@@ -120,6 +120,139 @@ components:
             type: string
             minLength: 1
             maxLength: 128
+        inspection:
+          $ref: '#/components/schemas/AnswerInspection'
+    AnswerInspection:
+      type: object
+      additionalProperties: false
+      description: >-
+        Development-profile-only debug view of one answer: retrieved passages, scores, and
+        verification codes. Sent only when the service states the deployment profile
+        `development`; never sent by pilot, QA, or production, nor when the profile is
+        unset or unknown. Ids, scores, fixed codes, timings, and public corpus text only.
+      required: [schema, retrieval, drafting, verification, outcome, total_ms]
+      properties:
+        schema:
+          type: string
+          enum: [answer-inspection-v1]
+        retrieval:
+          type: [object, "null"]
+          additionalProperties: false
+          required: [mode, k, search_calls, duration_ms, vector, passages]
+          properties:
+            mode:
+              type: string
+              enum: [bm25, hybrid]
+            k:
+              type: integer
+            search_calls:
+              type: integer
+            duration_ms:
+              type: integer
+            vector:
+              type: [object, "null"]
+              additionalProperties: false
+              required: [used, fallback_code]
+              properties:
+                used:
+                  type: boolean
+                fallback_code:
+                  type: [string, "null"]
+            passages:
+              type: array
+              description: One per final candidate, at most k, in rank order.
+              items:
+                type: object
+                additionalProperties: false
+                required: [rank, passage_id, source_id, title, location, score, lexical_rank, lexical_score, vector_similarity, cited, excerpt]
+                properties:
+                  rank:
+                    type: integer
+                  passage_id:
+                    type: string
+                  source_id:
+                    type: string
+                  title:
+                    type: string
+                  location:
+                    type: string
+                  score:
+                    type: number
+                  lexical_rank:
+                    type: [integer, "null"]
+                  lexical_score:
+                    type: [number, "null"]
+                  vector_similarity:
+                    type: [number, "null"]
+                  cited:
+                    type: boolean
+                  excerpt:
+                    type: string
+                    maxLength: 2000
+        drafting:
+          type: [object, "null"]
+          additionalProperties: false
+          required: [provider, outcome, status, cited_markers, duration_ms]
+          properties:
+            provider:
+              type: [string, "null"]
+            outcome:
+              type: [string, "null"]
+            status:
+              type: [string, "null"]
+            cited_markers:
+              type: array
+              items:
+                type: integer
+            duration_ms:
+              type: [integer, "null"]
+        verification:
+          type: [object, "null"]
+          additionalProperties: false
+          required: [ok, issues, claims, duration_ms]
+          properties:
+            ok:
+              type: boolean
+            issues:
+              type: array
+              items:
+                type: string
+            claims:
+              type: array
+              items:
+                type: object
+                additionalProperties: false
+                required: [index, markers, ok, issues]
+                properties:
+                  index:
+                    type: integer
+                  markers:
+                    type: array
+                    items:
+                      type: integer
+                  ok:
+                    type: boolean
+                  issues:
+                    type: array
+                    items:
+                      type: string
+            duration_ms:
+              type: [integer, "null"]
+        outcome:
+          type: object
+          additionalProperties: false
+          required: [abstention_reason, generation_reason, cited_passage_ids]
+          properties:
+            abstention_reason:
+              type: [string, "null"]
+            generation_reason:
+              type: [string, "null"]
+            cited_passage_ids:
+              type: array
+              items:
+                type: string
+        total_ms:
+          type: integer
     AnswerSource:
       type: object
       additionalProperties: false

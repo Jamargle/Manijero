@@ -74,3 +74,8 @@ Durable MUST/MUST NOT rules for hosted pilot operations and provider boundaries.
   [`docs/specs/answer_pipeline_trace.md`](../specs/answer_pipeline_trace.md); the explicit-profile
   rule was added in the batch 4 integration (owner decision 2026-11-02), and the local service start
   states `development`.
+- **MUST**: the `/ask` response `inspection` object (`answer-inspection-v1`) MUST be sent only when
+  `answer_trace.text_allowed` holds (the profile is explicitly stated as exactly `development`), MUST
+  carry only the published `INSPECTION_KEYS` allowlist (ids, scores, fixed codes, timings, public
+  corpus text), and MUST NOT be sent in pilot, QA, or prod, nor when the profile is unset or unknown.
+  Reason: owner decision 2 in [`docs/specs/rag_inspector_view.md`](../specs/rag_inspector_view.md).

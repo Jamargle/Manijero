@@ -144,6 +144,13 @@ Do not over-claim.
   the profile is explicitly `development` (stated by the local service start); the container image
   states no profile, so a trace turned on there records no text. See
   the [acceptance record](../validations/answer_pipeline_trace.md).
+- The answer inspector (`rag_inspector_view`) appears only in test builds (Android debug, Desktop
+  `run`) whose service address is loopback (`localhost`, `127.0.0.1`, `10.0.2.2`), and the service
+  sends inspection data only when the profile is explicitly `development` (stated by
+  `--local-rag-start`). A real device on a LAN address never shows it; QA and prod never do. Until
+  `client_environment_builds` is accepted, "local build" means test tools plus a loopback address.
+  Verified by unit, interaction, and screenshot tests only; no GUI or device run. See the
+  [acceptance record](../validations/rag_inspector_view.md).
 - Environment profiles (`environment_profiles`): only local is complete. QA is a commented template
   with a placeholder `.invalid` host and an empty knowledge-release folder; no QA host is chosen or
   contacted (that belongs to `qa_server_deployment`), and prod is not configured. Local access keys
