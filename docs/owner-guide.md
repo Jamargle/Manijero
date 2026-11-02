@@ -567,6 +567,30 @@ server is contacted.
 | `... must say MANIJERO_DEPLOYMENT_PROFILE=pilot; it is never treated as local` | Open the QA settings file named in the message in TextEdit and fix the line it names. |
 | `The folder ... is inside the Manijero folder` | Ask a developer; the QA folder must be outside the Manijero folder. |
 
+## Build the QA test apps
+
+The QA apps are named `Manijero QA`. They install beside your normal Manijero app and keep their
+own data. Run `./scripts/init.sh --qa-settings-setup` first (see "Prepare QA on this computer"), so
+the QA apps carry the QA access key.
+
+1. **Android:** run `./scripts/init.sh --android-qa`.
+   - Expect `Result: the Manijero QA app was built: androidApp/build/outputs/apk/debug/androidApp-debug.apk`.
+2. **Desktop:** run `./scripts/init.sh --desktop-qa`. The `Manijero QA` window opens. Its notes and
+   lands are kept apart from the normal app.
+3. **The QA address.** Until a QA server is chosen you will see
+   `The QA address is a placeholder (https://qa.manijero.invalid) until the QA server is chosen; this app cannot reach QA yet.`
+   That is expected: the app builds, but it cannot reach QA yet. When a server exists, save its
+   `https://` address as one line in a file named `qa-address.local` in the Manijero folder. The
+   file is never shared or uploaded. Then build again.
+
+| What it shows | What to do |
+|---|---|
+| `qa-address.local is not a valid QA address. Write one https:// address on one line, for example https://qa.example.org` | Open `qa-address.local` in TextEdit, keep one `https://` address on one line, and build again. |
+| `The QA access key is not valid. Run ./scripts/init.sh --qa-settings-setup again.` | Run that command, answer `yes` if it asks, then build again. |
+| `manijeroEnvironment must be local or qa; prod is not configured.` | Use the commands above; do not type your own build settings. |
+
+The normal commands `--android`, `--android-run`, and `--desktop` still build the normal app.
+
 ## Your settings file
 
 The setup creates one settings file, `settings.env`, in the `manijero/local` folder inside your

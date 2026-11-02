@@ -12,7 +12,9 @@ contracts, raw evidence, and acceptance records remain in their owning files. La
 loopback service only, data sent only in the `development` profile; validator accept, no owner
 walkthrough by owner decision), `backend_health_metrics`
 (privacy-safe `GET /metrics` in Prometheus text format, open locally and pilot-token gated in QA;
-validator accept, no owner walkthrough by owner decision), `welcome_first_use` (dismissible
+validator accept, no owner walkthrough by owner decision), `client_environment_builds` (one
+`manijeroEnvironment` setting builds local or `Manijero QA` test apps side by side; QA address is a
+git-ignored file or placeholder until `qa_server_deployment`), `welcome_first_use` (dismissible
 first-use welcome card in the chat, reopened from `Ayuda` with `Ver bienvenida`; validator accept,
 no owner walkthrough by owner decision), `answer_pipeline_trace` (off-by-default
 local answer trace; question and answer text only in the `development` profile; 7-day purge),
@@ -95,6 +97,7 @@ before making any claim in its area.
 - The local smoke test (`--local-smoke`) passed once on the owner's Mac (offscreen Desktop, API 37 emulator); it proves reach and rendering, not answer quality, and lands kept could not be observed (no lands existed on the emulator).
 - Environment profiles: QA has only a placeholder template and empty release folder, prod is unconfigured, and the local service does not enforce local access keys; tested in temporary homes only.
 - Hosted operations are prepared but not deployed; no host, domain, tunnel, or release artifacts exist.
+- QA test builds exist (`--android-qa`, `--desktop-qa`) but point at a placeholder address until `qa_server_deployment`; no QA build has run on a device.
 - Only test builds carry the pilot token (release and packaged apps cannot reach a pilot service); it is extractable from a test build; token auth is tested against an in-process fake only, with no live pilot-profile answer observed.
 - The mock answer service serves fixed contract examples only (not real or legal answers), on loopback for Desktop and the Android emulator.
 - Local `bge-m3` embeddings and Chroma hybrid retrieval are off the default answer path; measured

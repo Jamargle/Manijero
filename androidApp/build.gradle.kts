@@ -6,24 +6,81 @@ plugins {
     alias(libs.plugins.composeCompiler)
 }
 
-// Pilot bearer token (client_pilot_credentials): only from the git-ignored `pilot-token.local` at the
-// repository root, or the file named by MANIJERO_PILOT_TOKEN_FILE (tests and checks use fake files).
-// Never from the SDK properties file. The file is read lazily, only when BuildConfig is generated, so a
-// malformed file fails app builds without echoing its content and leaves other tasks untouched.
-val pilotTokenFile: Provider<RegularFile> = rootProject.layout.projectDirectory.file(
-    providers.environmentVariable("MANIJERO_PILOT_TOKEN_FILE").orElse("pilot-token.local"),
+// Build target (client_environment_builds): the Gradle property `manijeroEnvironment` picks `local`
+// (the default) or `qa`. A QA build is a separate app (`.qa` application id, label `Manijero QA`), points
+// at the address in the git-ignored `qa-address.local` (or the placeholder), and sends the QA access key.
+// A local build never reads the QA address file or the QA key.
+val manijeroEnvironment: String = providers.gradleProperty("manijeroEnvironment").orElse("local").get()
+if (manijeroEnvironment != "local" && manijeroEnvironment != "qa") {
+    throw GradleException("manijeroEnvironment must be local or qa; prod is not configured.")
+}
+val qaBuild = manijeroEnvironment == "qa"
+
+val qaPlaceholderAddress = "https://qa.manijero.invalid"
+val qaAddressPattern = Regex(
+    "^https://[A-Za-z0-9]([A-Za-z0-9-]*[A-Za-z0-9])?(\\.[A-Za-z0-9]([A-Za-z0-9-]*[A-Za-z0-9])?)*" +
+        "(:([0-9]{1,5}))?(/[A-Za-z0-9._~%!$&'()*+,;=:@/-]*)?$",
 )
-val pilotTokenBuildConfigValue: Provider<String> = providers.fileContents(pilotTokenFile).asText
-    .map { raw ->
-        val token = raw.trim()
-        if (token.length !in 32..512 || !Regex("^[A-Za-z0-9._~+/-]+=*$").matches(token)) {
+// The QA address: the test override file or `qa-address.local`, or the
+// placeholder when there is no file. Read only for QA builds; a bad file fails without echoing it.
+val qaAskBaseUrl: String? = if (qaBuild) {
+    val addressFile = rootProject.layout.projectDirectory.file(
+        providers.environmentVariable("MANIJERO_QA_ADDRESS_FILE").orElse("qa-address.local"),
+    )
+    val raw = providers.fileContents(addressFile).asText.orNull
+    if (raw == null) {
+        logger.quiet(
+            "The QA address is a placeholder ($qaPlaceholderAddress) until the QA server is chosen; " +
+                "this app cannot reach QA yet.",
+        )
+        qaPlaceholderAddress
+    } else {
+        val address = raw.trim().trimEnd('/')
+        val port = qaAddressPattern.matchEntire(address)?.groups?.get(5)?.value?.toInt()
+        if (address.length > 512 || !qaAddressPattern.matches(address) || (port != null && port !in 1..65535)) {
             throw GradleException(
-                "pilot-token.local is not a valid pilot token. Run ./scripts/init.sh --pilot-token-save again.",
+                "qa-address.local is not a valid QA address. Write one https:// address on one line, for example https://qa.example.org",
             )
         }
-        "\"$token\""
+        address
     }
-    .orElse("null")
+} else {
+    null
+}
+
+// Pilot bearer token (client_pilot_credentials): a local build reads only the git-ignored
+// `pilot-token.local` at the repository root; a QA build reads only the QA access key made by
+// ./scripts/init.sh --qa-settings-setup. MANIJERO_PILOT_TOKEN_FILE overrides either path (tests and
+// checks use fake files). Never from the SDK properties file. The file is read lazily, only when
+// BuildConfig is generated, so a malformed file fails app builds without echoing its content and
+// leaves other tasks untouched.
+val localPilotTokenFile: Provider<RegularFile> = rootProject.layout.projectDirectory.file(
+    providers.environmentVariable("MANIJERO_PILOT_TOKEN_FILE").orElse("pilot-token.local"),
+)
+val qaAccessKeyFile: Provider<RegularFile> = rootProject.layout.projectDirectory.file(
+    providers.environmentVariable("MANIJERO_PILOT_TOKEN_FILE").orElse(
+        providers.environmentVariable("MANIJERO_QA_HOME").orElse(System.getProperty("user.home") + "/manijero/qa")
+            .map { "$it/credentials/qa-test-device.token" },
+    ),
+)
+val pilotTokenFile: Provider<RegularFile> = if (qaBuild) qaAccessKeyFile else localPilotTokenFile
+val pilotTokenInvalidMessage: String = if (qaBuild) {
+    "The QA access key is not valid. Run ./scripts/init.sh --qa-settings-setup again."
+} else {
+    "pilot-token.local is not a valid pilot token. Run ./scripts/init.sh --pilot-token-save again."
+}
+// The message is copied into a local so the lambda holds no reference to the script object.
+val pilotTokenBuildConfigValue: Provider<String> = pilotTokenInvalidMessage.let { invalidMessage ->
+    providers.fileContents(pilotTokenFile).asText
+        .map { raw ->
+            val token = raw.trim()
+            if (token.length !in 32..512 || !Regex("^[A-Za-z0-9._~+/-]+=*$").matches(token)) {
+                throw GradleException(invalidMessage)
+            }
+            "\"$token\""
+        }
+        .orElse("null")
+}
 
 kotlin {
     compilerOptions {
@@ -54,12 +111,17 @@ android {
 
     defaultConfig {
         applicationId = "com.jamarglex.manijero"
+        if (qaBuild) applicationIdSuffix = ".qa"
+        manifestPlaceholders["appLabel"] = if (qaBuild) "Manijero QA" else "@string/app_name"
         minSdk = libs.versions.android.minSdk.get().toInt()
         targetSdk = libs.versions.android.targetSdk.get().toInt()
         versionCode = 1
         versionName = "1.0"
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
-        buildConfigField("String", "ASK_BASE_URL", "\"${providers.gradleProperty("manijeroAskBaseUrl").orElse("http://10.0.2.2:8000").get()}\"")
+        // QA ignores manijeroAskBaseUrl, so a QA app never targets a local address by default.
+        val askBaseUrl = qaAskBaseUrl ?: providers.gradleProperty("manijeroAskBaseUrl").orElse("http://10.0.2.2:8000").get()
+        buildConfigField("String", "ASK_BASE_URL", "\"$askBaseUrl\"")
+        buildConfigField("String", "MANIJERO_ENVIRONMENT", "\"$manijeroEnvironment\"")
     }
     packaging {
         resources {

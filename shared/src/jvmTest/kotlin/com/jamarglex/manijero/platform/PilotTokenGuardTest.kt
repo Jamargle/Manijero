@@ -44,7 +44,11 @@ class PilotTokenGuardTest {
     fun `the desktop token never rides on a JVM property, environment entry, jvmArgs, or task property`() {
         assertFalse("jvmArgs" in desktopScript)
         assertFalse(Regex("""\benvironment\s*\(""").containsMatchIn(desktopScript))
-        assertFalse("inputs.property" in desktopScript, "the token value must never be a task input property")
+        // Only the non-secret environment resource (client_environment_builds) may declare task input
+        // properties: the environment name and the QA address. The token value is never one.
+        val inputProperties = Regex("""inputs\.property\("([^"]*)"""").findAll(desktopScript).map { it.groupValues[1] }.toList()
+        assertEquals(listOf("environment", "askBaseUrl"), inputProperties, "the token value must never be a task input property")
+        assertEquals(inputProperties.size, Regex("""inputs\.property""").findAll(desktopScript).count())
         val systemProperties = Regex("""systemProperty\s*\(([^)]*)\)""").findAll(desktopScript).map { it.groupValues[1] }.toList()
         assertEquals(listOf("\"manijero.testBuild\", \"true\""), systemProperties)
     }
@@ -66,8 +70,10 @@ class PilotTokenGuardTest {
             outsideRun.lines().map { it.trim() }.filter { "generatePilotTokenResource" in it },
         )
         assertEquals(1, Regex(Regex.escape("generated/pilotToken")).findAll(outsideRun).count())
-        listOf("resources.srcDir", "runtimeOnly", "implementation(files", "files(generatePilotTokenResource", "pilotTokenFolder")
+        listOf("runtimeOnly", "implementation(files", "files(generatePilotTokenResource", "pilotTokenFolder")
             .forEach { assertFalse(it in outsideRun, "\"$it\" must not carry the token outside the run task") }
+        // The only resource folder is the non-secret environment resource, never the token folder.
+        assertEquals(listOf("resources.srcDir(generateEnvironmentResource)"), Regex("""resources\.srcDir\([^)]*\)""").findAll(outsideRun).map { it.value }.toList())
     }
 
     @Test

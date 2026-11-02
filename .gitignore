@@ -96,6 +96,9 @@ __pycache__/
 # Pilot bearer token for local app builds (./scripts/init.sh --pilot-token-save). Never commit it.
 /pilot-token.local
 
+# QA server address for QA test builds (client_environment_builds). Never commit a real host.
+/qa-address.local
+
 # Environment access keys: made by ./scripts/init.sh --local-rag-setup and --qa-settings-setup
 # outside this folder; these patterns only guard against an accidental copy. Never commit them.
 *.token

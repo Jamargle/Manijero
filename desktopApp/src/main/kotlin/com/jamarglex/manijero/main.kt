@@ -21,19 +21,32 @@ import io.ktor.client.engine.cio.CIO
 import io.ktor.client.HttpClient
 import com.jamarglex.manijero.chat.KtorAnswerService
 import com.jamarglex.manijero.chat.answerHttpClient
-import com.jamarglex.manijero.platform.desktopAskBaseUrl
+import com.jamarglex.manijero.platform.DesktopEnvironment
+import com.jamarglex.manijero.platform.DesktopEnvironmentException
+import com.jamarglex.manijero.platform.desktopEnvironment
 import com.jamarglex.manijero.platform.desktopPilotToken
 
 /** One stable local file for the lands this person manages on this computer. */
-private const val LAND_STORE_DIRECTORY = ".manijero"
 private const val LAND_STORE_FILE = "lands-v1.txt"
 
-fun main() = application {
+fun main() {
+    // The environment is built in (local, or QA with its own address and data folder). A malformed
+    // setting stops here with a plain message instead of silently running as local.
+    val environment = try {
+        desktopEnvironment()
+    } catch (error: DesktopEnvironmentException) {
+        System.err.println(error.message)
+        kotlin.system.exitProcess(1)
+    }
+    runApp(environment)
+}
+
+private fun runApp(environment: DesktopEnvironment) = application {
     val answerClient = remember { answerHttpClient(CIO.create()) }
-    val defaultAskBaseUrl = remember { desktopAskBaseUrl() }
+    val defaultAskBaseUrl = remember { environment.defaultAskBaseUrl() }
     // Only the Gradle development `run` task marks a test build; packaged and release runs keep the
     // fixed answer URL and have no `Conexión` screen.
-    val connectionTools = remember { testBuildConnectionTools(defaultAskBaseUrl, answerClient) }
+    val connectionTools = remember { testBuildConnectionTools(defaultAskBaseUrl, answerClient, environment.dataFolder) }
     // The pilot bearer token built in from the git-ignored `pilot-token.local`, or `null`. It is only
     // handed to the answer transport and never shown or logged.
     val pilotToken = remember { desktopPilotToken() }
@@ -45,13 +58,13 @@ fun main() = application {
         }
     }
     val landRepository = remember {
-        LandRepository(FileLandStorage(landStorePath()))
+        LandRepository(FileLandStorage(landStorePath(environment.dataFolder)))
     }
-    val welcomeNotice = remember { FileWelcomeNoticeStore(desktopWelcomeStorePath()) }
+    val welcomeNotice = remember { FileWelcomeNoticeStore(desktopWelcomeStorePath(folder = environment.dataFolder)) }
 
     Window(
         onCloseRequest = { answerClient.close(); exitApplication() },
-        title = "Manijero",
+        title = environment.title,
     ) {
         // The portable backup uses the native file dialog, owned by this window so it opens on top.
         val landBackupFiles = remember(window) { DesktopLandBackupFiles(AwtBackupFileChooser(window)) }
@@ -59,20 +72,18 @@ fun main() = application {
     }
 }
 
-private fun testBuildConnectionTools(defaultUrl: String, client: HttpClient): ConnectionTools? =
+private fun testBuildConnectionTools(defaultUrl: String, client: HttpClient, folder: String): ConnectionTools? =
     if (desktopTestBuildEnabled()) {
         ConnectionTools(
-            address = ActiveServiceAddress(defaultUrl, FileServiceAddressStore(desktopConnectionStorePath())),
+            address = ActiveServiceAddress(defaultUrl, FileServiceAddressStore(desktopConnectionStorePath(folder = folder))),
             checker = KtorServiceStatusChecker(client),
         )
     } else {
         null
     }
 
-private fun landStorePath(): Path = manijeroPath(LAND_STORE_FILE)
-
-private fun manijeroPath(file: String): Path = Paths.get(
+private fun landStorePath(folder: String): Path = Paths.get(
     System.getProperty("user.home"),
-    LAND_STORE_DIRECTORY,
-    file,
+    folder,
+    LAND_STORE_FILE,
 )

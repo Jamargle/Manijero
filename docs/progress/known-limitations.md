@@ -85,13 +85,17 @@ Do not over-claim.
 - Only test builds (Android debug, Desktop `run`) can carry a pilot bearer token saved with
   `./scripts/init.sh --pilot-token-save` ([`client_pilot_credentials`](../specs/client_pilot_credentials.md)).
   Release and packaged apps never carry it, so they cannot reach a pilot-profile service until a
-  release credential path exists (`client_environment_builds` or a later decision). In a test
+  release credential path exists (a later decision). In a test
   build the token is built in, so anyone holding that build can extract it: it gates access per
-  client and is revocable, but it is not secret from the device holder. Every test build gets
-  the same saved token (no per-environment builds yet), it is sent only over
+  client and is revocable, but it is not secret from the device holder. A local test build gets
+  the saved `pilot-token.local` token and a QA test build the QA access key, it is sent only over
   `https` or to a loopback address, and the auth flow is tested only against an in-process
   fake of the pilot guard. No app has yet been observed getting a live answer from a
   pilot-profile service, because no named command starts one locally.
+- QA test builds (`./scripts/init.sh --android-qa`, `--desktop-qa`,
+  [`client_environment_builds`](../specs/client_environment_builds.md)) point at the placeholder
+  `https://qa.manijero.invalid` until `qa_server_deployment` chooses a host (then the address goes
+  in the git-ignored `qa-address.local`). No QA build has been installed or run on a device.
 - Local embeddings are implemented but **off the answer path**: a pinned `BAAI/bge-m3` revision
   (`5617a9f…`, MIT), per-file SHA-256 verification, a derived `passage-embedding-index-v1` file
   outside `knowledge/`, and a rebuild/staleness check. Only this development Mac (Apple M1 Max,
