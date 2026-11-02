@@ -20,6 +20,7 @@ import com.jamarglex.manijero.lands.AndroidLandBackupFiles
 import com.jamarglex.manijero.lands.ContentResolverBackupDocuments
 import com.jamarglex.manijero.lands.LandRepository
 import com.jamarglex.manijero.lands.SharedPreferencesLandStorage
+import com.jamarglex.manijero.welcome.AndroidWelcomeNoticeStore
 
 class MainActivity : ComponentActivity() {
     private val localNetworkPermissionLauncher = registerForActivityResult(
@@ -46,6 +47,7 @@ class MainActivity : ComponentActivity() {
             KtorAnswerService(answerClient, defaultAskBaseUrl, pilotToken)
         }
     }
+    private val welcomeNotice by lazy { AndroidWelcomeNoticeStore(applicationContext) }
     private val landRepository by lazy {
         LandRepository(SharedPreferencesLandStorage(applicationContext))
     }
@@ -80,7 +82,7 @@ class MainActivity : ComponentActivity() {
         }
 
         setContent {
-            App(landRepository, answerService, landBackupFiles, connectionTools)
+            App(landRepository, answerService, landBackupFiles, connectionTools, welcomeNotice)
         }
     }
 

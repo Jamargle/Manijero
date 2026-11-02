@@ -104,6 +104,15 @@ Durable MUST/MUST NOT rules for client requests, response states, source cards, 
   payload is the failure to avoid; `chat_accessibility` audits the surface next, and
   `local_land_auto_backup` made same-device copies real.
 
+## Welcome notice
+
+- **MUST**: the first-use welcome card MUST stay dismissible and non-blocking (composer, suggestions
+  and tabs keep working), MUST add no `heading()` and no fact beyond its traced copy
+  (`WELCOME_COPY_SOURCES`), and MUST be updated when a source string's facts change. Its dismissed
+  flag MUST stay device-local and never be sent or logged; an unreadable store shows the card and a
+  refused write still hides it for the session. Reason: `welcome_first_use` summarizes accepted
+  coverage, limits, and privacy copy, so drift would make the first screen contradict `Ayuda`.
+
 ## Chat accessibility
 
 - **MUST**: the chat surface MUST keep plain-Spanish text on every control and transcript entry (never
