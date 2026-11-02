@@ -5,9 +5,11 @@
 Routine entry point. Exact feature status lives in [`feature_list.json`](feature_list.json); use
 [`./scripts/select-feature.sh --status`](scripts/select-feature.sh) to read the board. Feature
 contracts, raw evidence, and acceptance records remain in their owning files. Last updated:
-2026-11-01.
+2026-11-02.
 
-**Feature status** — 76 of 120 features are accepted, including `backend_container_image` (build,
+**Feature status** — 77 of 120 features are accepted, including `answer_pipeline_trace` (off-by-default
+local answer trace; question and answer text only in the `development` profile; 7-day purge),
+`backend_container_image` (build,
 start, status, and stop commands for the answer service in Docker Desktop; owner walkthrough on the
 owner's Mac), `client_pilot_credentials` (build-time
 pilot token in test builds only, sent on `/ask` over https or loopback; debug-only revision re-accepted 2026-11-01; owner walkthrough passed), `local_end_to_end_smoke` (one command
@@ -19,7 +21,7 @@ default; measured on the owner's Mac, host decision pending), `knowledge_reindex
 (rehearsed locally only; no host step executed), `local_rag_bootstrap` (one guided setup
 command and a status check, walked through on the owner's Mac), `mock_answer_server` (Desktop and
 emulator walkthroughs not yet run), and `local_service_connection` (test builds only);
-`private_pilot_distribution` is `on_hold` by owner decision (2026-11-01). The 45 `not_started` features are the remaining MasterPlanV3 work, ordered
+`private_pilot_distribution` is `on_hold` by owner decision (2026-11-01). The 44 `not_started` features are the remaining MasterPlanV3 work, ordered
 local environment first, then the QA environment for remote real-device testing; prod is not planned yet. `feature_list.json` and the selector remain the status authority;
 this page does not duplicate the feature-id list.
 
@@ -89,6 +91,7 @@ before making any claim in its area.
   on the development Mac only, with no answer-level improvement over BM25.
 - The numeric-fact draft check is lexical and Spanish-only, rejects some correct paraphrases (ranges,
   an added year), and its effect on live local drafts is not measured.
+- The answer trace is off by default and local-only tested; old traces are purged only while the service runs.
 
 **Detail on demand**
 

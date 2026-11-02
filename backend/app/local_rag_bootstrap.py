@@ -78,6 +78,7 @@ OLLAMA_DOWNLOAD_URL = "https://ollama.com/download"
 LOCAL_HOME_ENV = "MANIJERO_LOCAL_HOME"  # tests only
 OLLAMA_CLI_ENV = "MANIJERO_OLLAMA_CLI"  # tests only
 CAMPAIGN_KEY = "MANIJERO_ACTIVE_CAMPAIGN"
+ANSWER_TRACE_KEY = "MANIJERO_ANSWER_TRACE"
 DEFAULT_CAMPAIGN = "2026"  # the same default as ./scripts/init.sh --backend
 
 # The hybrid environment measured 1.2 GB on the development Mac (backend/README.md).
@@ -317,6 +318,7 @@ def local_paths(home: Optional[Path] = None) -> LocalPaths:
 @dataclass(frozen=True)
 class Settings:
     active_campaign: str
+    answer_trace: bool = False
 
 
 SETTINGS_TEMPLATE = """\
@@ -328,7 +330,17 @@ SETTINGS_TEMPLATE = """\
 
 # The PAC campaign year the answers use: four digits, for example 2026.
 {key}={campaign}
-""".format(setup=SETUP_COMMAND, status=STATUS_COMMAND, key=CAMPAIGN_KEY, campaign=DEFAULT_CAMPAIGN)
+
+# Optional, for developers: on writes one debug file per question to build/answer-traces
+# in the repository (question and answer text included, deleted after 7 days). Off by default.
+# {trace_key}=off
+""".format(
+    setup=SETUP_COMMAND,
+    status=STATUS_COMMAND,
+    key=CAMPAIGN_KEY,
+    campaign=DEFAULT_CAMPAIGN,
+    trace_key=ANSWER_TRACE_KEY,
+)
 
 
 def read_settings(path: Path) -> Optional[Settings]:
@@ -356,11 +368,16 @@ def read_settings(path: Path) -> Optional[Settings]:
         if "=" not in line:
             raise _line_error(target, number, "it must look like NAME=value")
         key, value = (part.strip() for part in line.split("=", 1))
-        if key != CAMPAIGN_KEY:
+        if key not in (CAMPAIGN_KEY, ANSWER_TRACE_KEY):
             raise _line_error(target, number, "it is not a setting this tool knows")
         if key in values:
             raise _line_error(target, number, "this setting appears twice")
         value = _unquote(value)
+        if key == ANSWER_TRACE_KEY:
+            if value not in ("on", "off"):
+                raise _line_error(target, number, "the answer trace must be on or off")
+            values[key] = value
+            continue
         if len(value) != 4 or not value.isdigit():
             raise _line_error(target, number, "the campaign must be a four-digit year, for example 2026")
         values[key] = value
@@ -369,7 +386,10 @@ def read_settings(path: Path) -> Optional[Settings]:
             "The settings file {} does not set the campaign. Add the line {}={}, then run the same "
             "command again.".format(target, CAMPAIGN_KEY, DEFAULT_CAMPAIGN)
         )
-    return Settings(active_campaign=values[CAMPAIGN_KEY])
+    return Settings(
+        active_campaign=values[CAMPAIGN_KEY],
+        answer_trace=values.get(ANSWER_TRACE_KEY) == "on",
+    )
 
 
 def create_settings(path: Path) -> bool:

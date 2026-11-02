@@ -13,6 +13,7 @@ from fastapi.exceptions import RequestValidationError
 from fastapi.responses import JSONResponse
 from pydantic import AnyHttpUrl, BaseModel, ConfigDict, Field, StrictBool, StrictStr, model_validator
 
+from app import answer_trace
 from app.abstention import (
     Abstention,
     prepare_corpus,
@@ -27,6 +28,7 @@ from app.clarification import (
 from app.gemini_generation import ProviderResolution
 from app.generation import Answered, to_answer_response
 from app.knowledge_release import ReleaseError, load_published_corpus
+from app.answer_trace import AnswerTrace
 from app.pilot_logging import operational_log
 from app.retention import RetentionStore, retain_if_opted_in
 from app.retrieval_backend import RetrievalBackend, get_retrieval_backend
@@ -195,6 +197,12 @@ def get_generation_provider(request: Request) -> ProviderResolution | None:
     return getattr(request.app.state, "generation_provider", None)
 
 
+def get_answer_trace(request: Request) -> AnswerTrace | None:
+    """The local debug trace built by ``create_app``; ``None`` keeps tracing off."""
+
+    return getattr(request.app.state, "answer_trace", None)
+
+
 router = APIRouter()
 
 
@@ -218,18 +226,29 @@ def ask_question(
     retention_store: RetentionStore | None = Depends(get_retention_store),
     retrieval_backend: RetrievalBackend = Depends(get_retrieval_backend),
     generation: ProviderResolution | None = Depends(get_generation_provider),
+    trace: AnswerTrace | None = Depends(get_answer_trace),
 ) -> Dict[str, Any]:
     """Run accepted corpus and answer decisions, then the separate opt-in retention step."""
 
-    response = _answer(
-        request,
-        corpus_documents,
-        as_of,
-        active_campaign,
-        retrieval_k,
-        retrieval_backend,
-        generation,
-    )
+    session = (trace.open() if trace is not None else answer_trace.TraceSession(None))
+    land_scope = request.land_context.mode
+    try:
+        response = _answer(
+            request,
+            corpus_documents,
+            as_of,
+            active_campaign,
+            retrieval_k,
+            retrieval_backend,
+            generation,
+        )
+    except HTTPException:
+        session.finish(question=request.question, land_scope=land_scope, response=None)
+        raise
+    finally:
+        session.release()
+    # The trace is written once the answer exists; it cannot change or fail it.
+    session.finish(question=request.question, land_scope=land_scope, response=response)
     # Retention runs after the answer exists and cannot change or fail it. Only a fixed
     # outcome code is logged, and only when something was attempted.
     outcome = retain_if_opted_in(
@@ -257,6 +276,7 @@ def _answer(
     try:
         years = set(re.findall(r"(?<!\d)\d{4}(?!\d)", request.question))
         if len(years) > 1 or (years and years != {active_campaign}):
+            answer_trace.note_outcome(abstention_reason="no_evidence")
             return to_abstention_response(Abstention(reason="no_evidence", issues=()), land_scope=request.land_context.mode)
         corpus = _prepare_runtime_corpus(corpus_documents, as_of, active_campaign)
     except (CatalogReadError, CatalogRejectedError, PassageSetError, RuntimeError, ValueError):
@@ -266,6 +286,10 @@ def _answer(
         # BM25 unless hybrid retrieval is explicitly configured and its store is fresh
         # for this exact admitted corpus; the backend never raises.
         corpus = retrieval_backend.attach(corpus, active_campaign)
+        answer_trace.note_mode(
+            answer_trace_mode(corpus),
+            retrieval_k,
+        )
 
     land_context = request.land_context.model_dump(exclude_none=True)
     # ``None`` (the committed state) keeps the accepted extractive generator. A gated
@@ -287,10 +311,22 @@ def _answer(
     if isinstance(result, NeedsLandClarification):
         return to_clarification_response(result)
     if isinstance(result, Abstention):
+        answer_trace.note_outcome(
+            abstention_reason=result.reason, generation_reason=result.generation_reason
+        )
         return to_abstention_response(result, land_scope=request.land_context.mode)
     if isinstance(result, Answered):
+        answer_trace.note_outcome(
+            cited_passage_ids=[passage.passage_id for passage in result.sources]
+        )
         return to_answer_response(result)
     raise _unavailable_corpus_error()
+
+
+def answer_trace_mode(corpus: Retriever) -> str:
+    """The effective ranking of this request: hybrid only when a ranker was attached."""
+
+    return "hybrid" if corpus.uses_ranker else "bm25"
 
 
 def _prepare_runtime_corpus(documents: CorpusDocuments, as_of: date, active_campaign: str) -> Retriever | Abstention:
