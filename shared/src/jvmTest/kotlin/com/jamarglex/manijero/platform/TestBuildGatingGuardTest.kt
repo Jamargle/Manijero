@@ -80,6 +80,35 @@ class TestBuildGatingGuardTest {
         }
     }
 
+    @Test
+    fun `the fixed-url answer service constructor cannot accept inspection`() {
+        val text = root.resolve("shared/src/commonMain/kotlin/com/jamarglex/manijero/chat/AnswerService.kt").readText()
+        val secondary = Regex("""constructor\(client: HttpClient, baseUrl: String[^)]*\)\s*:\s*this\([^)]*\)""")
+            .find(text) ?: error("the fixed-URL constructor must exist")
+        assertFalse("acceptInspection" in secondary.value.substringBefore("this("), "no inspection parameter")
+        assertTrue("false)" in secondary.value, "the fixed-URL constructor must delegate with acceptance off")
+        assertTrue("private val acceptInspection: Boolean = false" in text, "acceptance must default to off")
+    }
+
+    @Test
+    fun `only the test-tools branch of each host passes acceptInspection true`() {
+        val hosts = listOf(
+            "androidApp/src/main/kotlin/com/jamarglex/manijero/MainActivity.kt" to "if (tools != null) {",
+            "desktopApp/src/main/kotlin/com/jamarglex/manijero/main.kt" to "if (connectionTools != null) {",
+        )
+        hosts.forEach { (path, branch) ->
+            val text = root.resolve(path).readText()
+            assertEquals(1, Regex("acceptInspection").findAll(text).count(), "$path names acceptInspection once")
+            val start = text.indexOf(branch)
+            assertTrue(start >= 0, "$path must keep its test-tools branch")
+            val toolsBranch = bracedBlock(text, start + branch.length - 1)
+            assertTrue("acceptInspection = true" in toolsBranch, "$path passes acceptance in the tools branch")
+            val elseStart = text.indexOf("else {", start + branch.length)
+            val fixedBranch = bracedBlock(text, elseStart + "else ".length)
+            assertFalse("acceptInspection" in fixedBranch, "$path fixed-URL branch must not accept inspection")
+        }
+    }
+
     /** The text between the `{` at [openIndex] and its matching `}`, both excluded. */
     private fun bracedBlock(text: String, openIndex: Int): String {
         require(text[openIndex] == '{')

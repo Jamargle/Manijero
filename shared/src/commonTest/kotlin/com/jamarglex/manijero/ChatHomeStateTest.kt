@@ -6,6 +6,8 @@ import com.jamarglex.manijero.chat.AskResponse
 import com.jamarglex.manijero.chat.LandContextMode
 import com.jamarglex.manijero.chat.MAX_QUESTION_LENGTH
 import com.jamarglex.manijero.chat.RequestFailure
+import com.jamarglex.manijero.inspector.AnswerInspection
+import com.jamarglex.manijero.inspector.InspectionOutcome
 import com.jamarglex.manijero.lands.Land
 import com.jamarglex.manijero.lands.WaterRegime as LocalWaterRegime
 import kotlin.test.Test
@@ -121,6 +123,23 @@ class ChatHomeStateTest {
         assertEquals(1, state.messages.count { it.speaker == Speaker.ASSISTANT })
         assertEquals(SubmissionPhase.IDLE, state.phase)
         assertNull(state.submittedQuestion)
+    }
+
+    @Test
+    fun `an assistant entry copies its own inspection and a clarification entry has none`() {
+        val inspection = AnswerInspection(
+            schema = "answer-inspection-v1",
+            outcome = InspectionOutcome(cited_passage_ids = listOf("p1")),
+            total_ms = 3,
+        )
+        val answered = submitting().reduce(
+            ChatHomeAction.ResponseReceived(response(answer = "Con inspección.").copy(inspection = inspection)),
+        ).state
+        val plain = submitting().reduce(ChatHomeAction.ResponseReceived(response(answer = "Sin."))).state
+
+        assertEquals(inspection, answered.messages[1].inspection)
+        assertNull(plain.messages[1].inspection)
+        assertNull(answered.messages[0].inspection)
     }
 
     @Test

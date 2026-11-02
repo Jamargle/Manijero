@@ -9,6 +9,7 @@ import com.jamarglex.manijero.chat.RequestFailure
 import com.jamarglex.manijero.chat.askRequestFor
 import com.jamarglex.manijero.chat.generalAskRequest
 import com.jamarglex.manijero.chat.selectedAskRequest
+import com.jamarglex.manijero.inspector.AnswerInspection
 import com.jamarglex.manijero.lands.Land
 import com.jamarglex.manijero.privacy.retentionAllowedFor
 
@@ -76,6 +77,12 @@ data class ChatMessage(
      * lands" rather than implying land context.
      */
     val landScope: LandContextMode = LandContextMode.general,
+    /**
+     * Assistant-only: the development-only inspection the response arrived with, kept only for a
+     * local test build ([com.jamarglex.manijero.chat.KtorAnswerService]). In memory with the
+     * transcript; never persisted, logged, or shared.
+     */
+    val inspection: AnswerInspection? = null,
 )
 
 enum class Speaker { USER, ASSISTANT }
@@ -189,6 +196,7 @@ fun ChatHomeState.reduce(action: ChatHomeAction): ChatReduction = when (action) 
                         response.status,
                         response.sources,
                         response.land_scope,
+                        response.inspection.takeIf { response.status != AnswerStatus.needs_land_clarification },
                     )
                 }
             ChatReduction(

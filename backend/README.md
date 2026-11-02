@@ -600,6 +600,21 @@ of the API contract; the files are read from disk.
   when tracing is off) and before each write. Nothing is deleted while the service is stopped.
 - A trace failure never changes an answer; it logs `answer_trace_skipped reason=<code>` only.
 
+## Answer inspection (development only)
+
+- `/ask` adds an optional `inspection` object (`answer-inspection-v1`) with the retrieved passages,
+  their scores, the drafting codes, and the verification codes for that answer.
+- It is sent only when `MANIJERO_DEPLOYMENT_PROFILE` is explicitly `development` (the same rule as
+  the trace text). Unset, `pilot`, QA, prod, or any other value sends nothing. Start-up logs
+  `answer_inspection state=on|off`.
+- `--local-rag-start` states `development`, so it sends inspection. `scripts/init.sh --backend` and
+  the container do not state it, so they never do; set `MANIJERO_DEPLOYMENT_PROFILE=development`
+  yourself to use `--backend`.
+- It holds ids, scores, fixed codes, timings, and public corpus text only. It is added after the
+  trace and retention steps, so neither records it, and a failure only omits it
+  (`answer_inspection_skipped reason=<code>`).
+- Only a local test build of the app on a loopback address shows it, behind `Inspeccionar`.
+
 ## Offline retrieval baseline
 
 `app/retrieval.py` is the offline retrieval boundary over reviewed passages of

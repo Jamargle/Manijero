@@ -396,6 +396,76 @@ class KtorAnswerServiceTest {
         assertEquals(null, failure.cause)
     }
 
+    private fun withInspection(inspection: String): String =
+        answeredFixture.trimEnd().removeSuffix("}") + ""","inspection":$inspection}"""
+
+    private fun inspectingEngine(inspection: String): MockEngine = MockEngine {
+        respond(
+            content = withInspection(inspection),
+            status = HttpStatusCode.OK,
+            headers = headersOf(HttpHeaders.ContentType, ContentType.Application.Json.toString()),
+        )
+    }
+
+    private suspend fun askWith(
+        url: String,
+        accept: Boolean,
+        inspection: String = VALID_INSPECTION,
+    ): AskResponse = KtorAnswerService(
+        client = answerHttpClient(inspectingEngine(inspection)),
+        baseUrl = { url },
+        pilotToken = null,
+        acceptInspection = accept,
+    ).ask(generalAskRequest("¿Puedo regar hoy?"))
+
+    @Test
+    fun `inspection is kept only with acceptance and a loopback address`() = runTest {
+        val plain = KtorAnswerService(answerHttpClient(answeringEngine()), "http://127.0.0.1:8000")
+            .ask(generalAskRequest("¿Puedo regar hoy?"))
+        listOf("http://127.0.0.1:8000", "http://10.0.2.2:8000", "http://localhost:8000", "http://[::1]:8000")
+            .forEach { url ->
+                val kept = askWith(url, accept = true)
+                assertNotNull(kept.inspection, url)
+                assertEquals(plain.answer, kept.answer)
+                assertEquals(plain.sources, kept.sources)
+                assertEquals(null, kept.rawInspection)
+            }
+    }
+
+    @Test
+    fun `inspection is dropped without acceptance or for a non-loopback address and the answer is equal`() = runTest {
+        val plain = KtorAnswerService(answerHttpClient(answeringEngine()), "http://127.0.0.1:8000")
+            .ask(generalAskRequest("¿Puedo regar hoy?"))
+        listOf(
+            "http://127.0.0.1:8000" to false,
+            "https://qa.example.invalid" to true,
+            "http://192.168.1.10:8000" to true,
+            "http://localhost.example.invalid:8000" to true,
+        ).forEach { (url, accept) ->
+            val dropped = askWith(url, accept)
+            assertEquals(null, dropped.inspection, "$url accept=$accept")
+            assertEquals(plain, dropped)
+        }
+        val fixedUrl = KtorAnswerService(answerHttpClient(inspectingEngine(VALID_INSPECTION)), "http://127.0.0.1:8000")
+            .ask(generalAskRequest("¿Puedo regar hoy?"))
+        assertEquals(plain, fixedUrl)
+    }
+
+    @Test
+    fun `a malformed inspection never turns the answer into a failure`() = runTest {
+        val plain = KtorAnswerService(answerHttpClient(answeringEngine()), "http://127.0.0.1:8000")
+            .ask(generalAskRequest("¿Puedo regar hoy?"))
+        listOf(
+            VALID_INSPECTION.replace("\"total_ms\":4", "\"total_ms\":4,\"surprise\":1"),
+            VALID_INSPECTION.replace("\"total_ms\":4", "\"total_ms\":[4]"),
+            "\"text\"",
+            "7",
+            "null",
+        ).forEach { malformed ->
+            assertEquals(plain, askWith("http://127.0.0.1:8000", accept = true, inspection = malformed))
+        }
+    }
+
     private suspend fun OutgoingContent.asText(): String = when (this) {
         is TextContent -> text
         is OutgoingContent.ByteArrayContent -> bytes().decodeToString()
@@ -410,5 +480,16 @@ class KtorAnswerServiceTest {
             directory = directory.parentFile
         }
         error("Could not locate contracts/examples from ${File("").absolutePath}")
+    }
+
+    private companion object {
+        const val VALID_INSPECTION =
+            """{"schema":"answer-inspection-v1","retrieval":{"mode":"bm25","k":5,"search_calls":1,""" +
+                """"duration_ms":2,"vector":null,"passages":[{"rank":1,"passage_id":"p1","source_id":"s1",""" +
+                """"title":"T","location":"L","score":1.5,"lexical_rank":1,"lexical_score":1.5,""" +
+                """"vector_similarity":null,"cited":true,"excerpt":"E"}]},"drafting":null,""" +
+                """"verification":{"ok":true,"issues":[],"claims":[],"duration_ms":0},""" +
+                """"outcome":{"abstention_reason":null,"generation_reason":null,"cited_passage_ids":["p1"]},""" +
+                """"total_ms":4}"""
     }
 }

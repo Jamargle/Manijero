@@ -6,6 +6,14 @@ import com.jamarglex.manijero.Speaker
 import com.jamarglex.manijero.chat.AnswerSource
 import com.jamarglex.manijero.chat.AnswerStatus
 import com.jamarglex.manijero.chat.LandContextMode
+import com.jamarglex.manijero.inspector.AnswerInspection
+import com.jamarglex.manijero.inspector.InspectionClaim
+import com.jamarglex.manijero.inspector.InspectionDrafting
+import com.jamarglex.manijero.inspector.InspectionOutcome
+import com.jamarglex.manijero.inspector.InspectionPassage
+import com.jamarglex.manijero.inspector.InspectionRetrieval
+import com.jamarglex.manijero.inspector.InspectionVector
+import com.jamarglex.manijero.inspector.InspectionVerification
 import com.jamarglex.manijero.lands.Land
 import com.jamarglex.manijero.lands.LandListState
 import com.jamarglex.manijero.lands.LandVariety
@@ -79,6 +87,102 @@ internal object ScreenshotFixtures {
             ),
         ),
         lastResponseStatus = AnswerStatus.abstained,
+    )
+
+    /**
+     * A development-only inspection of an answered question: two retrieved passages (one cited), a
+     * verification that passed, and a drafting stage. Codes and ids only, plus public corpus text.
+     */
+    val answeredInspection = AnswerInspection(
+        schema = "answer-inspection-v1",
+        retrieval = InspectionRetrieval(
+            mode = "hybrid",
+            k = 5,
+            search_calls = 1,
+            duration_ms = 12,
+            vector = InspectionVector(used = true),
+            passages = listOf(
+                InspectionPassage(
+                    rank = 1,
+                    passage_id = "pac-solicitud-unica-001",
+                    source_id = "mapa-pac",
+                    title = "Solicitud única de la PAC",
+                    location = "Información de la solicitud única",
+                    score = 0.8125,
+                    lexical_rank = 1,
+                    lexical_score = 7.25,
+                    vector_similarity = 0.6931,
+                    cited = true,
+                    excerpt = "La solicitud única es el procedimiento anual para solicitar determinadas ayudas de la PAC.",
+                ),
+                InspectionPassage(
+                    rank = 2,
+                    passage_id = "pac-plazos-002",
+                    source_id = "mapa-pac",
+                    title = "Plazos de la campaña",
+                    location = "Calendario",
+                    score = 0.4,
+                    lexical_rank = 3,
+                    lexical_score = 2.5,
+                    vector_similarity = null,
+                    cited = false,
+                    excerpt = "El calendario de la campaña se publica cada año.",
+                ),
+            ),
+        ),
+        drafting = InspectionDrafting(
+            provider = "extractive",
+            outcome = "used",
+            status = "answered",
+            cited_markers = listOf(1),
+            duration_ms = 1,
+        ),
+        verification = InspectionVerification(
+            ok = true,
+            issues = emptyList(),
+            claims = listOf(InspectionClaim(index = 1, markers = listOf(1), ok = true, issues = emptyList())),
+            duration_ms = 0,
+        ),
+        outcome = InspectionOutcome(cited_passage_ids = listOf("pac-solicitud-unica-001")),
+        total_ms = 15,
+    )
+
+    /** An abstention whose draft was rejected: the verification codes and a skipped vector stage. */
+    val abstainedInspection = AnswerInspection(
+        schema = "answer-inspection-v1",
+        retrieval = InspectionRetrieval(
+            mode = "bm25",
+            k = 5,
+            search_calls = 1,
+            duration_ms = 3,
+            vector = null,
+            passages = emptyList(),
+        ),
+        drafting = null,
+        verification = InspectionVerification(
+            ok = false,
+            issues = listOf("uncited_sentence"),
+            claims = listOf(
+                InspectionClaim(index = 1, markers = emptyList(), ok = false, issues = listOf("uncited_sentence")),
+            ),
+            duration_ms = 0,
+        ),
+        outcome = InspectionOutcome(abstention_reason = "no_evidence", cited_passage_ids = emptyList()),
+        total_ms = 4,
+    )
+
+    /** [answeredChat] with the inspection a local test build keeps: the `Inspeccionar` link shows. */
+    val answeredInspectedChat = answeredChat.copy(
+        messages = answeredChat.messages.map { message ->
+            if (message.speaker == Speaker.ASSISTANT) message.copy(inspection = answeredInspection) else message
+        },
+    )
+
+    /** [abstainedResponse] with an inspection: the `Inspeccionar` link shows below the caution card. */
+    val abstainedInspectedChat = abstainedResponse.copy(
+        messages = abstainedResponse.messages.map { message ->
+            if (message.speaker == Speaker.ASSISTANT) message.copy(inspection = abstainedInspection) else message
+        },
     )
 
     /**

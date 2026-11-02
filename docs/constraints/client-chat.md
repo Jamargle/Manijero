@@ -149,3 +149,12 @@ Durable MUST/MUST NOT rules for client requests, response states, source cards, 
   through `Modifier.testTag`), and no product logic reads one; `LocalSmokeGuardTest` checks this.
   Reason: [`local_end_to_end_smoke`](../specs/local_end_to_end_smoke.md) drivers find screen states
   by tag so copy edits never break the smoke test.
+
+## Answer inspector
+
+- **MUST**: the `Inspeccionar` link and the `Inspección de la respuesta` screen MUST exist only for an
+  assistant entry whose `inspection` was kept under the local-build rule (the service was built with
+  test-build tools **and** the question went to a loopback address), MUST keep it in memory only
+  (never persisted, logged, exported, or shared), and MUST show no success colour, check, or other
+  certainty treatment. Reason: owner decision 1 in
+  [`docs/specs/rag_inspector_view.md`](../specs/rag_inspector_view.md).
