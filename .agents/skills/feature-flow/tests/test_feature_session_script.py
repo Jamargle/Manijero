@@ -13,8 +13,7 @@ import subprocess
 from pathlib import Path
 from typing import Optional
 
-BACKEND_ROOT = Path(__file__).resolve().parents[1]
-REPO_ROOT = BACKEND_ROOT.parent
+REPO_ROOT = Path(__file__).resolve().parents[4]  # .agents/skills/feature-flow/tests/<this file>
 SCRIPT = REPO_ROOT / "scripts" / "feature-session.sh"
 FEATURE = "local_end_to_end_smoke"  # any id present in feature_list.json
 
