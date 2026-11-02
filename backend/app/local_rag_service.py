@@ -323,6 +323,8 @@ def launch_environment(
             "MANIJERO_LOCAL_MODEL": record.model,
         }
     )
+    if settings.answer_trace:
+        environment["MANIJERO_ANSWER_TRACE"] = "on"
     return environment
 
 

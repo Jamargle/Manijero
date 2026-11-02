@@ -138,3 +138,8 @@ Do not over-claim.
   answer-quality or legal-coverage claim. Whether the emulator app keeps its lands could not be
   observed: the emulator had no lands before the run. Physical devices are never used. See the
   [acceptance record](../validations/local_end_to_end_smoke.md).
+- The answer trace (`MANIJERO_ANSWER_TRACE=on`, `answer_pipeline_trace`) is off by default and tested
+  locally only; no hosted trace has been observed. Old traces are purged only while the service runs,
+  so a stopped service keeps files older than 7 days until its next start. An unset deployment profile
+  counts as `development` (text recorded) until `environment_profiles` adds a positive local marker. See
+  the [acceptance record](../validations/answer_pipeline_trace.md).

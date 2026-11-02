@@ -39,11 +39,13 @@ detection are explicitly deferred to ``safe_abstention`` and a later judge.
 """
 
 import re
+import time
 import unicodedata
 from dataclasses import dataclass
 from datetime import date
 from typing import Any, Dict, FrozenSet, List, Optional, Protocol, Sequence, Tuple, Union
 
+from app import answer_trace
 from app.retrieval import (
     DEFAULT_K,
     RetrievedPassage,
@@ -1056,9 +1058,13 @@ def generate_grounded_answer(
         else ExtractiveGroundingGenerator(max_claims=max_claims)
     )
 
+    if generator is None:
+        answer_trace.note_provider("extractive", "used")
+    drafting_started = time.monotonic()
     try:
         draft = active_generator.generate(question, numbered_candidates, as_of=as_of)
     except Exception as error:  # noqa: BLE001 - a generator must never break the pipeline
+        answer_trace.note_draft(None, drafting_started)
         return NotAnswered(
             "generation_error",
             (
@@ -1080,7 +1086,10 @@ def generate_grounded_answer(
             ),
         )
 
+    answer_trace.note_draft(draft, drafting_started)
+    verifying_started = time.monotonic()
     report = verify_draft(draft, numbered_candidates)
+    answer_trace.note_verification(report, verifying_started)
     if not report.ok:
         return NotAnswered(_reason_for(report.issues), report.issues, report.claims)
 

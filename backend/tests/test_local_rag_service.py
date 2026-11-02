@@ -284,6 +284,19 @@ def test_the_launch_environment_passes_the_real_hybrid_and_local_gates(ready: bo
     assert Path(environment["MANIJERO_VECTOR_STORE"]).is_dir()
 
 
+def test_the_launch_environment_carries_the_answer_trace_only_when_on(ready: boot.Env) -> None:
+    _, model = lrb.load_pins(ready.ctx, boot.NOW.date())
+    release_id = kr.current_release_id(ready.paths.releases)
+    inherited = {"PATH": "/bin", "MANIJERO_ANSWER_TRACE": "on"}
+
+    off = svc.launch_environment(ready.ctx, lrb.Settings("2026"), model, release_id, inherited)
+    on = svc.launch_environment(ready.ctx, lrb.Settings("2026", True), model, release_id, inherited)
+
+    assert "MANIJERO_ANSWER_TRACE" not in off  # never inherited, only taken from the settings file
+    assert on["MANIJERO_ANSWER_TRACE"] == "on"
+    assert {key: value for key, value in on.items() if key != "MANIJERO_ANSWER_TRACE"} == off
+
+
 def test_a_custom_port_has_no_default_address_note(harness: Harness) -> None:
     assert harness.start(port=8765) == 0, harness.output
     assert "These are the apps' default addresses" not in harness.output

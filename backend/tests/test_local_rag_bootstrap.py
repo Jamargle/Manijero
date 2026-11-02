@@ -853,6 +853,56 @@ def test_settings_without_the_campaign_say_which_line_to_add(env: Env) -> None:
         lrb.read_settings(env.paths.settings)
 
 
+def _write_settings(env: Env, text: str) -> None:
+    env.paths.home.mkdir(parents=True)
+    env.paths.settings.write_text(text, encoding="utf-8")
+
+
+@pytest.mark.parametrize(
+    "extra, expected",
+    [("", False), ("MANIJERO_ANSWER_TRACE=off\n", False), ("MANIJERO_ANSWER_TRACE=on\n", True),
+     ('MANIJERO_ANSWER_TRACE="on"\n', True)],
+)
+def test_settings_accept_the_optional_answer_trace_line(env: Env, extra: str, expected: bool) -> None:
+    _write_settings(env, "MANIJERO_ACTIVE_CAMPAIGN=2026\n" + extra)
+
+    assert lrb.read_settings(env.paths.settings) == lrb.Settings("2026", expected)
+
+
+@pytest.mark.parametrize(
+    "text, line",
+    [
+        ("MANIJERO_ACTIVE_CAMPAIGN=2026\nMANIJERO_ANSWER_TRACE=On\n", 2),
+        ("MANIJERO_ACTIVE_CAMPAIGN=2026\nMANIJERO_ANSWER_TRACE=1\n", 2),
+        ("MANIJERO_ACTIVE_CAMPAIGN=2026\nMANIJERO_ANSWER_TRACE=on\nMANIJERO_ANSWER_TRACE=on\n", 3),
+        ("MANIJERO_ANSWER_TRACE=on\nMANIJERO_ACTIVE_CAMPAIGN=2026\nMANIJERO_ANSWER_TRACE=off\n", 3),
+    ],
+)
+def test_invalid_or_repeated_answer_trace_line_names_the_line(env: Env, text: str, line: int) -> None:
+    _write_settings(env, text)
+
+    with pytest.raises(lrb.SettingsError, match="problem on line {}".format(line)):
+        lrb.read_settings(env.paths.settings)
+
+
+def test_the_answer_trace_line_alone_still_needs_the_campaign(env: Env) -> None:
+    _write_settings(env, "MANIJERO_ANSWER_TRACE=on\n")
+
+    with pytest.raises(lrb.SettingsError, match="Add the line MANIJERO_ACTIVE_CAMPAIGN=2026"):
+        lrb.read_settings(env.paths.settings)
+
+
+def test_new_settings_template_shows_the_answer_trace_line_commented_off(env: Env) -> None:
+    assert lrb.create_settings(env.paths.settings) is True
+    text = env.paths.settings.read_text(encoding="utf-8")
+
+    assert "\n# MANIJERO_ANSWER_TRACE=off\n" in text
+    assert lrb.read_settings(env.paths.settings) == lrb.Settings("2026", False)
+    env.paths.settings.write_text("MANIJERO_ACTIVE_CAMPAIGN=2027\n", encoding="utf-8")
+    assert lrb.create_settings(env.paths.settings) is False  # an existing file is never rewritten
+    assert env.paths.settings.read_text(encoding="utf-8") == "MANIJERO_ACTIVE_CAMPAIGN=2027\n"
+
+
 def test_local_paths_layout() -> None:
     paths = lrb.local_paths(Path("/x/home"))
     assert paths.settings == Path("/x/home/settings.env")
