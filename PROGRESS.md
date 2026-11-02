@@ -5,9 +5,11 @@
 Routine entry point. Exact feature status lives in [`feature_list.json`](feature_list.json); use
 [`./scripts/select-feature.sh --status`](scripts/select-feature.sh) to read the board. Feature
 contracts, raw evidence, and acceptance records remain in their owning files. Last updated:
-2026-11-01.
+2026-11-02.
 
-**Feature status** — 76 of 120 features are accepted, including `backend_container_image` (build,
+**Feature status** — 77 of 120 features are accepted, including `welcome_first_use` (dismissible
+first-use welcome card in the chat, reopened from `Ayuda` with `Ver bienvenida`; validator accept,
+no owner walkthrough by owner decision), `backend_container_image` (build,
 start, status, and stop commands for the answer service in Docker Desktop; owner walkthrough on the
 owner's Mac), `client_pilot_credentials` (build-time
 pilot token in test builds only, sent on `/ask` over https or loopback; debug-only revision re-accepted 2026-11-01; owner walkthrough passed), `local_end_to_end_smoke` (one command

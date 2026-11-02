@@ -11,6 +11,10 @@ The land-screen refresh changes the populated-list row treatment; if its list or
 captures differ, only those land captures may be recorded after visual inspection. Shell and chat
 captures are not part of this feature and must remain untouched, even if their host baselines fail.
 
+`welcome_first_use` adds the chat welcome card (Desktop `chat_home_welcome_light` and
+`chat_home_welcome_phone_large_text_dark`, Android `chat_home_welcome_light`) and the `Ayuda` link
+(Desktop `coverage_welcome_link_light`); no existing golden changed.
+
 The app scenes are the same on both platforms and use the shared, code-owned fixtures in
 `shared/src/commonTest/kotlin/com/jamarglex/manijero/screenshots/ScreenshotFixtures.kt`: chat idle
 (light), chat answered with a source card (dark), chat abstention with its state label (dark), chat

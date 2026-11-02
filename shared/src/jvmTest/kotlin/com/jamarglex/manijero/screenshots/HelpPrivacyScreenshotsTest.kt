@@ -27,4 +27,6 @@ class HelpPrivacyScreenshotsTest : ScreenshotTestSupport() {
         capture(name, PHONE_WIDTH, PHONE_HEIGHT, fontScale = 2f) {
             ManijeroTheme(darkTheme = darkTheme) { content() }
         }
+
+    @Test fun coverageWelcomeLinkLight() = capture("coverage_welcome_link_light", 900, 1400) { ManijeroTheme(darkTheme = false) { CoverageScreen({}, onShowWelcome = {}) } }
 }

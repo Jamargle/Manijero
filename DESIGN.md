@@ -315,6 +315,9 @@ component layer. These rules are durable:
   target, the unchanged plain `LandDetails` below), and `Continuar`, enabled only after a selection.
   It shows nothing while the guarded local read is unresolved and the accepted fallback if no land
   matches; it never fabricates a land.
+- **Welcome card.** Until dismissed, an outlined `ManijeroCard` sits above the hero: a
+  `titleMedium` title without heading semantics, four `bodyLarge` lines, and one `OutlinedButton`
+  `Entendido`. It blocks nothing and pushes the hero down on compact screens.
 - **Compact limit.** At 360×800 dp with both shell bars, the hero and suggestions occupy the first
   screen, so the composer's `Preguntar` button needs a scroll (a little longer since the retention
   row was added below the field). This is a recorded limit of
@@ -330,6 +333,8 @@ the same outlined-card and semantic-heading treatment. Keep their resource copy 
 callbacks unchanged; the privacy shared-attribute list remains derived from its exhaustive mapping.
 The visual grouping must not alter the distinction between device-local land records and attributes
 that may accompany a question. See [the feature contract](docs/specs/help_privacy_refresh.md).
+`Ayuda` also offers one full-width `TextButton` `Ver bienvenida` after the help card, which shows
+the chat welcome card again.
 
 ## MVP surface intent
 

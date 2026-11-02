@@ -17,6 +17,8 @@ import com.jamarglex.manijero.connection.ConnectionController
 import com.jamarglex.manijero.connection.ConnectionScreen
 import com.jamarglex.manijero.connection.ConnectionTools
 import com.jamarglex.manijero.coverage.CoverageScreen
+import com.jamarglex.manijero.welcome.WelcomeNotice
+import com.jamarglex.manijero.welcome.WelcomeNoticeStore
 import com.jamarglex.manijero.lands.AddLandAction
 import com.jamarglex.manijero.lands.AddLandScreen
 import com.jamarglex.manijero.lands.AddLandState
@@ -92,8 +94,11 @@ fun App(
     answerService: AnswerService = UnavailableAnswerService,
     landBackupFiles: LandBackupFiles? = null,
     connectionTools: ConnectionTools? = null,
+    welcomeNotice: WelcomeNoticeStore? = null,
 ) {
     val scope = rememberCoroutineScope()
+    // The first-use card exists only when a host injects its dismissed-flag store.
+    val welcome = remember(welcomeNotice) { welcomeNotice?.let { store -> WelcomeNotice(store) } }
     // The chat reads the land list at submit time and again on every retry, so a land added, edited
     // or removed after the conversation started is reflected in the next request. With no repository
     // (the iOS scaffold and previews) the accepted `general` request is used.
@@ -270,6 +275,8 @@ fun App(
                     state = conversation.state,
                     onAction = { action -> conversation.onAction(action) },
                     clarificationLands = clarificationLands,
+                    showWelcome = welcome?.visible == true,
+                    onDismissWelcome = { welcome?.dismiss() },
                     onPrivacyClick = {
                         privacyReturn = AppDestination.Chat
                         destination = AppDestination.Privacy
@@ -293,6 +300,13 @@ fun App(
                     onPrivacyClick = {
                         privacyReturn = AppDestination.Coverage
                         destination = AppDestination.Privacy
+                    },
+                    onShowWelcome = welcome?.let { notice ->
+                        {
+                            notice.showAgain()
+                            previousSection = AppSection.Assistant
+                            destination = AppDestination.Chat
+                        }
                     },
                     onOpenTestTools = connection?.let { controller ->
                         {

@@ -97,4 +97,39 @@ class ChatHomeScreenshotsTest : ScreenshotTestSupport() {
                 )
             }
         }
+
+    /** First use: the welcome card above the hero, light appearance. */
+    @Test
+    fun chatHomeWelcomeLight() =
+        capture(name = "chat_home_welcome_light", width = CHAT_WIDTH, height = CHAT_HEIGHT) {
+            ManijeroTheme(darkTheme = false) {
+                ChatHomeScreen(
+                    state = ScreenshotFixtures.idleChat,
+                    onAction = {},
+                    onPrivacyClick = {},
+                    onCoverageClick = {},
+                    showWelcome = true,
+                )
+            }
+        }
+
+    /** The welcome card at phone width, 2x text, dark appearance. */
+    @Test
+    fun chatHomeWelcomePhoneLargeTextDark() =
+        capture(
+            name = "chat_home_welcome_phone_large_text_dark",
+            width = PHONE_WIDTH,
+            height = PHONE_HEIGHT,
+            fontScale = 2f,
+        ) {
+            ManijeroTheme(darkTheme = true) {
+                ChatHomeScreen(
+                    state = ScreenshotFixtures.idleChat,
+                    onAction = {},
+                    onPrivacyClick = {},
+                    onCoverageClick = {},
+                    showWelcome = true,
+                )
+            }
+        }
 }
