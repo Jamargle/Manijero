@@ -850,3 +850,21 @@ def test_canonical_source_catalog_is_unchanged_and_reviewed() -> None:
     assert len(document["sources"]) == 4
     assert all(source["review_status"] == "approved" for source in document["sources"])
     assert CATALOG_SCHEMA_FILE.exists()
+
+
+def test_official_deadline_is_carried_on_retrieved_passages_only_when_declared() -> None:
+    passages = json.loads(json.dumps(passage_document()))
+    declared_id = passages["passages"][0]["id"]
+    passages["passages"][0]["official_deadline"] = "2031-05-15"
+    retriever = Retriever.from_documents(
+        catalog_document(), passages, date.fromisoformat(AS_OF), active_campaign="2026"
+    )
+
+    found = {
+        candidate.passage_id: candidate.official_deadline
+        for question in ("solicitud", "plazo", "importe", "documentos")
+        for candidate in retriever.search(question, k=10)
+    }
+
+    assert found[declared_id] == "2031-05-15"
+    assert {value for key, value in found.items() if key != declared_id} == {None}

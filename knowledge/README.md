@@ -319,6 +319,7 @@ readable contract is `passages.schema.json`; the executable validator is
 | `text` | The non-blank reviewed excerpt. Retrieval indexes this text only. |
 | `critical` | Optional boolean for deadlines, amounts, and thresholds. When absent the source-level flag applies. |
 | `applicability` | Optional; record only known values, in the same shape as the catalog. When absent the source-level applicability applies. |
+| `official_deadline` | Optional `YYYY-MM-DD`, a real date: the inclusive last day of the deadline this passage states. Enter it only when the excerpt states that day and its year matches the source's `campaign`; leave the key absent when unsure. Code uses it for the fixed deadline notices; never inferred from the text. |
 
 Unknown keys, duplicate ids, blank text, and out-of-range applicability values
 are rejected. A passage set is a Git-tracked, human-reviewed artifact: nothing

@@ -49,6 +49,7 @@ from app.gemini_generation import (
     resolve_generation_provider,
     resolve_startup_provider,
 )
+from app.deadline_notices import COOPERATIVE
 from app.generation import (
     LEAD_IN,
     NOTICE,
@@ -582,6 +583,9 @@ def test_parse_accepts_a_well_formed_draft() -> None:
         _draft("x [1]", [1]) + " " * MAX_RAW_OUTPUT_CHARS,
         _draft("Según los documentos oficiales revisados: x [1]", [1]),
         _draft("x [1]. " + NOTICE, [1]),
+        _draft("x [1]. " + COOPERATIVE, [1]),
+        _draft("x [1]. EL PLAZO OFICIAL TERMINO EL 15 de mayo", [1]),
+        _draft("x [1]. El plazo oficial terminó el 15 de mayo de 2031.", [1]),
         _draft("Consulta https://example.org [1]", [1]),
         _draft("Consulta WWW.example.org [1]", [1]),
         None,
@@ -878,6 +882,37 @@ def test_verified_gemini_draft_reaches_ask_inside_the_code_owned_shell(
     assert no_network == []
     outcomes = [line["outcome"] for line in _log_lines(captured_log) if line["event"] == "generation"]
     assert outcomes == ["gemini_used"]
+
+
+def _documents_with_deadline() -> CorpusDocuments:
+    documents = _documents()
+    passages = json.loads(json.dumps(documents.passages))
+    for passage in passages["passages"]:
+        if passage["id"] == "fixture-clar-solicitud-1":
+            passage["official_deadline"] = "2026-10-01"
+    return CorpusDocuments(catalog=documents.catalog, passages=passages)
+
+
+def test_a_draft_with_notice_text_falls_back_and_the_paragraph_appears_once(
+    monkeypatch: pytest.MonkeyPatch, captured_log: io.StringIO, no_network: list
+) -> None:
+    def reply(request: GeminiDraftRequest) -> str:
+        payload = json.loads(request.payload_json)
+        handle = next(i["passage_id"] for i in payload["passages"] if SOLICITUD_FRAGMENT in i["text"])
+        return _draft(f"Se presenta una vez al año [{handle}] {COOPERATIVE}", [int(handle)])
+
+    application = _app(monkeypatch, FakeTransport(reply), approved=True)
+    application.dependency_overrides[get_corpus_documents] = _documents_with_deadline
+
+    body = _post(application, _body()).json()
+
+    assert body["status"] == "answered"
+    paragraph = "El plazo oficial terminó el 1 de octubre de 2026. " + COOPERATIVE
+    assert body["answer"].endswith("\n\n" + paragraph)
+    assert body["answer"].count(COOPERATIVE) == 1
+    assert body["answer"].count(NOTICE) == 1
+    outcomes = [line["outcome"] for line in _log_lines(captured_log) if line["event"] == "generation"]
+    assert outcomes == ["malformed_output"]
 
 
 @pytest.mark.parametrize(

@@ -1510,3 +1510,23 @@ def test_evaluation_questions_cover_answered_and_no_evidence_outcomes() -> None:
     for line in lines:
         assert set(line) == {"question", "expected_passage_ids", "expect"}
         assert set(line["expected_passage_ids"]) <= indexed_ids
+
+
+def test_deadline_notice_is_added_after_verification_and_only_with_metadata() -> None:
+    import dataclasses
+
+    excerpt = "El plazo finalizará el 15 de junio, inclusive."
+    cited = dataclasses.replace(make_passage(excerpt), official_deadline="2031-06-15")
+    plain = make_passage(excerpt)
+
+    with_notice = generate_grounded_answer(
+        "plazo", StaticRetriever((cited,)), as_of=date(2031, 6, 16)
+    )
+    without = generate_grounded_answer(
+        "plazo", StaticRetriever((plain,)), as_of=date(2031, 6, 16)
+    )
+
+    assert isinstance(with_notice, Answered) and isinstance(without, Answered)
+    assert with_notice.answer.startswith(without.answer + "\n\n")
+    assert "El plazo oficial terminó el 15 de junio de 2031." in with_notice.answer
+    assert without.answer == "{} {} [1] {}".format(LEAD_IN, excerpt, NOTICE)

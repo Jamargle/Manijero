@@ -45,6 +45,7 @@ from app.gemini_generation import (
     ProviderResolution,
     resolve_startup_provider,
 )
+from app.deadline_notices import COOPERATIVE
 from app.generation import LEAD_IN, NOTICE
 from app.local_generation import (
     DEFAULT_RECORD_PATH,
@@ -826,6 +827,36 @@ def test_the_default_real_transport_only_dials_loopback(
 
 
 # --- Generator through /ask --------------------------------------------------------------
+
+
+def test_a_local_draft_with_notice_text_falls_back_with_the_paragraph_once(
+    monkeypatch: pytest.MonkeyPatch, no_network: list
+) -> None:
+    def documents() -> CorpusDocuments:
+        base = _documents()
+        passages = json.loads(json.dumps(base.passages))
+        for passage in passages["passages"]:
+            if passage["id"] == "fixture-clar-solicitud-1":
+                passage["official_deadline"] = "2026-10-01"
+        return CorpusDocuments(catalog=base.catalog, passages=passages)
+
+    def reply(body: dict) -> dict:
+        handle = _solicitud_handle(body)
+        text = f"Se presenta una vez al año [{handle}] {COOPERATIVE}"
+        return _chat(_draft(text, [handle]))
+
+    application = _app(monkeypatch, FakeOpener(chat=reply))
+    application.dependency_overrides[get_corpus_documents] = documents
+
+    body = _post(application, _body()).json()
+
+    assert body["status"] == "answered"
+    assert body["answer"].endswith(
+        "\n\nEl plazo oficial terminó el 1 de octubre de 2026. " + COOPERATIVE
+    )
+    assert body["answer"].count(COOPERATIVE) == 1
+    assert body["answer"].count(NOTICE) == 1
+
 
 
 def test_a_verified_local_draft_is_used_inside_the_code_owned_shell(

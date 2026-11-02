@@ -29,6 +29,14 @@ Durable MUST/MUST NOT rules for backend answer path, retrieval, generation, eval
   where a reworded claim could change "15 de mayo" to "en junio" or drop "hábiles"
   against a non-critical passage.
 
+- **MUST**: deadline notices are fixed, code-owned Spanish sentences appended
+  after `verify_draft` as the answer's final paragraph. They are driven only by
+  a cited passage's reviewed `official_deadline` and the injected UTC `as_of`
+  (a deadline has passed only when strictly before `as_of`), never by a
+  generator or by dates parsed from text. They never appear on abstentions or
+  clarifications, and the answer plus paragraph MUST fit the 1200 bound.
+  Reason: [`answer_deadline_notices`](../specs/answer_deadline_notices.md).
+
 ## Local embeddings
 
 - **MUST**: the default answer behavior MUST stay the accepted BM25 retrieval
