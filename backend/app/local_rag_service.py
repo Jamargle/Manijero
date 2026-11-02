@@ -315,6 +315,8 @@ def launch_environment(
     environment.update(
         {
             "MANIJERO_ACTIVE_CAMPAIGN": settings.active_campaign,
+            # Stated, not left to the unset default, so the answer trace can trust it is local.
+            "MANIJERO_DEPLOYMENT_PROFILE": bootstrap.LOCAL_PROFILE,
             "MANIJERO_KNOWLEDGE_RELEASE_ROOT": str(releases),
             "MANIJERO_RETRIEVAL_MODE": "hybrid",
             "MANIJERO_VECTOR_STORE": str(releases / kr.RELEASES_DIR / release_id / kr.VECTOR_STORE_DIR),

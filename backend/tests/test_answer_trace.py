@@ -118,7 +118,10 @@ def trace_for(
 ) -> AnswerTrace:
     folder = tmp_path / "traces"
     return load_answer_trace(
-        {"MANIJERO_ANSWER_TRACE": "on" if enabled else "off"}, profile, folder=folder, clock=clock or FixedClock()
+        {"MANIJERO_ANSWER_TRACE": "on" if enabled else "off", "MANIJERO_DEPLOYMENT_PROFILE": profile},
+        profile,
+        folder=folder,
+        clock=clock or FixedClock(),
     )
 
 
@@ -183,6 +186,25 @@ def test_setting_unset_empty_off_disables_and_creates_no_folder(tmp_path: Path, 
     assert not (tmp_path / "traces").exists()
 
 
+@pytest.mark.parametrize("stated", [None, "", "  "])
+def test_an_unset_profile_never_records_text_even_though_it_resolves_to_development(
+    tmp_path: Path, stated: Optional[str]
+) -> None:
+    environ = {"MANIJERO_ANSWER_TRACE": "on"}
+    if stated is not None:
+        environ["MANIJERO_DEPLOYMENT_PROFILE"] = stated
+    trace = load_answer_trace(environ, "development", folder=tmp_path / "traces")
+
+    assert trace.enabled is True and trace.text_included is False
+
+
+def test_a_stated_development_profile_records_text(tmp_path: Path) -> None:
+    environ = {"MANIJERO_ANSWER_TRACE": "on", "MANIJERO_DEPLOYMENT_PROFILE": "development"}
+    trace = load_answer_trace(environ, "development", folder=tmp_path / "traces")
+
+    assert trace.text_included is True
+
+
 @pytest.mark.parametrize("value", ["On", "1", "yes", " on", "ON", "true"])
 def test_invalid_setting_values_stay_off_and_log_value_invalid(
     tmp_path: Path, value: str, operational_records
@@ -211,7 +233,7 @@ def test_invalid_setting_values_stay_off_and_log_value_invalid(
     ],
 )
 def test_text_allowed_only_for_exact_development(profile: str, expected: bool) -> None:
-    assert text_allowed(profile) is expected
+    assert text_allowed(profile, {"MANIJERO_DEPLOYMENT_PROFILE": profile}) is expected
 
 
 # --- document content --------------------------------------------------------------------

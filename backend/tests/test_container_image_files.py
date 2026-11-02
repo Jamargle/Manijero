@@ -103,7 +103,8 @@ def test_the_image_runs_as_a_non_root_user() -> None:
 def test_the_service_environment_is_the_local_rag_one_with_image_paths() -> None:
     service_keys = {key for key in svc_launch_keys() if key.startswith("MANIJERO_")}
     environment = {key: value for key, value in image_environment().items() if key.startswith("MANIJERO_")}
-    assert set(environment) == service_keys - {"MANIJERO_ACTIVE_CAMPAIGN"}
+    # The image states no profile, so a trace turned on inside the container never records text.
+    assert set(environment) == service_keys - {"MANIJERO_ACTIVE_CAMPAIGN", "MANIJERO_DEPLOYMENT_PROFILE"}
     assert environment == {
         "MANIJERO_KNOWLEDGE_RELEASE_ROOT": "/opt/manijero/knowledge-releases",
         "MANIJERO_RETRIEVAL_MODE": "hybrid",

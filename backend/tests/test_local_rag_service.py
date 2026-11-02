@@ -37,7 +37,7 @@ ALLOWED_KEYS = {
     "PATH", "HOME", "TMPDIR", "LANG", "LC_ALL",
     "MANIJERO_ACTIVE_CAMPAIGN", "MANIJERO_KNOWLEDGE_RELEASE_ROOT", "MANIJERO_RETRIEVAL_MODE",
     "MANIJERO_VECTOR_STORE", "MANIJERO_EMBEDDING_ARTIFACT", "MANIJERO_GENERATION_PROVIDER",
-    "MANIJERO_LOCAL_MODEL",
+    "MANIJERO_LOCAL_MODEL", "MANIJERO_DEPLOYMENT_PROFILE",
 }
 
 
@@ -244,6 +244,7 @@ def test_start_when_ready_launches_the_service_in_the_background(harness: Harnes
     assert launched == {
         **{key: os.environ[key] for key in svc.INHERITED_KEYS if os.environ.get(key)},
         "MANIJERO_ACTIVE_CAMPAIGN": "2026",
+        "MANIJERO_DEPLOYMENT_PROFILE": "development",  # stated, never the inherited "pilot"
         "MANIJERO_KNOWLEDGE_RELEASE_ROOT": str(env.paths.releases),
         "MANIJERO_RETRIEVAL_MODE": "hybrid",
         "MANIJERO_VECTOR_STORE": str(env.paths.releases / "releases" / release_id / "vector-store"),
@@ -297,15 +298,20 @@ def test_the_launch_environment_carries_the_answer_trace_only_when_on(ready: boo
     assert {key: value for key, value in on.items() if key != "MANIJERO_ANSWER_TRACE"} == off
 
 
-def test_the_launch_environment_has_no_profile_environment_or_credential_key(ready: boot.Env) -> None:
+def test_the_launch_environment_states_development_and_has_no_environment_or_credential_key(
+    ready: boot.Env,
+) -> None:
     _, model = lrb.load_pins(ready.ctx, boot.NOW.date())
     release_id = kr.current_release_id(ready.paths.releases)
     settings = lrb.read_settings(ready.paths.settings)
     assert settings is not None and settings.names_environment
 
-    environment = svc.launch_environment(ready.ctx, settings, model, release_id, {"PATH": "/bin"})
+    environment = svc.launch_environment(
+        ready.ctx, settings, model, release_id, {"PATH": "/bin", "MANIJERO_DEPLOYMENT_PROFILE": "pilot"}
+    )
 
-    for key in ("MANIJERO_DEPLOYMENT_PROFILE", "MANIJERO_ENVIRONMENT", "MANIJERO_PILOT_CLIENTS_FILE"):
+    assert environment["MANIJERO_DEPLOYMENT_PROFILE"] == "development"
+    for key in ("MANIJERO_ENVIRONMENT", "MANIJERO_PILOT_CLIENTS_FILE"):
         assert key not in environment
     assert not any("TOKEN" in key or "CREDENTIAL" in key for key in environment)
 

@@ -140,10 +140,9 @@ Do not over-claim.
   [acceptance record](../validations/local_end_to_end_smoke.md).
 - The answer trace (`MANIJERO_ANSWER_TRACE=on`, `answer_pipeline_trace`) is off by default and tested
   locally only; no hosted trace has been observed. Old traces are purged only while the service runs,
-  so a stopped service keeps files older than 7 days until its next start. An unset deployment profile
-  counts as `development` (text recorded). `environment_profiles` makes each settings file name its
-  environment and profile, but the local service is still started without that profile, so the trace
-  does not read it yet; a follow-up must pass a positive local marker to the service. See
+  so a stopped service keeps files older than 7 days until its next start. Text is recorded only when
+  the profile is explicitly `development` (stated by the local service start); the container image
+  states no profile, so a trace turned on there records no text. See
   the [acceptance record](../validations/answer_pipeline_trace.md).
 - Environment profiles (`environment_profiles`): only local is complete. QA is a commented template
   with a placeholder `.invalid` host and an empty knowledge-release folder; no QA host is chosen or

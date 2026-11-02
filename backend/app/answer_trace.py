@@ -3,7 +3,7 @@
 Tracing is off unless ``MANIJERO_ANSWER_TRACE=on``. One JSON file per ``/ask`` that reaches
 the route is written to the fixed, git-ignored ``build/answer-traces`` folder (mode 0700,
 files 0600, atomic rename) and deleted after seven days. Question, answer, and draft text
-are recorded only when the validated profile is exactly ``development``; every other
+are recorded only when ``MANIJERO_DEPLOYMENT_PROFILE`` is set to exactly ``development``; every other
 profile gets ids, scores, timings, and verification codes. A trace never changes an answer
 and never fails a request: every hook here swallows its own errors.
 
@@ -28,6 +28,7 @@ from typing import Any, Callable, Dict, Iterable, List, Optional, Sequence, Tupl
 from app.pilot_logging import operational_log
 
 SETTING_ENV = "MANIJERO_ANSWER_TRACE"
+PROFILE_ENV = "MANIJERO_DEPLOYMENT_PROFILE"
 SCHEMA_VERSION = "answer-trace-v1"
 LOCAL_PROFILES = frozenset({"development"})
 REPOSITORY_ROOT = Path(__file__).resolve().parents[2]
@@ -81,10 +82,15 @@ def parse_setting(value: Optional[str]) -> Tuple[bool, Optional[str]]:
     return False, "value_invalid"
 
 
-def text_allowed(profile: str) -> bool:
-    """Text may be traced only for a profile the allowlist names exactly (fail closed)."""
+def text_allowed(profile: str, environ: Any) -> bool:
+    """Text may be traced only for a profile the allowlist names exactly (fail closed).
 
-    return isinstance(profile, str) and profile in LOCAL_PROFILES
+    The profile must also be set explicitly: an unset profile resolves to ``development``
+    elsewhere, but a service started without one is never trusted to be local.
+    """
+
+    stated = (environ.get(PROFILE_ENV) or "").strip()
+    return isinstance(profile, str) and profile in LOCAL_PROFILES and stated == profile
 
 
 class TraceError(Exception):
@@ -444,7 +450,7 @@ def load_answer_trace(
     return AnswerTrace(
         enabled=enabled,
         profile=profile,
-        text_included=enabled and text_allowed(profile),
+        text_included=enabled and text_allowed(profile, environ),
         writer=TraceWriter(folder, clock),
         reason=reason,
         clock=clock,

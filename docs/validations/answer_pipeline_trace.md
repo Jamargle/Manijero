@@ -34,6 +34,9 @@ byte-identical with tracing on and off, and trace failures only log fixed codes.
 - An unset `MANIJERO_DEPLOYMENT_PROFILE` counts as `development`, so a hosted service started
   outside `serve_pilot.py` (forbidden by the hosting constraint) with tracing on would record text.
   `environment_profiles` must replace this with a positive local marker.
+  Resolved 2026-11-02 in the batch 4 integration (owner decision): text is recorded only when the
+  profile is explicitly `development`, which the local service start now states; the container image
+  states no profile, so its trace records no text. Covered by `backend/tests/test_answer_trace.py`.
 - No hosted trace has been observed; no endpoint exposes traces (`rag_inspector_view` reads files).
 
 ## Notes (non-blocking)
