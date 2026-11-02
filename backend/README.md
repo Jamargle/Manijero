@@ -387,7 +387,9 @@ cases to exercise.
   token on `POST /ask`; release and packaged builds never carry it. They send it once the
   owner saves it with `./scripts/init.sh --pilot-token-save` (see
   [`docs/owner-guide.md`](../docs/owner-guide.md) "Give the apps the pilot token" and
-  [`client_pilot_credentials`](../docs/specs/client_pilot_credentials.md)). It is built in,
+  [`client_pilot_credentials`](../docs/specs/client_pilot_credentials.md)). QA test builds
+  (`-PmanijeroEnvironment=qa`, [`client_environment_builds`](../docs/specs/client_environment_builds.md))
+  send the QA key instead. It is built in,
   so after rotating or revoking a client here, save the new token and rebuild that client's
   apps; an old build keeps getting `401`. The header is sent only over `https` or to a
   loopback address, never on `/health` or `/ready`. **Remaining gap:** no app has yet been

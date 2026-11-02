@@ -7,7 +7,9 @@ Routine entry point. Exact feature status lives in [`feature_list.json`](feature
 contracts, raw evidence, and acceptance records remain in their owning files. Last updated:
 2026-11-02.
 
-**Feature status** — 79 of 120 features are accepted, including `welcome_first_use` (dismissible
+**Feature status** — 80 of 120 features are accepted, including `client_environment_builds` (one
+`manijeroEnvironment` setting builds local or `Manijero QA` test apps side by side; QA address is a
+git-ignored file or placeholder until `qa_server_deployment`), `welcome_first_use` (dismissible
 first-use welcome card in the chat, reopened from `Ayuda` with `Ver bienvenida`; validator accept,
 no owner walkthrough by owner decision), `answer_pipeline_trace` (off-by-default
 local answer trace; question and answer text only in the `development` profile; 7-day purge),
@@ -25,7 +27,7 @@ default; measured on the owner's Mac, host decision pending), `knowledge_reindex
 (rehearsed locally only; no host step executed), `local_rag_bootstrap` (one guided setup
 command and a status check, walked through on the owner's Mac), `mock_answer_server` (Desktop and
 emulator walkthroughs not yet run), and `local_service_connection` (test builds only);
-`private_pilot_distribution` is `on_hold` by owner decision (2026-11-01). The 40 `not_started` features are the remaining MasterPlanV3 work, ordered
+`private_pilot_distribution` is `on_hold` by owner decision (2026-11-01). The 39 `not_started` features are the remaining MasterPlanV3 work, ordered
 local environment first, then the QA environment for remote real-device testing; prod is not planned yet. `feature_list.json` and the selector remain the status authority;
 this page does not duplicate the feature-id list.
 
@@ -90,6 +92,7 @@ before making any claim in its area.
 - The local smoke test (`--local-smoke`) passed once on the owner's Mac (offscreen Desktop, API 37 emulator); it proves reach and rendering, not answer quality, and lands kept could not be observed (no lands existed on the emulator).
 - Environment profiles: QA has only a placeholder template and empty release folder, prod is unconfigured, and the local service does not enforce local access keys; tested in temporary homes only.
 - Hosted operations are prepared but not deployed; no host, domain, tunnel, or release artifacts exist.
+- QA test builds exist (`--android-qa`, `--desktop-qa`) but point at a placeholder address until `qa_server_deployment`; no QA build has run on a device.
 - Only test builds carry the pilot token (release and packaged apps cannot reach a pilot service); it is extractable from a test build; token auth is tested against an in-process fake only, with no live pilot-profile answer observed.
 - The mock answer service serves fixed contract examples only (not real or legal answers), on loopback for Desktop and the Android emulator.
 - Local `bge-m3` embeddings and Chroma hybrid retrieval are off the default answer path; measured

@@ -4,6 +4,7 @@ Durable MUST/MUST NOT rules for hosted pilot operations and provider boundaries.
 
 ## Hosted pilot and provider boundaries
 
+- **MUST**: a QA test build takes its pilot token only from the QA access key (`<QA home>/credentials/qa-test-device.token`, or the `MANIJERO_PILOT_TOKEN_FILE` test override) and **MUST NOT** read `pilot-token.local`; a local build **MUST NOT** read the QA key or the QA address file. Reason: [`client_environment_builds`](../specs/client_environment_builds.md).
 - **MUST**: a managed tunnel is transport only; any public pilot API MUST enforce its own
   authentication, authorization, per-client rate limiting, and request-size limits. Reason:
   `hosting_provider_review` found that Cloudflare Tunnel removes the public origin IP but does not
