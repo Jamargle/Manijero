@@ -1,6 +1,6 @@
 # Validation: monitoring_dashboard
 
-Verdict: accept, condition "pending owner walkthrough" (independent validator, 2026-11-02). Status stays `passing` until the owner reports the walkthrough matched the guide.
+Verdict: accept (independent validator, 2026-11-02, condition "pending owner walkthrough"). The owner walkthrough passed on 2026-11-03, so the status is `accepted`.
 
 Spec: [../specs/monitoring_dashboard.md](../specs/monitoring_dashboard.md) · Evidence: [appendix](../specs/monitoring_dashboard.appendix.md)
 
@@ -24,6 +24,19 @@ Spec: [../specs/monitoring_dashboard.md](../specs/monitoring_dashboard.md) · Ev
 
 - Image pins are explicit version tags with `digest: null` (`grafana/grafana-oss:12.0.0`, `prom/prometheus:v3.4.0`); spec scenarios 1 and 6 ask for `tag@sha256`. Judged acceptable, not a revise: the offline implementer could not read registry digests and invented none, the loader/command already use `tag@digest` once present, the rule and README state the interim openly, `test_image_pins_carry_digests` skips only while null, and the images are official, version-fixed, and reach only loopback. A mutable tag is a weaker supply-chain guarantee than the spec promised.
 - Follow-up (developer, needs network, not the owner): read the index digests, fill `backend/monitoring/images.json`, rerun the focused block so the digest test runs (not skip), then tighten the operations.md wording. Do this before the next monitoring change or `qa_service_alerts`.
+
+## Owner walkthrough (2026-11-03)
+
+The owner ran `docs/owner-guide.md` "Owner walkthrough: health dashboard" on their Mac with Docker Desktop and reported every step as expected:
+
+1. `--monitoring-start`: `Result: the health dashboard started at http://127.0.0.1:3000.`, first start about 30 seconds.
+2. Local row with the service stopped: as described ("good").
+3. Service started, page reloaded: as described ("good"); the other boxes' wording was not reported.
+4. Docker Desktop closed: the expected message ("correct").
+5. Recovery after reopening Docker Desktop: started ("correct").
+6. `--monitoring-stop`: `Result: the health dashboard has stopped.`; `--monitoring-status`: `Result: the health dashboard is not running. Start it with ./scripts/init.sh --monitoring-start.`
+
+Not reported: an explicit confirmation of the initial thresholds and the English dashboard text (kept as built). The QA row was not exercised (no QA service yet).
 
 ## Remaining limits (only the walkthrough or later work shows these)
 

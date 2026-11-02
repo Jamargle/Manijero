@@ -65,7 +65,7 @@ Implementer session 2026-11-02 (offline: no network, Docker not usable from the 
 - Image pins: NOT digest-pinned. No network in the session, so digests were not read; `images.json` pins explicit tags `grafana/grafana-oss:12.0.0` and `prom/prometheus:v3.4.0` with `"digest": null` (start pulls by tag). The loader and static test accept a valid digest or null; a developer fills the digests with `docker buildx imagetools inspect` (backend/README.md, Health dashboard). Tag existence was not checked against the registry.
 - Docker smoke: not run (Docker and network unavailable); `promtool` checks of the rules and `prometheus.yml`, the PromQL itself, `host.docker.internal` reaching the loopback service, the QA token mount, and the Grafana provisioning are therefore unverified.
 - Deviation from the plan: `rules.json` has six helper recording rules (`manijero:ask_*`, `manijero:answers_1h`, `manijero:abstention_percent_1h`) before the four `manijero:status_*` rules, in one group; panels target only the status rules. Grafana settings live as `GRAFANA_SETTINGS` in `local_monitoring.py` (environment variables), not in a file.
-- Owner walkthrough: pending owner walkthrough.
+- Owner walkthrough (2026-11-03): passed on the owner's Mac; all 6 steps as expected. First start about 30 s; stop and status printed the documented `Result:` lines. Thresholds and English text not explicitly confirmed (kept as built). See the acceptance record.
 
 ## Validator checklist
 
@@ -81,7 +81,7 @@ Implementer session 2026-11-02 (offline: no network, Docker not usable from the 
 
 ## Handoff
 
-- Status: `passing`; validator verdict accept pending owner walkthrough (docs/validations/monitoring_dashboard.md). Holding commit made, not pushed.
-- Next: owner runs docs/owner-guide.md "Owner walkthrough: health dashboard"; if every step matches, record it as evidence-only, set `accepted`, commit `feat: complete monitoring_dashboard`. A defect goes to the implementer.
+- Status: `accepted`; validator accept plus owner walkthrough passed 2026-11-03 (docs/validations/monitoring_dashboard.md).
+- Next: none for this feature.
 - Last checks: focused block 132 passed, 2 skipped (Docker smoke, digest); `--fast` all 10 passed.
 - Open: image digests are null (tags `grafana/grafana-oss:12.0.0`, `prom/prometheus:v3.4.0` unverified against the registry); the owner should confirm thresholds and English dashboard text.
