@@ -22,6 +22,8 @@ import threading
 import time
 from typing import Callable, Deque, Dict, Iterable
 
+from app import health_metrics
+from app.health_metrics import HealthMetrics
 from app.pilot_config import PilotConfig
 from app.pilot_logging import log_request
 
@@ -33,7 +35,7 @@ REJECTION_DETAILS = {
 
 # Only the answer route can start work. Liveness and readiness probes stay open so an
 # operator or the tunnel health check can observe the process without a client token.
-GATED_PATHS = frozenset({"/ask"})
+GATED_PATHS = frozenset({"/ask", "/metrics"})
 
 REJECTION_HEADERS = {
     401: ((b"www-authenticate", b"Bearer"),),
@@ -72,16 +74,25 @@ class PilotGuardMiddleware:
         app: object,
         config: PilotConfig,
         limiter: RateLimiter | None = None,
+        metrics: HealthMetrics | None = None,
     ) -> None:
         self.app = app
         self.config = config
         self.limiter = limiter or RateLimiter()
+        self.metrics = metrics
 
     async def __call__(self, scope: dict, receive: Callable, send: Callable) -> None:
         if scope.get("type") != "http":
             await self.app(scope, receive, send)
             return
+        # Bind this app's registry for the request; sync routes run in a copied context.
+        token = health_metrics.bind(self.metrics)
+        try:
+            await self._handle(scope, receive, send)
+        finally:
+            health_metrics.unbind(token)
 
+    async def _handle(self, scope: dict, receive: Callable, send: Callable) -> None:
         method = str(scope.get("method", ""))
         path = str(scope.get("path", "/"))
         started = time.monotonic()
@@ -97,7 +108,7 @@ class PilotGuardMiddleware:
         gate = "open"
         if self.config.authentication_required and path in GATED_PATHS:
             gate = "authenticated"
-            rejection = self._rejection(scope)
+            rejection = self._rejection(scope, path)
             if rejection is not None:
                 status, gate = rejection
                 await self._reject(send, status, started, method, path, gate)
@@ -114,6 +125,7 @@ class PilotGuardMiddleware:
         try:
             await self.app(scope, replayed, capture_send)
         except Exception:
+            health_metrics.note_response(path, 500, time.monotonic() - started)
             log_request(
                 self.config,
                 method=method,
@@ -123,6 +135,7 @@ class PilotGuardMiddleware:
                 gate=gate,
             )
             raise
+        health_metrics.note_response(path, observed.get("status", 500), time.monotonic() - started)
         log_request(
             self.config,
             method=method,
@@ -132,14 +145,16 @@ class PilotGuardMiddleware:
             gate=gate,
         )
 
-    def _rejection(self, scope: dict) -> tuple[int, str] | None:
+    def _rejection(self, scope: dict, path: str) -> tuple[int, str] | None:
         """Return the rejection status and gate, or ``None`` when the caller may proceed."""
 
         token = _bearer_token(scope.get("headers") or [])
         client = self.config.client_for_token(token)
         if client is None:
             return 401, "unauthenticated"
-        if not self.limiter.allow(client.client_id, client.requests_per_minute):
+        # Scrapes use their own window so they never consume the client's /ask allowance.
+        window_key = client.client_id if path == "/ask" else "{}:{}".format(path, client.client_id)
+        if not self.limiter.allow(window_key, client.requests_per_minute):
             return 429, "rate_limited"
         return None
 
@@ -158,6 +173,8 @@ class PilotGuardMiddleware:
             {"detail": REJECTION_DETAILS[status]},
             extra_headers=REJECTION_HEADERS.get(status, ()),
         )
+        health_metrics.note_response(path, status, time.monotonic() - started)
+        health_metrics.note_rejection(path, gate)
         log_request(
             self.config,
             method=method,

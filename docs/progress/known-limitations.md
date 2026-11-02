@@ -156,3 +156,4 @@ Do not over-claim.
   contacted (that belongs to `qa_server_deployment`), and prod is not configured. Local access keys
   are generated but the local service does not check them. Everything was tested in temporary
   folders with fake tokens only. See the [acceptance record](../validations/environment_profiles.md).
+- The health metrics page (`GET /metrics`, `backend_health_metrics`) counts per process and resets on restart, so it is never cluster-wide. Source-update recency appears only when `MANIJERO_SOURCE_UPDATE_STATE_DIR` is already set (no start command sets it), and it reports scheduler run recency, not legal freshness. Verified by in-process tests only; no live scrape, dashboard, or hosted service was observed. See the [spec](../specs/backend_health_metrics.md).

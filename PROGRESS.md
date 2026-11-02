@@ -10,7 +10,9 @@ contracts, raw evidence, and acceptance records remain in their owning files. La
 **Feature status** — 80 of 120 features are accepted, including `rag_inspector_view` (developer
 `Inspeccionar` view of retrieved passages, scores, and verification steps; local test builds on a
 loopback service only, data sent only in the `development` profile; validator accept, no owner
-walkthrough by owner decision), `welcome_first_use` (dismissible
+walkthrough by owner decision), `backend_health_metrics`
+(privacy-safe `GET /metrics` in Prometheus text format, open locally and pilot-token gated in QA;
+validator accept, no owner walkthrough by owner decision), `welcome_first_use` (dismissible
 first-use welcome card in the chat, reopened from `Ayuda` with `Ver bienvenida`; validator accept,
 no owner walkthrough by owner decision), `answer_pipeline_trace` (off-by-default
 local answer trace; question and answer text only in the `development` profile; 7-day purge),
@@ -101,6 +103,7 @@ before making any claim in its area.
   an added year), and its effect on live local drafts is not measured.
 - The answer trace is off by default and local-only tested; old traces are purged only while the service runs.
 - The answer inspector shows only in test builds talking to a loopback service in the `development` profile; a real device on a LAN address never shows it, and no GUI run was done.
+- Health metrics (`GET /metrics`) are per-process counts that reset on restart; source-update recency shows only when its state folder is set; in-process tests only.
 
 **Detail on demand**
 

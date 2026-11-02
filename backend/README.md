@@ -615,6 +615,34 @@ of the API contract; the files are read from disk.
   (`answer_inspection_skipped reason=<code>`).
 - Only a local test build of the app on a loopback address shows it, behind `Inspeccionar`.
 
+## Health metrics
+
+`GET /metrics` serves Prometheus text format 0.0.4 (`text/plain; version=0.0.4`) for the later
+`monitoring_dashboard` and for `curl`. It is not in the OpenAPI contract and has no owner command.
+
+- **Gate:** open in the `development` profile; in `pilot` (QA) it needs the same client bearer token
+  as `/ask`, answering the same detail-free `401`/`429`. Scrapes use their own per-client window with
+  the same per-minute allowance, so they never use up `/ask`.
+- **Privacy:** counts and timings only. Label names and values are fixed codes (plus the 16-hex
+  release id); a question, answer, land value, client id, token, or path is never recorded, and an
+  unknown path is counted as `route="other"`.
+- **Families** (prefix `manijero_`): `service_info`, `generation_provider_info`,
+  `process_start_time_seconds`, `ready`, `readiness_problem{problem}`,
+  `http_requests_total{route,code}`, `request_duration_seconds{route}` (histogram),
+  `request_rejections_total{route,reason}`, `answers_total{status}`, `abstentions_total{reason}`,
+  `generation_outcomes_total{provider,outcome}`, `knowledge_release_info{release_id,state}`, and the
+  source-update families below.
+- **Scrape-time values:** readiness and the active knowledge release are read at each scrape
+  (`MANIJERO_KNOWLEDGE_RELEASE_ROOT` unset reports `release_id="none",state="repository"`).
+- **Source-update recency (opt-in):** only when `MANIJERO_SOURCE_UPDATE_STATE_DIR` is already set
+  does the service read the scheduler ledger and report `source_updates_readable`, `_healthy`,
+  and per job (`monitor`, `boe`, `boja`) `source_update_stale` and
+  `source_update_last_success_timestamp_seconds`. Unset reports `source_updates_configured 0` only.
+  The start commands, container, and QA settings do not set it; this is run recency, not a claim
+  that any law is current.
+- **Per process:** counters live in memory and reset on restart, like the rate limiter. With several
+  workers each reports its own counts; never read them as cluster-wide.
+
 ## Offline retrieval baseline
 
 `app/retrieval.py` is the offline retrieval boundary over reviewed passages of
