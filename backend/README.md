@@ -1,7 +1,8 @@
 # Manijero backend
 
 The local FastAPI service exposes `GET /health` (liveness), `GET /ready` (campaign and
-corpus readiness), and a source-grounded `POST /ask`. From the repository root, start it
+corpus readiness), a source-grounded `POST /ask`, and the anonymous `POST /feedback` rating
+(see "Answer feedback"). From the repository root, start it
 with the shared startup script:
 
 ```sh
@@ -631,7 +632,8 @@ of the API contract; the files are read from disk.
 - **Families** (prefix `manijero_`): `service_info`, `generation_provider_info`,
   `process_start_time_seconds`, `ready`, `readiness_problem{problem}`,
   `http_requests_total{route,code}`, `request_duration_seconds{route}` (histogram),
-  `request_rejections_total{route,reason}`, `answers_total{status}`, `abstentions_total{reason}`,
+  `request_rejections_total{route,reason}`, `answers_total{status}`, `feedback_total{rating}`,
+  `abstentions_total{reason}`,
   `generation_outcomes_total{provider,outcome}`, `knowledge_release_info{release_id,state}`, and the
   source-update families below.
 - **Scrape-time values:** readiness and the active knowledge release are read at each scrape
@@ -644,6 +646,27 @@ of the API contract; the files are read from disk.
   that any law is current.
 - **Per process:** counters live in memory and reset on restart, like the rate limiter. With several
   workers each reports its own counts; never read them as cluster-wide.
+
+## Answer feedback
+
+`POST /feedback` accepts one anonymous rating for an answer: `{"rating":"useful"}` or
+`{"rating":"not_useful"}`. It returns `204` with no body.
+
+- **Closed payload:** `rating` is the only accepted field (`additionalProperties: false`, strict
+  types). A missing or unknown value, any extra key (comment, question, answer, land, id, device),
+  or malformed JSON is refused as `422`/`400` with a generic message that echoes nothing; an
+  oversized body is `413`. There is no free text and nothing is stored.
+- **No readiness dependency:** the route ignores campaign readiness and corpus state; it never
+  starts retrieval or generation and cannot change an `/ask` response.
+- **Access:** open in `development`; in `pilot` (QA) it requires the same per-client bearer token
+  as `/ask` (`401` without it). Its own limiter window never consumes that client's `/ask`
+  allowance, and exceeding the feedback window returns `429`; limits stay per process.
+- **Signal:** an accepted rating increments `manijero_feedback_total{rating}` (`useful`,
+  `not_useful`), both initialised at `0`, and `http_requests_total{route="/feedback",code="204"}`
+  counts the request. Counters are in memory per process and reset on restart.
+- **Not implemented:** no durable feedback store, export, dashboard, alert, or per-answer
+  linkage, and no idempotency (a retry after an unknown outcome counts again); durable feedback
+  retention is still an open privacy decision.
 
 ## Offline retrieval baseline
 

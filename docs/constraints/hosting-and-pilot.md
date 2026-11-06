@@ -58,14 +58,22 @@ Durable MUST/MUST NOT rules for hosted pilot operations and provider boundaries.
 - **MUST**: a client's pilot bearer token MUST come only from the git-ignored build setting
   (`pilot-token.local`, or the `MANIJERO_PILOT_TOKEN_FILE` override with fake tokens in tests), never
   from `local.properties`, a JVM system property, an environment entry, or `jvmArgs` of a Desktop
-  task. It MUST be sent only on `POST /ask` over `https` or `http` to a loopback host (`localhost`,
-  `127.0.0.1`, `[::1]`, `10.0.2.2`), and MUST NOT be shown, logged, committed, put in state or
-  exceptions, or sent on `/health` or `/ready`. It MUST NOT be built into an Android release variant
+  task. It MUST be sent only on `POST /ask` and `POST /feedback` over `https` or `http` to a
+  loopback host (`localhost`, `127.0.0.1`, `[::1]`, `10.0.2.2`), and MUST NOT be shown, logged,
+  committed, put in state or exceptions, or sent on `/health` or `/ready`. It MUST NOT be built into an Android release variant
   or a packaged/release Desktop output, even when the file exists; only Android debug and the
   Desktop `run` task may carry it. Reason:
   [`client_pilot_credentials`](../specs/client_pilot_credentials.md) — the token is a per-client
   access credential, and a cleartext LAN request or a logged header would hand it to anyone on the
   path; decision 5 keeps it out of anything that could be distributed.
+- **MUST**: `POST /feedback` MUST accept exactly one field, `rating`, with a fixed value (`useful`
+  or `not_useful`), and MUST NOT accept, echo, or record a question, answer, land, answer id,
+  land/client/device identifier, or free text; it MUST store no feedback record and write no
+  feedback-specific log line, so the only feedback output is a per-process aggregate count. In the
+  pilot profile it MUST require the same client bearer token as `/ask`, with its own per-path rate
+  window that never consumes the `/ask` allowance; the `development` profile stays open. Reason:
+  [`feedback_endpoint`](../specs/feedback_endpoint.md) — a fixed unlinked rating is the narrowest
+  useful signal, and durable feedback retention remains an open privacy decision.
 - **MUST**: the answer pipeline trace (`backend/app/answer_trace.py`) MUST be off by default and
   turned on only by the exact `MANIJERO_ANSWER_TRACE=on`; it MUST record question, answer, or draft
   text only when `MANIJERO_DEPLOYMENT_PROFILE` is explicitly set to exactly `development` (an unset

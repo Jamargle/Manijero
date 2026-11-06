@@ -14,6 +14,7 @@ PRODUCTION_METHODS = {"conventional", "organic", "mixed", "unknown"}
 REQUEST_MODES = {"general", "all_active", "selected"}
 RESPONSE_STATUSES = {"answered", "abstained", "needs_land_clarification"}
 SCOPES = {"general", "all_active", "selected"}
+FEEDBACK_RATINGS = {"useful", "not_useful"}
 
 
 def load(name: str) -> dict:
@@ -53,6 +54,12 @@ def validate_request(payload: dict) -> None:
             assert land["water_regime"] in WATER_REGIMES
         if "production_method" in land:
             assert land["production_method"] in PRODUCTION_METHODS
+
+
+def validate_feedback(payload: dict) -> None:
+    """Exactly one closed rating: no answer, land, identity, or free text."""
+    assert set(payload) == {"rating"}, payload
+    assert payload["rating"] in FEEDBACK_RATINGS, payload
 
 
 def validate_source(source: dict) -> None:
@@ -98,7 +105,11 @@ def main() -> None:
     validate_response(load("response-answered.json"))
     validate_response(load("response-abstained.json"))
     validate_response(load("response-needs-land-clarification.json"))
-    print("Validated 3 request and 3 response examples against answer_api_contract")
+    validate_feedback(load("feedback-useful.json"))
+    validate_feedback(load("feedback-not-useful.json"))
+    print(
+        "Validated 3 request, 3 response, and 2 feedback examples against answer_api_contract"
+    )
 
 
 if __name__ == "__main__":
