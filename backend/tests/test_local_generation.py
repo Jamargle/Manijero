@@ -198,7 +198,7 @@ def _request(**overrides: Any) -> GeminiDraftRequest:
     values = dict(
         model=MODEL,
         instruction=GEMINI_INSTRUCTION,
-        instruction_version="gemini-draft-v1",
+        instruction_version="gemini-draft-v2",
         payload_json=json.dumps({"question": "q", "passages": []}),
         max_output_tokens=400,
         timeout_seconds=10.0,

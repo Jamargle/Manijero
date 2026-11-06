@@ -513,7 +513,7 @@ answer-quality, latency, cost, or legal-coverage evidence exists: no real model 
 ### Local open-weight drafting (Ollama)
 
 `app/local_generation.py` adds a `local` provider to the same slot. It reuses
-`GatedGeminiGenerator` unchanged (same instruction `gemini-draft-v1`, strict parser, citation
+`GatedGeminiGenerator` unchanged (same instruction `gemini-draft-v2`, strict parser, citation
 window, `verify_draft`, rate limiter, and extractive fallback); only the transport and the
 startup gate are new. It is off by default and talks only to the loopback constant
 `http://127.0.0.1:11434`: the URL is not configurable, proxy variables are ignored, redirects
@@ -1483,11 +1483,39 @@ hash, and a bounded attempt history. HTML blocks carry a heading path as their
 `knowledge/official-ingestion-state.schema.json` and
 `knowledge/official-ingestion-document.schema.json`.
 
+**Security exclusions.** `app/corpus_security.py` scans the extracted text in
+memory, before anything is written. Two fixed categories reject a candidate:
+`nominal_listing` (a beneficiary/admittee/excluded-person listing in the
+candidate title, document title, or a heading, or at least two personal
+identifier shapes such as DNI/NIE counted across the whole extracted document,
+all blocks and titles) and `prompt_injection`
+(model-directed wording: ignore/forget instructions, reveal or override a
+prompt, role reassignment, fake system/role tags). An excluded candidate is
+`rejected`, and its whole quarantine directory is deleted, including an earlier
+version's original and extracted files; the record is rebuilt from provenance
+alone and keeps only the fixed category, the bounded `security` scan
+(`scan_version`, `flags`, and content-free `{flag, page, block_index}`
+findings), and the attempt history. No document text, excerpt, heading, name,
+or identifier appears in the state, the report, or a log. When both detectors
+fire, `nominal_listing` is the category (privacy first) and both flags are
+recorded. There is no override: a suspected false positive goes through the
+normal human-reviewed corpus update. Detection is a conservative Spanish-first
+heuristic (English only for injection); it can miss a reworded listing or a
+novel instruction, and a false positive excludes a document from automation.
+The earlier extraction of a legacy state is rescanned from disk without
+refetching, and the `unchanged` fast path now requires a current scan with no
+flags. The release-gate scan is stricter than ingestion: a *single* identifier
+shape anywhere in catalog metadata, passage text, or passage `location` is
+enough to report `corpus_security` and block publication.
+
 **Failure and recovery.** A failed or rejected attempt leaves any previous good
-extraction and its files untouched, records the fixed failure category, and
+extraction and its files untouched — except a security exclusion, which
+deliberately purges the candidate directory — records the fixed failure category, and
 keeps the last-success time. Re-running the same discovery state retries failed
 candidates and skips an unchanged successfully ingested candidate (same version
-hash, current extractor version/media type, and files present). A changed
+hash, current extractor version/media type, files present, and a current clean
+security scan). A durable security exclusion is not refetched for the same
+version hash. A changed
 discovery version hash re-fetches
 and re-extracts, preserving the old hashed files and recording
 `previous_original_sha256`. Duplicate candidate URLs and duplicate document
@@ -1959,7 +1987,9 @@ rolled back to, nor served.
 1. **Structural:** catalog and passage contracts at `as_of` (`catalog_invalid`,
    `passages_invalid`, `passage_source_unresolved`), campaign/date readiness
    (`corpus_not_ready:<code>`), a valid case set (`cases_invalid`) whose expected passages
-   and sources are admitted for this campaign and date (`cases_orphaned`). A structural
+   and sources are admitted for this campaign and date (`cases_orphaned`), and no catalog
+   metadata or passage text or `location` carries a model-directed instruction or any
+   personal-identifier shape (`corpus_security`; the scan record is content-free). A structural
    failure skips evaluation (`evaluation_failed`).
 2. **BM25:** two independent fingerprints of the admitted documents (ids, text SHA-256,
    token lengths, term and document frequencies, average length, `k1`, `b`) must match

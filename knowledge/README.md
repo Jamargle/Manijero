@@ -40,7 +40,7 @@ measurement, not evidence about legal coverage or real user questions.
 | `pac_answer_eval.schema.json` | The readable versioned reviewed PAC answer-evaluation case contract (`pac-answer-eval-v2`), including declared coverage areas, omissions, and the author-only review role. |
 | `official-discovery-config.schema.json` | The readable versioned discovery configuration contract. |
 | `official-discovery-state.schema.json` | The readable versioned pending discovery-candidate state contract. |
-| `official-ingestion-state.schema.json` | The readable versioned document-ingestion quarantine state contract (`official-ingestion-state-v1`). |
+| `official-ingestion-state.schema.json` | The readable versioned document-ingestion quarantine state contract (`official-ingestion-state-v1`), including the optional content-free `security` scan (`scan_version`, fixed `flags`, bounded `{flag, page, block_index}` findings). |
 | `official-ingestion-document.schema.json` | The readable contract for one extracted quarantined document (`official-ingestion-document-v1`). |
 | `legal-change-impact.schema.json` | The readable contract for the derived change-impact report (`legal-change-impact-report-v1`). It is not canonical knowledge. |
 | `knowledge-update-review.schema.json` | The readable contract for one local human-review package (`knowledge-update-review-package-v1`), including the after-state evaluation-case binding and merge readiness. It is not canonical knowledge. |
@@ -162,7 +162,10 @@ API into a separate versioned pending-candidate state; document ingestion now
 fetches those pending candidates into a separate quarantine with preserved
 original/extracted hashes and page/section locations (contracts:
 `official-ingestion-state.schema.json`,
-`official-ingestion-document.schema.json`). See `backend/README.md` and
+`official-ingestion-document.schema.json`). Ingestion scans the extracted text in
+memory first: a nominal listing or a model-directed instruction is rejected with
+a fixed category and its quarantine directory is deleted, keeping provenance and
+the content-free `security` scan only. See `backend/README.md` and
 `official-discovery-config.example.json` (contract:
 `official-discovery-config.schema.json`; candidate-state contract:
 `official-discovery-state.schema.json`). FEGA/MAPA registry endpoints
