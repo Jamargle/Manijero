@@ -57,15 +57,16 @@ SOLICITUD_FRAGMENT = "se presenta una vez al año"
 
 # Independent copy of the contract: label names and their fixed values.
 ALLOWED_LABEL_NAMES = {
-    "profile", "version", "provider", "route", "code", "reason", "status", "outcome",
+    "profile", "version", "provider", "route", "code", "rating", "reason", "status", "outcome",
     "problem", "release_id", "state", "job", "le",
 }
 ALLOWED_LABEL_VALUES: dict[str, set[str]] = {
     "profile": {"development", "pilot"},
     "version": {"0.1.0"},
     "provider": {"extractive", "gemini", "local"},
-    "route": {"/ask", "/ready", "/health", "/metrics", "other"},
-    "code": {"200", "400", "401", "404", "405", "413", "422", "429", "500", "503", "other"},
+    "route": {"/ask", "/ready", "/health", "/metrics", "/feedback", "other"},
+    "code": {"200", "204", "400", "401", "404", "405", "413", "422", "429", "500", "503", "other"},
+    "rating": {"useful", "not_useful"},
     "reason": {
         "too_large", "unauthenticated", "rate_limited", "invalid_question", "no_evidence",
         "insufficient_evidence", "stale_evidence", "conflicting_evidence", "false_premise",
@@ -86,7 +87,7 @@ ALLOWED_LABEL_VALUES: dict[str, set[str]] = {
 EXPECTED_FAMILIES = {
     "service_info", "generation_provider_info", "process_start_time_seconds", "ready",
     "readiness_problem", "http_requests_total", "request_duration_seconds",
-    "request_rejections_total", "answers_total", "abstentions_total",
+    "request_rejections_total", "answers_total", "feedback_total", "abstentions_total",
     "generation_outcomes_total", "knowledge_release_info", "source_updates_configured",
     "source_updates_readable", "source_updates_healthy", "source_update_stale",
     "source_update_last_success_timestamp_seconds",
@@ -248,6 +249,14 @@ def test_metrics_text_format_grammar() -> None:
     assert page.value("request_duration_seconds_count", route="/ask") == buckets[-1][1] == 1
     assert page.value("request_duration_seconds_sum", route="/ask") is not None
     assert_privacy_invariants(page)
+
+
+def test_feedback_allowlists_match_the_registry() -> None:
+    assert set(health_metrics.FEEDBACK_RATINGS) == ALLOWED_LABEL_VALUES["rating"]
+    assert set(health_metrics.ROUTES) == ALLOWED_LABEL_VALUES["route"] - {"other"}
+    assert "204" in ALLOWED_LABEL_VALUES["code"] and 204 in health_metrics.CODES
+    assert health_metrics.FAMILIES["feedback_total"][0] == "counter"
+    assert "feedback_total" in EXPECTED_FAMILIES
 
 
 def test_label_values_are_escaped_and_clamped() -> None:

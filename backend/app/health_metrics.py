@@ -30,18 +30,19 @@ PREFIX = "manijero_"
 
 # Label allowlist: the only label names a sample may carry.
 LABEL_NAMES = frozenset(
-    {"profile", "version", "provider", "route", "code", "reason", "status", "outcome",
+    {"profile", "version", "provider", "route", "code", "rating", "reason", "status", "outcome",
      "problem", "release_id", "state", "job", "le"}
 )
 OTHER = "other"
 
-ROUTES = ("/ask", "/ready", "/health", "/metrics")
+ROUTES = ("/ask", "/ready", "/health", "/metrics", "/feedback")
 CODES = frozenset({200, 204, 400, 401, 403, 404, 405, 413, 422, 429, 500, 503})
 PROFILES = ("development", "pilot")
 PROVIDERS = ("gemini", "local")
 INFO_PROVIDERS = ("extractive", "gemini", "local")
 REJECTION_REASONS = ("too_large", "unauthenticated", "rate_limited")
 ANSWER_STATUSES = ("answered", "abstained", "needs_land_clarification")
+FEEDBACK_RATINGS = ("useful", "not_useful")
 ABSTENTION_REASONS = (
     "invalid_question", "no_evidence", "insufficient_evidence", "stale_evidence",
     "conflicting_evidence", "false_premise", "unsafe_request", "generator_abstained",
@@ -72,6 +73,7 @@ FAMILIES: Dict[str, Tuple[str, str]] = {
     "request_duration_seconds": ("histogram", "Request duration in seconds by route."),
     "request_rejections_total": ("counter", "Requests refused at the gate by route and reason."),
     "answers_total": ("counter", "Answer responses by status since process start."),
+    "feedback_total": ("counter", "Accepted answer feedback by fixed rating, never by content."),
     "abstentions_total": ("counter", "Abstained answers by fixed reason since process start."),
     "generation_outcomes_total": ("counter", "Model drafts by provider and fixed outcome."),
     "knowledge_release_info": ("gauge", "Active knowledge release id and state; the value is 1."),
@@ -131,6 +133,8 @@ class HealthMetrics:
             self._counters["answers_total"][_labels(status=status)] = 0
         for reason in ABSTENTION_REASONS:
             self._counters["abstentions_total"][_labels(reason=reason)] = 0
+        for rating in FEEDBACK_RATINGS:
+            self._counters["feedback_total"][_labels(rating=rating)] = 0
 
     # -- recording ----------------------------------------------------------------------
 
@@ -176,6 +180,9 @@ class HealthMetrics:
             "generation_outcomes_total",
             _labels(provider=clamp(provider, PROVIDERS), outcome=clamp(outcome, GENERATION_OUTCOMES)),
         )
+
+    def count_feedback(self, rating: str) -> None:
+        self._increment("feedback_total", _labels(rating=clamp(rating, FEEDBACK_RATINGS)))
 
     # -- rendering ----------------------------------------------------------------------
 
@@ -349,3 +356,10 @@ def note_generation(provider: str, outcome: str, used_outcome: str) -> None:
     registry = _ACTIVE.get()
     if registry is not None:
         registry.count_generation(provider, "used" if outcome == used_outcome else outcome)
+
+
+@_safe
+def note_feedback(rating: str) -> None:
+    registry = _ACTIVE.get()
+    if registry is not None:
+        registry.count_feedback(rating)

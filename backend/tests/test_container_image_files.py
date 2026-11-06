@@ -241,12 +241,27 @@ def test_the_dockerignore_is_an_allowlist_without_tests_virtualenvs_settings_or_
     ]
     for name in ("backend/tests/test_local_container.py", "backend/.venv/bin/python", "settings.env", "backend/app/x.env",
                  "backend/deploy/pilot.env.example", "backend/README.md", "knowledge/passages.json", ".env", "local.properties",
-                 "backend/app/__pycache__/main.cpython-312.pyc", "backend/requirements-dev.txt", "backend/scripts/local_rag.py"):
+                 "backend/app/__pycache__/main.cpython-312.pyc", "backend/requirements-dev.txt", "backend/scripts/local_rag.py",
+                 "backend/requirements-docparse.txt"):
         assert not included(name, patterns), name
     files = context_files()
     assert "backend/app/main.py" in files and "backend/container/ollama_relay.py" in files
     assert all(file.startswith(("backend/app/", "backend/config/", "backend/container/", "backend/requirements", "backend/deploy/requirements-production.txt")) for file in files)
     assert not [file for file in files if "/tests/" in file or file.endswith((".env", ".example", ".pyc"))]
+
+
+def test_the_optional_parser_runtime_is_pinned_and_never_enters_the_image() -> None:
+    requirement = REPO_ROOT / "backend" / "requirements-docparse.txt"
+    lines = [
+        line.strip()
+        for line in requirement.read_text(encoding="utf-8").splitlines()
+        if line.strip() and not line.strip().startswith("#")
+    ]
+    assert lines and all(re.fullmatch(r"[A-Za-z0-9_.\-]+==[A-Za-z0-9_.\-]+", line) for line in lines), lines
+    assert {line.split("==")[0] for line in lines} >= {"docling", "pymupdf4llm", "pytesseract"}
+    assert "requirements-docparse" not in DOCKERFILE.read_text(encoding="utf-8")
+    assert "backend/requirements-docparse.txt" not in context_files()
+    assert not included("backend/requirements-docparse.txt", ignore_patterns())
 
 
 # --- Entry point and relay -----------------------------------------------------------------

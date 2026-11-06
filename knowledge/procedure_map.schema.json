@@ -1,0 +1,211 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://manijero.invalid/schemas/procedure-map-v1.json",
+  "title": "Manijero olive-grove procedure map",
+  "description": "Versioned taxonomy index of the olive-grove procedures the assistant is meant to cover. This file is the readable contract; backend/app/procedure_map.py is the executable validator and must stay in sync with it. The map is not legal knowledge and not an answer source: it carries no dates, amounts, thresholds, article numbers, eligibility conclusions, or applicability claims, and it never approves, retires, or re-dates evidence. The executable validator also enforces rules this schema cannot express: the pinned ordered seed set, duplicate ids across topics, search-wording uniqueness, and cross-file resolution of source and passage ids. The no-digit and length limits below are enforced by both. Missing coverage is reported, never a validation failure.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema_version", "topics"],
+  "properties": {
+    "schema_version": {
+      "const": "procedure-map-v1",
+      "description": "Map format version. Bump it, the schema, and the validator together in a reviewed change."
+    },
+    "topics": {
+      "type": "array",
+      "minItems": 16,
+      "description": "Ordered seed topics. The executable validator pins the exact ordered ids from MasterPlanV3 section 7.3 and rejects a missing or unknown topic; adding a topic is a reviewed schema, validator, and data change.",
+      "items": {
+        "$ref": "#/$defs/topic"
+      }
+    }
+  },
+  "$defs": {
+    "topicId": {
+      "type": "string",
+      "pattern": "^[a-z0-9]+(?:-[a-z0-9]+)*$",
+      "description": "Stable lowercase topic slug. Never derive it from a title and never reuse it."
+    },
+    "referenceId": {
+      "type": "string",
+      "pattern": "^[a-z0-9]+(?:[-_][a-z0-9]+)*$",
+      "description": "Approved catalog source id or reviewed passage id. The executable validator resolves it only when both reference files are supplied."
+    },
+    "humanText": {
+      "type": "string",
+      "minLength": 1,
+      "pattern": "^[^\\d]*$",
+      "description": "Plain-Spanish human-readable text. Must be non-blank and must not contain digits, because the map is a taxonomy index, not legal knowledge."
+    },
+    "coverage": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["state", "source_ids", "passage_ids"],
+      "description": "Honest declaration of reviewed evidence, not a coverage gate. Gaps are reported and never make the map invalid. Cross-file reference resolution is validator-only.",
+      "properties": {
+        "state": {
+          "enum": ["covered", "partial", "uncovered"],
+          "description": "covered means reviewed evidence exists; partial means some steps are mapped and a gap note names the rest; uncovered means no reviewed evidence is mapped yet."
+        },
+        "source_ids": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": {
+            "$ref": "#/$defs/referenceId"
+          },
+          "description": "Approved source ids that support this topic. Empty when uncovered; at least one when covered or partial."
+        },
+        "passage_ids": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": {
+            "$ref": "#/$defs/referenceId"
+          },
+          "description": "Reviewed passage ids that support this topic. Empty when uncovered; at least one when covered or partial. Each passage's source must appear in source_ids."
+        },
+        "gap_note": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 240,
+          "pattern": "^[^\\d]*$",
+          "description": "Required for partial coverage: names what reviewed evidence is missing, without dates, amounts, or article numbers."
+        }
+      },
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "state": {
+                "const": "uncovered"
+              }
+            },
+            "required": ["state"]
+          },
+          "then": {
+            "properties": {
+              "source_ids": {
+                "maxItems": 0
+              },
+              "passage_ids": {
+                "maxItems": 0
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "state": {
+                "enum": ["covered", "partial"]
+              }
+            },
+            "required": ["state"]
+          },
+          "then": {
+            "properties": {
+              "source_ids": {
+                "minItems": 1
+              },
+              "passage_ids": {
+                "minItems": 1
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "state": {
+                "const": "partial"
+              }
+            },
+            "required": ["state"]
+          },
+          "then": {
+            "required": ["gap_note"]
+          }
+        }
+      ]
+    },
+    "topic": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "title", "summary", "search_terms", "review_status", "coverage"],
+      "description": "One olive-grove procedure. Review provenance is Git; the map carries no date fields.",
+      "properties": {
+        "id": {
+          "$ref": "#/$defs/topicId"
+        },
+        "title": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 120,
+          "pattern": "^[^\\d]*$",
+          "description": "Plain-Spanish procedure name. No digits, dates, amounts, or article numbers."
+        },
+        "summary": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 320,
+          "pattern": "^[^\\d]*$",
+          "description": "One or two plain-Spanish sentences describing the procedure. No digits and no eligibility or applicability claim."
+        },
+        "search_terms": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 6,
+          "description": "Plain-Spanish phrases for later source scouting, question rewriting, and suggested questions. Digit-free; the executable validator also rejects wording repeated within or across topics.",
+          "items": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 60,
+            "pattern": "^[^\\d]*$"
+          }
+        },
+        "review_status": {
+          "enum": ["proposed", "reviewed"],
+          "description": "proposed is the only unreviewed default. reviewed requires a named human reviewer in a reviewed change."
+        },
+        "reviewed_by": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 120,
+          "description": "Named human reviewer. Present only when review_status is reviewed."
+        },
+        "coverage": {
+          "$ref": "#/$defs/coverage"
+        }
+      },
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "review_status": {
+                "const": "proposed"
+              }
+            },
+            "required": ["review_status"]
+          },
+          "then": {
+            "not": {
+              "required": ["reviewed_by"]
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "review_status": {
+                "const": "reviewed"
+              }
+            },
+            "required": ["review_status"]
+          },
+          "then": {
+            "required": ["reviewed_by"]
+          }
+        }
+      ]
+    }
+  }
+}

@@ -511,7 +511,7 @@ def test_transport_receives_only_the_minimal_payload() -> None:
     redacted = redact_text(PERSONAL_QUESTION, land_context_values(LAND_CONTEXT))
     assert request.model == MODEL
     assert request.instruction == GEMINI_INSTRUCTION
-    assert request.instruction_version == GEMINI_INSTRUCTION_VERSION == "gemini-draft-v1"
+    assert request.instruction_version == GEMINI_INSTRUCTION_VERSION == "gemini-draft-v2"
     assert request.max_output_tokens == limits.max_output_tokens
     assert request.timeout_seconds == limits.timeout_seconds
     assert json.loads(request.payload_json) == minimal_provider_payload(
@@ -547,6 +547,8 @@ def test_instruction_pins_the_drafting_rules_and_contains_no_digit_or_link() -> 
 
     for rule in ("solo con la información", "[1]", "literalmente", "nunca digas", "no añadas", "json"):
         assert rule in lowered
+    assert "datos oficiales" in lowered
+    assert "nunca instrucciones" in lowered
     assert "http" not in lowered
     assert NOTICE not in GEMINI_INSTRUCTION and LEAD_IN not in GEMINI_INSTRUCTION
 

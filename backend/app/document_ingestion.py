@@ -32,6 +32,7 @@ import html.parser
 import json
 import os
 import re
+import shutil
 import urllib.error
 import urllib.request
 import zlib
@@ -41,6 +42,7 @@ from pathlib import Path
 from typing import Any, Dict, Iterable, List, Optional, Tuple
 from urllib.parse import urlsplit
 
+from app import corpus_security
 from app.source_catalog import ISSUER_ALLOWED_HOSTS
 
 STATE_VERSION = "official-ingestion-state-v1"
@@ -132,6 +134,7 @@ CANDIDATE_RECORD_KEYS = frozenset(
         "extracted_path",
         "previous_original_sha256",
         "attempts",
+        "security",
     }
 )
 
@@ -408,6 +411,9 @@ def _load_state(path: Path) -> Dict[str, Any]:
             or not isinstance(record.get("publication_url"), str)
             or not isinstance(record.get("issuer"), str)
         ):
+            raise IngestionError("invalid_ingestion_state")
+        security = record.get("security")
+        if security is not None and not corpus_security.validate_security(security):
             raise IngestionError("invalid_ingestion_state")
     return state
 
@@ -1156,6 +1162,120 @@ def _previous_attempts(record: Dict[str, Any]) -> List[Dict[str, Any]]:
     return copy.deepcopy(attempts) if isinstance(attempts, list) else []
 
 
+def _security_flags(record: Dict[str, Any]) -> Tuple[str, ...]:
+    """Return the fixed security flags an excluded record carries, if any."""
+    security = record.get("security")
+    if not isinstance(security, dict):
+        return ()
+    flags = security.get("flags")
+    if not isinstance(flags, list):
+        return ()
+    return tuple(flag for flag in flags if flag in corpus_security.FLAGS)
+
+
+def _security_is_current(record: Dict[str, Any]) -> bool:
+    return corpus_security.is_current_security(record.get("security"))
+
+
+def _purge_candidate_directory(quarantine_root: Path, candidate_id: str) -> None:
+    """Delete one candidate directory behind a resolved-path check.
+
+    A security exclusion removes every original and extracted copy, so no
+    listing row, name, or instruction survives on disk or in the record.
+    """
+    if not CANDIDATE_ID_PATTERN.fullmatch(candidate_id):
+        return
+    root = Path(quarantine_root).resolve()
+    directory = Path(quarantine_root) / candidate_id
+    try:
+        resolved = directory.resolve()
+        resolved.relative_to(root)
+    except (OSError, ValueError):
+        return
+    if resolved == root:
+        return
+    shutil.rmtree(resolved, ignore_errors=True)
+
+
+def _rescan_stored_document(
+    record: Dict[str, Any], quarantine_root: Path
+) -> Optional[corpus_security.ScanResult]:
+    """Scan one stored extraction from disk without refetching.
+
+    Returns ``None`` when the stored file is missing, unreadable, or does not
+    match its recorded provenance, so the caller falls back to a normal fetch.
+    """
+    candidate_id = record.get("candidate_id")
+    relative = record.get("extracted_path")
+    if not isinstance(candidate_id, str) or not isinstance(relative, str):
+        return None
+    path = Path(relative)
+    if path.is_absolute() or ".." in path.parts or path.parts[:1] != (candidate_id,):
+        return None
+    try:
+        document = json.loads((Path(quarantine_root) / path).read_text(encoding="utf-8"))
+    except (OSError, json.JSONDecodeError):
+        return None
+    if (
+        not isinstance(document, dict)
+        or document.get("schema_version") != EXTRACTED_DOCUMENT_VERSION
+        or document.get("candidate_id") != candidate_id
+    ):
+        return None
+    if _sha256(_canonical_json(document).encode("utf-8")) != record.get("extracted_text_sha256"):
+        return None
+    blocks = document.get("blocks")
+    if not isinstance(blocks, list) or any(not isinstance(block, dict) for block in blocks):
+        return None
+    return corpus_security.scan_blocks(blocks, titles=(record.get("title"), document.get("title")))
+
+
+def _security_outcome(candidate_id: str, record: Dict[str, Any]) -> Dict[str, Any]:
+    """Report one durable security exclusion without content."""
+    security = record.get("security") if isinstance(record.get("security"), dict) else {}
+    return {
+        "candidate_id": candidate_id,
+        "status": "rejected",
+        "failure": record.get("failure"),
+        "original_sha256": None,
+        "media_type": None,
+        "page_count": None,
+        "block_count": None,
+        "security": {
+            "scan_version": security.get("scan_version", corpus_security.SCAN_VERSION),
+            "flags": list(_security_flags(record)),
+        },
+    }
+
+
+def _record_security_rejection(
+    state: Dict[str, Any],
+    candidate: Dict[str, Any],
+    scan: corpus_security.ScanResult,
+    quarantine_root: Path,
+    stamp: str,
+) -> Dict[str, Any]:
+    """Rebuild the record from provenance only and purge the candidate directory."""
+    candidate_id = candidate["candidate_id"]
+    existing = state["candidates"].get(candidate_id)
+    record = _base_record(candidate)
+    if isinstance(existing, dict):
+        record["attempts"] = _previous_attempts(existing)
+    failure = scan.failure or corpus_security.NOMINAL_LISTING
+    record.update(
+        {
+            "status": "rejected",
+            "failure": failure,
+            "last_attempt_at": stamp,
+            "security": scan.as_record(),
+        }
+    )
+    _append_attempt(record, {"attempted_at": stamp, "status": "rejected", "failure": failure})
+    _purge_candidate_directory(quarantine_root, candidate_id)
+    state["candidates"][candidate_id] = record
+    return _security_outcome(candidate_id, record)
+
+
 def _append_attempt(record: Dict[str, Any], attempt: Dict[str, Any]) -> None:
     attempts = _previous_attempts(record)
     attempts.append(attempt)
@@ -1171,6 +1291,9 @@ def _record_failure(
 ) -> Dict[str, Any]:
     existing = state["candidates"].get(candidate["candidate_id"])
     record = copy.deepcopy(existing) if isinstance(existing, dict) else _base_record(candidate)
+    # A scan describes one fetched content version; a failed attempt no longer
+    # claims it for newer content, so the stale verdict never stands in.
+    record.pop("security", None)
     record.update({"status": status, "failure": failure, "last_attempt_at": stamp})
     _append_attempt(record, {"attempted_at": stamp, "status": status, "failure": failure})
     state["candidates"][candidate["candidate_id"]] = record
@@ -1190,6 +1313,10 @@ def _ingest_candidate(
     candidate_id = candidate["candidate_id"]
     existing = state["candidates"].get(candidate_id)
     if isinstance(existing, dict):
+        # A security exclusion is durable for the same content version: the
+        # excluded bytes and text never come back on a later run.
+        if _security_flags(existing) and existing.get("version_hash") == candidate["version_hash"]:
+            return _security_outcome(candidate_id, existing)
         unchanged = (
             existing.get("status") == "extracted"
             and existing.get("version_hash") == candidate["version_hash"]
@@ -1198,15 +1325,35 @@ def _ingest_candidate(
             and _files_present(existing, quarantine_root)
         )
         if unchanged:
-            return {"candidate_id": candidate_id, "status": "unchanged", "failure": None,
-                    "original_sha256": existing.get("original_sha256"),
-                    "media_type": existing.get("media_type"),
-                    "page_count": existing.get("page_count"),
-                    "block_count": existing.get("block_count")}
+            if _security_is_current(existing):
+                return {"candidate_id": candidate_id, "status": "unchanged", "failure": None,
+                        "original_sha256": existing.get("original_sha256"),
+                        "media_type": existing.get("media_type"),
+                        "page_count": existing.get("page_count"),
+                        "block_count": existing.get("block_count")}
+            # Legacy extraction: rescan what is stored, never refetch, and purge
+            # when the current detector now excludes it.
+            rescan = _rescan_stored_document(existing, quarantine_root)
+            if rescan is not None:
+                if rescan.flagged:
+                    return _record_security_rejection(
+                        state, candidate, rescan, quarantine_root, stamp
+                    )
+                existing["security"] = rescan.as_record()
+                return {"candidate_id": candidate_id, "status": "unchanged", "failure": None,
+                        "original_sha256": existing.get("original_sha256"),
+                        "media_type": existing.get("media_type"),
+                        "page_count": existing.get("page_count"),
+                        "block_count": existing.get("block_count")}
     try:
         allowed_hosts = ISSUER_ALLOWED_HOSTS.get(candidate.get("issuer"), ())
         fetched = _fetch(candidate["publication_url"], allowed_hosts)
         extracted = _extract(fetched)
+        scan = corpus_security.scan_blocks(
+            extracted.blocks, titles=(candidate.get("title"), extracted.title)
+        )
+        if scan.flagged:
+            return _record_security_rejection(state, candidate, scan, quarantine_root, stamp)
         digest = _sha256(fetched.payload)
         if digest in seen_digests and seen_digests[digest] != candidate_id:
             return _record_failure(state, candidate, "duplicate_content", "rejected", stamp)
@@ -1229,6 +1376,7 @@ def _ingest_candidate(
             "last_attempt_at": stamp,
             "last_success_at": stamp,
             "version_hash": candidate["version_hash"],
+            "security": scan.as_record(),
             **quarantine,
         }
     )
