@@ -1,0 +1,232 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://manijero.invalid/schemas/legal-chunk-set-v1.json",
+  "title": "Derived article-scale chunk set and run manifest",
+  "description": "Readable contract for the offline legal_structure_chunker. A chunk set splits one parsed, page-mapped legal Markdown document on explicit article/chapter/annex heading lines and carries only reviewed catalog validity. Nothing here is canonical knowledge or answerable: the output root stays outside knowledge/. Each file carries no timestamp, no absolute path, and no document text beyond the chunk text itself.",
+  "oneOf": [
+    {"$ref": "#/$defs/chunk_set"},
+    {"$ref": "#/$defs/manifest"}
+  ],
+  "$defs": {
+    "sha256": {
+      "type": "string",
+      "pattern": "^[a-f0-9]{64}$"
+    },
+    "status": {
+      "enum": ["chunked", "unstructured", "failed"]
+    },
+    "failure": {
+      "enum": [
+        "invalid_manifest",
+        "candidate_mismatch",
+        "missing_markdown",
+        "markdown_hash_mismatch",
+        "page_map_mismatch",
+        "size_limit_exceeded",
+        "chunk_limit_exceeded",
+        "missing_title",
+        "internal_error"
+      ]
+    },
+    "warning": {
+      "enum": ["no_structure_headings", "catalog_source_unknown", "chunk_over_soft_limit"]
+    },
+    "warnings": {
+      "type": "array",
+      "items": {"$ref": "#/$defs/warning"},
+      "uniqueItems": true
+    },
+    "chunk_set": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "schema_version",
+        "chunker",
+        "input",
+        "validity_status",
+        "chunk_count",
+        "chunks",
+        "warnings"
+      ],
+      "properties": {
+        "schema_version": {"const": "legal-chunk-set-v1"},
+        "chunker": {"const": "manijero-legal-chunker-v1"},
+        "input": {"$ref": "#/$defs/input"},
+        "validity_status": {
+          "enum": ["known", "unknown"],
+          "description": "'known' only when a reviewed catalog entry matched by content_sha256 == source_sha256."
+        },
+        "catalog": {"$ref": "#/$defs/catalog"},
+        "chunk_count": {"type": "integer", "minimum": 0},
+        "chunks": {
+          "type": "array",
+          "items": {"$ref": "#/$defs/chunk"}
+        },
+        "warnings": {"$ref": "#/$defs/warnings"}
+      }
+    },
+    "input": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["candidate_id", "source_sha256", "markdown_sha256", "title"],
+      "properties": {
+        "candidate_id": {"type": "string", "pattern": "^[a-f0-9]{64}$"},
+        "source_sha256": {"$ref": "#/$defs/sha256"},
+        "markdown_sha256": {"$ref": "#/$defs/sha256"},
+        "title": {
+          "type": "string",
+          "minLength": 1,
+          "description": "The reviewed catalog title when resolved, else the parser manifest title."
+        }
+      }
+    },
+    "catalog": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["source_id", "catalog_sha256"],
+      "description": "Only values present in the reviewed catalog entry are copied; unknown stays absent.",
+      "properties": {
+        "source_id": {"type": "string", "minLength": 1},
+        "catalog_sha256": {"$ref": "#/$defs/sha256"},
+        "published_on": {"type": "string", "pattern": "^\\d{4}-\\d{2}-\\d{2}$"},
+        "lifecycle_status": {"type": "string", "minLength": 1},
+        "valid_until": {"type": "string", "pattern": "^\\d{4}-\\d{2}-\\d{2}$"},
+        "campaign": {"type": "string", "pattern": "^\\d{4}$"},
+        "critical": {"type": "boolean"},
+        "applicability": {
+          "type": "object",
+          "additionalProperties": false,
+          "minProperties": 1,
+          "properties": {
+            "crop": {"type": "string", "minLength": 1},
+            "water_regime": {"enum": ["dryland", "irrigated", "mixed"]},
+            "production_method": {"enum": ["conventional", "organic", "mixed"]}
+          }
+        }
+      }
+    },
+    "chunk": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "candidate_id",
+        "source_sha256",
+        "markdown_sha256",
+        "heading_path",
+        "location",
+        "page_start",
+        "page_end",
+        "character_count",
+        "text"
+      ],
+      "properties": {
+        "id": {
+          "type": "string",
+          "pattern": "^[a-z0-9_-]+-[0-9]{4}$",
+          "description": "Catalog source_id or cand-<first 12 hex of source_sha256>, plus a 4-digit ordinal."
+        },
+        "candidate_id": {"type": "string", "pattern": "^[a-f0-9]{64}$"},
+        "source_sha256": {"$ref": "#/$defs/sha256"},
+        "markdown_sha256": {"$ref": "#/$defs/sha256"},
+        "heading_path": {
+          "type": "array",
+          "items": {"type": "string", "minLength": 1},
+          "description": "Detected headings only, outermost first; empty for the preamble."
+        },
+        "location": {
+          "type": "string",
+          "minLength": 1,
+          "description": "The heading path joined by ' › ', or 'Documento' for the preamble."
+        },
+        "page_start": {"type": "integer", "minimum": 1},
+        "page_end": {"type": "integer", "minimum": 1},
+        "character_count": {
+          "type": "integer",
+          "minimum": 1,
+          "description": "Length of text, prefix included."
+        },
+        "text": {
+          "type": "string",
+          "minLength": 1,
+          "description": "One '[<title> · <heading path>]' prefix line, a blank line, then the verbatim body."
+        }
+      }
+    },
+    "manifest": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["schema_version", "chunker", "documents", "summary"],
+      "properties": {
+        "schema_version": {"const": "legal-chunk-manifest-v1"},
+        "chunker": {"const": "manijero-legal-chunker-v1"},
+        "documents": {
+          "type": "array",
+          "items": {"$ref": "#/$defs/document"},
+          "description": "One entry per parser manifest found, sorted by candidate_id."
+        },
+        "summary": {"$ref": "#/$defs/summary"}
+      }
+    },
+    "document": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "candidate_id",
+        "status",
+        "failure",
+        "chunk_count",
+        "source_sha256",
+        "artifact",
+        "chunk_set_sha256",
+        "warnings"
+      ],
+      "properties": {
+        "candidate_id": {"type": "string", "minLength": 1},
+        "status": {"$ref": "#/$defs/status"},
+        "failure": {
+          "anyOf": [
+            {"$ref": "#/$defs/failure"},
+            {"type": "null"}
+          ]
+        },
+        "chunk_count": {"type": "integer", "minimum": 0},
+        "source_sha256": {
+          "anyOf": [
+            {"$ref": "#/$defs/sha256"},
+            {"type": "null"}
+          ]
+        },
+        "artifact": {
+          "type": ["string", "null"],
+          "description": "Path relative to the output root, or null when no chunk set is current."
+        },
+        "chunk_set_sha256": {
+          "anyOf": [
+            {"$ref": "#/$defs/sha256"},
+            {"type": "null"}
+          ]
+        },
+        "warnings": {"$ref": "#/$defs/warnings"}
+      }
+    },
+    "summary": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "documents",
+        "chunked",
+        "unstructured",
+        "failed",
+        "chunks"
+      ],
+      "properties": {
+        "documents": {"type": "integer", "minimum": 0},
+        "chunked": {"type": "integer", "minimum": 0},
+        "unstructured": {"type": "integer", "minimum": 0},
+        "failed": {"type": "integer", "minimum": 0},
+        "chunks": {"type": "integer", "minimum": 0}
+      }
+    }
+  }
+}

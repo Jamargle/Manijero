@@ -1,0 +1,55 @@
+{
+  "block_count": 6,
+  "candidate_id": "f0511b262c43489e44caf786bb8f919a5386ef66bba3830608b712c00dc2f632",
+  "capabilities": {
+    "layout": {
+      "reason": "runtime_missing",
+      "status": "unavailable",
+      "version": null
+    },
+    "ocr": {
+      "reason": "runtime_missing",
+      "status": "unavailable",
+      "version": null
+    },
+    "tables": {
+      "reason": "runtime_missing",
+      "status": "unavailable",
+      "version": null
+    }
+  },
+  "character_count": 205,
+  "markdown_bytes": 228,
+  "markdown_path": "f0511b262c43489e44caf786bb8f919a5386ef66bba3830608b712c00dc2f632/markdown-d2064be3052d97f435bb391f9d6b343e1830ac3528a083e001e4ce70076b7dda.md",
+  "markdown_sha256": "6b4652b6c6f718ad52bb93bf9563b015f55cbdb95b4b1ecdb76560f7bdc81289",
+  "ocr_page_count": 0,
+  "page_count": 1,
+  "pages": [
+    {
+      "blocks": 6,
+      "empty": false,
+      "line_end": 13,
+      "line_start": 1,
+      "ocr": false,
+      "page": 1,
+      "tables": 0,
+      "warnings": []
+    }
+  ],
+  "parser": "manijero-markdown-parser-v1",
+  "runtime": {
+    "profile": "base",
+    "signature": "977f366e42f58338dc4a94e4719128d3405f72d62b5166d02d2844e3b48d3341"
+  },
+  "schema_version": "legal-markdown-document-v1",
+  "source_path": "f0511b262c43489e44caf786bb8f919a5386ef66bba3830608b712c00dc2f632/original-d2064be3052d97f435bb391f9d6b343e1830ac3528a083e001e4ce70076b7dda.pdf",
+  "source_sha256": "d2064be3052d97f435bb391f9d6b343e1830ac3528a083e001e4ce70076b7dda",
+  "table_count": 0,
+  "title": "Resolución sintética sin entrada en el catálogo",
+  "upstream_extractor": "manijero-document-extractor-v1",
+  "warnings": [
+    "layout_runtime_unavailable",
+    "tables_runtime_unavailable",
+    "ocr_runtime_unavailable"
+  ]
+}
