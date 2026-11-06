@@ -9,7 +9,10 @@ contracts, raw evidence, and acceptance records remain in their owning files. La
 
 **Feature status** — 83 of 120 features are accepted, including `feedback_endpoint` (privacy-minimal
 `POST /feedback` rating, only `useful`/`not_useful`, per-process counts with no stored content,
-identifiers, or idempotency; validator accept, no owner walkthrough) and `contract_fuzz_tests` (developer-only seeded conformance suite generated from `contracts/openapi.yaml`: contract-valid requests get schema-valid `/ask` responses, invalid ones get generic 4xx, and a guard fails on FastAPI-vs-contract drift; offline and fixture-corpus only), `rag_inspector_view` (developer
+identifiers, or idempotency; validator accept, no owner walkthrough) and `contract_fuzz_tests` (developer-only seeded conformance suite generated from `contracts/openapi.yaml`: contract-valid requests get schema-valid `/ask` responses, invalid ones get generic 4xx, and a guard fails on FastAPI-vs-contract drift; offline and fixture-corpus only), `domain_procedure_map`
+(git-tracked, reviewed-taxonomy index of 16 olive-grove topics in `knowledge/procedure_map.json` with
+an offline validator; every topic stays `proposed`, 15 of 16 `uncovered`; validator accept, no owner
+walkthrough by owner decision), `rag_inspector_view` (developer
 `Inspeccionar` view of retrieved passages, scores, and verification steps; local test builds on a
 loopback service only, data sent only in the `development` profile; validator accept, no owner
 walkthrough by owner decision), `backend_health_metrics`
@@ -94,6 +97,8 @@ before making any claim in its area.
 - Answer feedback (`POST /feedback`) is an anonymous fixed rating with no storage or answer linkage; counts are per process, there is no export or idempotency (a retry counts again), and the pending review does not name feedback yet.
 - Source monitoring, document ingestion, change-impact analysis, and reviewed update packages are local,
   manual, synthetic-fixture-backed, and guarantee neither completeness nor currency.
+- The procedure map is an unreviewed taxonomy: 16 `proposed` topics, 15 `uncovered`, no owner or
+  target-user review; an index, not evidence or a coverage gate.
 - The test-build `Conexión` screen has unit, guard, compile, and screenshot evidence only; no GUI run.
 - The full local service (start/stop/status) is walked through on the owner's Mac only, with no app question sent; status shows configuration, not per-answer use.
 - The answer service container is walked through on the owner's Apple-silicon Mac only (no app question sent); arm64 only, about 5.6 GB per image, never pruned.

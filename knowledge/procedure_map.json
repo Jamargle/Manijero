@@ -1,0 +1,285 @@
+{
+  "schema_version": "procedure-map-v1",
+  "topics": [
+    {
+      "id": "solicitud-unica-pac",
+      "title": "Solicitud Única de la PAC",
+      "summary": "Trámite anual para presentar la solicitud de las ayudas de la Política Agrícola Común ante la administración competente.",
+      "search_terms": [
+        "solicitud única",
+        "pedir ayudas de la PAC",
+        "presentar la solicitud de ayudas",
+        "campaña de la PAC"
+      ],
+      "review_status": "proposed",
+      "coverage": {
+        "state": "partial",
+        "source_ids": [
+          "res_20260121",
+          "dl_1_2026",
+          "rd_1048_2022",
+          "rd_537_2026"
+        ],
+        "passage_ids": [
+          "pasaje-canal-presentacion-andalucia",
+          "pasaje-canal-presentacion-excepcion-nacional",
+          "pasaje-plazo-presentacion-2026-andalucia",
+          "pasaje-plazo-modificacion-2026-andalucia"
+        ],
+        "gap_note": "Solo hay evidencia revisada sobre el canal y los plazos de presentación; faltan otros pasos del procedimiento."
+      }
+    },
+    {
+      "id": "sigpac",
+      "title": "SIGPAC",
+      "summary": "Sistema de información geográfica que identifica y describe las parcelas agrícolas declaradas.",
+      "search_terms": [
+        "SIGPAC",
+        "parcelas del SIGPAC",
+        "recinto SIGPAC",
+        "consultar las parcelas"
+      ],
+      "review_status": "proposed",
+      "coverage": {
+        "state": "uncovered",
+        "source_ids": [],
+        "passage_ids": []
+      }
+    },
+    {
+      "id": "ayuda-directa-olivar",
+      "title": "Ayuda directa al olivar",
+      "summary": "Ayuda de la Política Agrícola Común dirigida al cultivo del olivar dentro de las ayudas directas.",
+      "search_terms": [
+        "ayuda al olivar",
+        "pago directo del olivar",
+        "ayudas directas para olivar",
+        "subvención del olivar"
+      ],
+      "review_status": "proposed",
+      "coverage": {
+        "state": "uncovered",
+        "source_ids": [],
+        "passage_ids": []
+      }
+    },
+    {
+      "id": "agricultor-activo",
+      "title": "Agricultor activo",
+      "summary": "Figura que describe a la persona que ejerce una actividad agraria de forma habitual.",
+      "search_terms": [
+        "agricultor activo",
+        "persona agricultora activa",
+        "actividad agraria habitual"
+      ],
+      "review_status": "proposed",
+      "coverage": {
+        "state": "uncovered",
+        "source_ids": [],
+        "passage_ids": []
+      }
+    },
+    {
+      "id": "superficies-minimas",
+      "title": "Superficies mínimas",
+      "summary": "Tamaño mínimo de parcela o de superficie declarada que puede tenerse en cuenta en las ayudas.",
+      "search_terms": [
+        "superficie mínima",
+        "tamaño mínimo de parcela",
+        "mínimo de superficie declarada"
+      ],
+      "review_status": "proposed",
+      "coverage": {
+        "state": "uncovered",
+        "source_ids": [],
+        "passage_ids": []
+      }
+    },
+    {
+      "id": "riego",
+      "title": "Riego",
+      "summary": "Uso y gestión del agua en las parcelas de olivar, incluidos los sistemas de riego y las limitaciones de la zona.",
+      "search_terms": [
+        "riego del olivar",
+        "sistemas de riego",
+        "agua para el olivar",
+        "riego por goteo"
+      ],
+      "review_status": "proposed",
+      "coverage": {
+        "state": "uncovered",
+        "source_ids": [],
+        "passage_ids": []
+      }
+    },
+    {
+      "id": "condicionalidad",
+      "title": "Condicionalidad",
+      "summary": "Conjunto de buenas prácticas agrarias y ambientales que acompañan a las ayudas de la Política Agrícola Común.",
+      "search_terms": [
+        "condicionalidad",
+        "buenas prácticas agrarias",
+        "condicionalidad de las ayudas",
+        "medio ambiente y ayudas"
+      ],
+      "review_status": "proposed",
+      "coverage": {
+        "state": "uncovered",
+        "source_ids": [],
+        "passage_ids": []
+      }
+    },
+    {
+      "id": "cuaderno-digital",
+      "title": "Cuaderno digital",
+      "summary": "Registro digital de las labores y tratamientos realizados en las parcelas de la explotación.",
+      "search_terms": [
+        "cuaderno digital",
+        "cuaderno de campo digital",
+        "registrar labores agrícolas",
+        "registro de tratamientos"
+      ],
+      "review_status": "proposed",
+      "coverage": {
+        "state": "uncovered",
+        "source_ids": [],
+        "passage_ids": []
+      }
+    },
+    {
+      "id": "ayudas-junta-andalucia",
+      "title": "Ayudas de la Junta de Andalucía",
+      "summary": "Convocatorias y apoyos de la administración andaluza para el sector agrario y el olivar.",
+      "search_terms": [
+        "ayudas de la Junta",
+        "subvenciones de Andalucía",
+        "ayudas andaluzas para el olivar",
+        "convocatorias de la Junta"
+      ],
+      "review_status": "proposed",
+      "coverage": {
+        "state": "uncovered",
+        "source_ids": [],
+        "passage_ids": []
+      }
+    },
+    {
+      "id": "notificaciones-y-rectificaciones",
+      "title": "Notificaciones y rectificaciones",
+      "summary": "Comunicaciones de la administración y correcciones de datos o de una solicitud ya presentada.",
+      "search_terms": [
+        "notificación de la administración",
+        "rectificar una solicitud",
+        "corregir datos de la solicitud",
+        "respuesta a una notificación"
+      ],
+      "review_status": "proposed",
+      "coverage": {
+        "state": "uncovered",
+        "source_ids": [],
+        "passage_ids": []
+      }
+    },
+    {
+      "id": "delegacion-entidades-colaboradoras",
+      "title": "Delegación en entidades colaboradoras",
+      "summary": "Encargo a una entidad reconocida para que ayude o gestione la tramitación de una ayuda.",
+      "search_terms": [
+        "entidad colaboradora",
+        "delegar la tramitación",
+        "cooperativa agraria",
+        "gestión de la solicitud por una entidad"
+      ],
+      "review_status": "proposed",
+      "coverage": {
+        "state": "uncovered",
+        "source_ids": [],
+        "passage_ids": []
+      }
+    },
+    {
+      "id": "pagos",
+      "title": "Pagos",
+      "summary": "Abonos de las ayudas aprobadas y consulta del estado o del importe de un pago.",
+      "search_terms": [
+        "cobro de la ayuda",
+        "estado del pago",
+        "abono de las ayudas",
+        "cuándo se cobra"
+      ],
+      "review_status": "proposed",
+      "coverage": {
+        "state": "uncovered",
+        "source_ids": [],
+        "passage_ids": []
+      }
+    },
+    {
+      "id": "quema-restos-poda",
+      "title": "Quema de restos de poda",
+      "summary": "Eliminación mediante quema de los restos vegetales de la poda del olivar.",
+      "search_terms": [
+        "quema de restos de poda",
+        "eliminar ramas del olivar",
+        "restos vegetales de la poda"
+      ],
+      "review_status": "proposed",
+      "coverage": {
+        "state": "uncovered",
+        "source_ids": [],
+        "passage_ids": []
+      }
+    },
+    {
+      "id": "productos-fitosanitarios",
+      "title": "Productos fitosanitarios",
+      "summary": "Productos para prevenir o combatir plagas y enfermedades del olivar y las condiciones para su uso.",
+      "search_terms": [
+        "fitosanitarios",
+        "tratamientos contra plagas",
+        "productos para el olivar",
+        "aplicar fitosanitarios"
+      ],
+      "review_status": "proposed",
+      "coverage": {
+        "state": "uncovered",
+        "source_ids": [],
+        "passage_ids": []
+      }
+    },
+    {
+      "id": "seguros-agrarios",
+      "title": "Seguros agrarios",
+      "summary": "Coberturas contratadas para proteger la explotación frente a daños en el cultivo o en la cosecha.",
+      "search_terms": [
+        "seguro agrario",
+        "seguro para el olivar",
+        "cobertura de la cosecha",
+        "protección de la explotación"
+      ],
+      "review_status": "proposed",
+      "coverage": {
+        "state": "uncovered",
+        "source_ids": [],
+        "passage_ids": []
+      }
+    },
+    {
+      "id": "produccion-ecologica",
+      "title": "Producción ecológica",
+      "summary": "Método de producción agraria que evita insumos de síntesis y sigue reglas de certificación ecológica.",
+      "search_terms": [
+        "producción ecológica",
+        "agricultura ecológica",
+        "olivar ecológico",
+        "certificación ecológica"
+      ],
+      "review_status": "proposed",
+      "coverage": {
+        "state": "uncovered",
+        "source_ids": [],
+        "passage_ids": []
+      }
+    }
+  ]
+}
