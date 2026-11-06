@@ -173,6 +173,10 @@ Durable MUST/MUST NOT rules for backend answer path, retrieval, generation, eval
   links no approved source or links only a reviewed passage or evaluation case. Reason:
   `legal_change_impact_analysis` detects wording; only an identified human can decide what a legal
   change means for the reviewed corpus.
+- **MUST**: a derived validity check MAY validate an already-expired catalog at its earliest reviewed
+  `valid_until`, but every structural, host, date-order, and malformed-date error MUST still fail
+  closed, and its proposals MUST stay review-only outside `knowledge/`
+  ([spec](../specs/validity_checker.md)).
 - **MUST**: canonical catalog and passage changes MUST go through the controlled merge that verifies
   an explicit approval by a named requested reviewer other than the proposal author, a matching
   package/checks/case digest, all required checks passing, and current canonical bytes matching the

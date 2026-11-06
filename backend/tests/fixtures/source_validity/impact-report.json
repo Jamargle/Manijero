@@ -1,0 +1,463 @@
+{
+  "analyzer": "manijero-change-impact-analyzer-v1",
+  "as_of": "2099-06-01",
+  "candidates": [
+    {
+      "analysis_failure": null,
+      "candidate_id": "014118a2c730722a1dab10f338a7a4480d7c9baa4dd40cb47023535ad3176394",
+      "ingestion_status": "extracted",
+      "issuer": "BOE",
+      "potentially_affected": {
+        "evaluation_cases": [],
+        "passages": [],
+        "sources": [
+          {
+            "id": "fixture-repeal-target",
+            "instrument_keys": [
+              "real decreto 106/2099"
+            ],
+            "reasons": [
+              "repeal_target"
+            ]
+          }
+        ]
+      },
+      "publication_url": "https://www.boe.es/buscar/doc.php?id=BOE-A-2099-00901",
+      "review": {
+        "automatic_retirement_allowed": false,
+        "reasons": [
+          "affected_source"
+        ],
+        "required": true
+      },
+      "review_status": "pending",
+      "signals": [
+        {
+          "classification": "machine_evident",
+          "excerpt": "Texto sintético de prueba para la revisión.",
+          "instrument_keys": [
+            "real decreto 106/2099"
+          ],
+          "introduced": true,
+          "kind": "repeal",
+          "page": 1,
+          "reason": "explicit_action_on_named_instrument",
+          "section": "Disposición derogatoria"
+        }
+      ],
+      "stable_identity": "BOE-A-2099-00901",
+      "title": "Real Decreto 901/2099, de 1 de junio, por el que se deroga el Real Decreto 106/2099 (documento sintético)",
+      "version": {
+        "baseline_text_available": true,
+        "current_original_sha256": "59e191eb01d6c4d00f461ca8b20f1b558d2575578842363f42c96a21755cdfd7",
+        "previous_original_sha256": "4d00a9d30a62e65066942fa53d2ebb8d97c6d2916ae2a6f06171d0e997340047",
+        "text_diff": null
+      },
+      "version_status": "new_version"
+    },
+    {
+      "analysis_failure": null,
+      "candidate_id": "58f2ab59cef665d390512650f38fe9997a5f25494a361ae2da4c046b571b3d9d",
+      "ingestion_status": "extracted",
+      "issuer": "BOE",
+      "potentially_affected": {
+        "evaluation_cases": [],
+        "passages": [],
+        "sources": [
+          {
+            "id": "fixture-active-source",
+            "instrument_keys": [],
+            "reasons": [
+              "candidate_version_differs_from_approved"
+            ]
+          }
+        ]
+      },
+      "publication_url": "https://www.boe.es/buscar/doc.php?id=BOE-A-2099-00902",
+      "review": {
+        "automatic_retirement_allowed": false,
+        "reasons": [
+          "ambiguous_signal"
+        ],
+        "required": true
+      },
+      "review_status": "pending",
+      "signals": [
+        {
+          "classification": "ambiguous",
+          "excerpt": "Texto sintético de prueba para la revisión.",
+          "instrument_keys": [],
+          "introduced": true,
+          "kind": "repeal",
+          "page": 1,
+          "reason": "no_named_instrument",
+          "section": "Disposición derogatoria"
+        }
+      ],
+      "stable_identity": "BOE-A-2099-00902",
+      "title": "Real Decreto 902/2099, de 2 de junio, sobre medidas agrarias (documento sintético)",
+      "version": {
+        "baseline_text_available": true,
+        "current_original_sha256": "550e7e3f154e92e6333b4321d4c801240d84c69c74116f61de00d8d584abd18f",
+        "previous_original_sha256": "ebbe292fc788a67185f3e59b6f931fffe137d453996023e5cd251a9c94ce0f2f",
+        "text_diff": null
+      },
+      "version_status": "new_version"
+    },
+    {
+      "analysis_failure": null,
+      "candidate_id": "9d6cebd4a8228b04362694b5873859dd1625590e19f53b1f42985ad9889455e5",
+      "ingestion_status": "extracted",
+      "issuer": "BOE",
+      "potentially_affected": {
+        "evaluation_cases": [],
+        "passages": [],
+        "sources": []
+      },
+      "publication_url": "https://www.boe.es/buscar/doc.php?id=BOE-A-2099-00903",
+      "review": {
+        "automatic_retirement_allowed": false,
+        "reasons": [
+          "ambiguous_signal"
+        ],
+        "required": true
+      },
+      "review_status": "pending",
+      "signals": [
+        {
+          "classification": "ambiguous",
+          "excerpt": "Texto sintético de prueba para la revisión.",
+          "instrument_keys": [
+            "real decreto 104/2099"
+          ],
+          "introduced": true,
+          "kind": "repeal",
+          "page": 1,
+          "reason": "negated_signal",
+          "section": "Artículo 1"
+        }
+      ],
+      "stable_identity": "BOE-A-2099-00903",
+      "title": "Real Decreto 903/2099, de 3 de junio, sobre aclaración de vigencia (documento sintético)",
+      "version": {
+        "baseline_text_available": false,
+        "current_original_sha256": "eec72606cfc47a001d8c0c9078c6e25d4e6619cdc6b183c727c375adfe0aaece",
+        "previous_original_sha256": null,
+        "text_diff": null
+      },
+      "version_status": "baseline_unknown"
+    },
+    {
+      "analysis_failure": null,
+      "candidate_id": "af4598a4477d44f4f82b64cffc1c79f9401c429c1569cead16418415b3822777",
+      "ingestion_status": "extracted",
+      "issuer": "BOE",
+      "potentially_affected": {
+        "evaluation_cases": [],
+        "passages": [],
+        "sources": []
+      },
+      "publication_url": "https://www.boe.es/buscar/doc.php?id=BOE-A-2099-00904",
+      "review": {
+        "automatic_retirement_allowed": false,
+        "reasons": [
+          "ambiguous_signal"
+        ],
+        "required": true
+      },
+      "review_status": "pending",
+      "signals": [
+        {
+          "classification": "machine_evident",
+          "excerpt": "Texto sintético de prueba para la revisión.",
+          "instrument_keys": [
+            "real decreto 999/2099"
+          ],
+          "introduced": true,
+          "kind": "repeal",
+          "page": 1,
+          "reason": "explicit_action_on_named_instrument",
+          "section": "Disposición derogatoria"
+        }
+      ],
+      "stable_identity": "BOE-A-2099-00904",
+      "title": "Real Decreto 904/2099, de 4 de junio, por el que se deroga una norma no catalogada (documento sintético)",
+      "version": {
+        "baseline_text_available": false,
+        "current_original_sha256": "453471f107be472826367bd0314d7d2c80443de76395b59f95109a039c8ece8b",
+        "previous_original_sha256": null,
+        "text_diff": null
+      },
+      "version_status": "baseline_unknown"
+    },
+    {
+      "analysis_failure": null,
+      "candidate_id": "6d64cf4b4f206d2cff40751e1faaca3623d24b59a13b5d7bb67ba05097f3b177",
+      "ingestion_status": "extracted",
+      "issuer": "BOE",
+      "potentially_affected": {
+        "evaluation_cases": [],
+        "passages": [],
+        "sources": [
+          {
+            "id": "fixture-active-source",
+            "instrument_keys": [
+              "real decreto 102/2099"
+            ],
+            "reasons": [
+              "validity_target"
+            ]
+          }
+        ]
+      },
+      "publication_url": "https://www.boe.es/buscar/doc.php?id=BOE-A-2099-00905",
+      "review": {
+        "automatic_retirement_allowed": false,
+        "reasons": [
+          "affected_source"
+        ],
+        "required": true
+      },
+      "review_status": "pending",
+      "signals": [
+        {
+          "classification": "machine_evident",
+          "excerpt": "Texto sintético de prueba para la revisión.",
+          "instrument_keys": [
+            "real decreto 102/2099"
+          ],
+          "introduced": true,
+          "kind": "validity",
+          "page": 1,
+          "reason": "explicit_date",
+          "section": "Artículo 2"
+        }
+      ],
+      "stable_identity": "BOE-A-2099-00905",
+      "title": "Real Decreto 905/2099, de 5 de junio, por el que se prorroga la vigencia del Real Decreto 102/2099 (documento sintético)",
+      "version": {
+        "baseline_text_available": true,
+        "current_original_sha256": "175546cd6ea114ce336adb7b765b860c423e1934a1e94fd6abc0536c2d7ece0c",
+        "previous_original_sha256": "c4fa9e3367935e98780124e08d789c25bfc63546040311776e6142839cdd7d86",
+        "text_diff": null
+      },
+      "version_status": "new_version"
+    },
+    {
+      "analysis_failure": null,
+      "candidate_id": "cdaa583a4d8dbdb85f456913c3adae75d57644f35ad9df288236d4adc757d37a",
+      "ingestion_status": "extracted",
+      "issuer": "BOE",
+      "potentially_affected": {
+        "evaluation_cases": [],
+        "passages": [],
+        "sources": [
+          {
+            "id": "fixture-consolidated-source",
+            "instrument_keys": [],
+            "reasons": [
+              "candidate_version_differs_from_approved"
+            ]
+          }
+        ]
+      },
+      "publication_url": "https://www.boe.es/buscar/doc.php?id=BOE-A-2099-00906",
+      "review": {
+        "automatic_retirement_allowed": false,
+        "reasons": [
+          "approved_copy_differs"
+        ],
+        "required": true
+      },
+      "review_status": "pending",
+      "signals": [
+        {
+          "classification": "machine_evident",
+          "excerpt": "Texto sintético de prueba para la revisión.",
+          "instrument_keys": [
+            "real decreto 105/2099"
+          ],
+          "introduced": true,
+          "kind": "publication",
+          "page": 1,
+          "reason": "explicit_publication_reference",
+          "section": "Título"
+        }
+      ],
+      "stable_identity": "BOE-A-2099-00906",
+      "title": "Resolución de 6 de junio de 2099, por la que se publica el texto coordinado (documento sintético)",
+      "version": {
+        "baseline_text_available": true,
+        "current_original_sha256": "ac87b8f614f7a7cd9475003f1b63dc0cf372f29d47756bde9e82a757e13857c7",
+        "previous_original_sha256": "57ce4604c1c8841429f40e0f2942966dc089e4dc1772ed13f1a635bb17877885",
+        "text_diff": null
+      },
+      "version_status": "new_version"
+    },
+    {
+      "analysis_failure": null,
+      "candidate_id": "9abee7ff6b2aee58380a234fc5b702d3a04b3fbf14c0ae851f1fe615a5feda0f",
+      "ingestion_status": "extracted",
+      "issuer": "BOE",
+      "potentially_affected": {
+        "evaluation_cases": [],
+        "passages": [],
+        "sources": []
+      },
+      "publication_url": "https://www.boe.es/buscar/doc.php?id=BOE-A-2099-00907",
+      "review": {
+        "automatic_retirement_allowed": false,
+        "reasons": [],
+        "required": false
+      },
+      "review_status": "pending",
+      "signals": [
+        {
+          "classification": "machine_evident",
+          "excerpt": "Texto sintético de prueba para la revisión.",
+          "instrument_keys": [
+            "real decreto 107/2099"
+          ],
+          "introduced": true,
+          "kind": "publication",
+          "page": 1,
+          "reason": "explicit_publication_reference",
+          "section": "Título"
+        }
+      ],
+      "stable_identity": "BOE-A-2099-00907",
+      "title": "Real Decreto 907/2099, de 7 de junio, sobre una materia nueva (documento sintético)",
+      "version": {
+        "baseline_text_available": false,
+        "current_original_sha256": "605d86b0387b8624081f83d1a00395da51ef6021336b2d2789c1e831e3b107bb",
+        "previous_original_sha256": null,
+        "text_diff": null
+      },
+      "version_status": "baseline_unknown"
+    },
+    {
+      "analysis_failure": null,
+      "candidate_id": "2be7609d8900b22c505d4c91d8079bd01ea5ad1eb2719e4f6bbde72b4a7c0a70",
+      "ingestion_status": "extracted",
+      "issuer": "BOE",
+      "potentially_affected": {
+        "evaluation_cases": [],
+        "passages": [],
+        "sources": []
+      },
+      "publication_url": "https://www.boe.es/buscar/doc.php?id=BOE-A-2099-00908",
+      "review": {
+        "automatic_retirement_allowed": false,
+        "reasons": [],
+        "required": false
+      },
+      "review_status": "pending",
+      "signals": [
+        {
+          "classification": "machine_evident",
+          "excerpt": "Texto sintético de prueba para la revisión.",
+          "instrument_keys": [
+            "real decreto 108/2099"
+          ],
+          "introduced": true,
+          "kind": "publication",
+          "page": 1,
+          "reason": "explicit_publication_reference",
+          "section": "Título"
+        }
+      ],
+      "stable_identity": "BOE-A-2099-00908",
+      "title": "Real Decreto 908/2099, de 8 de junio, copia aprobada (documento sintético)",
+      "version": {
+        "baseline_text_available": false,
+        "current_original_sha256": "b011e856fcebdefbfdc6d0b28c18b9722f749b06b30bc8a2e1a9e06927541a7e",
+        "previous_original_sha256": null,
+        "text_diff": null
+      },
+      "version_status": "approved_copy"
+    },
+    {
+      "analysis_failure": null,
+      "candidate_id": "377b65e42f873fb31deca3e48b12da0a871517ca3f1313e454b1dc819a494661",
+      "ingestion_status": "extracted",
+      "issuer": "BOE",
+      "potentially_affected": {
+        "evaluation_cases": [],
+        "passages": [],
+        "sources": [
+          {
+            "id": "fixture-active-source",
+            "instrument_keys": [
+              "real decreto 102/2099"
+            ],
+            "reasons": [
+              "amendment_target"
+            ]
+          }
+        ]
+      },
+      "publication_url": "https://www.boe.es/buscar/doc.php?id=BOE-A-2099-00909",
+      "review": {
+        "automatic_retirement_allowed": false,
+        "reasons": [
+          "affected_source"
+        ],
+        "required": true
+      },
+      "review_status": "pending",
+      "signals": [
+        {
+          "classification": "machine_evident",
+          "excerpt": "Texto sintético de prueba para la revisión.",
+          "instrument_keys": [
+            "real decreto 102/2099"
+          ],
+          "introduced": true,
+          "kind": "amendment",
+          "page": 1,
+          "reason": "explicit_action_on_named_instrument",
+          "section": "Artículo único"
+        }
+      ],
+      "stable_identity": "BOE-A-2099-00909",
+      "title": "Real Decreto 909/2099, de 9 de junio, por el que se modifica el Real Decreto 102/2099 (documento sintético)",
+      "version": {
+        "baseline_text_available": true,
+        "current_original_sha256": "b07175402915761524ddbacc459d8d3e4edbfce08d6f040cfe4281ecf4df344f",
+        "previous_original_sha256": "fe4ccb470a073556d1c818c542cb8cc60d727ab184287a2d60e834faf1a2b664",
+        "text_diff": null
+      },
+      "version_status": "new_version"
+    }
+  ],
+  "inputs": {
+    "catalog_sha256": "fba73691480fd7ee5ad13035439e9a23cede37ea14a101c57a1a6eb186df0e0d",
+    "evaluation_cases_sha256": null,
+    "ingestion_state_sha256": "68068e25a8cf321b5dad5feea970ab8284079c69aa8a41683ba445e046edf85a",
+    "passages_sha256": "5c99648de3312c196c6dc41d12b5e3bd3405d673d6c6342ec3aa0279f67021a8"
+  },
+  "limits": [
+    "Synthetic fixture report for the source-validity checker tests."
+  ],
+  "review_gate": {
+    "automatic_retirement": false,
+    "canonical_changes_applied": false,
+    "requires_human_approval": true
+  },
+  "schema_version": "legal-change-impact-report-v1",
+  "summary": {
+    "affected_evaluation_cases": 0,
+    "affected_passages": 0,
+    "affected_sources": 3,
+    "ambiguous_signals": 2,
+    "analysis_failed": 0,
+    "approved_copy": 1,
+    "baseline_unknown": 3,
+    "candidates": 9,
+    "machine_evident_signals": 7,
+    "new_version": 5,
+    "no_extracted_document": 0,
+    "review_required": 7,
+    "unchanged_since_ingestion": 0
+  }
+}
