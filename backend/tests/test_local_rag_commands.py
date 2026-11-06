@@ -195,6 +195,47 @@ def test_an_extra_argument_or_a_bad_port_is_misuse_for_the_service_commands(tmp_
     assert not (tmp_path / "home").exists()
 
 
+# --- The local load test command (never contacts a service here) ---------------------------
+
+
+def test_local_load_test_with_an_extra_argument_is_misuse(tmp_path: Path) -> None:
+    completed = run_init(tmp_path, "--local-rag-load-test", "now")
+
+    assert completed.returncode == 2
+    assert completed.stderr.strip() == "Run --local-rag-load-test on its own, with nothing after it."
+    assert not completed.stdout
+    assert not (tmp_path / "home").exists()
+
+
+def test_local_load_test_before_setup_says_to_set_up_and_writes_no_report(tmp_path: Path) -> None:
+    completed = run_init(tmp_path, "--local-rag-load-test")
+
+    assert completed.returncode == 1, completed.stdout + completed.stderr
+    assert completed.stdout.splitlines() == [
+        "Checking the local answer service...",
+        "The local answer tools are not set up yet. Run ./scripts/init.sh --local-rag-setup to set them up.",
+        "Result: the load test did not run. Do the first step shown above.",
+    ]
+    assert "Traceback" not in completed.stdout + completed.stderr
+    assert not (tmp_path / "home" / "reports").exists()
+
+
+def test_local_load_test_with_no_service_running_says_how_to_start_it(tmp_path: Path) -> None:
+    _settings(tmp_path)
+
+    completed = run_init(tmp_path, "--local-rag-load-test")
+
+    assert completed.returncode == 1, completed.stdout + completed.stderr
+    assert completed.stdout.splitlines() == [
+        "Checking the local answer service...",
+        "The local answer service is not running.",
+        "Result: the load test did not run. Start the local answer service with ./scripts/init.sh --local-rag-start, then run this command again.",
+    ]
+    assert "Traceback" not in completed.stdout + completed.stderr
+    assert not (tmp_path / "home" / "reports").exists()
+    assert not (tmp_path / "home" / "run").exists()
+
+
 # --- The local smoke test command (never reaches Gradle or adb here) -----------------------
 
 SMOKE_DIR = REPO_ROOT / "build" / "local-smoke"

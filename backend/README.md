@@ -2303,3 +2303,27 @@ press `Reintentar` once after an unreachable failure. **Logs** under `build/loca
 the commands and Gradle/adb output; output lines, result files, and logs carry no question,
 answer, or passage text. **Exit codes**: `0` both pass; `1` did not run, a platform failed, or
 Ctrl+C (the child step is ended); `2` an extra argument.
+
+### Local load test
+
+`./scripts/init.sh --local-rag-load-test` (owner steps in [`docs/owner-guide.md`](../docs/owner-guide.md))
+runs `scripts/measure_local_load.py` (operator-only, stdlib-only, no k6/Locust or new dependency,
+never imported by the service). With the service started by `--local-rag-start`, it sends each
+reviewed case question with the empty `general` land context from 10 clients, closed loop with no
+think time: 10 s ramp (client *i* at *t0 + i*), 180 s steady, 2 warm-up questions, 60 s per-request
+timeout. It prints median, p95 (nearest rank), slowest and requests per second over successful
+steady requests, plus `status` answer-kind counts; failures and timeouts are counted, never given a
+latency. It writes one aggregate-only `local-load-measurement-v1` JSON report to
+`<local home>/reports/local-load-<UTC>.json` (mode `0600`) with no question, answer, passage, land,
+or token text.
+
+The gate stops at the first gap, sends nothing, and writes no report: unreadable settings, no
+settings, no verified run record (a stale record is cleared), then the same three
+`service_checks` as `--local-rag-service-status`. Refusing when Ollama is closed is deliberate: a
+run without drafting would measure a different stack. Exit codes: `0` finished with no failed
+question and the same service running; `1` refused, some question failed, the service stopped or
+its release changed mid-run, warm-up failed, busy lock, or Ctrl+C; `2` an extra argument or an
+unreadable/invalid case set. Ctrl+C writes no report and changes nothing. The printed `p95`
+candidate reference (8 s) is context only, and the numbers are one Mac's evidence, not pilot
+capacity or a pass/fail result; the service can silently switch to extractive answers at its 10 s
+draft timeout or 30 requests/minute limit, so a low p95 can hide drafting.
