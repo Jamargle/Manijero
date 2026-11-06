@@ -207,6 +207,14 @@ Durable MUST/MUST NOT rules for backend answer path, retrieval, generation, eval
   parser capability MUST degrade with a fixed, recorded reason; it MUST NOT fail silently, fetch, or
   download anything. Reason: `legal_document_parser` — a converted PDF is not reviewed knowledge, and
   an unrecorded degradation would hide that a table or scanned page was never extracted.
+- **MUST**: legal chunk sets are derived review input. They MUST be written outside `knowledge/`, MUST
+  split only on explicit article/chapter/annex heading lines (never on inferred structure, sub-items,
+  tables, or layout cues), and MUST copy validity only from a reviewed catalog entry whose
+  `content_sha256` equals the document's `source_sha256`; unmatched validity stays unknown and no date
+  or campaign is read from document text. A chunk set MUST NOT be read by `/ask`, retrieval,
+  readiness, the release builder, or the review merge, and MUST NOT change a `review_status` or a
+  canonical byte. Reason: `legal_structure_chunker` — a chunk is a future citation unit, not reviewed
+  knowledge; a guessed boundary or an inferred validity would be cited as law.
 - **MUST**: retrieval changes MUST be compared with the measured BM25 baseline on the reviewed cases;
   report-only metrics MUST NOT be described as improved answer quality without sufficient reviewed
   evidence.

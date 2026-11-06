@@ -1,0 +1,85 @@
+{
+  "block_count": 8,
+  "candidate_id": "06da3cbc8b9aa72256ab652eba11a2d1aeb1d2cd9513608d745f1a5f664e59f0",
+  "capabilities": {
+    "layout": {
+      "reason": "runtime_missing",
+      "status": "unavailable",
+      "version": null
+    },
+    "ocr": {
+      "reason": "runtime_missing",
+      "status": "unavailable",
+      "version": null
+    },
+    "tables": {
+      "reason": "runtime_missing",
+      "status": "unavailable",
+      "version": null
+    }
+  },
+  "character_count": 372,
+  "markdown_bytes": 401,
+  "markdown_path": "06da3cbc8b9aa72256ab652eba11a2d1aeb1d2cd9513608d745f1a5f664e59f0/markdown-753855904a0c8a7207bf44dbad36ee20415a335492cd153e383a1180e03d912c.md",
+  "markdown_sha256": "3bc17205b292188aadb70c873f81871a79deeb5896c0b4154552c80add6a688c",
+  "ocr_page_count": 0,
+  "page_count": 4,
+  "pages": [
+    {
+      "blocks": 1,
+      "empty": false,
+      "line_end": 3,
+      "line_start": 1,
+      "ocr": false,
+      "page": 1,
+      "tables": 0,
+      "warnings": []
+    },
+    {
+      "blocks": 1,
+      "empty": false,
+      "line_end": 7,
+      "line_start": 5,
+      "ocr": false,
+      "page": 2,
+      "tables": 0,
+      "warnings": []
+    },
+    {
+      "blocks": 4,
+      "empty": false,
+      "line_end": 17,
+      "line_start": 9,
+      "ocr": false,
+      "page": 3,
+      "tables": 0,
+      "warnings": []
+    },
+    {
+      "blocks": 2,
+      "empty": false,
+      "line_end": 23,
+      "line_start": 19,
+      "ocr": false,
+      "page": 4,
+      "tables": 0,
+      "warnings": []
+    }
+  ],
+  "parser": "manijero-markdown-parser-v1",
+  "runtime": {
+    "profile": "base",
+    "signature": "977f366e42f58338dc4a94e4719128d3405f72d62b5166d02d2844e3b48d3341"
+  },
+  "schema_version": "legal-markdown-document-v1",
+  "source_path": "06da3cbc8b9aa72256ab652eba11a2d1aeb1d2cd9513608d745f1a5f664e59f0/original-753855904a0c8a7207bf44dbad36ee20415a335492cd153e383a1180e03d912c.pdf",
+  "source_sha256": "753855904a0c8a7207bf44dbad36ee20415a335492cd153e383a1180e03d912c",
+  "table_count": 0,
+  "title": "Título del manifiesto sin revisar",
+  "upstream_extractor": "manijero-document-extractor-v1",
+  "warnings": [
+    "layout_runtime_unavailable",
+    "tables_runtime_unavailable",
+    "ocr_runtime_unavailable"
+  ]
+}

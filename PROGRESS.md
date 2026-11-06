@@ -7,7 +7,7 @@ Routine entry point. Exact feature status lives in [`feature_list.json`](feature
 contracts, raw evidence, and acceptance records remain in their owning files. Last updated:
 2026-11-06.
 
-**Feature status** — 87 of 120 features are accepted, including `feedback_endpoint` (privacy-minimal
+**Feature status** — 88 of 120 features are accepted, including `feedback_endpoint` (privacy-minimal
 `POST /feedback` rating, only `useful`/`not_useful`, per-process counts with no stored content,
 identifiers, or idempotency; validator accept, no owner walkthrough) and `contract_fuzz_tests` (developer-only seeded conformance suite generated from `contracts/openapi.yaml`: contract-valid requests get schema-valid `/ask` responses, invalid ones get generic 4xx, and a guard fails on FastAPI-vs-contract drift; offline and fixture-corpus only), `domain_procedure_map`
 (git-tracked, reviewed-taxonomy index of 16 olive-grove topics in `knowledge/procedure_map.json` with
@@ -15,7 +15,9 @@ an offline validator; every topic stays `proposed`, 15 of 16 `uncovered`; valida
 walkthrough by owner decision), `legal_document_parser` (quarantined
 official PDFs → deterministic Markdown plus a provenance manifest, outside `knowledge/` and never
 answerable; tables and Spanish OCR only through an optional pinned runtime, fake/fixture-verified),
-`corpus_security_rules` (offline scan
+`legal_structure_chunker` (offline developer command that splits that Markdown into
+article/chapter/annex chunks with contextual prefixes and catalog-only validity, outside `knowledge/`
+and never answerable; validator accept, no owner walkthrough by owner decision), `corpus_security_rules` (offline scan
 that rejects prompt-injection or nominal-listing documents at ingestion without keeping their bytes
 or text, plus a canonical release gate that refuses a single identifier shape; heuristic, precision
 unmeasured), `rag_inspector_view` (developer
@@ -43,7 +45,7 @@ default; measured on the owner's Mac, host decision pending), `knowledge_reindex
 (rehearsed locally only; no host step executed), `local_rag_bootstrap` (one guided setup
 command and a status check, walked through on the owner's Mac), `mock_answer_server` (Desktop and
 emulator walkthroughs not yet run), and `local_service_connection` (test builds only);
-`private_pilot_distribution` is `on_hold` by owner decision (2026-11-01). The 32 `not_started` features are the remaining MasterPlanV3 work, ordered
+`private_pilot_distribution` is `on_hold` by owner decision (2026-11-01). The 31 `not_started` features are the remaining MasterPlanV3 work, ordered
 local environment first, then the QA environment for remote real-device testing; prod is not planned yet. `feature_list.json` and the selector remain the status authority;
 this page does not duplicate the feature-id list.
 
@@ -110,6 +112,9 @@ before making any claim in its area.
   target-user review; an index, not evidence or a coverage gate.
 - Parsed legal-document Markdown is derived review input outside `knowledge/` and never answerable;
   tables and Spanish OCR are verified with in-process fakes and small fixtures only (no measured accuracy).
+- Legal chunk sets are derived review input outside `knowledge/`, split only on explicit
+  article/chapter/annex lines (títulos, secciones, and disposiciones stay inside their chunk), with
+  validity only from the reviewed catalog; never answerable, no accuracy claimed.
 - Corpus security exclusion (nominal listings, personal identifiers, model-directed text) is a
   conservative Spanish-first heuristic with no override; it can miss a reworded listing or instruction,
   and a false positive removes that document from automation.

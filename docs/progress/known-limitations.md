@@ -178,3 +178,11 @@ Do not over-claim.
   scanned PDF is already failed by accepted ingestion as `no_extractable_text` and never reaches
   the parser, so OCR applies only to text-less pages inside an otherwise extracted PDF. See the
   [spec](../specs/legal_document_parser.md).
+- The legal chunker (`legal_structure_chunker`) writes derived chunk sets plus a run manifest outside
+  `knowledge/`; nothing it writes is answerable and no `review_status` changes. Splitting is a
+  conservative Spanish line-shape rule limited to `Artículo`, `Capítulo`, and `Anexo`: `Título`,
+  `Sección`, `Disposición`, and `Preámbulo` lines never split, a heading with no text after it emits
+  no chunk, and a heading written in another shape is missed rather than guessed. Validity is only as
+  reviewed as `knowledge/source_catalog.json` (the `content_sha256` join; unmatched documents stay
+  `unknown`), no date is read from document text, and no chunking or retrieval accuracy is claimed.
+  See the [spec](../specs/legal_structure_chunker.md).

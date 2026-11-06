@@ -1627,6 +1627,36 @@ Base `backend/.venv` parses only the accepted text layer; `./scripts/init.sh --s
 Bounds and exit codes: 1,000 candidates, 5,000 blocks / 2,000,000 characters, 8 MiB per file, 50 table pages, 100 OCR pages at 60 s; a table/OCR budget degrades with a warning, a document bound fails that document. Exit `0` parsed, `1` at least one document failed, `2` aborted before writing with `{"error": "<TypeName>"}` (invalid state, over 1,000 candidates, an output root under `knowledge/` or equal to the quarantine).
 Failures use fixed codes and leave that candidate's previous pair byte-identical; an unchanged source, parser, and runtime signature is skipped; the manifest is written last, so rerun after an interruption. Full rules: [feature spec](../docs/specs/legal_document_parser.md).
 
+## Article-scale chunks of parsed legal Markdown
+
+`backend/scripts/chunk_legal_documents.py` turns the parser's Markdown and manifest into derived
+chunks: one deterministic chunk set per document plus one run manifest, under an operator-owned output
+root outside `knowledge/`. It reads no PDF, uses no model or network, never writes `knowledge/`, never
+changes a `review_status`, and nothing it writes is answerable.
+
+```sh
+backend/.venv/bin/python backend/scripts/chunk_legal_documents.py --documents /path/to/legal-markdown \
+  --catalog knowledge/source_catalog.json --output /path/to/legal-chunks
+```
+
+`<output>/<candidate_id>/chunks-<source_sha256>.json` (`legal-chunk-set-v1`) holds one chunk per
+non-empty article/chapter/annex segment with `heading_path`, `location`, the `<!-- page: N -->` page
+range, both hashes, a stable id, and text made of a `[title · heading path]` line, a blank line, and
+the verbatim body. Text before the first heading is one `preamble` chunk (`location: "Documento"`);
+a heading with no text after it emits no chunk. `chunks-manifest.json`
+(`legal-chunk-manifest-v1`) is written last; both shapes are in `knowledge/legal-chunk-set.schema.json`.
+
+Only standalone `Artículo|Capítulo|Anexo` + numeral lines ending at end-of-line or `.`, `:`, `–`, `-`
+split; `Título`, `Sección`, `Disposición`, `Preámbulo`, sub-items, and table rows never do. Validity
+comes only from a catalog entry whose `content_sha256` equals `source_sha256` (else `unknown` with
+`catalog_source_unknown`), validated as of `0001-01-01`, so expiry stays retrieval's `--as-of`.
+
+Bounds: 1,000 manifests, 8 MiB Markdown and 2,000 chunks per document, 200-character heading lines; a
+chunk over 8,000 characters stays whole with `chunk_over_soft_limit`. Exit `0` every document chunked or
+unstructured, `1` a document failed, `2` refused before writing with `{"error": "ChunkerError"}` (unsafe
+or missing root, unreadable or invalid catalog, over 1,000 manifests). `--check-contract` alone checks
+the schema and prints one line. Full rules: [feature spec](../docs/specs/legal_structure_chunker.md).
+
 ## Legal change-impact analysis
 
 `app/change_impact.py` compares the versions that candidate ingestion recorded
