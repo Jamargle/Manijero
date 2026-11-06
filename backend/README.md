@@ -2303,3 +2303,24 @@ press `Reintentar` once after an unreachable failure. **Logs** under `build/loca
 the commands and Gradle/adb output; output lines, result files, and logs carry no question,
 answer, or passage text. **Exit codes**: `0` both pass; `1` did not run, a platform failed, or
 Ctrl+C (the child step is ended); `2` an extra argument.
+
+## Contract conformance tests
+
+`backend/tests/test_contract_fuzz.py` proves offline that the local `/ask` service honors
+`contracts/openapi.yaml`: contract-valid generated requests get a schema-valid `200`,
+contract-invalid ones get only `400` or `422` with a `detail`-only body, and the FastAPI
+`/openapi.json` schema must keep `/ask` property names, required keys, enums, and string
+bounds identical to the versioned contract. It reuses `contracts/validate_examples.py` as
+the cross-field oracle and drives the real app through `TestClient` on the synthetic
+clarification fixture corpus (`as_of` 2026-10-13, campaign 2026).
+
+```sh
+python3 contracts/validate_examples.py
+./scripts/init.sh --backend-tests tests/test_contract_fuzz.py -q
+```
+
+`MANIJERO_CONTRACT_FUZZ_SEED` (default `20261106`) and `MANIJERO_CONTRACT_FUZZ_CASES`
+(default `40`; the three fixed state-coverage cases are always included) change the
+generated cases. The run is deterministic per seed and bounded; it makes no network call
+and claims no legal coverage, answer quality, performance, or pilot behavior. `PyYAML` is
+a dev-only dependency used to read the YAML contract.

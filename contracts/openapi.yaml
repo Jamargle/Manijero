@@ -269,6 +269,7 @@ components:
         url:
           type: string
           format: uri
+          minLength: 1
           description: Stable official source URL.
         location:
           type: string
