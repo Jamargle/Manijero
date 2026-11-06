@@ -161,3 +161,11 @@ Do not over-claim.
   are generated but the local service does not check them. Everything was tested in temporary
   folders with fake tokens only. See the [acceptance record](../validations/environment_profiles.md).
 - The health metrics page (`GET /metrics`, `backend_health_metrics`) counts per process and resets on restart, so it is never cluster-wide. Source-update recency appears only when `MANIJERO_SOURCE_UPDATE_STATE_DIR` is already set (no start command sets it), and it reports scheduler run recency, not legal freshness. Verified by in-process tests only; no live scrape, dashboard, or hosted service was observed. See the [spec](../specs/backend_health_metrics.md).
+- The legal-document parser (`legal_document_parser`) writes derived Markdown plus a provenance
+  manifest outside `knowledge/`; nothing it writes is answerable, and no `review_status` changes.
+  Its table and Spanish-OCR adapters were verified only with in-process fakes and small
+  deterministic fixtures: Docling, `pymupdf4llm`, and the Tesseract `spa` runtime were not
+  installed or run on the owner's Mac, so there is no measured table or OCR accuracy. A fully
+  scanned PDF is already failed by accepted ingestion as `no_extractable_text` and never reaches
+  the parser, so OCR applies only to text-less pages inside an otherwise extracted PDF. See the
+  [spec](../specs/legal_document_parser.md).

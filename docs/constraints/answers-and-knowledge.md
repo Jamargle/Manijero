@@ -181,6 +181,12 @@ Durable MUST/MUST NOT rules for backend answer path, retrieval, generation, eval
   checkout read path.
   Reason: generated indexes are derived data and must not drift from reviewed sources; `knowledge_reindex_release`
   replaced the non-atomic two-file corpus replace with immutable, hash-verified releases.
+- **MUST**: parsed document Markdown is derived review input. It MUST be written outside `knowledge/`,
+  MUST NOT be read by `/ask`, retrieval, readiness, the release builder, or the review merge, and MUST
+  NOT change a candidate `review_status` or make anything answerable. A missing or failing optional
+  parser capability MUST degrade with a fixed, recorded reason; it MUST NOT fail silently, fetch, or
+  download anything. Reason: `legal_document_parser` — a converted PDF is not reviewed knowledge, and
+  an unrecorded degradation would hide that a table or scanned page was never extracted.
 - **MUST**: retrieval changes MUST be compared with the measured BM25 baseline on the reviewed cases;
   report-only metrics MUST NOT be described as improved answer quality without sufficient reviewed
   evidence.

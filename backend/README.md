@@ -1545,6 +1545,37 @@ The extractor and state never log document text or upstream exception text;
 failure categories are fixed strings. Keep the quarantine and state directories
 access-controlled and back them up if review history matters.
 
+## Markdown parsing of quarantined official PDFs
+
+`backend/scripts/parse_official_documents.py` turns PDF candidates in the
+ingestion quarantine into one clean Markdown file plus one provenance manifest.
+It reads the quarantine only, never writes `knowledge/`, never changes a
+candidate `review_status`, and nothing it writes is answerable. One command:
+
+```sh
+backend/.venv/bin/python backend/scripts/parse_official_documents.py \
+  --state /path/to/official-ingestion-state.json \
+  --quarantine /path/to/official-document-quarantine \
+  --output /path/to/legal-markdown
+```
+
+Run the same command with the optional runtime by swapping the interpreter:
+`backend/.venv-docparse/bin/python backend/scripts/parse_official_documents.py`.
+
+`<output>/<candidate_id>/markdown-<source_sha256>.md` has one `<!-- page: N -->`
+marker per page, with repeated page-edge and page-number-only lines removed and
+never a whole page; `parse-<source_sha256>.json` is the
+`legal-markdown-document-v1` manifest
+(`knowledge/legal-markdown-document.schema.json`) with hashes, versions,
+per-page line ranges, and one status per capability. HTML is `skipped /
+not_a_pdf`; the Markdown is document text, so keep the output root
+access-controlled and out of logs.
+
+Base `backend/.venv` parses only the accepted text layer; `./scripts/init.sh --setup-python docparse` adds `pymupdf4llm` layout, Docling tables, and Tesseract OCR (system binary with `spa`) from the exact pins in `backend/requirements-docparse.txt`. `--check-runtime` prints one plain line per capability; a missing runtime, binary, or language degrades that capability with a fixed reason, never silently or over the network.
+
+Bounds and exit codes: 1,000 candidates, 5,000 blocks / 2,000,000 characters, 8 MiB per file, 50 table pages, 100 OCR pages at 60 s; a table/OCR budget degrades with a warning, a document bound fails that document. Exit `0` parsed, `1` at least one document failed, `2` aborted before writing with `{"error": "<TypeName>"}` (invalid state, over 1,000 candidates, an output root under `knowledge/` or equal to the quarantine).
+Failures use fixed codes and leave that candidate's previous pair byte-identical; an unchanged source, parser, and runtime signature is skipped; the manifest is written last, so rerun after an interruption. Full rules: [feature spec](../docs/specs/legal_document_parser.md).
+
 ## Legal change-impact analysis
 
 `app/change_impact.py` compares the versions that candidate ingestion recorded

@@ -254,7 +254,7 @@ AS_OF="${MANIJERO_AS_OF:-2026-10-13}"
 
 usage() {
   cat <<'EOF'
-Usage: ./scripts/init.sh [--check|--fast|--verify|--feature <id>|--backend-tests [targets]|--setup-python [dev|hybrid]|--backend|--mock|--mock-status|--mock-stop|--local-rag-setup|--local-rag-status|--local-rag-start|--local-rag-service-status|--local-rag-stop|--container-build|--container-start|--container-status|--container-stop|--pilot-token-save|--local-smoke|--environments-status|--qa-settings-setup|--android|--android-run|--desktop|--android-qa|--desktop-qa|--help]
+Usage: ./scripts/init.sh [--check|--fast|--verify|--feature <id>|--backend-tests [targets]|--setup-python [dev|hybrid|docparse]|--backend|--mock|--mock-status|--mock-stop|--local-rag-setup|--local-rag-status|--local-rag-start|--local-rag-service-status|--local-rag-stop|--container-build|--container-start|--container-status|--container-stop|--pilot-token-save|--local-smoke|--environments-status|--qa-settings-setup|--android|--android-run|--desktop|--android-qa|--desktop-qa|--help]
 
   --check                   Check Java and the Gradle wrapper, then print standard commands (default)
   --fast                    Shared host tests, contract examples, backend unit tests, and the five
@@ -265,7 +265,8 @@ Usage: ./scripts/init.sh [--check|--fast|--verify|--feature <id>|--backend-tests
   --feature <id>            Run the focused verification published in docs/specs/<id>.md
   --backend-tests [target]  Run the backend pytest suite, or only the given targets, from backend/
   --setup-python [profile]  Build or reuse the shared backend virtualenv (dev, or hybrid for
-                            torch/chromadb) and link it as backend/.venv (or backend/.venv-hybrid)
+                            torch/chromadb, or docparse for pymupdf4llm/docling/pytesseract) and
+                            link it as backend/.venv (or backend/.venv-hybrid, backend/.venv-docparse)
   --backend                 Link the shared backend virtualenv if needed and launch the local API
   --mock                    Start the mock answer service in the background (fixed contract
                             example answers, no Python needed) and print the app addresses
