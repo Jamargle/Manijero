@@ -1816,6 +1816,39 @@ answer-quality claim follows from it. Only synthetic fixtures back the feature
 today; there is no live run against a published amendment and detection
 precision/recall is unmeasured.
 
+## Source-validity review
+
+`app/source_validity.py` (CLI `backend/scripts/check_source_validity.py`) turns the
+approved catalog, reviewed passages, and one accepted
+`legal-change-impact-report-v1` report into a derived `validity-review-v1`
+artifact outside `knowledge/`. It is read-only and never retires or admits a source.
+
+```sh
+backend/.venv/bin/python backend/scripts/check_source_validity.py \
+  --catalog knowledge/source_catalog.json --passages knowledge/passages.json \
+  --impact-report /path/to/legal-change-impact-report.json \
+  --as-of 2026-10-27 --report /path/to/validity-review.json
+```
+
+The catalog is validated at the earliest reviewed `valid_until`, so an expired
+entry stays inspectable while every other policy, host, date-order, and
+malformed-date error still fails closed. The report's catalog/passages SHA-256
+digests must match the supplied bytes, `--as-of` is one UTC `YYYY-MM-DD` date,
+and `--report` must be outside `knowledge/` and distinct from every input. The
+artifact reports each source's `expiry`, `publication`, and `consolidation`
+state and sorted retirement (structured expiry or a machine-evident repeal linked
+with `repeal_target`), review (ambiguous/negated signal, unmatched repeal,
+validity, linked publication, future publication date), and addition (unlinked,
+non-approved-copy machine-evident publication) proposals. Every proposal has
+`review.required: true` and `review.applied: false`. It prints one `Proposal:`
+line per proposal and one `Result:` line: exit `0` no proposals, `1` proposals
+written, `2` aborted before writing with a fixed failure name only.
+
+This is a review aid, not a legal conclusion. The catalog has no BOE
+consolidation-state field, an addition is a lead, and only synthetic fixtures
+back the feature, so detection precision/recall is unmeasured. See
+[the spec](../docs/specs/validity_checker.md).
+
 ## Human-reviewed knowledge update packages
 
 `app/review_package.py` turns one reviewed proposal over quarantined candidates

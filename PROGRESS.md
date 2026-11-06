@@ -5,9 +5,9 @@
 Routine entry point. Exact feature status lives in [`feature_list.json`](feature_list.json); use
 [`./scripts/select-feature.sh --status`](scripts/select-feature.sh) to read the board. Feature
 contracts, raw evidence, and acceptance records remain in their owning files. Last updated:
-2026-11-06.
+2026-11-07.
 
-**Feature status** — 88 of 120 features are accepted, including `feedback_endpoint` (privacy-minimal
+**Feature status** — 88 of 120 features are accepted, including `validity_checker` (offline, digest-bound check of the reviewed catalog and accepted change-impact signals: explicit expiry versus an injected UTC as-of date, machine-evident repeal/expiry only as a review-required retirement proposal, publication additions as review leads, ambiguous/negated signals never retire; writes one derived `validity-review-v1` artifact outside `knowledge/` and leaves the corpus, releases, indexes, and `/ask` untouched; validator accept final, no owner walkthrough), `feedback_endpoint` (privacy-minimal
 `POST /feedback` rating, only `useful`/`not_useful`, per-process counts with no stored content,
 identifiers, or idempotency; validator accept, no owner walkthrough), `answer_feedback_ui` (`Útil` /
 `No útil` under each finished answer in the shared chat; sends only that rating through the pilot-token
