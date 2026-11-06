@@ -396,6 +396,107 @@ class KtorAnswerServiceTest {
         assertEquals(null, failure.cause)
     }
 
+    // Answer feedback (`POST /feedback`). Fake token and fake addresses only.
+
+    private fun acceptingFeedbackEngine() = MockEngine {
+        respond(content = "", status = HttpStatusCode.NoContent)
+    }
+
+    @Test
+    fun `a feedback send posts exactly one rating and no other value`() = runTest {
+        val engine = acceptingFeedbackEngine()
+        val service = KtorAnswerService(answerHttpClient(engine), "https://api.example.invalid/")
+
+        listOf(
+            AnswerRating.USEFUL to """{"rating":"useful"}""",
+            AnswerRating.NOT_USEFUL to """{"rating":"not_useful"}""",
+        ).forEach { (rating, expected) ->
+            service.sendFeedback(rating)
+
+            val sent = engine.requestHistory.last()
+            assertEquals(HttpMethod.Post, sent.method)
+            assertEquals("/feedback", sent.url.encodedPath)
+            assertEquals("api.example.invalid", sent.url.host)
+            assertEquals(ContentType.Application.Json, sent.body.contentType)
+            assertEquals(setOf("rating"), Json.parseToJsonElement(sent.body.asText()).jsonObject.keys)
+            assertEquals(expected, sent.body.asText())
+        }
+        assertEquals(2, engine.requestHistory.size)
+    }
+
+    @Test
+    fun `the feedback address follows the provider and the trailing slash rule`() = runTest {
+        val engine = acceptingFeedbackEngine()
+        var address = "http://127.0.0.1:8000"
+        val service = KtorAnswerService(client = answerHttpClient(engine), baseUrl = { address })
+
+        service.sendFeedback(AnswerRating.USEFUL)
+        address = "http://192.168.1.20:8000/manijero/"
+        service.sendFeedback(AnswerRating.USEFUL)
+
+        assertEquals(
+            listOf("http://127.0.0.1:8000/feedback", "http://192.168.1.20:8000/manijero/feedback"),
+            engine.requestHistory.map { it.url.toString() },
+        )
+    }
+
+    @Test
+    fun `a feedback token is sent over https or loopback and never over cleartext to a LAN host`() = runTest {
+        val token = PilotToken.fromBuildSetting(fakePilotToken)
+        listOf(
+            "https://api.example.invalid" to "Bearer $fakePilotToken",
+            "http://127.0.0.1:8000" to "Bearer $fakePilotToken",
+            "http://localhost:8000" to "Bearer $fakePilotToken",
+            "http://192.168.1.20:8000" to null,
+        ).forEach { (address, expected) ->
+            val engine = acceptingFeedbackEngine()
+            KtorAnswerService(answerHttpClient(engine), address, token).sendFeedback(AnswerRating.USEFUL)
+
+            assertEquals(expected, engine.requestHistory.single().headers[HttpHeaders.Authorization], address)
+        }
+
+        val tokenless = acceptingFeedbackEngine()
+        KtorAnswerService(answerHttpClient(tokenless), "https://api.example.invalid")
+            .sendFeedback(AnswerRating.NOT_USEFUL)
+        assertEquals(null, tokenless.requestHistory.single().headers[HttpHeaders.Authorization])
+    }
+
+    @Test
+    fun `a refused or rejected feedback send is a payload-free service error`() = runTest {
+        listOf(HttpStatusCode.Unauthorized, HttpStatusCode.UnprocessableEntity, HttpStatusCode.InternalServerError)
+            .forEach { status ->
+                val engine = MockEngine {
+                    respond(
+                        content = """{"detail":"rejected"}""",
+                        status = status,
+                        headers = headersOf(HttpHeaders.ContentType, ContentType.Application.Json.toString()),
+                    )
+                }
+                val failure = assertFailsWith<AnswerServiceErrorException> {
+                    KtorAnswerService(
+                        client = answerHttpClient(engine),
+                        baseUrl = "https://api.example.invalid",
+                        pilotToken = PilotToken.fromBuildSetting(fakePilotToken),
+                    ).sendFeedback(AnswerRating.USEFUL)
+                }
+                assertEquals("The answer service reported a failure", failure.message)
+                assertFalse(fakePilotToken in failure.stackTraceToString(), "a failure must not carry the token")
+                assertEquals(null, failure.cause)
+            }
+    }
+
+    @Test
+    fun `an input output failure on a feedback send is reported as unreachable`() = runTest {
+        val engine = MockEngine { throw IOException("connection failed") }
+
+        val failure = assertFailsWith<AnswerServiceUnavailableException> {
+            KtorAnswerService(answerHttpClient(engine), "https://api.example.invalid")
+                .sendFeedback(AnswerRating.USEFUL)
+        }
+        assertEquals("The answer service could not be reached", failure.message)
+        assertEquals(null, failure.cause)
+    }
+
     private fun withInspection(inspection: String): String =
         answeredFixture.trimEnd().removeSuffix("}") + ""","inspection":$inspection}"""
 

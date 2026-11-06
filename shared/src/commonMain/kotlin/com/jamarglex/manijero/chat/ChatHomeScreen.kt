@@ -112,8 +112,15 @@ internal fun ChatHomeScreen(
             modifier = Modifier.fillMaxWidth(),
             verticalArrangement = Arrangement.spacedBy(ManijeroSpacing.Small),
         ) {
-            state.messages.forEach { message ->
-                ChatMessageBubble(message = message, onInspect = onInspect)
+            state.messages.forEachIndexed { index, message ->
+                ChatMessageBubble(
+                    message = message,
+                    index = index,
+                    onFeedback = { messageIndex, rating ->
+                        onAction(ChatHomeAction.FeedbackClicked(messageIndex, rating))
+                    },
+                    onInspect = onInspect,
+                )
             }
 
             // A failure is state, never a transcript entry, so it can never be read as an

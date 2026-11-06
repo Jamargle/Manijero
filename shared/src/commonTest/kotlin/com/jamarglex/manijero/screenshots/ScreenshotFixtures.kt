@@ -1,8 +1,10 @@
 package com.jamarglex.manijero.screenshots
 
+import com.jamarglex.manijero.AnswerFeedback
 import com.jamarglex.manijero.ChatHomeState
 import com.jamarglex.manijero.ChatMessage
 import com.jamarglex.manijero.Speaker
+import com.jamarglex.manijero.chat.AnswerRating
 import com.jamarglex.manijero.chat.AnswerSource
 import com.jamarglex.manijero.chat.AnswerStatus
 import com.jamarglex.manijero.chat.LandContextMode
@@ -65,6 +67,20 @@ internal object ScreenshotFixtures {
             ),
         ),
         lastResponseStatus = AnswerStatus.answered,
+    )
+
+    /**
+     * The answered chat after the service accepted `Útil`: the two controls are replaced by the
+     * single thank-you line, so the answer has nothing left to tap and no badge or success colour.
+     */
+    val answeredFeedbackSent = answeredChat.copy(
+        messages = answeredChat.messages.map { message ->
+            if (message.speaker == Speaker.ASSISTANT) {
+                message.copy(feedback = AnswerFeedback.Sent(AnswerRating.USEFUL))
+            } else {
+                message
+            }
+        },
     )
 
     /**

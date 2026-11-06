@@ -37,10 +37,11 @@ class ChatConversation(
             null -> Unit
             is ChatEffect.Submit -> scope.launch { submit(effect) }
             is ChatEffect.SubmitSelected -> scope.launch { submit(effect) }
+            is ChatEffect.SendFeedback -> scope.launch { sendFeedback(effect) }
         }
     }
 
-    private suspend fun submit(effect: ChatEffect) {
+    private suspend fun submit(effect: ChatEffect.QuestionEffect) {
         // A failing local read degrades to the accepted `general` request instead of turning a
         // question into a failure; the throwable is never logged or surfaced.
         val lands = runCatching { landsProvider() }.getOrElse { emptyList() }
@@ -55,6 +56,22 @@ class ChatConversation(
             // Error status, unusable body, no service configured, or any other failure: the
             // exception text is never logged or shown, and no answer is invented.
             onAction(ChatHomeAction.RequestFailed(RequestFailure.SERVICE_ERROR))
+        }
+    }
+
+    /**
+     * Sends one rating for one transcript entry. It is independent of the question, the composer,
+     * the failure notice and the land clarification, and its failure is never logged or surfaced
+     * from the exception: the entry stays rateable so the person may retry.
+     */
+    private suspend fun sendFeedback(effect: ChatEffect.SendFeedback) {
+        try {
+            answerService.sendFeedback(effect.rating)
+            onAction(ChatHomeAction.FeedbackReceived(effect.messageIndex, effect.rating))
+        } catch (cancellation: CancellationException) {
+            throw cancellation
+        } catch (_: Exception) {
+            onAction(ChatHomeAction.FeedbackFailed(effect.messageIndex, effect.rating))
         }
     }
 }

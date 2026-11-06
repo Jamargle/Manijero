@@ -7,9 +7,12 @@ Routine entry point. Exact feature status lives in [`feature_list.json`](feature
 contracts, raw evidence, and acceptance records remain in their owning files. Last updated:
 2026-11-06.
 
-**Feature status** — 87 of 120 features are accepted, including `feedback_endpoint` (privacy-minimal
+**Feature status** — 88 of 120 features are accepted, including `feedback_endpoint` (privacy-minimal
 `POST /feedback` rating, only `useful`/`not_useful`, per-process counts with no stored content,
-identifiers, or idempotency; validator accept, no owner walkthrough) and `contract_fuzz_tests` (developer-only seeded conformance suite generated from `contracts/openapi.yaml`: contract-valid requests get schema-valid `/ask` responses, invalid ones get generic 4xx, and a guard fails on FastAPI-vs-contract drift; offline and fixture-corpus only), `domain_procedure_map`
+identifiers, or idempotency; validator accept, no owner walkthrough), `answer_feedback_ui` (`Útil` /
+`No útil` under each finished answer in the shared chat; sends only that rating through the pilot-token
+transport, thanks line locks the answer, failure keeps both enabled; in-memory, no identifiers;
+validator accept, no owner walkthrough) and `contract_fuzz_tests` (developer-only seeded conformance suite generated from `contracts/openapi.yaml`: contract-valid requests get schema-valid `/ask` responses, invalid ones get generic 4xx, and a guard fails on FastAPI-vs-contract drift; offline and fixture-corpus only), `domain_procedure_map`
 (git-tracked, reviewed-taxonomy index of 16 olive-grove topics in `knowledge/procedure_map.json` with
 an offline validator; every topic stays `proposed`, 15 of 16 `uncovered`; validator accept, no owner
 walkthrough by owner decision), `legal_document_parser` (quarantined
@@ -103,7 +106,7 @@ before making any claim in its area.
   export file; losing the device without an export still loses records. Android backup exclusion is
   verified by inspection only; picker, file dialog, and screen-reader flows have no device evidence.
 - Pilot privacy gates are closed (review `pending`); retention and redaction are tested locally only.
-- Answer feedback (`POST /feedback`) is an anonymous fixed rating with no storage or answer linkage; counts are per process, there is no export or idempotency (a retry counts again), and the pending review does not name feedback yet.
+- Answer feedback (`POST /feedback`) is an anonymous fixed rating with no storage or answer linkage; counts are per process, there is no export or idempotency (a retry counts again), and the pending review does not name feedback yet. The shared chat's `Útil`/`No útil` rating (`answer_feedback_ui`) is in memory only, unlinked, lost on restart, and unavailable against the mock service.
 - Source monitoring, document ingestion, change-impact analysis, and reviewed update packages are local,
   manual, synthetic-fixture-backed, and guarantee neither completeness nor currency.
 - The procedure map is an unreviewed taxonomy: 16 `proposed` topics, 15 `uncovered`, no owner or
