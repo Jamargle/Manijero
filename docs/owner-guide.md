@@ -284,6 +284,41 @@ version of the app over the existing one and keeps its data.
 | `FAIL  <app>: the check could not run. Details are in build/local-smoke/<app>.log; ...`, `FAIL  Android emulator: the Android test tools do not match this emulator's Android version. ...`, or another `FAIL` line naming a log | The build, install, or check itself failed. | Send that log file to a developer. |
 | `The smoke test was stopped.` | You pressed Ctrl+C. | Run it again when you are ready. |
 
+## Rehearse the live demo
+
+Run this before showing Manijero to anyone. It checks the running local answer service and the
+review step, and prints one line per step. It changes nothing: it never writes your lands or the
+approved knowledge, and the review step uses a temporary, synthetic copy that it removes.
+
+1. **Start the service** if it is not running: `./scripts/init.sh --local-rag-start`.
+2. **Rehearse.** Paste:
+
+   ```sh
+   ./scripts/init.sh --demo-rehearsal
+   ```
+
+   - Expected: four `PASS` lines — `PASS  Service: /health and /ready answer`,
+     `PASS  Grounded answer: ... land_scope general`, `PASS  Trap abstention: no sources`, and
+     `PASS  Reviewed update: draft blocked, human approval, temporary merge (synthetic)` — and
+     `Result: the demo rehearsal passed (4 of 4 steps) against http://127.0.0.1:8000. The
+     reviewed update used synthetic fixtures; canonical knowledge was not changed.`
+   - If the service is not running it prints `SKIP` lines for the service steps, still runs the
+     review step, and ends with
+     `Result: the demo rehearsal is incomplete ... Start it with ./scripts/init.sh --local-rag-start, then run this command again.`
+3. **Read the script before the demo:** [demo-script.md](demo-script.md) gives the order, the two
+   fixed questions, the app steps to do by hand, and what you must not promise.
+
+### If the rehearsal shows something else
+
+| You see | What it means | What to do |
+|---|---|---|
+| `Result: the demo rehearsal did not run. Run ./scripts/init.sh --local-rag-setup.` | The local answer tools are not set up. | Follow [Set up the local answer tools](#set-up-the-local-answer-tools), then repeat step 2. |
+| `SKIP  Service: /health and /ready answer: the service is not reachable.` or `... running but not ready.` | The service is not running or is still starting. | Do step 1 (or wait a minute), then repeat step 2. |
+| `FAIL  Grounded answer: ...` | The fixed question did not return an answer with approved sources. | Do not demo that question; send the `Result:` line to a developer. |
+| `FAIL  Trap abstention: ...` | The trap question answered instead of abstaining. | Do not demo that question; send the `Result:` line to a developer. |
+| `FAIL  Reviewed update: ...` | The review step did not prepare, block, approve, and merge its temporary copy as it must. | Do not explain the reviewed update; send the `Result:` line to a developer. |
+| `Result: the demo rehearsal failed ...` | At least one step failed. | Read the `FAIL` line, fix that step, then repeat step 2. |
+
 ## Owner walkthrough: local smoke test
 
 Do this once, in a Terminal opened at the Manijero folder, after the local answer tools are set up.
