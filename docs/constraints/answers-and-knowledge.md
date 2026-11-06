@@ -210,6 +210,14 @@ Durable MUST/MUST NOT rules for backend answer path, retrieval, generation, eval
 - **MUST**: retrieval changes MUST be compared with the measured BM25 baseline on the reviewed cases;
   report-only metrics MUST NOT be described as improved answer quality without sufficient reviewed
   evidence.
+- **MUST**: official-page change monitoring MUST be a developer-run review signal only. Its state and
+  report MUST live outside `knowledge/`, keep only bounded normalized visible text needed for the next
+  diff, and remain operator data that is never committed or answerable. It MUST NOT fetch linked
+  resources, execute browser/JavaScript, create discovery candidates, or change canonical catalog,
+  passages, releases, indexes, `/ask`, retrieval, ingestion, or scheduler behavior, and it MUST NOT
+  claim legal currency, validity, meaning, or coverage. Reason: `official_page_change_monitor` notices
+  that a page may have changed; only a human can decide what that means, and the monitor must not
+  become a second unreviewed knowledge path.
 
 ## Procedure map
 

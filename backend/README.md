@@ -1306,6 +1306,48 @@ source updates (owned host, best-effort)" below. There is no document
 ingestion, legal-change interpretation, or automatic canonical update here. Successful polling is not evidence of legal
 coverage or corpus currency.
 
+## Manual official-page change monitoring
+
+`app/page_monitor.py` compares explicitly configured FEGA, MAPA, and Junta PAC
+pages against a last-good normalized-text snapshot. It is a developer-only
+review signal: it reports only added, removed, or changed visible text, never
+fetches linked documents or executes scripts, and never changes canonical
+knowledge, `/ask`, retrieval, or releases.
+
+Create an explicit config (only the three issuers and their first-party HTTPS
+hosts are accepted; no credentials, fragment, root/empty path, or non-default
+port):
+
+```json
+{"sources":[
+  {"id":"fega-pac","issuer":"FEGA","url":"https://www.fega.gob.es/pac"},
+  {"id":"mapa-pac","issuer":"MAPA","url":"https://www.mapa.gob.es/es/pac"},
+  {"id":"junta-pac","issuer":"Junta de Andalucía","url":"https://www.juntadeandalucia.es/pac"}
+]}
+```
+
+Run manually:
+
+```sh
+cd backend
+python scripts/monitor_official_pages.py --config page-monitor.json \
+  --state /path/outside/knowledge/state.json \
+  --report /path/outside/knowledge/report.json
+```
+
+`--now` accepts an ISO-8601 timestamp for deterministic replay. The report is
+`official-page-change-report-v1` sorted by id; state is
+`official-page-monitor-state-v1` and keeps the last successful hashes, bounded
+normalized segments, validators, and success time. Both are refused under
+`knowledge/`, and a failed fetch never overwrites last-good state. Exit `0`
+means every page was checked (first seen, unchanged, or changed); `1` means at
+least one failed; `2` means invalid config/state/path or a write error. Requests
+have a 15-second timeout and 5 MiB cap; text is bounded to 5,000 segments and
+2,000,000 characters; redirects stay on the same HTTPS host. Normalization is
+not semantic diffing, dynamic page regions can create noise, and success is not
+evidence of legal currency, validity, coverage, or answer quality. There is no
+scheduling or alert delivery here.
+
 ## Manual official-publication discovery
 
 `app/source_discovery.py` scans configured registries into a separate pending
