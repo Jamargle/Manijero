@@ -13,6 +13,31 @@
     }
   },
   "$defs": {
+    "finding": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["flag", "page", "block_index"],
+      "properties": {
+        "flag": {"enum": ["nominal_listing", "prompt_injection"]},
+        "page": {"type": ["integer", "null"], "minimum": 1},
+        "block_index": {"type": ["integer", "null"], "minimum": 0}
+      }
+    },
+    "security": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["scan_version", "flags", "findings"],
+      "properties": {
+        "scan_version": {"type": "string", "pattern": "^corpus-security-scan-v[0-9]+$"},
+        "flags": {
+          "type": "array",
+          "maxItems": 2,
+          "uniqueItems": true,
+          "items": {"enum": ["nominal_listing", "prompt_injection"]}
+        },
+        "findings": {"type": "array", "maxItems": 20, "items": {"$ref": "#/$defs/finding"}}
+      }
+    },
     "attempt": {
       "type": "object",
       "additionalProperties": false,
@@ -68,7 +93,8 @@
         "original_path": {"type": "string", "minLength": 1},
         "extracted_path": {"type": "string", "minLength": 1},
         "previous_original_sha256": {"type": "string", "pattern": "^[a-f0-9]{64}$"},
-        "attempts": {"type": "array", "items": {"$ref": "#/$defs/attempt"}}
+        "attempts": {"type": "array", "items": {"$ref": "#/$defs/attempt"}},
+        "security": {"$ref": "#/$defs/security"}
       }
     }
   }

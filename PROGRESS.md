@@ -15,7 +15,10 @@ an offline validator; every topic stays `proposed`, 15 of 16 `uncovered`; valida
 walkthrough by owner decision), `legal_document_parser` (quarantined
 official PDFs → deterministic Markdown plus a provenance manifest, outside `knowledge/` and never
 answerable; tables and Spanish OCR only through an optional pinned runtime, fake/fixture-verified),
-`rag_inspector_view` (developer
+`corpus_security_rules` (offline scan
+that rejects prompt-injection or nominal-listing documents at ingestion without keeping their bytes
+or text, plus a canonical release gate that refuses a single identifier shape; heuristic, precision
+unmeasured), `rag_inspector_view` (developer
 `Inspeccionar` view of retrieved passages, scores, and verification steps; local test builds on a
 loopback service only, data sent only in the `development` profile; validator accept, no owner
 walkthrough by owner decision), `backend_health_metrics`
@@ -56,7 +59,10 @@ Desktop use overridable local development URLs; their test builds (never release
 address. Test builds (Android debug, Desktop `run`; never release or packaged) send a pilot bearer token on `/ask` once the owner saves one
 (`client_pilot_credentials`).
 The reviewed corpus contains four official sources and four literal passages for three topics
-in the Andalusian PAC single application for 2026. `/ready` and `/ask` require an explicit
+in the Andalusian PAC single application for 2026. Ingestion now runs an offline corpus-security
+scan (`corpus_security_rules`): a nominal listing or model-directed document is rejected with a fixed
+category and its quarantined bytes and text are deleted, and the canonical release gate refuses a
+single identifier shape in metadata, passage text, or location. `/ready` and `/ask` require an explicit
 `MANIJERO_ACTIVE_CAMPAIGN`; no hosted model or public deployment is implemented. Scheduled
 source scans exist only as a manual-dispatch runner plus disabled, unrehearsed systemd templates
 (`knowledge_update_scheduler`); no host runs them and no freshness is claimed. A pinned local `BAAI/bge-m3` artifact and a derived
@@ -104,6 +110,9 @@ before making any claim in its area.
   target-user review; an index, not evidence or a coverage gate.
 - Parsed legal-document Markdown is derived review input outside `knowledge/` and never answerable;
   tables and Spanish OCR are verified with in-process fakes and small fixtures only (no measured accuracy).
+- Corpus security exclusion (nominal listings, personal identifiers, model-directed text) is a
+  conservative Spanish-first heuristic with no override; it can miss a reworded listing or instruction,
+  and a false positive removes that document from automation.
 - The test-build `Conexión` screen has unit, guard, compile, and screenshot evidence only; no GUI run.
 - The full local service (start/stop/status) is walked through on the owner's Mac only, with no app question sent; status shows configuration, not per-answer use.
 - The answer service container is walked through on the owner's Apple-silicon Mac only (no app question sent); arm64 only, about 5.6 GB per image, never pruned.
