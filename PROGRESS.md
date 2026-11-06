@@ -12,7 +12,10 @@ contracts, raw evidence, and acceptance records remain in their owning files. La
 identifiers, or idempotency; validator accept, no owner walkthrough) and `contract_fuzz_tests` (developer-only seeded conformance suite generated from `contracts/openapi.yaml`: contract-valid requests get schema-valid `/ask` responses, invalid ones get generic 4xx, and a guard fails on FastAPI-vs-contract drift; offline and fixture-corpus only), `domain_procedure_map`
 (git-tracked, reviewed-taxonomy index of 16 olive-grove topics in `knowledge/procedure_map.json` with
 an offline validator; every topic stays `proposed`, 15 of 16 `uncovered`; validator accept, no owner
-walkthrough by owner decision), `rag_inspector_view` (developer
+walkthrough by owner decision), `legal_document_parser` (quarantined
+official PDFs → deterministic Markdown plus a provenance manifest, outside `knowledge/` and never
+answerable; tables and Spanish OCR only through an optional pinned runtime, fake/fixture-verified),
+`rag_inspector_view` (developer
 `Inspeccionar` view of retrieved passages, scores, and verification steps; local test builds on a
 loopback service only, data sent only in the `development` profile; validator accept, no owner
 walkthrough by owner decision), `backend_health_metrics`
@@ -99,6 +102,8 @@ before making any claim in its area.
   manual, synthetic-fixture-backed, and guarantee neither completeness nor currency.
 - The procedure map is an unreviewed taxonomy: 16 `proposed` topics, 15 `uncovered`, no owner or
   target-user review; an index, not evidence or a coverage gate.
+- Parsed legal-document Markdown is derived review input outside `knowledge/` and never answerable;
+  tables and Spanish OCR are verified with in-process fakes and small fixtures only (no measured accuracy).
 - The test-build `Conexión` screen has unit, guard, compile, and screenshot evidence only; no GUI run.
 - The full local service (start/stop/status) is walked through on the owner's Mac only, with no app question sent; status shows configuration, not per-answer use.
 - The answer service container is walked through on the owner's Apple-silicon Mac only (no app question sent); arm64 only, about 5.6 GB per image, never pruned.

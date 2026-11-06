@@ -7,9 +7,11 @@
 # backend/.venv-hybrid (hybrid) become symlinks to it, so every published
 # "MANIJERO_PYTHON=backend/.venv/bin/python" command keeps working unchanged.
 #
-# Usage: scripts/python-env.sh [dev|hybrid] [--if-present]
+# Usage: scripts/python-env.sh [dev|hybrid|docparse] [--if-present]
 #   dev          runtime + test dependencies (default)
 #   hybrid       dev plus the optional torch/transformers/chromadb runtime (several GB)
+#   docparse     dev plus the optional pymupdf4llm/docling/pytesseract parser runtime
+#                (several GB; needs the system `tesseract` binary for OCR)
 #   --if-present only link an environment that is already built; never install
 #
 # The interpreter version comes from .python-version. With uv on PATH (the supported setup
@@ -29,9 +31,9 @@ profile="dev"
 if_present=0
 for arg in "$@"; do
   case "$arg" in
-    dev|hybrid) profile="$arg" ;;
+    dev|hybrid|docparse) profile="$arg" ;;
     --if-present) if_present=1 ;;
-    *) printf 'Usage: scripts/python-env.sh [dev|hybrid] [--if-present]\n' >&2; exit 2 ;;
+    *) printf 'Usage: scripts/python-env.sh [dev|hybrid|docparse] [--if-present]\n' >&2; exit 2 ;;
   esac
 done
 
@@ -43,6 +45,10 @@ case "$profile" in
   hybrid)
     requirement_files=(requirements.txt requirements-embeddings.txt requirements-hybrid.txt requirements-dev.txt)
     link="$BACKEND_DIR/.venv-hybrid"
+    ;;
+  docparse)
+    requirement_files=(requirements.txt requirements-docparse.txt requirements-dev.txt)
+    link="$BACKEND_DIR/.venv-docparse"
     ;;
 esac
 
