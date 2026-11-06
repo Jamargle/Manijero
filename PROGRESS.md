@@ -9,7 +9,7 @@ contracts, raw evidence, and acceptance records remain in their owning files. La
 
 **Feature status** — 83 of 120 features are accepted, including `feedback_endpoint` (privacy-minimal
 `POST /feedback` rating, only `useful`/`not_useful`, per-process counts with no stored content,
-identifiers, or idempotency; validator accept, no owner walkthrough) and `rag_inspector_view` (developer
+identifiers, or idempotency; validator accept, no owner walkthrough) and `contract_fuzz_tests` (developer-only seeded conformance suite generated from `contracts/openapi.yaml`: contract-valid requests get schema-valid `/ask` responses, invalid ones get generic 4xx, and a guard fails on FastAPI-vs-contract drift; offline and fixture-corpus only), `rag_inspector_view` (developer
 `Inspeccionar` view of retrieved passages, scores, and verification steps; local test builds on a
 loopback service only, data sent only in the `development` profile; validator accept, no owner
 walkthrough by owner decision), `backend_health_metrics`

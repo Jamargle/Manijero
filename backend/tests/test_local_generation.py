@@ -1103,8 +1103,16 @@ def test_module_has_one_loopback_url_and_no_url_setting() -> None:
     assert source.count("environ.get(") == 1  # only the provider key; the model key goes through ``source``
 
 
-def test_no_requirements_file_changed() -> None:
-    files = sorted(BACKEND_ROOT.glob("requirements*.txt")) + [BACKEND_ROOT / "deploy" / "requirements-production.txt"]
+def test_no_runtime_requirements_file_changed() -> None:
+    """The local provider adds no dependency the service installs at runtime."""
+
+    # Dev-only test requirements (pytest, jsonschema, and the contract suite's PyYAML)
+    # are not installed for the service, so they are checked only for the provider key.
+    files = sorted(
+        path
+        for path in BACKEND_ROOT.glob("requirements*.txt")
+        if path.name != "requirements-dev.txt"
+    ) + [BACKEND_ROOT / "deploy" / "requirements-production.txt"]
     assert len(files) >= 3
     for path in files:
         relative = path.relative_to(REPO_ROOT).as_posix()
@@ -1116,6 +1124,8 @@ def test_no_requirements_file_changed() -> None:
             pytest.skip("git history unavailable")
         assert path.read_text(encoding="utf-8") == committed, relative
         assert "ollama" not in committed.lower()
+    dev_requirements = (BACKEND_ROOT / "requirements-dev.txt").read_text(encoding="utf-8")
+    assert "ollama" not in dev_requirements.lower()
 
 
 # --- Measurement script helpers ----------------------------------------------------------

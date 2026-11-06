@@ -1,3 +1,5 @@
 -r requirements.txt
 pytest>=8,<9
 jsonschema>=4.20,<5
+# Dev-only: the contract conformance suite reads contracts/openapi.yaml directly.
+PyYAML>=6.0,<7
