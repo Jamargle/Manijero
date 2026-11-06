@@ -5,9 +5,12 @@
 Routine entry point. Exact feature status lives in [`feature_list.json`](feature_list.json); use
 [`./scripts/select-feature.sh --status`](scripts/select-feature.sh) to read the board. Feature
 contracts, raw evidence, and acceptance records remain in their owning files. Last updated:
-2026-11-02.
+2026-11-06.
 
-**Feature status** — 82 of 120 features are accepted, including `rag_inspector_view` (developer
+**Feature status** — 83 of 120 features are accepted, including `domain_procedure_map`
+(git-tracked, reviewed-taxonomy index of 16 olive-grove topics in `knowledge/procedure_map.json` with
+an offline validator; every topic stays `proposed`, 15 of 16 `uncovered`; validator accept, no owner
+walkthrough by owner decision), `rag_inspector_view` (developer
 `Inspeccionar` view of retrieved passages, scores, and verification steps; local test builds on a
 loopback service only, data sent only in the `development` profile; validator accept, no owner
 walkthrough by owner decision), `backend_health_metrics`
@@ -32,7 +35,7 @@ default; measured on the owner's Mac, host decision pending), `knowledge_reindex
 (rehearsed locally only; no host step executed), `local_rag_bootstrap` (one guided setup
 command and a status check, walked through on the owner's Mac), `mock_answer_server` (Desktop and
 emulator walkthroughs not yet run), and `local_service_connection` (test builds only);
-`private_pilot_distribution` is `on_hold` by owner decision (2026-11-01). The 37 `not_started` features are the remaining MasterPlanV3 work, ordered
+`private_pilot_distribution` is `on_hold` by owner decision (2026-11-01). The 36 `not_started` features are the remaining MasterPlanV3 work, ordered
 local environment first, then the QA environment for remote real-device testing; prod is not planned yet. `feature_list.json` and the selector remain the status authority;
 this page does not duplicate the feature-id list.
 
@@ -91,6 +94,8 @@ before making any claim in its area.
 - Pilot privacy gates are closed (review `pending`); retention and redaction are tested locally only.
 - Source monitoring, document ingestion, change-impact analysis, and reviewed update packages are local,
   manual, synthetic-fixture-backed, and guarantee neither completeness nor currency.
+- The procedure map is an unreviewed taxonomy: 16 `proposed` topics, 15 `uncovered`, no owner or
+  target-user review; an index, not evidence or a coverage gate.
 - The test-build `Conexión` screen has unit, guard, compile, and screenshot evidence only; no GUI run.
 - The full local service (start/stop/status) is walked through on the owner's Mac only, with no app question sent; status shows configuration, not per-answer use.
 - The answer service container is walked through on the owner's Apple-silicon Mac only (no app question sent); arm64 only, about 5.6 GB per image, never pruned.

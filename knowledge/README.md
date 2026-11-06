@@ -34,7 +34,9 @@ measurement, not evidence about legal coverage or real user questions.
 |---|---|
 | `source_catalog.json` | The canonical, Git-tracked catalog. Contains four reviewed official sources for the bounded 2026 PAC slice. |
 | `passages.json` | The canonical, Git-tracked passage set. Contains four approved literal passages; see `pac_coverage.md` for its boundary. |
+| `procedure_map.json` | The canonical, Git-tracked olive-grove procedure map. Contains the 16 seed topics, all `proposed`, with only the PAC topic declaring `partial` reviewed evidence. |
 | `source_catalog.schema.json` | The readable versioned field contract (`source-catalog-v1`). |
+| `procedure_map.schema.json` | The readable versioned procedure-map contract (`procedure-map-v1`). It is a taxonomy index, not legal knowledge or an answer source. |
 | `passages.schema.json` | The readable versioned passage contract (`passage-set-v1`). |
 | `land_safety_eval.schema.json` | The readable versioned safety-evaluation case contract (`land-safety-eval-v1`). |
 | `pac_answer_eval.schema.json` | The readable versioned reviewed PAC answer-evaluation case contract (`pac-answer-eval-v2`), including declared coverage areas, omissions, and the author-only review role. |
@@ -47,12 +49,14 @@ measurement, not evidence about legal coverage or real user questions.
 | `knowledge-update-review-decisions.schema.json` | The readable contract for the review decision history (`knowledge-update-review-decisions-v1`) that the controlled merge verifies. It is not canonical knowledge. |
 
 | `../backend/app/source_catalog.py` | The executable catalog validator. Must stay in sync with the schema. |
+| `../backend/app/procedure_map.py` | The executable procedure-map validator and coverage report. Must stay in sync with the schema. |
 | `../backend/app/retrieval.py` | The executable passage-set validator and offline BM25 retriever. |
 | `../backend/app/generation.py` | The executable grounding verifier, extractive generator, and answer assembler. |
 | `../backend/app/land_safety_eval.py` | The executable safety-evaluation case-set validator and offline harness. |
 | `../backend/app/answer_eval.py` | The executable PAC answer-evaluation validator and report calculation. |
 | `../backend/app/change_impact.py` | The executable change-impact analyzer over quarantined candidates. |
 | `../backend/scripts/validate_source_catalog.py` | The offline catalog command-line wrapper. |
+| `../backend/scripts/validate_procedure_map.py` | The offline procedure-map command-line wrapper and coverage report. |
 | `../backend/scripts/evaluate_retrieval.py` | The offline retrieval baseline command-line wrapper. |
 | `../backend/scripts/evaluate_generation.py` | The offline grounded-generation report command-line wrapper. |
 | `../backend/scripts/evaluate_land_safety.py` | The offline land-safety report command-line wrapper. |
@@ -340,6 +344,45 @@ Retrieval is a consumer of the catalog gate, not a bypass around it:
   `critical`, `score`, and `rank`. Applicability is surfaced, never used to
   filter here; land-based selection belongs to `minimal_land_context` and
   `land_clarification`.
+
+## Procedure map (`procedure-map-v1`)
+
+`procedure_map.json` is the reviewed taxonomy index of the olive-grove
+procedures the assistant is meant to cover. Each topic has a stable id, a
+plain-Spanish title and summary, unique search wording for later source scouting
+and question work, a review state, and a coverage declaration that points only at
+approved catalog sources and reviewed passages. The readable contract is
+`procedure_map.schema.json`; the executable validator is
+`backend/app/procedure_map.py` and its command-line wrapper is
+`backend/scripts/validate_procedure_map.py`. Both must stay in sync.
+
+The map **is not legal knowledge and is not an answer source**. It carries no
+dates, amounts, thresholds, article numbers, eligibility conclusions, or
+applicability claims, and mapping a topic never approves, retires, or re-dates
+evidence or changes an accepted corpus byte. The seed topics are hypotheses to
+validate with the owner and intended users: every topic ships `proposed`, and
+only a reviewed change that records a named human reviewer may set `reviewed`.
+
+Coverage is declared honestly, not enforced. `covered` and `partial` topics must
+list at least one approved source and one reviewed passage; `partial` also needs
+a digit-free gap note. `uncovered` topics carry no references. Missing coverage
+is reported and never makes validation or an answer fail; the map is not a
+coverage gate and does not change the pinned coverage disclosure. The validator
+pins the ordered seed set from the MasterPlan, so adding a topic or changing the
+order is a reviewed code-and-data change.
+
+Run the validator from the repository root:
+
+```sh
+python3 backend/scripts/validate_procedure_map.py knowledge/procedure_map.json \
+  --catalog knowledge/source_catalog.json --passages knowledge/passages.json --report
+```
+
+`--catalog` and `--passages` are optional but must be supplied together; together
+they enable cross-file reference checks. `--report` prints one coverage line per
+topic. Exit codes: `0` valid (gaps are reported, not rejected), `1` policy
+violation, `2` an input file was unreadable or not valid JSON. Diagnostics name
+the JSON path and the rule and never print map field values.
 
 ## Running the retrieval baseline
 

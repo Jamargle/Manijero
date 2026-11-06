@@ -184,3 +184,20 @@ Durable MUST/MUST NOT rules for backend answer path, retrieval, generation, eval
 - **MUST**: retrieval changes MUST be compared with the measured BM25 baseline on the reviewed cases;
   report-only metrics MUST NOT be described as improved answer quality without sufficient reviewed
   evidence.
+
+## Procedure map
+
+- **MUST**: `knowledge/procedure_map.json` MUST remain a taxonomy index, never legal knowledge or an
+  answer source. It MUST NOT contain dates, amounts, thresholds, article numbers, eligibility
+  conclusions, or applicability claims, and mapping a topic MUST NOT change an accepted catalog,
+  passage, coverage, or evaluation-case byte or approve, retire, or re-date evidence.
+  Reason: `domain_procedure_map` gives scouting, question work, disclosure, and evaluation one shared
+  procedure list without letting a checklist become an unsourced legal answer.
+- **MUST**: a topic MUST stay `proposed` until a reviewed change records a named human reviewer; only
+  then may it become `reviewed`. The pinned ordered seed set MUST change only in a reviewed
+  code-and-data change, and coverage gaps MUST be reported, never enforced as a validation, answer,
+  or coverage disclosure gate. `covered` and `partial` topics MUST reference existing approved sources
+  and reviewed passages, `uncovered` topics MUST reference none, and adding the map MUST NOT alter
+  the pinned coverage disclosure or the answer path.
+  Reason: `domain_procedure_map` ships an unreviewed hypotheses list; an unearned `reviewed` state or
+  an enforced gap count could overstate corpus scope or silently narrow the answer surface.
