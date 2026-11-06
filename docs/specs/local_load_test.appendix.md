@@ -125,3 +125,11 @@ Interpretation notes for the validator:
 - [x] The focused block runs unchanged through `./scripts/init.sh --feature local_load_test`; no test starts a service, needs Ollama, or writes outside temporary directories.
 - [x] Durable documentation impact followed (owner guide, README, ARCHITECTURE, operations MUST, risk row); nothing restated across files.
 - [ ] `feature_list.json` and `PROGRESS.md` updated at acceptance.
+
+## Handoff
+
+- Status: `passing`; validator returned accept with the condition `pending owner walkthrough`.
+- Done and committed: `852d7d7` (holding commit) — implementation, tests, docs, spec, appendix, validation record.
+- Next: the owner runs walkthrough steps 1–5 in `docs/owner-guide.md` (missing prerequisite, Ollama closed, one clean ~5-minute measured run) and reports the `Result:` lines, numbers, and report path.
+- Then (new session): record that as an evidence-only update in the appendix `## Feature evidence` and the validation record, set `feature_list.json` to `accepted`, add the `PROGRESS.md` / `known-limitations` line, commit `feat: complete local_load_test`, delete this section.
+- Last checks: focused `58 passed, 2 skipped`; `--fast` 10/10 `[ok]`; no blocker.
