@@ -1596,7 +1596,7 @@ original hashes, whether the version is an approved copy, unchanged since
 ingestion, a new version, or has no baseline; a bounded block-level old/new text
 diff (counts plus at most five excerpts); explicit `publication`, `amendment`,
 `repeal`, and `validity` signals with page/section location and a bounded
-excerpt of at most 280 characters (at most 50 signals per candidate); and the
+excerpt of at most 280 characters (at most 200 signals per candidate); and the
 potentially affected catalog sources, reviewed passages, and reviewed evaluation
 cases with the reason for each link. Reported links come from the candidate's own
 approved-source identity or URL, the candidate's `content_sha256`, instrument
@@ -1672,7 +1672,7 @@ categories (`missing_extracted_document`, `extracted_text_mismatch`,
 never abort the other candidates; that candidate's previous good report entry is
 not preserved, because the report is a derived artifact and is meant to be
 regenerated. A globally invalid input exits `2` and overwrites nothing. Bounds
-per candidate: 5,000 blocks / 2,000,000 characters of current text, 50 signals
+per candidate: 5,000 blocks / 2,000,000 characters of current text, 200 signals
 (each with an excerpt of at most 280 characters), five text-diff excerpts, and
 1,000 candidates per run.
 
