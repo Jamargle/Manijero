@@ -282,6 +282,12 @@
     <string name="welcome_dismiss">Entendido</string>
     <string name="coverage_show_welcome">Ver bienvenida</string>
     <string name="chat_inspect_link">Inspeccionar</string>
+    <string name="chat_feedback_useful">Útil</string>
+    <string name="chat_feedback_not_useful">No útil</string>
+    <string name="chat_feedback_useful_description">Marcar esta respuesta como útil</string>
+    <string name="chat_feedback_not_useful_description">Marcar esta respuesta como no útil</string>
+    <string name="chat_feedback_thanks">Gracias, tu respuesta nos ayuda a mejorar.</string>
+    <string name="chat_feedback_failed">No se ha podido enviar tu valoración. Inténtalo otra vez.</string>
     <string name="inspector_title">Inspección de la respuesta</string>
     <string name="inspector_note">Esta vista es solo para pruebas en este equipo. No se guarda ni se comparte.</string>
     <string name="inspector_back">Volver</string>

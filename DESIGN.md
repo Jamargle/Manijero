@@ -323,6 +323,17 @@ component layer. These rules are durable:
   row was added below the field). This is a recorded limit of
   the accepted order, not a hidden control: the field and button stay in the same scroll and are
   never icon-only or off the page.
+- **Answer feedback row.** Every finished answer (`answered` or `abstained`) carries one quiet row
+  directly below the card and its source cards and above `Inspeccionar`: two neutral outlined
+  buttons, `Útil` and `No útil` (never filled, never the screen's primary action), each with its own
+  accessible name (`Marcar esta respuesta como útil` / `… como no útil`), a 48 dp target and
+  wrapping rather than clipping at 2× text. The row adds no icon, badge, checkmark or success/eco
+  colour. The controls are disabled while the send is in flight; on success they are replaced by the
+  single `bodyMedium`/`onSurfaceVariant` confirmation line `Gracias, tu respuesta nos ayuda a
+  mejorar.` with nothing left to tap; on failure both stay enabled above the plain retry line
+  `No se ha podido enviar tu valoración. Inténtalo otra vez.` The state is always stated in text or
+  semantics, never colour alone. At 360×800 dp each answer's row pushes the composer one short row
+  further down, a recorded compact limit of the accepted order rather than a hidden control.
 - **Answer inspector (local test builds only).** An `Inspeccionar` `TextButton` sits below an
   answered or abstained entry (after its source cards) as its own focusable node, and opens the
   `Inspección de la respuesta` detail screen: one `heading()` title, a local-testing note, outlined

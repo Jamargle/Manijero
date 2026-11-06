@@ -18,4 +18,7 @@ object ChatTestTags {
     const val FAILURE_SERVICE = "chat.failureService"
     const val RETRY = "chat.retry"
     const val INSPECT = "chat.inspect"
+    const val FEEDBACK_USEFUL = "chat.feedbackUseful"
+    const val FEEDBACK_NOT_USEFUL = "chat.feedbackNotUseful"
+    const val FEEDBACK_SENT = "chat.feedbackSent"
 }
