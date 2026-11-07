@@ -707,9 +707,10 @@ def test_a_digit_only_problem_keeps_only_figure_unsupported() -> None:
         assert "numeric_fact_unsupported" not in codes, name
 
 
-# Two abstention fixtures fail on purpose for a non-numeric rule.
+# One abstention fixture fails on purpose for a non-numeric rule. Multi-sentence
+# excerpts (the riego fixture, the canonical recinto definition) now verify,
+# because the extractive generator cites every sentence.
 DELIBERATELY_REJECTED_EXTRACTIVE = {
-    "fixture-abs-riego-1": ("uncited_sentence",),
     "fixture-abs-ayuda-1": ("eligibility_claim",),
 }
 

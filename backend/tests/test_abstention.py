@@ -822,7 +822,18 @@ def test_no_evidence_never_calls_the_generator() -> None:
 
 
 def test_insufficient_evidence_keeps_the_generation_reason_and_issues() -> None:
-    result = answer_or_abstain(RIEGO_QUESTION, current_corpus(), k=5, as_of=as_of_date())
+    # The extractive generator now cites every sentence, so a draft with an
+    # uncited sentence can only come from another generator.
+    generator = RecordingGenerator(
+        DraftAnswer(
+            status="answered",
+            answer="Sintético de prueba sobre el riego de ejemplo. [1]\nUna frase sin cita.",
+            source_markers=(1,),
+        )
+    )
+    result = answer_or_abstain(
+        RIEGO_QUESTION, current_corpus(), k=5, as_of=as_of_date(), generator=generator
+    )
 
     assert isinstance(result, Abstention)
     assert result.reason == "insufficient_evidence"
@@ -1027,8 +1038,8 @@ def test_cli_prints_a_per_question_decision_report() -> None:
     assert result.stderr == ""
     assert "abstention invariants are enforced" in result.stdout
     assert "corpus: current" in result.stdout
-    assert "answered outcomes: 3" in result.stdout
-    assert "abstained outcomes: 7" in result.stdout
+    assert "answered outcomes: 4" in result.stdout
+    assert "abstained outcomes: 6" in result.stdout
     assert "abstentions with sources: 0" in result.stdout
     assert "abstentions with figures: 0" in result.stdout
     assert "abstention invariants hold: yes" in result.stdout
@@ -1042,8 +1053,6 @@ def test_cli_reports_the_generation_reason_and_issue_codes() -> None:
 
     assert "generation reason: policy_failed" in result.stdout
     assert "issues: eligibility_claim" in result.stdout
-    assert "generation reason: grounding_failed" in result.stdout
-    assert "issues: uncited_sentence" in result.stdout
     assert "generation reason: (none)" in result.stdout
 
 
@@ -1074,22 +1083,22 @@ def test_cli_json_report_is_machine_readable() -> None:
     assert report["abstention_invariants_hold"] is True
     assert report["totals"] == {
         "questions": 10,
-        "answered": 3,
-        "abstained": 7,
+        "answered": 4,
+        "abstained": 6,
         "abstentions_with_sources": 0,
         "abstentions_with_figures": 0,
         "abstention_invariant_failures": 0,
         "outcomes_differing_from_expect": 0,
     }
     abstained = [item for item in report["questions"] if item["outcome"] != "answered"]
-    assert len(abstained) == 7
+    assert len(abstained) == 6
     for item in abstained:
         assert item["message"] == ABSTENTION_MESSAGES[item["reason"]]
         assert item["sources"] == 0
         assert item["land_ids_to_choose"] == []
         assert item["violated_invariants"] == []
     answered = [item for item in report["questions"] if item["outcome"] == "answered"]
-    assert len(answered) == 3
+    assert len(answered) == 4
     for item in answered:
         assert item["message"] is None
         assert item["sources"] >= 1
@@ -1341,10 +1350,12 @@ def test_abstention_eval_file_expectations_are_in_the_taxonomy() -> None:
 def test_current_eval_file_covers_the_pre_checks_and_the_pipeline() -> None:
     expects = {line["expect"] for line in eval_lines("eval_questions.jsonl")}
 
+    # insufficient_evidence is no longer reachable with the extractive generator
+    # (it cites every sentence); test_insufficient_evidence_keeps_the_generation_
+    # reason_and_issues covers that path with a stand-in generator.
     assert expects == {
         "answered",
         "no_evidence",
-        "insufficient_evidence",
         "conflicting_evidence",
         "false_premise",
         "unsafe_request",

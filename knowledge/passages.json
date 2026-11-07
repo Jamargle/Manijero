@@ -28,6 +28,24 @@
       "text": "Para la campaña 2026 y exclusivamente en el ámbito territorial de la Comunidad Autónoma de Andalucía, el plazo para modificar o incluir nuevas intervenciones en forma de pagos directos o de desarrollo rural a los que se refiere el artículo 112.1, o para cambiar el uso o la categoría de las parcelas declaradas, en su caso de que se trate, finalizará el 15 de junio, inclusive.",
       "critical": true,
       "official_deadline": "2026-06-15"
+    },
+    {
+      "id": "pasaje-definicion-recinto-sigpac",
+      "location": "Artículo 2, apartado 1, letra h)",
+      "source_id": "rd_1047_2022",
+      "text": "«Recinto SIGPAC»: es la parcela de referencia conforme a lo recogido en el artículo 2.2 del Reglamento Delegado (UE) n.º 2022/1172 de la Comisión, de 4 de mayo de 2022, por el que se completa el Reglamento (UE) 2021/2116 del Parlamento Europeo y del Consejo en lo que respecta al Sistema Integrado de Gestión y Control de la Política Agrícola Común y la aplicación y el cálculo de las sanciones administrativas en el marco de la condicionalidad. Se define como una superficie continua de terreno, delimitada geográficamente, estable en el tiempo, medible, dentro de una parcela SIGPAC, con un uso único de los definidos en el anexo IV de este real decreto y con una referencia alfanumérica única e inequívoca. Contendrá, en su caso, las superficies no agrícolas consideradas subvencionables para recibir la ayuda de las intervenciones basadas en la superficie."
+    },
+    {
+      "id": "pasaje-notificacion-preferencia-electronica",
+      "location": "Artículo 41, apartado 1",
+      "source_id": "ley_39_2015",
+      "text": "Las notificaciones se practicarán preferentemente por medios electrónicos y, en todo caso, cuando el interesado resulte obligado a recibirlas por esta vía."
+    },
+    {
+      "id": "pasaje-rectificacion-errores-materiales",
+      "location": "Artículo 109, apartado 2",
+      "source_id": "ley_39_2015",
+      "text": "Las Administraciones Públicas podrán, asimismo, rectificar en cualquier momento, de oficio o a instancia de los interesados, los errores materiales, de hecho o aritméticos existentes en sus actos."
     }
   ]
 }

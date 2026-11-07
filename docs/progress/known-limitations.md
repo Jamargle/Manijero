@@ -12,12 +12,23 @@ Do not over-claim.
 - Offline retrieval, generation, abstention, clarification, and safety metrics use synthetic
   fixtures and are report-only. The reviewed `/ask` evaluation is a 14-case sample over the three
   approved topics and five boundaries, reviewed only by the project author. Its exact result is
-  13/14 expected states, 11/11 expected-answer cases answered, 8/11 with the expected source and
-  passage, 9/11 with the expected critical literal, and 2/3 expected abstentions. Known gaps stay
+  14/14 expected states, 11/11 expected-answer cases answered, 8/11 with the expected source and
+  passage, 9/11 with the expected critical literal, and 3/3 expected abstentions with 0 unexpected answers. Known gaps stay
   visible in [`knowledge/pac_coverage.md`](../../knowledge/pac_coverage.md): `canal-sga-2026`,
-  `fecha-modificacion-2026`, and `distingue-fechas-2026` cite a different reviewed passage, and
-  `reclamacion-fuera-de-alcance` answers an out-of-scope reclamación. Neither that sample nor the
+  `fecha-modificacion-2026`, and `distingue-fechas-2026` cite a different reviewed passage. Neither that sample nor the
   fixture metrics are independent legal review or evidence of general accuracy.
+- **The question-scope guard is lexical** ([`question_scope_guard`](../specs/question_scope_guard.md)).
+  Questions matching a declared omission of `knowledge/pac_coverage.md` (aid amounts, individual
+  eligibility, individual notifications, reclamaciones, late-filing penalties, fuerza mayor,
+  monitoring adaptations, other campaigns) abstain before retrieval, which fixed the
+  `tema-no-cubierto` and `reclamacion-fuera-de-alcance` regressions. The list is a code-owned set of
+  patterns in `backend/app/question_scope.py`, so an unlisted paraphrase of an omitted topic can still
+  reach retrieval and be answered with a nearby passage. Trial evidence, not merged: matching Spanish
+  singular/plural forms in `retrieval.py` made the draft case `rectificacion-errores-2026`
+  (“¿Puede la Administración corregir un error material en un acto?”) answer, but also broke
+  `plazo-modificacion-parcelas-2026`. The guard already covers its other two side effects
+  (`tema-no-cubierto` and the individual-notification boundary); retry it only with that ranking break
+  fixed.
 - The numeric-fact check in `verify_draft` ([`numeric_grounding_check`](../specs/numeric_grounding_check.md))
   is lexical and Spanish-only, not entailment: it rejects some correct paraphrases (ranges, an
   added year), checks only day/week/month/year durations and `por ciento`, and its effect on the

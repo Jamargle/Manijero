@@ -32,8 +32,8 @@ measurement, not evidence about legal coverage or real user questions.
 
 | File | Purpose |
 |---|---|
-| `source_catalog.json` | The canonical, Git-tracked catalog. Contains four reviewed official sources for the bounded 2026 PAC slice. |
-| `passages.json` | The canonical, Git-tracked passage set. Contains four approved literal passages; see `pac_coverage.md` for its boundary. |
+| `source_catalog.json` | The canonical, Git-tracked catalog. Contains six reviewed official sources for the bounded 2026 PAC slice. |
+| `passages.json` | The canonical, Git-tracked passage set. Contains seven approved literal passages; see `pac_coverage.md` for its boundary. |
 | `procedure_map.json` | The canonical, Git-tracked olive-grove procedure map. Contains the 16 seed topics, all `proposed`, with only the PAC topic declaring `partial` reviewed evidence. |
 | `source_catalog.schema.json` | The readable versioned field contract (`source-catalog-v1`). |
 | `procedure_map.schema.json` | The readable versioned procedure-map contract (`procedure-map-v1`). It is a taxonomy index, not legal knowledge or an answer source. |
@@ -64,14 +64,30 @@ measurement, not evidence about legal coverage or real user questions.
 | `../backend/scripts/evaluate_generation.py` | The offline grounded-generation report command-line wrapper. |
 | `../backend/scripts/evaluate_land_safety.py` | The offline land-safety report command-line wrapper. |
 
-`source_catalog.json` contains the four independently reviewed official sources
+`source_catalog.json` contains the six independently reviewed official sources
 for the bounded Andalusia PAC 2026 slice. It does not mean the corpus is broad
 or supports questions outside the published coverage.
 
-`passages.json` contains four manually curated literal passages approved by
+`passages.json` contains seven manually curated literal passages approved by
 Diego. There is no automatic ingestion or chunking pipeline; the passage format
 is also exercised by synthetic fixtures under `backend/tests/fixtures/`. The
 canonical passages support only the questions listed in `pac_coverage.md`.
+
+## Seed corpus review, corrections, and expiry
+
+The 2026-11-07 expansion went through the controlled `knowledge_review.py`
+prepare/decide/merge flow: 3 sources and 5 passages were merged, then a second
+reviewed package held back 1 source and 2 passages that regressed the reviewed
+`/ask` cases, leaving 2 new sources and 3 new passages; every reviewed publication has
+a recorded `added` or `not_added` verdict in `pac_coverage.md`. Not-added
+documents (including a correction that only repairs unrelated articles and a
+news item already consolidated in an approved decree) stay out of the catalog.
+When an official correction or amendment touches an added passage, re-review it
+through a new package; superseded wording is never kept as current. Sources and
+passages with a `valid_until` (campaign 2026) are removed or re-reviewed before
+that date, which a catalog validator run at the current date enforces. A merge
+only changes canonical files; the retrieval index changes only through the
+separate reindex and release step in `backend/README.md`.
 
 ## Andalusia PAC 2026 reviewed slice
 

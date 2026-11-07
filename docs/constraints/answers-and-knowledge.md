@@ -95,6 +95,10 @@ Durable MUST/MUST NOT rules for backend answer path, retrieval, generation, eval
 
 ## Abstention
 
+- **MUST**: questions matching a declared `pac_coverage.md` omission abstain before
+  retrieval through the code-owned list in `app/question_scope.py`, kept one-to-one
+  with `coverage.omissions`. Reason: retrieval alone presents a nearby unrelated
+  passage as the answer ([spec](../specs/question_scope_guard.md)).
 - **MUST**: no component may emit an abstention that carries a source, a figure,
   or a date, and abstention copy is code-owned (`ABSTENTION_MESSAGES` /
   `to_abstention_response`), never generated, paraphrased, or supplied by a

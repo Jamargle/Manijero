@@ -156,12 +156,14 @@ All on 2026-11-06, from the seed worktree; canonical `knowledge/source_catalog.j
 
 ## Handoff
 
-- Status: proposal prepared and self-verified; `feature_list.json` = `in_progress`; nothing committed.
-- Next role: `feature-validator` may review the evidence; the owner must decide the corpus change.
-- Done: 7-document verdict table, quarantine/hashes, 3-source + 5-passage proposal, `ready_for_review` package `8c7b2e22…07b9`.
-- Not done: no human approval, no `decide`, no `merge`, no canonical write, no release/reindex, no eval-case extension.
-- Owner decision needed: approve the 3 added/4 not-added verdicts and the proposed `reviewed_by`/`reviewed_on` metadata for Diego, or request changes; then run `decide`/`merge` and update counts/coverage in a separate reviewed change.
-- Last checks: backend corpus suite 141 passed; change-impact 57 passed; catalog validator exit 0; coverage-copy guard exit 0; canonical diff exit 0; retrieval probes 5/5.
+- Status: approved and merged; `feature_list.json` = `in_progress`; canonical knowledge committed on `feature/seed_corpus_expansion`.
+- Review: package `8c7b2e22…07b9` approved by `Diego` (external validator, named human other than the author) on 2026-11-07 via `knowledge_review.py decide`; note "Veredictos revisados: 3 añadidos, 4 no añadidos."
+- Merge: `knowledge_review.py merge` exit 0; catalog after `27c7c896…b41d`, passages after `a4d026ad…a074` (match the package's after-hashes); `reindex_required: true`, `reindexed: false`, `released: false`.
+- Follow-up (same day): count guards updated to 7 sources/9 passages in `test_pac_corpus.py`, `test_source_catalog.py`, `test_retrieval.py`; `knowledge/pac_coverage.md` gained a dated expansion section. `./scripts/init.sh --feature seed_corpus_expansion`: 141 passed, catalog validator 7 sources exit 0, coverage-copy guard exit 0. Historical "four passages" measurements in `backend/README.md` and `docs/risks-and-open-questions.md` are dated and left unchanged.
+- Not done: eval-case extension for the new passages; reindex/release.
+- Note: catalog `reviewed_on` is 2026-11-06 (review copies) while Diego's approval is 2026-11-07; the validator passes at both dates, so this is not a defect.
+- Hold-back (same day): post-merge `evaluate_pac_answers.py` showed expected-state agreement 8/14 vs 13/14 on main. Ablation: `pasaje-alegacion-sigpac-solicitud-unica` (7/14 alone) and `pasaje-definicion-parcela-sigpac` (12/14 alone) displace deadline/channel passages; the other three are neutral. Package `dfa5f081…3128` (remove both passages and `orden_2023_03_24`; 21 passed, `ready_for_review`) approved by Diego 2026-11-07 (relayed by the owner in session) and merged: catalog `9afdebba…bd9d`, passages `ca839a3e…4608`, `reindex_required: true`. Corpus is now 6 sources / 7 passages; eval back to 13/14 state, 8 citation, 9 critical facts. Recinto passage recorded in `DELIBERATELY_REJECTED_EXTRACTIVE` (multi-sentence literal). `init.sh --fast` passed (1872); focused tier 141 passed.
+- Next role: `feature-validator`.
 
 ## Validator checklist
 

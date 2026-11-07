@@ -37,6 +37,9 @@ Durable rules:
 * The last three reasons (``personal_data``, ``prompt_injection``, ``out_of_domain``)
   come from the pre-retrieval screen in :mod:`app.input_guardrails`, not from the
   answer pipeline.
+* A question matching a declared omission of ``knowledge/pac_coverage.md``
+  (:mod:`app.question_scope`) abstains before retrieval, after the stale-corpus,
+  blank, and length checks, so no nearby passage can be presented as its answer.
 * ``AskResponse`` forbids extra properties, so the abstention sub-reason is not
   on the wire: it stays a Python-level value on :class:`Abstention`.
 """
@@ -58,6 +61,7 @@ from app.generation import (
     generate_grounded_answer,
     normalize_text,
 )
+from app.question_scope import out_of_scope_topic
 from app.retrieval import (
     DEFAULT_K,
     RetrievedPassage,
@@ -281,6 +285,30 @@ def prepare_corpus(
     return Retriever.from_documents(catalog_document, passage_document, as_of, active_campaign)
 
 
+def scope_abstention(question: str) -> Optional[Abstention]:
+    """Return the abstention for a question about a declared omission, else ``None``.
+
+    A non-string, blank, or over-length question returns ``None`` so the
+    invalid-question path stays in charge. The one issue carries the omission
+    label, never the question text.
+    """
+
+    if (
+        not isinstance(question, str)
+        or not question.strip()
+        or len(question) > MAX_QUESTION_CHARS
+    ):
+        return None
+    topic = out_of_scope_topic(question)
+    if topic is None:
+        return None
+    return Abstention(
+        reason=topic.reason,
+        generation_reason="out_of_scope_question",
+        issues=(GroundingIssue("out_of_scope_question", topic.omission),),
+    )
+
+
 def answer_or_abstain(
     question: str,
     corpus: Union[Retriever, Abstention],
@@ -327,6 +355,10 @@ def answer_or_abstain(
                 ),
             ),
         )
+
+    out_of_scope = scope_abstention(question)
+    if out_of_scope is not None:
+        return out_of_scope
 
     candidates = corpus.search(question, k=k)
     if not candidates:
