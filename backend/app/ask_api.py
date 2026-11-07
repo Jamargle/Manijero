@@ -26,6 +26,7 @@ from app.clarification import (
     to_clarification_response,
 )
 from app.gemini_generation import ProviderResolution
+from app.input_guardrails import screen_question
 from app.generation import Answered, to_answer_response
 from app.knowledge_release import ReleaseError, load_published_corpus
 from app.answer_trace import AnswerTrace
@@ -322,6 +323,9 @@ def ask_question(
         else answer_trace.TraceSession(None, collect=inspect)
     )
     land_scope = request.land_context.mode
+    screened = screen_question(request.question)
+    if screened is not None:
+        return _screened_reply(request, session, inspect, retention_store, as_of, screened)
     try:
         response = _answer(
             request,
@@ -353,6 +357,50 @@ def ask_question(
         operational_log("retention_skipped", outcome=outcome)
     if inspect:
         # Attached last, so it is never traced or retained, and a failure only omits it.
+        try:
+            return dict(response, inspection=answer_inspection.build_inspection(session.collector))
+        except answer_inspection.InspectionError as error:
+            operational_log("answer_inspection_skipped", reason=error.code)
+    return response
+
+
+def _screened_reply(
+    request: AskRequest,
+    session: "answer_trace.TraceSession",
+    inspect: bool,
+    retention_store: RetentionStore | None,
+    as_of: date,
+    reason: str,
+) -> Dict[str, Any]:
+    """Answer a screened question with its pinned message, before any retrieval.
+
+    A ``personal_data`` hit is never retained and its trace holds no text; the other
+    reasons keep today's trace and opt-in retention.
+    """
+
+    land_scope = request.land_context.mode
+    try:
+        answer_trace.note_outcome(abstention_reason=reason)
+        health_metrics.note_answer("abstained", reason)
+        response = to_abstention_response(Abstention(reason=reason), land_scope=land_scope)
+    finally:
+        session.release()
+    private = reason == "personal_data"
+    session.finish(
+        question=request.question, land_scope=land_scope, response=response, withhold_text=private
+    )
+    if not private:
+        outcome = retain_if_opted_in(
+            retention_store,
+            opted_in=request.retain_for_improvement,
+            question=request.question,
+            land_context=request.land_context.model_dump(exclude_none=True),
+            response=response,
+            today=as_of,
+        )
+        if outcome in {"redaction_failed", "store_failed"}:
+            operational_log("retention_skipped", outcome=outcome)
+    if inspect:
         try:
             return dict(response, inspection=answer_inspection.build_inspection(session.collector))
         except answer_inspection.InspectionError as error:

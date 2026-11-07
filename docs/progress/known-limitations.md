@@ -190,3 +190,7 @@ Do not over-claim.
   reviewed as `knowledge/source_catalog.json` (the `content_sha256` join; unmatched documents stay
   `unknown`), no date is read from document text, and no chunking or retrieval accuracy is claimed.
   See the [spec](../specs/legal_structure_chunker.md).
+
+- **Input screen is lexical (`input_guardrails`).** It covers Spanish and English only,
+  out-of-domain fires only on listed topics, and names and addresses are not screened; a miss
+  falls through to the grounded path. See the [spec](../specs/input_guardrails.md).

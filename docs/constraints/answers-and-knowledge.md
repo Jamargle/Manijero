@@ -90,6 +90,13 @@ Durable MUST/MUST NOT rules for backend answer path, retrieval, generation, eval
   figures into the "I cannot answer" path would reintroduce exactly that failure,
   and generated abstention prose could contradict the pinned counsel to consult
   the Oficina Comarcal Agraria or the cooperative.
+- **MUST**: `/ask` screens every question with the deterministic
+  `backend/app/input_guardrails.py` rules before retrieval. A hit returns only its pinned
+  message (`personal_data`, `prompt_injection`, `out_of_domain`), and a `personal_data` hit is
+  never retained, traced as text, logged, or counted beyond its reason label. SIGPAC and other
+  land data MUST NOT be screened. Reason: [`input_guardrails`](../specs/input_guardrails.md);
+  personal details must not reach storage or a provider, and a false positive blocks a real
+  farming question.
 
 ## Safety evaluation
 

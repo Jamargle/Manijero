@@ -70,7 +70,8 @@ ALLOWED_LABEL_VALUES: dict[str, set[str]] = {
     "reason": {
         "too_large", "unauthenticated", "rate_limited", "invalid_question", "no_evidence",
         "insufficient_evidence", "stale_evidence", "conflicting_evidence", "false_premise",
-        "unsafe_request", "generator_abstained", "generation_error",
+        "unsafe_request", "generator_abstained", "generation_error", "personal_data",
+        "prompt_injection", "out_of_domain",
     },
     "status": {"answered", "abstained", "needs_land_clarification"},
     "outcome": {
