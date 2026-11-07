@@ -6,16 +6,17 @@ import os
 import re
 import threading
 from pathlib import Path
-from typing import Annotated, Any, Dict, Literal
+from typing import Annotated, Any, Dict, Literal, Tuple
 
 from fastapi import APIRouter, Depends, HTTPException, Request
 from fastapi.exceptions import RequestValidationError
 from fastapi.responses import JSONResponse
 from pydantic import AnyHttpUrl, BaseModel, ConfigDict, Field, StrictBool, StrictFloat, StrictInt, StrictStr, model_validator
 
-from app import answer_inspection, answer_trace, health_metrics
+from app import answer_cache, answer_inspection, answer_trace, health_metrics
 from app.abstention import (
     Abstention,
+    answer_or_abstain,
     prepare_corpus,
     to_abstention_response,
 )
@@ -23,6 +24,8 @@ from app.clarification import (
     DEFAULT_MAX_CLAIMS,
     NeedsLandClarification,
     answer_with_clarification,
+    clarify_land_scope,
+    land_context_mode,
     to_clarification_response,
 )
 from app.gemini_generation import ProviderResolution
@@ -176,6 +179,7 @@ class CorpusDocuments(ClosedModel):
     catalog: Any
     passages: Any
     load_error: bool = False
+    release_id: str | None = None
 
 
 def get_as_of_date() -> date:
@@ -231,7 +235,7 @@ def _load_published_release(root: Path) -> CorpusDocuments:
         _note_release_outcome(None, "refused", "release_unreadable")
         return CorpusDocuments(catalog=None, passages=None, load_error=True)
     _note_release_outcome(release_id, "served", "ok")
-    return CorpusDocuments(catalog=catalog, passages=passages)
+    return CorpusDocuments(catalog=catalog, passages=passages, release_id=release_id)
 
 
 _RELEASE_OUTCOME_LOCK = threading.Lock()
@@ -282,6 +286,12 @@ def get_answer_trace(request: Request) -> AnswerTrace | None:
     return getattr(request.app.state, "answer_trace", None)
 
 
+def get_answer_cache(request: Request) -> "answer_cache.AnswerCache | None":
+    """The in-memory answer cache built by ``create_app``; ``None`` keeps it off."""
+
+    return getattr(request.app.state, "answer_cache", None)
+
+
 def get_answer_inspection(request: Request) -> bool:
     """Whether ``create_app`` resolved the development-only inspection as on."""
 
@@ -314,6 +324,7 @@ def ask_question(
     generation: ProviderResolution | None = Depends(get_generation_provider),
     trace: AnswerTrace | None = Depends(get_answer_trace),
     inspect: bool = Depends(get_answer_inspection),
+    cache: "answer_cache.AnswerCache | None" = Depends(get_answer_cache),
 ) -> Dict[str, Any]:
     """Run accepted corpus and answer decisions, then the separate opt-in retention step."""
 
@@ -327,7 +338,7 @@ def ask_question(
     if screened is not None:
         return _screened_reply(request, session, inspect, retention_store, as_of, screened)
     try:
-        response = _answer(
+        response, from_cache = _answer(
             request,
             corpus_documents,
             as_of,
@@ -335,6 +346,7 @@ def ask_question(
             retrieval_k,
             retrieval_backend,
             generation,
+            cache,
         )
     except HTTPException:
         session.finish(question=request.question, land_scope=land_scope, response=None)
@@ -355,7 +367,7 @@ def ask_question(
     )
     if outcome in {"redaction_failed", "store_failed"}:
         operational_log("retention_skipped", outcome=outcome)
-    if inspect:
+    if inspect and not from_cache:
         # Attached last, so it is never traced or retained, and a failure only omits it.
         try:
             return dict(response, inspection=answer_inspection.build_inspection(session.collector))
@@ -416,13 +428,19 @@ def _answer(
     retrieval_k: int,
     retrieval_backend: RetrievalBackend,
     generation: ProviderResolution | None = None,
-) -> Dict[str, Any]:
+    cache: "answer_cache.AnswerCache | None" = None,
+) -> Tuple[Dict[str, Any], bool]:
+    """The response and whether it came from the answer cache (a hit has no inspection)."""
+
     try:
         years = set(re.findall(r"(?<!\d)\d{4}(?!\d)", request.question))
         if len(years) > 1 or (years and years != {active_campaign}):
             answer_trace.note_outcome(abstention_reason="no_evidence")
             health_metrics.note_answer("abstained", "no_evidence")
-            return to_abstention_response(Abstention(reason="no_evidence", issues=()), land_scope=request.land_context.mode)
+            return (
+                to_abstention_response(Abstention(reason="no_evidence", issues=()), land_scope=request.land_context.mode),
+                False,
+            )
         corpus = _prepare_runtime_corpus(corpus_documents, as_of, active_campaign)
     except (CatalogReadError, CatalogRejectedError, PassageSetError, RuntimeError, ValueError):
         raise _unavailable_corpus_error()
@@ -444,6 +462,12 @@ def _answer(
         if generation is not None
         else None
     )
+    if cache is not None and isinstance(corpus, Retriever):
+        return _answer_through_cache(
+            request, land_context, corpus, generation, generator, cache,
+            as_of=as_of, active_campaign=active_campaign, retrieval_k=retrieval_k,
+            release_id=corpus_documents.release_id,
+        )
     result = answer_with_clarification(
         request.question,
         land_context,
@@ -453,6 +477,12 @@ def _answer(
         max_claims=DEFAULT_MAX_CLAIMS,
         generator=generator,
     )
+    return _respond(result, request.land_context.mode), False
+
+
+def _respond(result: Any, land_scope: str) -> Dict[str, Any]:
+    """Note the outcome and build the accepted response payload for one pipeline result."""
+
     if isinstance(result, NeedsLandClarification):
         health_metrics.note_answer("needs_land_clarification")
         return to_clarification_response(result)
@@ -461,7 +491,7 @@ def _answer(
             abstention_reason=result.reason, generation_reason=result.generation_reason
         )
         health_metrics.note_answer("abstained", result.reason)
-        return to_abstention_response(result, land_scope=request.land_context.mode)
+        return to_abstention_response(result, land_scope=land_scope)
     if isinstance(result, Answered):
         answer_trace.note_outcome(
             cited_passage_ids=[passage.passage_id for passage in result.sources]
@@ -469,6 +499,75 @@ def _answer(
         health_metrics.note_answer("answered")
         return to_answer_response(result)
     raise _unavailable_corpus_error()
+
+
+def _answer_through_cache(
+    request: AskRequest,
+    land_context: Dict[str, Any],
+    corpus: Retriever,
+    generation: ProviderResolution | None,
+    generator: Any,
+    cache: "answer_cache.AnswerCache",
+    *,
+    as_of: date,
+    active_campaign: str,
+    retrieval_k: int,
+    release_id: str | None,
+) -> Tuple[Dict[str, Any], bool]:
+    """The accepted ``answer_with_clarification`` composition with a verified cache between.
+
+    Clarification runs first on every request. On a miss the same ``answer_or_abstain``
+    call runs and its result is stored only when it carries no transient model outcome.
+    """
+
+    mode = request.land_context.mode
+    decision = clarify_land_scope(
+        request.question, land_context, corpus, k=retrieval_k, max_claims=DEFAULT_MAX_CLAIMS
+    )
+    if decision is not None:
+        return _respond(decision, mode), False
+
+    knowledge = answer_cache.knowledge_identity(
+        release_id, corpus.admitted_fingerprint(), active_campaign
+    )
+    model = answer_cache.model_identity(
+        generation.model_version if generation is not None else "extractive",
+        answer_trace_mode(corpus),
+        retrieval_k,
+        DEFAULT_MAX_CLAIMS,
+    )
+    cache.sync_identity(knowledge, model)
+    key = answer_cache.cache_key(request.question, land_context, knowledge, model)
+    found = cache.lookup(key)
+    if isinstance(found, answer_cache.CacheHit):
+        if found.status == "abstained":
+            answer_trace.note_outcome(
+                abstention_reason=found.reason, generation_reason=found.generation_reason
+            )
+            health_metrics.note_answer("abstained", found.reason)
+        else:
+            answer_trace.note_outcome(cited_passage_ids=list(found.cited_passage_ids))
+            health_metrics.note_answer("answered")
+        return found.response, True
+
+    used_outcome = generation.used_outcome if generation is not None else None
+    with answer_cache.capture_generation_outcomes() as outcomes:
+        result = answer_or_abstain(
+            request.question,
+            corpus,
+            k=retrieval_k,
+            max_claims=DEFAULT_MAX_CLAIMS,
+            land_scope=land_context_mode(land_context),
+            as_of=as_of,
+            generator=generator,
+        )
+    response = _respond(result, mode)
+    if answer_cache.outcomes_cacheable(outcomes, used_outcome):
+        if isinstance(result, Answered):
+            cache.store_answered(key, response, result)
+        elif isinstance(result, Abstention):
+            cache.store_abstention(key, response, result)
+    return response, False
 
 
 def answer_trace_mode(corpus: Retriever) -> str:

@@ -522,6 +522,7 @@ def resolve_local_provider(
             clock=active_clock,
             provider_name=PROVIDER_LOCAL,
             used_outcome=OUTCOME_LOCAL_USED,
+            model_version="local:{}@{}".format(record.model, record.digest),
         ),
     )
 

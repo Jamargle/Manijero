@@ -298,6 +298,21 @@ def test_the_launch_environment_carries_the_answer_trace_only_when_on(ready: boo
     assert {key: value for key, value in on.items() if key != "MANIJERO_ANSWER_TRACE"} == off
 
 
+def test_the_launch_environment_carries_the_answer_cache_only_when_off(ready: boot.Env) -> None:
+    _, model = lrb.load_pins(ready.ctx, boot.NOW.date())
+    release_id = kr.current_release_id(ready.paths.releases)
+    inherited = {"PATH": "/bin", "MANIJERO_ANSWER_CACHE": "off"}
+
+    default = svc.launch_environment(ready.ctx, lrb.Settings("2026"), model, release_id, inherited)
+    off = svc.launch_environment(
+        ready.ctx, lrb.Settings("2026", answer_cache=False), model, release_id, {"PATH": "/bin"}
+    )
+
+    assert "MANIJERO_ANSWER_CACHE" not in default  # never inherited, only taken from the settings file
+    assert off["MANIJERO_ANSWER_CACHE"] == "off"
+    assert {key: value for key, value in off.items() if key != "MANIJERO_ANSWER_CACHE"} == default
+
+
 def test_the_launch_environment_states_development_and_has_no_environment_or_credential_key(
     ready: boot.Env,
 ) -> None:

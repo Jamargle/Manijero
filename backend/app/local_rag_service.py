@@ -327,6 +327,8 @@ def launch_environment(
     )
     if settings.answer_trace:
         environment["MANIJERO_ANSWER_TRACE"] = "on"
+    if not settings.answer_cache:
+        environment["MANIJERO_ANSWER_CACHE"] = "off"
     return environment
 
 

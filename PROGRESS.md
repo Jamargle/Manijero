@@ -113,6 +113,8 @@ before making any claim in its area.
   verified by inspection only; picker, file dialog, and screen-reader flows have no device evidence.
 - Pilot privacy gates are closed (review `pending`); retention and redaction are tested locally only.
 - Answer feedback (`POST /feedback`) is an anonymous fixed rating with no storage or answer linkage; counts are per process, there is no export or idempotency (a retry counts again), and the pending review does not name feedback yet. The shared chat's `Útil`/`No útil` rating (`answer_feedback_ui`) is in memory only, unlinked, lost on restart, and unavailable against the mock service.
+- The answer cache is in memory, per process, lost on restart, with no container or QA setting; a hit has no
+  `inspection`; no owner walkthrough, not measured on the owner's Mac.
 - Source monitoring, document ingestion, change-impact analysis, and reviewed update packages are local,
   manual, synthetic-fixture-backed, and guarantee neither completeness nor currency.
 - The procedure map is an unreviewed taxonomy: 16 `proposed` topics, 15 `uncovered`, no owner or

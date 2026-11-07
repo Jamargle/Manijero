@@ -196,3 +196,4 @@ Do not over-claim.
 - **Input screen is lexical (`input_guardrails`).** It covers Spanish and English only,
   out-of-domain fires only on listed topics, and names and addresses are not screened; a miss
   falls through to the grounded path. See the [spec](../specs/input_guardrails.md).
+- The answer cache (`answer_cache`) is per process (two pilot workers mean two caches) and lost on restart. It has no container setting and no QA `settings.env` key, a hit carries no `inspection` object, and `answers_total` includes hits. A vector-search fallback is never stored, but a stored hybrid answer can be served while the vector side is failing. It has no owner walkthrough and was not measured on the owner's Mac. See the [spec](../specs/answer_cache.md).
