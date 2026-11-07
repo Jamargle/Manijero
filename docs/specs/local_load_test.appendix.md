@@ -113,6 +113,8 @@ Interpretation notes for the validator:
 - **Land context in the corpus.** `knowledge/pac_answer_eval.json` has one reviewed case (`alcance-terrenos-2026`) with `{"mode": "all_active", ...}`; the other 13 are `general`, contrary to the spec/appendix statement that all use `general`. The measurement follows scenario 9 literally: every request (warm-up and steady) sends the fixed empty `general` context and never replays a case's own land list. The report's limitations and the new risk row say land-context payloads are unmeasured. The corpus itself was not edited.
 - **Steady window.** Throughput is successful steady requests over the observed steady span (last request end minus ramp end), capped at the planned `steady_seconds`, so an interrupted run reports its real shorter window and an overlapping request cannot inflate it past 180 s.
 
+2026-11-07, owner walkthrough steps 1–5: all passed, no difference from the guide. Measured run: steady 1844 requests, 0 failed, median 0.70 s, p95 1.18 s, max 10.77 s, 10.24 requests/s; ramp median 10.11 s; warm-up 4.63 s / 6.89 s. Details in the [acceptance record](../validations/local_load_test.md#owner-walkthrough-2026-11-07).
+
 ## Validator checklist
 
 - [x] Scope matches the contract; no dependency, service, knowledge, contract, pin, Kotlin, or app change; no metrics surface or per-answer signal added.
@@ -121,15 +123,7 @@ Interpretation notes for the validator:
 - [x] The 8 s p95 is shown as a candidate reference with `used_as_gate: false`; no capacity, SLA, quality, or pilot-readiness wording.
 - [x] Output, report, and logs contain no question, answer, passage, land, or token text, only aggregate timings/counts and the case count.
 - [x] Exit codes and `Result:` lines match the contract; failures and a mid-run service change are visible, never averaged away.
-- [ ] Acceptance scenarios pass with evidence; the owner walkthrough including the missing-prerequisite and Ollama-closed cases is recorded.
+- [x] Acceptance scenarios pass with evidence; the owner walkthrough including the missing-prerequisite and Ollama-closed cases is recorded.
 - [x] The focused block runs unchanged through `./scripts/init.sh --feature local_load_test`; no test starts a service, needs Ollama, or writes outside temporary directories.
 - [x] Durable documentation impact followed (owner guide, README, ARCHITECTURE, operations MUST, risk row); nothing restated across files.
-- [ ] `feature_list.json` and `PROGRESS.md` updated at acceptance.
-
-## Handoff
-
-- Status: `passing`; validator returned accept with the condition `pending owner walkthrough`.
-- Done and committed: `852d7d7` (holding commit) — implementation, tests, docs, spec, appendix, validation record.
-- Next: the owner runs walkthrough steps 1–5 in `docs/owner-guide.md` (missing prerequisite, Ollama closed, one clean ~5-minute measured run) and reports the `Result:` lines, numbers, and report path.
-- Then (new session): record that as an evidence-only update in the appendix `## Feature evidence` and the validation record, set `feature_list.json` to `accepted`, add the `PROGRESS.md` / `known-limitations` line, commit `feat: complete local_load_test`, delete this section.
-- Last checks: focused `58 passed, 2 skipped`; `--fast` 10/10 `[ok]`; no blocker.
+- [x] `feature_list.json` and `PROGRESS.md` updated at acceptance.

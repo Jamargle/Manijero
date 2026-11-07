@@ -2,11 +2,9 @@
 
 ## Verdict
 
-**Accepted by the independent validator on 2026-11-06, with the condition `pending owner walkthrough`.**
-Everything the automated tiers can reach is verified. The real measurement on the owner's Mac and the
-walkthrough in the [owner guide](../owner-guide.md#owner-walkthrough-load-test) are owner-run by the
-spec, so they are recorded as evidence when the owner reports them; the feature stays `passing` until
-then.
+**Accepted by the independent validator on 2026-11-06; the condition `pending owner walkthrough` was met on 2026-11-07.**
+Everything the automated tiers can reach is verified, and the owner ran the walkthrough in the
+[owner guide](../owner-guide.md#owner-walkthrough-load-test) on 2026-11-07 (evidence below).
 
 ## Independent verification
 
@@ -27,13 +25,23 @@ then.
   local_load_test`, the Medium risk row, the `backend/README.md` subsection, and the owner-guide
   section plus walkthrough.
 
-## Pending
+## Owner walkthrough (2026-11-07)
 
-- Owner walkthrough steps 1–5 on the owner's Mac: the missing-prerequisite result, the
-  Ollama-closed `PROBLEM` line, and one clean measured run (exit `0`, about five minutes) with the
-  median, p95, slowest time, requests per second, finish/failure counts, and answer kinds.
-- At that point the result is recorded as an evidence-only update, the status becomes `accepted`, and
-  `PROGRESS.md` and `docs/progress/known-limitations.md` gain their acceptance line.
+Steps 1–5 passed on the owner's Mac with no difference from the guide: the missing-prerequisite and
+Ollama-closed refusals, then one clean measured run (`Result: the load test finished`). Aggregates
+only, reported by the owner from `local-load-measurement-v1` (release `3050d1b8b5e10f82`):
+
+| Phase | Requests | Failed | Median | p95 | Max |
+|---|---|---|---|---|---|
+| Warm-up | 2 | 0 | 4.63 s | 6.89 s | 6.89 s |
+| Ramp (10 s) | 14 | 0 | 10.11 s | 10.15 s | 10.15 s |
+| Steady (180 s) | 1844 | 0 | 0.70 s | 1.18 s | 10.77 s |
+
+Steady throughput 10.24 requests per second; 10 clients, 60 s timeout, no timeouts; the service was
+neither changed nor stopped during the run. Answer-kind counts were not reported. The slow ramp and
+the slowest request are consistent with the drafting model loading under the first simultaneous
+requests (an interpretation, not measured). One Mac, host-specific: no pass/fail, capacity, or
+pilot-readiness claim.
 
 ## Limits
 
