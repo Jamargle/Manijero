@@ -144,9 +144,32 @@ data class AnswerSource(
     val excerpt: String,
 )
 
+/**
+ * The one-tap answer rating accepted by `POST /feedback`. The wire values are the only two the
+ * contract declares; no comment, question, answer, land or identifier accompanies them.
+ */
+@Serializable
+enum class AnswerRating { @SerialName("useful") USEFUL, @SerialName("not_useful") NOT_USEFUL }
+
+/**
+ * The whole feedback body: exactly one `rating` key and nothing else, so no question, answer, land,
+ * source, index, device or client value can leave the app with a rating.
+ */
+@Serializable
+data class FeedbackRequest(val rating: AnswerRating)
+
 /** Narrow boundary for a single general question. It never exposes land names or notes. */
 interface AnswerService {
     suspend fun ask(request: AskRequest): AskResponse
+
+    /**
+     * Sends one rating and returns when the service accepted it. The default reports the honest
+     * failure, so a service that predates feedback (a fake, [UnavailableAnswerService]) never
+     * pretends a rating was counted.
+     */
+    suspend fun sendFeedback(rating: AnswerRating) {
+        throw AnswerServiceUnavailableException()
+    }
 }
 
 /**
@@ -202,6 +225,36 @@ class KtorAnswerService(
     } catch (_: IOException) {
         // Timeout, refused connection, or any other I/O failure: the service was not reached.
         throw AnswerServiceUnavailableException()
+    }
+
+    /**
+     * `POST /feedback` through the same client, address and token rule as [ask]: the address is
+     * resolved per call, the bearer is added only when that address may carry it, any `2xx` is
+     * accepted (the contract answers `204` and there is no body worth decoding), and every failure
+     * maps to the same two payload-free signals.
+     */
+    override suspend fun sendFeedback(rating: AnswerRating) {
+        try {
+            val feedbackUrl = "${baseUrl().trimEnd('/')}/feedback"
+            val bearer = pilotToken?.takeIf { mayCarryPilotToken(Url(feedbackUrl)) }?.bearerHeaderValue()
+            client.post(feedbackUrl) {
+                contentType(ContentType.Application.Json)
+                if (bearer != null) header(HttpHeaders.Authorization, bearer)
+                setBody(FeedbackRequest(rating))
+            }
+        } catch (cancellation: CancellationException) {
+            throw cancellation
+        } catch (_: ResponseException) {
+            // `expectSuccess`: a 4xx/5xx response means the rating was not counted.
+            throw AnswerServiceErrorException()
+        } catch (_: ContentConvertException) {
+            throw AnswerServiceErrorException()
+        } catch (_: SerializationException) {
+            throw AnswerServiceErrorException()
+        } catch (_: IOException) {
+            // Timeout, refused connection, or any other I/O failure: nothing was sent.
+            throw AnswerServiceUnavailableException()
+        }
     }
 }
 

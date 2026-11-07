@@ -173,6 +173,10 @@ Durable MUST/MUST NOT rules for backend answer path, retrieval, generation, eval
   links no approved source or links only a reviewed passage or evaluation case. Reason:
   `legal_change_impact_analysis` detects wording; only an identified human can decide what a legal
   change means for the reviewed corpus.
+- **MUST**: a derived validity check MAY validate an already-expired catalog at its earliest reviewed
+  `valid_until`, but every structural, host, date-order, and malformed-date error MUST still fail
+  closed, and its proposals MUST stay review-only outside `knowledge/`
+  ([spec](../specs/validity_checker.md)).
 - **MUST**: canonical catalog and passage changes MUST go through the controlled merge that verifies
   an explicit approval by a named requested reviewer other than the proposal author, a matching
   package/checks/case digest, all required checks passing, and current canonical bytes matching the
@@ -207,9 +211,25 @@ Durable MUST/MUST NOT rules for backend answer path, retrieval, generation, eval
   parser capability MUST degrade with a fixed, recorded reason; it MUST NOT fail silently, fetch, or
   download anything. Reason: `legal_document_parser` — a converted PDF is not reviewed knowledge, and
   an unrecorded degradation would hide that a table or scanned page was never extracted.
+- **MUST**: legal chunk sets are derived review input. They MUST be written outside `knowledge/`, MUST
+  split only on explicit article/chapter/annex heading lines (never on inferred structure, sub-items,
+  tables, or layout cues), and MUST copy validity only from a reviewed catalog entry whose
+  `content_sha256` equals the document's `source_sha256`; unmatched validity stays unknown and no date
+  or campaign is read from document text. A chunk set MUST NOT be read by `/ask`, retrieval,
+  readiness, the release builder, or the review merge, and MUST NOT change a `review_status` or a
+  canonical byte. Reason: `legal_structure_chunker` — a chunk is a future citation unit, not reviewed
+  knowledge; a guessed boundary or an inferred validity would be cited as law.
 - **MUST**: retrieval changes MUST be compared with the measured BM25 baseline on the reviewed cases;
   report-only metrics MUST NOT be described as improved answer quality without sufficient reviewed
   evidence.
+- **MUST**: official-page change monitoring MUST be a developer-run review signal only. Its state and
+  report MUST live outside `knowledge/`, keep only bounded normalized visible text needed for the next
+  diff, and remain operator data that is never committed or answerable. It MUST NOT fetch linked
+  resources, execute browser/JavaScript, create discovery candidates, or change canonical catalog,
+  passages, releases, indexes, `/ask`, retrieval, ingestion, or scheduler behavior, and it MUST NOT
+  claim legal currency, validity, meaning, or coverage. Reason: `official_page_change_monitor` notices
+  that a page may have changed; only a human can decide what that means, and the monitor must not
+  become a second unreviewed knowledge path.
 
 ## Procedure map
 

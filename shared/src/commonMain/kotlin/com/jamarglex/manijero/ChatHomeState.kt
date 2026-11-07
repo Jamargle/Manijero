@@ -1,5 +1,6 @@
 package com.jamarglex.manijero
 
+import com.jamarglex.manijero.chat.AnswerRating
 import com.jamarglex.manijero.chat.AnswerSource
 import com.jamarglex.manijero.chat.AnswerStatus
 import com.jamarglex.manijero.chat.AskResponse
@@ -64,6 +65,9 @@ enum class SubmissionPhase { IDLE, SUBMITTING }
  * ever inferred from [ChatHomeState.lastResponseStatus], so every entry keeps the payload it arrived
  * with. The defaults keep existing user entries compiling; a future assistant-entry creation site
  * must set all three from the decoded response.
+ *
+ * [feedback] is the in-memory rating state of one finished answer. It is never persisted, logged, or
+ * linked to an id, and the default keeps every existing transcript assertion equal.
  */
 data class ChatMessage(
     val speaker: Speaker,
@@ -83,7 +87,24 @@ data class ChatMessage(
      * transcript; never persisted, logged, or shared.
      */
     val inspection: AnswerInspection? = null,
+    /**
+     * Assistant-only: whether this answer was rated, is being rated, or failed to send. In memory
+     * with the transcript and never persisted, so restarting forgets it.
+     */
+    val feedback: AnswerFeedback = AnswerFeedback.None,
 )
+
+/**
+ * The one-tap feedback state of an assistant answer. `Sending` disables both controls so one answer
+ * cannot be counted twice; `Failed` keeps both enabled for an honest retry; `Sent` locks the answer
+ * by leaving nothing to tap.
+ */
+sealed interface AnswerFeedback {
+    data object None : AnswerFeedback
+    data class Sending(val rating: AnswerRating) : AnswerFeedback
+    data class Sent(val rating: AnswerRating) : AnswerFeedback
+    data class Failed(val rating: AnswerRating) : AnswerFeedback
+}
 
 enum class Speaker { USER, ASSISTANT }
 
@@ -104,26 +125,49 @@ sealed interface ChatHomeAction {
      * pattern).
      */
     data class LandChoiceSubmitted(val selectedLandIds: List<String>) : ChatHomeAction
+
+    /**
+     * The person tapped `Útil` or `No útil` on one finished answer. The index is safe because
+     * transcript entries are append-only.
+     */
+    data class FeedbackClicked(val messageIndex: Int, val rating: AnswerRating) : ChatHomeAction
+
+    /** The service accepted the rating for that answer. */
+    data class FeedbackReceived(val messageIndex: Int, val rating: AnswerRating) : ChatHomeAction
+
+    /** The rating was not counted; both controls stay usable for a retry. */
+    data class FeedbackFailed(val messageIndex: Int, val rating: AnswerRating) : ChatHomeAction
 }
 
+/**
+ * Work the caller has to run, not state. [QuestionEffect] groups the sends built from a question so
+ * [request] keeps working unchanged, and [SendFeedback] is a one-field rating that never touches the
+ * conversation's question, composer or failure.
+ */
 sealed interface ChatEffect {
-    /** The exact wording to send. */
-    val question: String
+    /** Effects built from a question wording; see [request]. */
+    sealed interface QuestionEffect : ChatEffect {
+        /** The exact wording to send. */
+        val question: String
 
-    /** Whether the person explicitly allowed retention for this one send. */
-    val retainForImprovement: Boolean
+        /** Whether the person explicitly allowed retention for this one send. */
+        val retainForImprovement: Boolean
+    }
 
     data class Submit(
         override val question: String,
         override val retainForImprovement: Boolean = false,
-    ) : ChatEffect
+    ) : QuestionEffect
 
     /** The chosen lands to resubmit the retained question over, without a second user message. */
     data class SubmitSelected(
         override val question: String,
         val landIds: List<String>,
         override val retainForImprovement: Boolean = false,
-    ) : ChatEffect
+    ) : QuestionEffect
+
+    /** Send one rating for the transcript entry at [messageIndex]; nothing else travels. */
+    data class SendFeedback(val messageIndex: Int, val rating: AnswerRating) : ChatEffect
 }
 
 data class ChatReduction(val state: ChatHomeState, val effect: ChatEffect? = null)
@@ -283,6 +327,64 @@ fun ChatHomeState.reduce(action: ChatHomeAction): ChatReduction = when (action) 
             )
         }
     }
+
+    is ChatHomeAction.FeedbackClicked -> {
+        val message = messages.getOrNull(action.messageIndex)
+        val rateable = message != null &&
+            message.speaker == Speaker.ASSISTANT &&
+            message.answerStatus in RATEABLE_STATUSES &&
+            when (message.feedback) {
+                AnswerFeedback.None, is AnswerFeedback.Failed -> true
+                is AnswerFeedback.Sending, is AnswerFeedback.Sent -> false
+            }
+        // Only a finished answer that is not already rated (or being rated) accepts a tap: anything
+        // else is identity with no effect, so a stale index or a user entry can never send.
+        if (message == null || !rateable) ChatReduction(this) else {
+            ChatReduction(
+                state = copy(
+                    messages = messages.withFeedback(
+                        action.messageIndex,
+                        AnswerFeedback.Sending(action.rating),
+                    ),
+                ),
+                effect = ChatEffect.SendFeedback(action.messageIndex, action.rating),
+            )
+        }
+    }
+
+    // The result only applies to the entry that is still sending that same rating; a stale or
+    // mismatched result leaves the transcript exactly as it is.
+    is ChatHomeAction.FeedbackReceived ->
+        settledFeedback(action.messageIndex, action.rating, AnswerFeedback.Sent(action.rating))
+
+    is ChatHomeAction.FeedbackFailed -> {
+        // A failure keeps both controls enabled for an honest retry and adds no transcript entry,
+        // failure notice or composer change.
+        settledFeedback(action.messageIndex, action.rating, AnswerFeedback.Failed(action.rating))
+    }
+}
+
+/** The decoded statuses that carry a finished answer: the only entries that can be rated. */
+private val RATEABLE_STATUSES = setOf(AnswerStatus.answered, AnswerStatus.abstained)
+
+/** Copies only the entry at [index], leaving every other transcript entry untouched. */
+private fun List<ChatMessage>.withFeedback(index: Int, feedback: AnswerFeedback): List<ChatMessage> =
+    mapIndexed { position, message -> if (position == index) message.copy(feedback = feedback) else message }
+
+/**
+ * Applies a send result to the entry at [index] only when it is still sending [rating]. The state is
+ * otherwise unchanged and no effect is declared.
+ */
+private fun ChatHomeState.settledFeedback(
+    index: Int,
+    rating: AnswerRating,
+    settled: AnswerFeedback,
+): ChatReduction {
+    val message = messages.getOrNull(index)
+    val sending = message?.feedback as? AnswerFeedback.Sending
+    return if (sending?.rating != rating) ChatReduction(this) else {
+        ChatReduction(copy(messages = messages.withFeedback(index, settled)))
+    }
 }
 
 /**
@@ -294,7 +396,7 @@ fun ChatHomeState.reduce(action: ChatHomeAction): ChatReduction = when (action) 
  * (repository order), ignoring a returned id that is not stored locally; if none remain, it degrades
  * to the accepted `general` request instead of inventing or resending a removed land.
  */
-fun ChatEffect.request(lands: List<Land>) = when (this) {
+fun ChatEffect.QuestionEffect.request(lands: List<Land>) = when (this) {
     is ChatEffect.Submit -> askRequestFor(question, lands)
     is ChatEffect.SubmitSelected -> {
         val chosen = lands.filter { land -> land.id in landIds }

@@ -45,7 +45,9 @@ measurement, not evidence about legal coverage or real user questions.
 | `official-ingestion-state.schema.json` | The readable versioned document-ingestion quarantine state contract (`official-ingestion-state-v1`), including the optional content-free `security` scan (`scan_version`, fixed `flags`, bounded `{flag, page, block_index}` findings). |
 | `official-ingestion-document.schema.json` | The readable contract for one extracted quarantined document (`official-ingestion-document-v1`). |
 | `legal-change-impact.schema.json` | The readable contract for the derived change-impact report (`legal-change-impact-report-v1`). It is not canonical knowledge. |
+| `validity-review.schema.json` | The readable contract for the derived source-validity review (`validity-review-v1`). It is not canonical knowledge. |
 | `legal-markdown-document.schema.json` | The readable contract for one derived Markdown document parsed from a quarantined official PDF (`legal-markdown-document-v1`), including page line ranges and per-capability status. It is not canonical knowledge. |
+| `legal-chunk-set.schema.json` | The readable contract for one derived chunk set and its run manifest (`legal-chunk-set-v1`, `legal-chunk-manifest-v1`), including the reviewed-validity block. It is not canonical knowledge. |
 | `knowledge-update-review.schema.json` | The readable contract for one local human-review package (`knowledge-update-review-package-v1`), including the after-state evaluation-case binding and merge readiness. It is not canonical knowledge. |
 | `knowledge-update-review-decisions.schema.json` | The readable contract for the review decision history (`knowledge-update-review-decisions-v1`) that the controlled merge verifies. It is not canonical knowledge. |
 
@@ -128,7 +130,9 @@ a shortcut to make a fixture pass.
    entry. See `backend/README.md` for that command and its extraction limits.
    `backend/app/legal_document_parser.py` can then turn that quarantined PDF
    into review Markdown with page mapping and provenance; it is derived review
-   input outside this directory, not approved knowledge.
+   input outside this directory, not approved knowledge. The offline chunker can
+   then cut that Markdown into article-scale chunks with reviewed catalog
+   validity; also derived input, outside this directory and never answerable.
 3. Compute the digest of the downloaded original:
    `shasum -a 256 <file>` and keep the lowercase value.
 4. Add one entry to `sources` in `source_catalog.json` with every required

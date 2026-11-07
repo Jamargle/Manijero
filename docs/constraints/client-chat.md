@@ -150,6 +150,23 @@ Durable MUST/MUST NOT rules for client requests, response states, source cards, 
   Reason: [`local_end_to_end_smoke`](../specs/local_end_to_end_smoke.md) drivers find screen states
   by tag so copy edits never break the smoke test.
 
+## Answer feedback
+
+- **MUST**: an answer rating MUST be offered only under a finished assistant answer (`answered` or
+  `abstained`) as two plain-Spanish controls, `Útil` and `No útil`, outside the entry's merged live
+  region, after its card and source cards and before `Inspeccionar`; the request body MUST be exactly
+  `{"rating":"useful"|"not_useful"}` to `POST /feedback` with no question, answer, land, source,
+  index, device, client or free-text value, and the rating MUST stay in memory with the transcript
+  (never persisted, logged, or linked to an answer id). Both controls MUST be disabled while that
+  send is in flight (one tap, one request — the endpoint has no idempotency), a success MUST replace
+  them with the confirmation line so the answer cannot be rated twice, and a failure MUST keep both
+  enabled with the plain retry line and no transcript entry, failure notice, or composer change. The
+  controls MUST keep their own accessible names, a 48 dp target, wrapping at large text, and a state
+  readable from text or semantics rather than colour alone. Reason:
+  [`answer_feedback_ui`](../specs/answer_feedback_ui.md) and owner decision 2026-11-06 established
+  that a one-tap signal must never carry the person's content or identity, and that a failed send
+  must never look counted while an accepted one cannot be counted twice.
+
 ## Answer inspector
 
 - **MUST**: the `Inspeccionar` link and the `Inspección de la respuesta` screen MUST exist only for an

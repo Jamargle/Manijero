@@ -65,7 +65,11 @@ Do not over-claim.
   answer id, or free text. There is no durable feedback store, export, dashboard, per-answer linkage, or
   idempotency (a retry after an unknown outcome counts again), and the review record — still `pending` —
   does not yet cover feedback. Do not claim tracked satisfaction, per-person feedback, or reviewed
-  feedback handling.
+  feedback handling. The shared chat's `Útil`/`No útil` row
+  ([`answer_feedback_ui`](../specs/answer_feedback_ui.md)) keeps the rating only in memory with the
+  transcript: it is unlinked, unpersisted, forgotten on restart, and counted per process, and the
+  test-only mock answer service has no `/feedback`, so a rating against a mock-backed build shows the
+  retry line instead of pretending to be counted.
 - The manual official-feed monitor records response hashes and validators separately from canonical knowledge. BOE/BOJA manual discovery now writes pending candidates into separate review state; FEGA/MAPA registries remain explicitly unchecked, BOJA is configured per bulletin, and no completeness is guaranteed. Document-level ingestion now fetches allowlisted pending candidates into a separate quarantine with preserved original/extracted hashes and page/section text, follows only bounded HTTPS redirects within the same issuer's approved hosts, and does not use monitoring feeds as document candidates. Human-reviewed update packages can now prepare a local draft and provide a controlled merge that verifies recorded approval; scheduled dispatch, hosting-platform PR/merge-protection integration, reproducible index rebuilds, and release automation are not implemented. New issuers, hosts, and answerable knowledge must remain human-approved; successful polling does not prove corpus currency.
 - The olive-grove procedure map is an unreviewed hypothesis list: all 16 seed topics are `proposed` with no owner or target-user review, and only the PAC topic declares `partial` reviewed evidence while the other 15 are `uncovered`. It is a taxonomy index, never legal knowledge, an answer source, or a coverage gate, and it does not change the pinned coverage disclosure. Adding or retiring a topic, or marking one `reviewed`, requires a reviewed change with a named human reviewer. See [the spec](../specs/domain_procedure_map.md).
 - Quarantined document extraction is standard-library PDF/HTML text extraction without OCR. It decodes embedded-font `ToUnicode` maps when present, but incomplete subset-font maps can leave `U+FFFD` placeholders or omit glyphs, and scanned, encrypted, or unsupported-filter PDFs fail closed. Live smoke checks parsed BOE and BOJA PDFs; the BOJA sample retained about 6.3% replacement characters, so extraction accuracy is not a general guarantee and a reviewer must compare both copies. Nothing extracted becomes answerable without later human review; no legal-coverage claim follows.
@@ -178,3 +182,11 @@ Do not over-claim.
   scanned PDF is already failed by accepted ingestion as `no_extractable_text` and never reaches
   the parser, so OCR applies only to text-less pages inside an otherwise extracted PDF. See the
   [spec](../specs/legal_document_parser.md).
+- The legal chunker (`legal_structure_chunker`) writes derived chunk sets plus a run manifest outside
+  `knowledge/`; nothing it writes is answerable and no `review_status` changes. Splitting is a
+  conservative Spanish line-shape rule limited to `Artículo`, `Capítulo`, and `Anexo`: `Título`,
+  `Sección`, `Disposición`, and `Preámbulo` lines never split, a heading with no text after it emits
+  no chunk, and a heading written in another shape is missed rather than guessed. Validity is only as
+  reviewed as `knowledge/source_catalog.json` (the `content_sha256` join; unmatched documents stay
+  `unknown`), no date is read from document text, and no chunking or retrieval accuracy is claimed.
+  See the [spec](../specs/legal_structure_chunker.md).

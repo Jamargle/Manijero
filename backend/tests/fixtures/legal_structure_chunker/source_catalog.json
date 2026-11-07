@@ -1,0 +1,26 @@
+{
+  "schema_version": "source-catalog-v1",
+  "sources": [
+    {
+      "applicability": {
+        "crop": "olivo",
+        "water_regime": "irrigated"
+      },
+      "campaign": "2099",
+      "content_sha256": "753855904a0c8a7207bf44dbad36ee20415a335492cd153e383a1180e03d912c",
+      "critical": true,
+      "downloaded_on": "2099-03-01",
+      "id": "decreto-123-2026",
+      "issuing_body": "BOE",
+      "lifecycle_status": "current",
+      "original_url": "https://www.boe.es/buscar/doc.php?id=BOE-A-2026-00123",
+      "published_on": "2099-01-02",
+      "review_status": "approved",
+      "reviewed_by": "fixture-reviewer",
+      "reviewed_on": "2099-03-01",
+      "title": "Decreto 123/2026, de 1 de enero (documento sintético revisado)",
+      "valid_until": "2099-12-31",
+      "verified_on": "2099-03-02"
+    }
+  ]
+}

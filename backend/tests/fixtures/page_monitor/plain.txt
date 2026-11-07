@@ -1,0 +1,3 @@
+Primera línea con   espacios.
+
+Segunda línea con acentos: explotación.

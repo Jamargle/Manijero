@@ -1306,6 +1306,48 @@ source updates (owned host, best-effort)" below. There is no document
 ingestion, legal-change interpretation, or automatic canonical update here. Successful polling is not evidence of legal
 coverage or corpus currency.
 
+## Manual official-page change monitoring
+
+`app/page_monitor.py` compares explicitly configured FEGA, MAPA, and Junta PAC
+pages against a last-good normalized-text snapshot. It is a developer-only
+review signal: it reports only added, removed, or changed visible text, never
+fetches linked documents or executes scripts, and never changes canonical
+knowledge, `/ask`, retrieval, or releases.
+
+Create an explicit config (only the three issuers and their first-party HTTPS
+hosts are accepted; no credentials, fragment, root/empty path, or non-default
+port):
+
+```json
+{"sources":[
+  {"id":"fega-pac","issuer":"FEGA","url":"https://www.fega.gob.es/pac"},
+  {"id":"mapa-pac","issuer":"MAPA","url":"https://www.mapa.gob.es/es/pac"},
+  {"id":"junta-pac","issuer":"Junta de Andalucía","url":"https://www.juntadeandalucia.es/pac"}
+]}
+```
+
+Run manually:
+
+```sh
+cd backend
+python scripts/monitor_official_pages.py --config page-monitor.json \
+  --state /path/outside/knowledge/state.json \
+  --report /path/outside/knowledge/report.json
+```
+
+`--now` accepts an ISO-8601 timestamp for deterministic replay. The report is
+`official-page-change-report-v1` sorted by id; state is
+`official-page-monitor-state-v1` and keeps the last successful hashes, bounded
+normalized segments, validators, and success time. Both are refused under
+`knowledge/`, and a failed fetch never overwrites last-good state. Exit `0`
+means every page was checked (first seen, unchanged, or changed); `1` means at
+least one failed; `2` means invalid config/state/path or a write error. Requests
+have a 15-second timeout and 5 MiB cap; text is bounded to 5,000 segments and
+2,000,000 characters; redirects stay on the same HTTPS host. Normalization is
+not semantic diffing, dynamic page regions can create noise, and success is not
+evidence of legal currency, validity, coverage, or answer quality. There is no
+scheduling or alert delivery here.
+
 ## Manual official-publication discovery
 
 `app/source_discovery.py` scans configured registries into a separate pending
@@ -1627,6 +1669,36 @@ Base `backend/.venv` parses only the accepted text layer; `./scripts/init.sh --s
 Bounds and exit codes: 1,000 candidates, 5,000 blocks / 2,000,000 characters, 8 MiB per file, 50 table pages, 100 OCR pages at 60 s; a table/OCR budget degrades with a warning, a document bound fails that document. Exit `0` parsed, `1` at least one document failed, `2` aborted before writing with `{"error": "<TypeName>"}` (invalid state, over 1,000 candidates, an output root under `knowledge/` or equal to the quarantine).
 Failures use fixed codes and leave that candidate's previous pair byte-identical; an unchanged source, parser, and runtime signature is skipped; the manifest is written last, so rerun after an interruption. Full rules: [feature spec](../docs/specs/legal_document_parser.md).
 
+## Article-scale chunks of parsed legal Markdown
+
+`backend/scripts/chunk_legal_documents.py` turns the parser's Markdown and manifest into derived
+chunks: one deterministic chunk set per document plus one run manifest, under an operator-owned output
+root outside `knowledge/`. It reads no PDF, uses no model or network, never writes `knowledge/`, never
+changes a `review_status`, and nothing it writes is answerable.
+
+```sh
+backend/.venv/bin/python backend/scripts/chunk_legal_documents.py --documents /path/to/legal-markdown \
+  --catalog knowledge/source_catalog.json --output /path/to/legal-chunks
+```
+
+`<output>/<candidate_id>/chunks-<source_sha256>.json` (`legal-chunk-set-v1`) holds one chunk per
+non-empty article/chapter/annex segment with `heading_path`, `location`, the `<!-- page: N -->` page
+range, both hashes, a stable id, and text made of a `[title · heading path]` line, a blank line, and
+the verbatim body. Text before the first heading is one `preamble` chunk (`location: "Documento"`);
+a heading with no text after it emits no chunk. `chunks-manifest.json`
+(`legal-chunk-manifest-v1`) is written last; both shapes are in `knowledge/legal-chunk-set.schema.json`.
+
+Only standalone `Artículo|Capítulo|Anexo` + numeral lines ending at end-of-line or `.`, `:`, `–`, `-`
+split; `Título`, `Sección`, `Disposición`, `Preámbulo`, sub-items, and table rows never do. Validity
+comes only from a catalog entry whose `content_sha256` equals `source_sha256` (else `unknown` with
+`catalog_source_unknown`), validated as of `0001-01-01`, so expiry stays retrieval's `--as-of`.
+
+Bounds: 1,000 manifests, 8 MiB Markdown and 2,000 chunks per document, 200-character heading lines; a
+chunk over 8,000 characters stays whole with `chunk_over_soft_limit`. Exit `0` every document chunked or
+unstructured, `1` a document failed, `2` refused before writing with `{"error": "ChunkerError"}` (unsafe
+or missing root, unreadable or invalid catalog, over 1,000 manifests). `--check-contract` alone checks
+the schema and prints one line. Full rules: [feature spec](../docs/specs/legal_structure_chunker.md).
+
 ## Legal change-impact analysis
 
 `app/change_impact.py` compares the versions that candidate ingestion recorded
@@ -1785,6 +1857,39 @@ quarantine. Nothing in this command updates the corpus, so no legal-coverage or
 answer-quality claim follows from it. Only synthetic fixtures back the feature
 today; there is no live run against a published amendment and detection
 precision/recall is unmeasured.
+
+## Source-validity review
+
+`app/source_validity.py` (CLI `backend/scripts/check_source_validity.py`) turns the
+approved catalog, reviewed passages, and one accepted
+`legal-change-impact-report-v1` report into a derived `validity-review-v1`
+artifact outside `knowledge/`. It is read-only and never retires or admits a source.
+
+```sh
+backend/.venv/bin/python backend/scripts/check_source_validity.py \
+  --catalog knowledge/source_catalog.json --passages knowledge/passages.json \
+  --impact-report /path/to/legal-change-impact-report.json \
+  --as-of 2026-10-27 --report /path/to/validity-review.json
+```
+
+The catalog is validated at the earliest reviewed `valid_until`, so an expired
+entry stays inspectable while every other policy, host, date-order, and
+malformed-date error still fails closed. The report's catalog/passages SHA-256
+digests must match the supplied bytes, `--as-of` is one UTC `YYYY-MM-DD` date,
+and `--report` must be outside `knowledge/` and distinct from every input. The
+artifact reports each source's `expiry`, `publication`, and `consolidation`
+state and sorted retirement (structured expiry or a machine-evident repeal linked
+with `repeal_target`), review (ambiguous/negated signal, unmatched repeal,
+validity, linked publication, future publication date), and addition (unlinked,
+non-approved-copy machine-evident publication) proposals. Every proposal has
+`review.required: true` and `review.applied: false`. It prints one `Proposal:`
+line per proposal and one `Result:` line: exit `0` no proposals, `1` proposals
+written, `2` aborted before writing with a fixed failure name only.
+
+This is a review aid, not a legal conclusion. The catalog has no BOE
+consolidation-state field, an addition is a lead, and only synthetic fixtures
+back the feature, so detection precision/recall is unmeasured. See
+[the spec](../docs/specs/validity_checker.md).
 
 ## Human-reviewed knowledge update packages
 
