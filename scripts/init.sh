@@ -247,6 +247,33 @@ if [[ "${1:-}" == "--qa-deploy" || "${1:-}" == "--qa-update" || "${1:-}" == "--q
   exec "$LOCAL_RAG_PYTHON" "$REPO_ROOT/backend/scripts/qa_service.py" "${1#--qa-}"
 fi
 
+# Owner commands for the QA Telegram alerts (a launchd check every 5 minutes on this Mac,
+# docs/owner-guide.md "Set up Telegram alerts"). Test-only variables: MANIJERO_ALERTS_HOME,
+# MANIJERO_QA_HOME, MANIJERO_LAUNCHCTL_CLI, MANIJERO_LAUNCH_AGENTS_DIR, MANIJERO_DOCKER_CLI,
+# MANIJERO_TAILSCALE_CLI, MANIJERO_QA_PORT, and MANIJERO_TELEGRAM_API (loopback only).
+if [[ "${1:-}" == "--qa-alerts-setup" || "${1:-}" == "--qa-alerts-start" || "${1:-}" == "--qa-alerts-stop" || "${1:-}" == "--qa-alerts-status" || "${1:-}" == "--qa-alerts-test" ]]; then
+  REPO_ROOT="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")/.." && pwd)"
+  if (( $# > 1 )); then
+    printf 'Run %s on its own, with nothing after it.\n' "$1" >&2
+    exit 2
+  fi
+  LOCAL_RAG_PYTHON="$REPO_ROOT/backend/.venv/bin/python"
+  if [[ ! -x "$LOCAL_RAG_PYTHON" ]] && ! "$REPO_ROOT/scripts/python-env.sh" dev --if-present >/dev/null 2>&1; then
+    if [[ "$1" == "--qa-alerts-stop" ]]; then
+      printf 'Result: QA alerts were not on, so there was nothing to stop.\n'
+      exit 0
+    fi
+    if [[ "$1" == "--qa-alerts-status" ]]; then
+      printf 'Result: QA alerts are off. Turn them on with ./scripts/init.sh --qa-alerts-start.\n'
+      exit 1
+    fi
+    printf 'The local answer tools are not set up yet. Run ./scripts/init.sh --local-rag-setup to set them up.\n'
+    printf 'Result: setup has not run yet.\n'
+    exit 1
+  fi
+  exec "$LOCAL_RAG_PYTHON" "$REPO_ROOT/backend/scripts/qa_alerts.py" "${1#--qa-alerts-}"
+fi
+
 # Owner command: smoke-test the Desktop and Android emulator apps against the running local answer
 # service (docs/owner-guide.md). Like --local-rag-*, it runs before the local.properties write; AGP
 # reads ANDROID_HOME instead. backend/app/local_smoke.py checks the service, Java, and the emulator.
@@ -343,7 +370,7 @@ AS_OF="${MANIJERO_AS_OF:-2026-10-13}"
 
 usage() {
   cat <<'EOF'
-Usage: ./scripts/init.sh [--check|--fast|--verify|--feature <id>|--backend-tests [targets]|--setup-python [dev|hybrid|docparse]|--backend|--mock|--mock-status|--mock-stop|--local-rag-setup|--local-rag-status|--local-rag-start|--local-rag-service-status|--local-rag-load-test|--local-rag-stop|--container-build|--container-start|--container-status|--container-stop|--monitoring-start|--monitoring-status|--monitoring-stop|--pilot-token-save|--demo-rehearsal|--local-smoke|--environments-status|--qa-settings-setup|--qa-deploy|--qa-update|--qa-rollback|--qa-status|--qa-stop|--android|--android-run|--desktop|--android-qa|--desktop-qa|--help]
+Usage: ./scripts/init.sh [--check|--fast|--verify|--feature <id>|--backend-tests [targets]|--setup-python [dev|hybrid|docparse]|--backend|--mock|--mock-status|--mock-stop|--local-rag-setup|--local-rag-status|--local-rag-start|--local-rag-service-status|--local-rag-load-test|--local-rag-stop|--container-build|--container-start|--container-status|--container-stop|--monitoring-start|--monitoring-status|--monitoring-stop|--pilot-token-save|--demo-rehearsal|--local-smoke|--environments-status|--qa-settings-setup|--qa-deploy|--qa-update|--qa-rollback|--qa-status|--qa-stop|--qa-alerts-setup|--qa-alerts-start|--qa-alerts-stop|--qa-alerts-status|--qa-alerts-test|--android|--android-run|--desktop|--android-qa|--desktop-qa|--help]
 
   --check                   Check Java and the Gradle wrapper, then print standard commands (default)
   --fast                    Shared host tests, contract examples, backend unit tests, and the five
@@ -399,6 +426,12 @@ Usage: ./scripts/init.sh [--check|--fast|--verify|--feature <id>|--backend-tests
   --qa-status               Say whether QA runs, answers, and is reachable
   --qa-stop                 Take QA off the internet and stop it
                             (placeholder server address; nothing is deployed)
+  --qa-alerts-setup         One time: store the Telegram bot token and find your chat
+  --qa-alerts-start         Turn on the check that runs every 5 minutes and messages you on
+                            Telegram when QA is down, not ready, erroring, or unreachable
+  --qa-alerts-stop          Turn the QA alert check off (Telegram details are kept)
+  --qa-alerts-status        Say whether the alert check is on and what its last run found
+  --qa-alerts-test          Send one test alert to Telegram
   --android                 Build the Android debug APK
   --android-run             Build, start an emulator if needed, install, and launch the app
   --desktop                 Launch the Desktop app

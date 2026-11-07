@@ -2539,6 +2539,24 @@ the owner walkthrough confirms them on a real Mac. Test-only variables: `MANIJER
 `MANIJERO_DOCKER_CLI`, `MANIJERO_QA_PORT`, `MANIJERO_QA_HOME`, `MANIJERO_QA_ADDRESS_FILE`.
 Logs: `<QA home>/logs/qa-<operation>-<UTC>.log` (container output only; no tokens or question text).
 
+### QA alerts
+
+`./scripts/init.sh --qa-alerts-setup`, `--qa-alerts-start`, `--qa-alerts-stop`, `--qa-alerts-status`, and
+`--qa-alerts-test` (owner steps in [`docs/owner-guide.md`](../docs/owner-guide.md)) run
+`scripts/qa_alerts.py <operation>`, implemented by `app/qa_alerts.py` (operator-only, stdlib-only, never
+imported by the service; spec [`qa_service_alerts`](../docs/specs/qa_service_alerts.md)). `check` is what
+launchd runs; it is not an owner command. The job is the user agent `org.manijero.qa-alerts`
+(`~/Library/LaunchAgents/org.manijero.qa-alerts.plist`): `StartInterval` 300, `RunAtLoad`, absolute venv
+python and `scripts/qa_alerts.py check`, a fixed `PATH` that includes Docker's folder, and no secret or
+`MANIJERO_*` value; it is loaded with `launchctl bootstrap gui/<uid>` and removed with `bootout`.
+Each check classifies QA as down, not ready, erroring, or unreachable (in that order), reading the error share
+(`/ask` 5xx over `/ask` from cumulative `/metrics` counters) and its window from the dashboard's
+`monitoring/thresholds.json` Problem level. A problem must appear on 2 checks in a row; reminders come every 4
+hours, the same kind at most once per 60 minutes, and recovery after 2 OK checks. Files under
+`~/manijero/alerts/` (`0600`): `credentials/telegram.json`, `state.json` (times, kind codes, counters), and
+`logs/qa-alerts.log` (rolled at 1 MB). Test-only variables: `MANIJERO_ALERTS_HOME`, `MANIJERO_LAUNCHCTL_CLI`,
+`MANIJERO_LAUNCH_AGENTS_DIR`, `MANIJERO_TELEGRAM_API` (only `http://127.0.0.1:<port>`), plus the QA ones above.
+
 ### Local smoke test
 
 `./scripts/init.sh --local-smoke` (owner steps in [`docs/owner-guide.md`](../docs/owner-guide.md))

@@ -247,7 +247,12 @@ class _Tailscale:
 
 
 def _read_tailscale(ports: QaPorts) -> _Tailscale:
-    cli = ports.tailscale
+    return read_tailscale(ports.tailscale, ports.port)
+
+
+def read_tailscale(cli: TailscaleCli, port: int) -> _Tailscale:
+    """What Tailscale and Funnel say; also used by :mod:`app.qa_alerts`."""
+
     if not cli.present():
         return _Tailscale("missing")
     result = cli.run(TAILSCALE_STATUS_ARGV, TAILSCALE_TIMEOUT_SECONDS)
@@ -270,7 +275,7 @@ def _read_tailscale(ports: QaPorts) -> _Tailscale:
         funnel_document = json.loads(text) if text else {}
     except ValueError:
         return _Tailscale("running", dns_name, allowed, "unreadable")
-    return _Tailscale("running", dns_name, allowed, _funnel_state(funnel_document, dns_name, ports.port))
+    return _Tailscale("running", dns_name, allowed, _funnel_state(funnel_document, dns_name, port))
 
 
 def _funnel_on(ports: QaPorts) -> bool:
@@ -291,6 +296,9 @@ def _is_ours(found: Optional[lc.ContainerInfo]) -> bool:
         and found.labels.get(lc.MANAGED_LABEL) == "1"
         and found.labels.get(LABEL_ENVIRONMENT) == profiles.QA
     )
+
+
+is_qa_container = _is_ours  # public name for :mod:`app.qa_alerts`
 
 
 def _qa_container(ports: QaPorts) -> Optional[lc.ContainerInfo]:
