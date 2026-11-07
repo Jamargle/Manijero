@@ -28,3 +28,15 @@ accept, condition: pending owner walkthrough (live `./scripts/init.sh --qa-check
 ## Limits that remain
 
 The render is offscreen, not the real window; no Android device or emulator check exists.
+
+## Repair review (2026-11-07, after the owner walkthrough found `outcome=not_qa_build`)
+
+Verdict: accept, condition: pending owner walkthrough (rerun of live `./scripts/init.sh --qa-check` against QA).
+
+- Cause confirmed: the `doFirst` classpath append never reaches the forked test JVM. Fix sets `classpath = jvmTest classpath + files(environmentFolder, pilotTokenFolder).builtBy(generateEnvironmentResource, generatePilotTokenResource)` at configuration time; task dependencies come from `builtBy`; the configuration cache is reused in the focused tier.
+- Key handling unchanged: resource folders only, no argument, JVM property, environment entry, or log carries the key. `QaCheckGuardTest` now asserts the new classpath line, both generator names, and no `doFirst`; its other assertions (folders and generators named only inside the task) are intact. `PilotTokenGuardTest` untouched.
+- Gradle wiring test `backend/tests/test_qa_check_gradle_wiring.py` runs the real task with a fake key and fake address file in a temp folder and a closed loopback address (`https://127.0.0.1:1`); offline, zero cost; asserts `unreachable` and that the fake key appears in no output. Mutation check: against the old `doFirst` wiring it fails (`outcome='not_qa_build'`); the repaired file was restored byte-identical (same blob as the implementer's) and the test passes again.
+- `qa_check.py`: `not_qa_build` and `no_access_key` now have their own plain FAIL lines (key line points at `--qa-settings-setup`); spec scenario 6 and the owner-guide table agree.
+- Checks: `--feature qa_real_device_check` passed (114 + 1 wiring test, Gradle focused block); `CI=true --fast` 10 offline checks passed. `--verify` not rerun: only a test-only task changed, no Android, packaging, or `desktopApp` change.
+- Only the walkthrough can show: the real QA run now answers with sources and sends `Útil`.
+- Notes: the wiring test is skipped by `--fast` (needs `MANIJERO_GRADLE_WIRING_TEST=1`, set only by the focused block). The comment above the task (shared/build.gradle.kts, "when it starts") is loose but harmless.

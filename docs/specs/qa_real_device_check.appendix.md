@@ -38,7 +38,7 @@
 
 - Owner output: English fixed lines, `PASS`/`FAIL` per step, one `Result:` line, exit `0`/`1`/`2` (`docs/constraints/operations.md`).
 - Live checks are excluded from `jvmTest` and self-skip without their result property; no tier runs them.
-- Token never in JVM properties, env, or args; any token-bearing classpath folder is appended in `doFirst` of one named task.
+- Token never in JVM properties, env, or args; any token-bearing classpath folder is on one named task's classpath only. (A Test task needs it set at configuration time; see Feature evidence repair.)
 
 ### Current gaps
 
@@ -92,6 +92,15 @@
 - Also changed: `test_local_rag_service.py` operator-module list gains `qa_check`.
 - Not run: `--verify` (no Android surface or packaging change); live `--qa-check` is the owner walkthrough.
 
+2026-11-07 repair (implementer; owner walkthrough printed `PASS Service` then `FAIL Answer: the check could not run`, result line `not_qa_build`):
+
+- Root cause: the generated environment and access-key folders were appended to `runDesktopQaCheck`'s classpath in `doFirst`, which Gradle ignores for the forked test JVM (reproduced offline: JVM class path lacked both folders, `desktopEnvironment()` returned Local). Now `classpath = jvmTest classpath + files(...)` at configuration time, `builtBy` the two generators. Key still never in argv, JVM properties, or environment.
+- `qa_check.py`: well-formed `not_qa_build` and `no_access_key` now get their own plain lines (build problem: send the log; key: run `--qa-settings-setup`) instead of "could not run". Spec scenario 6, owner-guide table updated.
+- `QaCheckGuardTest` updated to the new wiring shape (same checks, plus no `doFirst` in the block): green. `test_qa_check.py`: new parametrized test for the two lines.
+- New `backend/tests/test_qa_check_gradle_wiring.py` (runs the real task offline: fake key and address in a temp folder, `https://127.0.0.1:1`): outcome `unreachable`, never `not_qa_build`/`no_access_key`; skipped unless `MANIJERO_GRADLE_WIRING_TEST=1`, set by the new focused-block line.
+- `./scripts/init.sh --feature qa_real_device_check`: passed (114 + 1 wiring test passed, jvmTest green).
+- `CI=true ./scripts/init.sh --fast`: 10 offline checks passed (backend-tests 2561 passed, 8 skipped).
+
 ## Validator checklist
 
 - [ ] Scope is Desktop only; no Android, adb, or emulator path; non-goals respected.
@@ -104,8 +113,8 @@
 
 ## Handoff
 
-- Status: `passing`; validator accept with condition "pending owner walkthrough" (2026-11-07). Holding commit made.
-- Next: owner runs `docs/owner-guide.md` "Owner walkthrough: QA check" (steps 1-3) against live QA and reports each result.
-- If every step matches: orchestrator records it as evidence only (acceptance record, Feature evidence, PROGRESS.md, session-log line), sets `accepted`, deletes this section, commits `feat: complete qa_real_device_check`. No second validator.
-- If a step fails: repair through the implementer, then one fresh validator.
-- Last checks: `--feature qa_real_device_check` passed; `--fast` 10/10 passed (validator rerun).
+- Status: `passing`; owner-walkthrough repair done (2026-11-07), not committed.
+- Next role: validator. Check the repair only: `shared/build.gradle.kts` classpath wiring, `QaCheckGuardTest`, `backend/tests/test_qa_check_gradle_wiring.py`, the two new `qa_check.py` lines.
+- Then the owner reruns `docs/owner-guide.md` "Owner walkthrough: QA check" steps 1-3 against live QA.
+- If every step matches: orchestrator records it as evidence only, sets `accepted`, deletes this section, commits `feat: complete qa_real_device_check`.
+- Last checks: `--feature qa_real_device_check` passed; `--fast` 10/10 passed.

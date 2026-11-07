@@ -31,7 +31,10 @@ class QaCheckGuardTest {
         val outside = sharedScript.removeRange(start, start + block.length + 2 + "tasks.register<Test>(\"runDesktopQaCheck\") ".length)
 
         assertTrue("generated/pilotToken" in block && ":desktopApp:generatePilotTokenResource" in block)
-        assertTrue(Regex("""doFirst \{ \(this as Test\)\.classpath \+= generatedFolders \}""").containsMatchIn(block))
+        // The folders join the classpath when the task is configured: a doFirst append never reaches the forked JVM.
+        assertTrue(Regex("""classpath = jvmTestTask\.get\(\)\.classpath \+ files\(environmentFolder, pilotTokenFolder\)""").containsMatchIn(block))
+        assertTrue(":desktopApp:generateEnvironmentResource" in block)
+        assertFalse("doFirst" in block)
         // Outside the task, the build script mentions neither the folder nor the generator.
         listOf("generated/pilotToken", "generatePilotTokenResource", "pilot-token.txt", "qa-test-device", "MANIJERO_PILOT_TOKEN_FILE").forEach {
             assertFalse(it in outside, "\"$it\" must stay inside runDesktopQaCheck")

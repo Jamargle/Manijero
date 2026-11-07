@@ -300,8 +300,6 @@ COULD_NOT_RUN = "FAIL  Answer: the check could not run. Details are in build/qa-
         lambda c: setattr(c.runner, "result", OK + "\n" + OK + "\n"),
         lambda c: setattr(c.runner, "result", OK + " extra=1\n"),
         lambda c: setattr(c.runner, "result", result(outcome="error", sources=0, feedback="not_tried") + "\n"),
-        lambda c: setattr(c.runner, "result", result(outcome="not_qa_build", sources=0, feedback="not_tried", url="invalid") + "\n"),
-        lambda c: setattr(c.runner, "result", result(outcome="no_access_key", sources=0, feedback="not_tried", url="invalid") + "\n"),
     ],
 )
 def test_a_check_that_cannot_run_says_so_and_points_to_the_log(c: Check, arrange) -> None:
@@ -309,6 +307,31 @@ def test_a_check_that_cannot_run_says_so_and_points_to_the_log(c: Check, arrange
 
     assert c.run() == 1
     assert c.lines[3] == COULD_NOT_RUN
+    assert c.lines[-1] == ANSWER_FAILED
+    assert len(c.lines) == 5
+
+
+@pytest.mark.parametrize(
+    "outcome, line",
+    [
+        (
+            "not_qa_build",
+            "FAIL  Answer: the check app was not built as the QA app, so no question was asked. "
+            "Send build/qa-check/desktop.log to a developer.",
+        ),
+        (
+            "no_access_key",
+            "FAIL  Answer: the QA access key did not reach the check app, so no question was asked. "
+            "Run ./scripts/init.sh --qa-settings-setup, then run this command again.",
+        ),
+    ],
+)
+def test_a_well_formed_not_run_outcome_gets_its_own_plain_line(c: Check, outcome: str, line: str) -> None:
+    c.runner.result = result(outcome=outcome, sources=0, feedback="not_tried", url="invalid") + "\n"
+
+    assert c.run() == 1
+    assert c.lines[3] == line
+    assert "could not run" not in line
     assert c.lines[-1] == ANSWER_FAILED
     assert len(c.lines) == 5
 

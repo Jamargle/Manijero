@@ -749,7 +749,8 @@ Expect `PASS  Service`, `PASS  Answer`, `PASS  Feedback`, then `Result: the QA c
 | `FAIL  Service: QA does not answer ...` | Run `./scripts/init.sh --qa-status` and do its first step, then run this command again. |
 | `FAIL  Answer: ... saved address ...` | In `./scripts/init.sh --desktop-qa` open `Ayuda > Herramientas de prueba > Conexión`, press `Usar la dirección predeterminada`, then run this command again. |
 | `FAIL  Answer: ...` (no reply, error, or no source) or `FAIL  Feedback: ...` | Do the one step it names (`--qa-status`, or send `build/qa-check/desktop.log` to a developer). The first question after QA starts can be slow; run it again once. |
-| `FAIL  Answer: the check could not run ...` | Send `build/qa-check/desktop.log` to a developer. |
+| `FAIL  Answer: the QA access key did not reach the check app ...` | Run `./scripts/init.sh --qa-settings-setup`, then this command again. |
+| `FAIL  Answer: the check app was not built as the QA app ...` or `FAIL  Answer: the check could not run ...` | Send `build/qa-check/desktop.log` to a developer. |
 
 ## Owner walkthrough: QA check
 

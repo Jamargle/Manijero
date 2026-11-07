@@ -143,8 +143,10 @@ def answer_line(result: QaCheckResult, expected: str, log_shown: str) -> str:
         "ready_unknown": "the QA app reached {}, but could not tell whether it can answer. {}".format(expected, STEP_STATUS),
         "not_manijero": "the program at {} is not the Manijero answer service. {}".format(expected, STEP_STATUS),
         "no_answer": "the QA app showed no reply within 90 seconds. " + STEP_STATUS,
+        "not_qa_build": "the check app was not built as the QA app, so no question was asked. " + send_log,
+        "no_access_key": "the QA access key did not reach the check app, so no question was asked. " + FIX_QA_SETUP,
     }
-    if code not in texts:  # "error", "other_address" on the default address, "not_qa_build", "no_access_key"
+    if code not in texts:  # "error", "other_address" on the default address
         return could_not_run(log_shown)
     return "FAIL  {}: {}".format(ANSWER, texts[code])
 

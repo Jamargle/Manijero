@@ -344,18 +344,18 @@ tasks.register<Test>("runDesktopQaCheck") {
     group = "verification"
     description = "Ask the live QA service once through the QA Desktop app wiring (./scripts/init.sh --qa-check)."
     testClassesDirs = jvmTestTask.get().testClassesDirs
-    classpath = jvmTestTask.get().classpath
     useJUnit()
     filter {
         includeTestsMatching("com.jamarglex.manijero.smoke.DesktopQaCheckRun")
         isFailOnNoMatchingTests = true
     }
     systemProperty("java.awt.headless", "true")
-    dependsOn(":desktopApp:generateEnvironmentResource", ":desktopApp:generatePilotTokenResource")
     val environmentFolder = project(":desktopApp").layout.buildDirectory.dir("generated/environment")
     val pilotTokenFolder = project(":desktopApp").layout.buildDirectory.dir("generated/pilotToken")
-    val generatedFolders = files(environmentFolder, pilotTokenFolder)
-    doFirst { (this as Test).classpath += generatedFolders }
+    // Set when the task is configured: Gradle fixes the test JVM classpath before the task's first
+    // action, so an append at execution time never reaches the forked JVM.
+    classpath = jvmTestTask.get().classpath + files(environmentFolder, pilotTokenFolder)
+        .builtBy(":desktopApp:generateEnvironmentResource", ":desktopApp:generatePilotTokenResource")
     val expected = smokeExpected
     val result = smokeResult
     jvmArgumentProviders.add(
