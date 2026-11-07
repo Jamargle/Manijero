@@ -81,7 +81,9 @@ before making any claim in its area.
 - Answers need the local service and an explicit campaign; legal scope is only the narrow reviewed
   corpus in [`knowledge/pac_coverage.md`](knowledge/pac_coverage.md).
 - All answer metrics are report-only: synthetic fixtures plus a 14-case author-reviewed sample with
-  visible gaps (13/14 states, 8/11 expected source and passage); no general-accuracy or legal-review claim.
+  visible gaps (12/14 states, 8/11 expected source and passage); no general-accuracy or legal-review claim.
+- Out-of-scope questions can be answered: there is no deliberate scope check, and two known regressions
+  (an aid-amount question, a reclamación) must be fixed by `question_scope_guard`.
 - The 72 screenshot baselines are host-rendered pixel checks, not device, accessibility, usability, or iOS
   evidence; known 2× text wrapping on compact layouts.
 - Land-field, search, and summary decisions have no target-user or real-device upgrade evidence.

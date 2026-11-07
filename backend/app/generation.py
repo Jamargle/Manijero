@@ -230,8 +230,8 @@ class GroundingGenerator(Protocol):
 class ExtractiveGroundingGenerator:
     """The default, deterministic, offline generator: no clock, no model.
 
-    For the top ``max_claims`` candidates in rank order it emits one claim per
-    candidate whose text is the candidate's reviewed ``excerpt`` followed by its
+    For the top ``max_claims`` candidates in rank order it emits each sentence of
+    the candidate's reviewed ``excerpt`` as its own claim, followed by its
     marker. The text is copied verbatim, so the figure/date and critical
     extractive checks hold by construction.
     """
@@ -249,7 +249,12 @@ class ExtractiveGroundingGenerator:
         claims: List[str] = []
         markers: List[int] = []
         for rank, passage in numbered_candidates[:limit]:
-            claims.append("{} [{}]".format(passage.excerpt.strip(), rank))
+            # Cite every sentence of a multi-sentence excerpt: the verifier
+            # requires a marker on each sentence, so a single trailing marker
+            # would reject a literal, reviewed excerpt as ``uncited_sentence``.
+            excerpt = passage.excerpt.strip()
+            sentences = split_sentences(excerpt) or (excerpt,)
+            claims.extend("{} [{}]".format(sentence, rank) for sentence in sentences)
             markers.append(rank)
         if not claims:
             return DraftAnswer(status="abstained", answer="", source_markers=())
