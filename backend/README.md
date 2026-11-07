@@ -2605,3 +2605,39 @@ unreadable/invalid case set. Ctrl+C writes no report and changes nothing. The pr
 candidate reference (8 s) is context only, and the numbers are one Mac's evidence, not pilot
 capacity or a pass/fail result; the service can silently switch to extractive answers at its 10 s
 draft timeout or 30 requests/minute limit, so a low p95 can hide drafting.
+
+### Demo rehearsal
+
+`./scripts/init.sh --demo-rehearsal` (owner steps in [`docs/owner-guide.md`](../docs/owner-guide.md),
+live order in [`docs/demo-script.md`](../docs/demo-script.md)) runs
+`backend/scripts/demo_rehearsal.py` (operator-only, stdlib-only plus `app.review_package` and
+`app.abstention`, never imported by the service). The dispatch runs before the `local.properties`
+write, links the shared dev environment with `scripts/python-env.sh dev --if-present` when
+`backend/.venv` is absent, and `exec`s the script with no extra argument.
+
+It makes one `GET /health`, one `GET /ready`, and two `POST /ask` calls at
+`http://127.0.0.1:${MANIJERO_LOCAL_RAG_PORT:-8000}` (`--url` overrides for tests and developers),
+with the fixed PAC 2026 questions and the closed request shape
+`land_context: {mode: "general", lands: []}`, `retain_for_improvement: false`; health/ready wait 5 s
+and each answer 120 s. In order it checks:
+
+1. **Service** — `/health` returns `ok` and `/ready` returns `ready`; a refused connection or
+   `503`/`unavailable` is `SKIP`, not a traceback.
+2. **Grounded answer** — `answered`, non-empty answer, at least one source, every source URL in
+   the approved catalog and at least one in the approved 2026 campaign, `land_scope: "general"`;
+   when the development `inspection` is present it must cite at least one passage.
+3. **Trap abstention** — `abstained`, empty `sources`, non-empty answer; with `inspection`, the
+   `outcome.abstention_reason` must be one of `app.abstention.ABSTENTION_REASONS`.
+4. **Reviewed update** — copies `backend/tests/fixtures/change_impact` into one
+   `tempfile.mkdtemp()` workspace, writes the synthetic proposal (`Revisora de ensayo`,
+   `preparador-sintetico`, `fixture-rd-2200-2099`, synthetic passage text), and calls
+   `prepare`, an unapproved `merge` (must be refused with `approval_required`), `record_decision`
+   `approve`, and `merge` with the same case file. It passes only when preparation is
+   `ready_for_review` with zero failed checks, the unapproved merge is refused, the approved merge
+   adds the new ids, and `knowledge/source_catalog.json` and `knowledge/passages.json` stay
+   byte-identical. The workspace is removed in a `finally`.
+
+Output is one `PASS`/`FAIL`/`SKIP` line per step and exactly one `Result:` line, with no colors,
+tracebacks, question, answer, passage, land, or token text: only fixed labels, reason codes, source
+counts, and the address. **Exit codes**: `0` all four passed; `1` any failed or skipped step (the
+`Result:` line names them and, for skips, the `--local-rag-start` fix); `2` an extra argument.

@@ -252,6 +252,24 @@ if [[ "${1:-}" == "--local-smoke" ]]; then
   exec "$LOCAL_RAG_PYTHON" "$REPO_ROOT/backend/scripts/local_rag.py" smoke
 fi
 
+# Owner command: rehearse the demo (docs/owner-guide.md, docs/demo-script.md). It checks the
+# running local answer service and the reviewed-update gate, changes nothing, and runs before the
+# local.properties write like the other answer-service commands.
+if [[ "${1:-}" == "--demo-rehearsal" ]]; then
+  REPO_ROOT="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")/.." && pwd)"
+  if (( $# > 1 )); then
+    printf 'Run %s on its own, with nothing after it.\n' "$1" >&2
+    exit 2
+  fi
+  LOCAL_RAG_PYTHON="$REPO_ROOT/backend/.venv/bin/python"
+  if [[ ! -x "$LOCAL_RAG_PYTHON" ]] && ! "$REPO_ROOT/scripts/python-env.sh" dev --if-present >/dev/null 2>&1; then
+    printf 'The local answer tools are not set up yet. Run ./scripts/init.sh --local-rag-setup to set them up.\n'
+    printf 'Result: the demo rehearsal did not run. Run ./scripts/init.sh --local-rag-setup.\n'
+    exit 1
+  fi
+  exec "$LOCAL_RAG_PYTHON" "$REPO_ROOT/backend/scripts/demo_rehearsal.py"
+fi
+
 if [[ "${1:-}" == "--backend" ]]; then
   REPO_ROOT="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")/.." && pwd)"
   BACKEND_DIR="$REPO_ROOT/backend"
@@ -302,7 +320,7 @@ AS_OF="${MANIJERO_AS_OF:-2026-10-13}"
 
 usage() {
   cat <<'EOF'
-Usage: ./scripts/init.sh [--check|--fast|--verify|--feature <id>|--backend-tests [targets]|--setup-python [dev|hybrid|docparse]|--backend|--mock|--mock-status|--mock-stop|--local-rag-setup|--local-rag-status|--local-rag-start|--local-rag-service-status|--local-rag-load-test|--local-rag-stop|--container-build|--container-start|--container-status|--container-stop|--monitoring-start|--monitoring-status|--monitoring-stop|--pilot-token-save|--local-smoke|--environments-status|--qa-settings-setup|--android|--android-run|--desktop|--android-qa|--desktop-qa|--help]
+Usage: ./scripts/init.sh [--check|--fast|--verify|--feature <id>|--backend-tests [targets]|--setup-python [dev|hybrid]|hybrid|docparse]|--backend|--mock|--mock-status|--mock-stop|--local-rag-setup|--local-rag-status|--local-rag-start|--local-rag-service-status|--local-rag-load-test|--local-rag-stop|--container-build|--container-start|--container-status|--container-stop|--monitoring-start|--monitoring-status|--monitoring-stop|--pilot-token-save|--demo-rehearsal|--local-smoke|--environments-status|--qa-settings-setup|--android|--android-run|--desktop|--android-qa|--desktop-qa|--help]
 
   --check                   Check Java and the Gradle wrapper, then print standard commands (default)
   --fast                    Shared host tests, contract examples, backend unit tests, and the five
@@ -343,6 +361,8 @@ Usage: ./scripts/init.sh [--check|--fast|--verify|--feature <id>|--backend-tests
   --monitoring-stop         Stop and remove the health dashboard (its history is kept)
   --pilot-token-save        Save the copied pilot token (macOS clipboard) for the next test builds
                             (Android debug, --desktop); it never prints the token
+  --demo-rehearsal          With the local answer service running, rehearse the demo: service steps
+                            plus a temporary, synthetic reviewed update (see docs/demo-script.md)
   --local-smoke             With the local answer service running, ask it one fixed question through
                             the Desktop app and the app on the running Android emulator; one PASS or
                             FAIL line each (installs the debug app over the existing one, data kept)
@@ -912,6 +932,7 @@ Build and run:
   ./scripts/init.sh --container-build  # build the answer service image in Docker Desktop (see docs/owner-guide.md)
   ./scripts/init.sh --container-start  # run it in the background (--container-status, --container-stop)
   ./scripts/init.sh --local-smoke      # with it running: ask it once through the Desktop and Android emulator apps
+  ./scripts/init.sh --demo-rehearsal   # with it running: rehearse the demo (docs/demo-script.md)
   ./scripts/init.sh --environments-status # what the local, QA, and prod environments each have
   ./scripts/init.sh --qa-settings-setup   # prepare QA settings and access keys on this computer (deploys nothing)
   ./scripts/init.sh --android    # androidApp/build/outputs/apk/debug/androidApp-debug.apk
