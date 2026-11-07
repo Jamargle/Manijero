@@ -4,8 +4,8 @@ Two screenshot suites cover the shared Compose UI in `shared/src/commonMain`:
 
 | Platform | Renderer | Goldens | Captures |
 |---|---|---|---|
-| Desktop | Compose Desktop on the JVM target | `shared/src/jvmTest/screenshots/` | 6 chat states (idle light, answered dark, abstention dark, clarification light; idle and answered also at 360×800) + 10 lands states (list light and empty dark, each at 900×1200 and 360×800, plus search no results and one match at 900×1000, plus the recovered-store callout light and dark at 900×1200 and 360×800) + board in 2 appearances + component gallery in 4 configurations + app shell in 4 configurations + dedicated coverage/privacy screens in 2 appearances each at 900 dp and 4 configurations each at 360×800 (1× and 2× text) = 38 |
-| Android | Compose UI rendered by Robolectric on the JVM (no emulator/device) | `shared/src/androidHostTest/screenshots/` | 4 chat states at 360×800 dp + 8 lands states (list light and empty dark at 360×800, search no results and one match at 900×1000, plus the recovered-store callout light and dark at 900×1200 and at 360×800) + board at 900×1200 dp in 2 appearances + component gallery in 4 configurations + app shell in 4 configurations + dedicated coverage/privacy screens in 2 appearances each at 900 dp and 4 configurations each at 360×800 (1× and 2× text) = 34 |
+| Desktop | Compose Desktop on the JVM target | `shared/src/jvmTest/screenshots/` | 11 chat captures (idle light and at 360×800, answered dark and at 360×800, abstention dark, feedback sent dark, answered and abstention inspect links, clarification light, welcome light and at 360×800 with 2× text) + 2 inspector captures + 10 lands states (list light and empty dark, each at 900×1200 and 360×800, plus search no results and one match at 900×1000, plus the recovered-store callout light and dark at 900×1200 and 360×800) + board in 2 appearances + component gallery in 4 configurations + app shell in 4 configurations + dedicated coverage/privacy screens in 2 appearances each at 900 dp and 4 configurations each at 360×800 (1× and 2× text) = 46 |
+| Android | Compose UI rendered by Robolectric on the JVM (no emulator/device) | `shared/src/androidHostTest/screenshots/` | 8 chat captures at 360×800 dp (idle light, answered dark, abstention dark, feedback sent dark, answered and abstention inspect links, clarification light, welcome light) + 1 inspector capture + 8 lands states (list light and empty dark at 360×800, search no results and one match at 900×1000, plus the recovered-store callout light and dark at 900×1200 and at 360×800) + board at 900×1200 dp in 2 appearances + component gallery in 4 configurations + app shell in 4 configurations + dedicated coverage/privacy screens in 2 appearances each at 900 dp and 4 configurations each at 360×800 (1× and 2× text) = 39 |
 
 The land-screen refresh changes the populated-list row treatment; if its list or filtered-list
 captures differ, only those land captures may be recorded after visual inspection. Shell and chat
@@ -14,6 +14,16 @@ captures are not part of this feature and must remain untouched, even if their h
 `welcome_first_use` adds the chat welcome card (Desktop `chat_home_welcome_light` and
 `chat_home_welcome_phone_large_text_dark`, Android `chat_home_welcome_light`) and the `Ayuda` link
 (Desktop `coverage_welcome_link_light`); no existing golden changed.
+
+`answer_feedback_ui` adds the `Útil`/`No útil` row under every finished chat answer plus the
+confirmed-rating capture `chat_feedback_sent_dark` on both hosts. Four Desktop chat goldens changed
+by intent — `chat_answered_source_dark`, `chat_abstention_dark`, `chat_answered_inspect_link_light`
+and `chat_abstention_inspect_link_dark` — and two Android ones —
+`chat_abstention_dark` and `chat_abstention_inspect_link_dark`; each was opened after recording and
+shows the new row in its accepted place. The phone-width answered frames (Desktop and Android) end
+above the row, and the Android `chat_feedback_sent_dark` frame ends above the confirmation line, so
+those captures stay as they were; the Desktop sent capture shows the confirmation. No other golden
+changed.
 
 The app scenes are the same on both platforms and use the shared, code-owned fixtures in
 `shared/src/commonTest/kotlin/com/jamarglex/manijero/screenshots/ScreenshotFixtures.kt`: chat idle

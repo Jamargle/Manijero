@@ -1,7 +1,8 @@
 # Manijero backend
 
 The local FastAPI service exposes `GET /health` (liveness), `GET /ready` (campaign and
-corpus readiness), and a source-grounded `POST /ask`. From the repository root, start it
+corpus readiness), a source-grounded `POST /ask`, and the anonymous `POST /feedback` rating
+(see "Answer feedback"). From the repository root, start it
 with the shared startup script:
 
 ```sh
@@ -513,7 +514,7 @@ answer-quality, latency, cost, or legal-coverage evidence exists: no real model 
 ### Local open-weight drafting (Ollama)
 
 `app/local_generation.py` adds a `local` provider to the same slot. It reuses
-`GatedGeminiGenerator` unchanged (same instruction `gemini-draft-v1`, strict parser, citation
+`GatedGeminiGenerator` unchanged (same instruction `gemini-draft-v2`, strict parser, citation
 window, `verify_draft`, rate limiter, and extractive fallback); only the transport and the
 startup gate are new. It is off by default and talks only to the loopback constant
 `http://127.0.0.1:11434`: the URL is not configurable, proxy variables are ignored, redirects
@@ -631,7 +632,8 @@ of the API contract; the files are read from disk.
 - **Families** (prefix `manijero_`): `service_info`, `generation_provider_info`,
   `process_start_time_seconds`, `ready`, `readiness_problem{problem}`,
   `http_requests_total{route,code}`, `request_duration_seconds{route}` (histogram),
-  `request_rejections_total{route,reason}`, `answers_total{status}`, `abstentions_total{reason}`,
+  `request_rejections_total{route,reason}`, `answers_total{status}`, `feedback_total{rating}`,
+  `abstentions_total{reason}`,
   `generation_outcomes_total{provider,outcome}`, `knowledge_release_info{release_id,state}`, and the
   source-update families below.
 - **Scrape-time values:** readiness and the active knowledge release are read at each scrape
@@ -644,6 +646,27 @@ of the API contract; the files are read from disk.
   that any law is current.
 - **Per process:** counters live in memory and reset on restart, like the rate limiter. With several
   workers each reports its own counts; never read them as cluster-wide.
+
+## Answer feedback
+
+`POST /feedback` accepts one anonymous rating for an answer: `{"rating":"useful"}` or
+`{"rating":"not_useful"}`. It returns `204` with no body.
+
+- **Closed payload:** `rating` is the only accepted field (`additionalProperties: false`, strict
+  types). A missing or unknown value, any extra key (comment, question, answer, land, id, device),
+  or malformed JSON is refused as `422`/`400` with a generic message that echoes nothing; an
+  oversized body is `413`. There is no free text and nothing is stored.
+- **No readiness dependency:** the route ignores campaign readiness and corpus state; it never
+  starts retrieval or generation and cannot change an `/ask` response.
+- **Access:** open in `development`; in `pilot` (QA) it requires the same per-client bearer token
+  as `/ask` (`401` without it). Its own limiter window never consumes that client's `/ask`
+  allowance, and exceeding the feedback window returns `429`; limits stay per process.
+- **Signal:** an accepted rating increments `manijero_feedback_total{rating}` (`useful`,
+  `not_useful`), both initialised at `0`, and `http_requests_total{route="/feedback",code="204"}`
+  counts the request. Counters are in memory per process and reset on restart.
+- **Not implemented:** no durable feedback store, export, dashboard, alert, or per-answer
+  linkage, and no idempotency (a retry after an unknown outcome counts again); durable feedback
+  retention is still an open privacy decision.
 
 ## Offline retrieval baseline
 
@@ -1283,6 +1306,48 @@ source updates (owned host, best-effort)" below. There is no document
 ingestion, legal-change interpretation, or automatic canonical update here. Successful polling is not evidence of legal
 coverage or corpus currency.
 
+## Manual official-page change monitoring
+
+`app/page_monitor.py` compares explicitly configured FEGA, MAPA, and Junta PAC
+pages against a last-good normalized-text snapshot. It is a developer-only
+review signal: it reports only added, removed, or changed visible text, never
+fetches linked documents or executes scripts, and never changes canonical
+knowledge, `/ask`, retrieval, or releases.
+
+Create an explicit config (only the three issuers and their first-party HTTPS
+hosts are accepted; no credentials, fragment, root/empty path, or non-default
+port):
+
+```json
+{"sources":[
+  {"id":"fega-pac","issuer":"FEGA","url":"https://www.fega.gob.es/pac"},
+  {"id":"mapa-pac","issuer":"MAPA","url":"https://www.mapa.gob.es/es/pac"},
+  {"id":"junta-pac","issuer":"Junta de Andalucía","url":"https://www.juntadeandalucia.es/pac"}
+]}
+```
+
+Run manually:
+
+```sh
+cd backend
+python scripts/monitor_official_pages.py --config page-monitor.json \
+  --state /path/outside/knowledge/state.json \
+  --report /path/outside/knowledge/report.json
+```
+
+`--now` accepts an ISO-8601 timestamp for deterministic replay. The report is
+`official-page-change-report-v1` sorted by id; state is
+`official-page-monitor-state-v1` and keeps the last successful hashes, bounded
+normalized segments, validators, and success time. Both are refused under
+`knowledge/`, and a failed fetch never overwrites last-good state. Exit `0`
+means every page was checked (first seen, unchanged, or changed); `1` means at
+least one failed; `2` means invalid config/state/path or a write error. Requests
+have a 15-second timeout and 5 MiB cap; text is bounded to 5,000 segments and
+2,000,000 characters; redirects stay on the same HTTPS host. Normalization is
+not semantic diffing, dynamic page regions can create noise, and success is not
+evidence of legal currency, validity, coverage, or answer quality. There is no
+scheduling or alert delivery here.
+
 ## Manual official-publication discovery
 
 `app/source_discovery.py` scans configured registries into a separate pending
@@ -1483,11 +1548,39 @@ hash, and a bounded attempt history. HTML blocks carry a heading path as their
 `knowledge/official-ingestion-state.schema.json` and
 `knowledge/official-ingestion-document.schema.json`.
 
+**Security exclusions.** `app/corpus_security.py` scans the extracted text in
+memory, before anything is written. Two fixed categories reject a candidate:
+`nominal_listing` (a beneficiary/admittee/excluded-person listing in the
+candidate title, document title, or a heading, or at least two personal
+identifier shapes such as DNI/NIE counted across the whole extracted document,
+all blocks and titles) and `prompt_injection`
+(model-directed wording: ignore/forget instructions, reveal or override a
+prompt, role reassignment, fake system/role tags). An excluded candidate is
+`rejected`, and its whole quarantine directory is deleted, including an earlier
+version's original and extracted files; the record is rebuilt from provenance
+alone and keeps only the fixed category, the bounded `security` scan
+(`scan_version`, `flags`, and content-free `{flag, page, block_index}`
+findings), and the attempt history. No document text, excerpt, heading, name,
+or identifier appears in the state, the report, or a log. When both detectors
+fire, `nominal_listing` is the category (privacy first) and both flags are
+recorded. There is no override: a suspected false positive goes through the
+normal human-reviewed corpus update. Detection is a conservative Spanish-first
+heuristic (English only for injection); it can miss a reworded listing or a
+novel instruction, and a false positive excludes a document from automation.
+The earlier extraction of a legacy state is rescanned from disk without
+refetching, and the `unchanged` fast path now requires a current scan with no
+flags. The release-gate scan is stricter than ingestion: a *single* identifier
+shape anywhere in catalog metadata, passage text, or passage `location` is
+enough to report `corpus_security` and block publication.
+
 **Failure and recovery.** A failed or rejected attempt leaves any previous good
-extraction and its files untouched, records the fixed failure category, and
+extraction and its files untouched — except a security exclusion, which
+deliberately purges the candidate directory — records the fixed failure category, and
 keeps the last-success time. Re-running the same discovery state retries failed
 candidates and skips an unchanged successfully ingested candidate (same version
-hash, current extractor version/media type, and files present). A changed
+hash, current extractor version/media type, files present, and a current clean
+security scan). A durable security exclusion is not refetched for the same
+version hash. A changed
 discovery version hash re-fetches
 and re-extracts, preserving the old hashed files and recording
 `previous_original_sha256`. Duplicate candidate URLs and duplicate document
@@ -1544,6 +1637,67 @@ disabling certificate verification.
 The extractor and state never log document text or upstream exception text;
 failure categories are fixed strings. Keep the quarantine and state directories
 access-controlled and back them up if review history matters.
+
+## Markdown parsing of quarantined official PDFs
+
+`backend/scripts/parse_official_documents.py` turns PDF candidates in the
+ingestion quarantine into one clean Markdown file plus one provenance manifest.
+It reads the quarantine only, never writes `knowledge/`, never changes a
+candidate `review_status`, and nothing it writes is answerable. One command:
+
+```sh
+backend/.venv/bin/python backend/scripts/parse_official_documents.py \
+  --state /path/to/official-ingestion-state.json \
+  --quarantine /path/to/official-document-quarantine \
+  --output /path/to/legal-markdown
+```
+
+Run the same command with the optional runtime by swapping the interpreter:
+`backend/.venv-docparse/bin/python backend/scripts/parse_official_documents.py`.
+
+`<output>/<candidate_id>/markdown-<source_sha256>.md` has one `<!-- page: N -->`
+marker per page, with repeated page-edge and page-number-only lines removed and
+never a whole page; `parse-<source_sha256>.json` is the
+`legal-markdown-document-v1` manifest
+(`knowledge/legal-markdown-document.schema.json`) with hashes, versions,
+per-page line ranges, and one status per capability. HTML is `skipped /
+not_a_pdf`; the Markdown is document text, so keep the output root
+access-controlled and out of logs.
+
+Base `backend/.venv` parses only the accepted text layer; `./scripts/init.sh --setup-python docparse` adds `pymupdf4llm` layout, Docling tables, and Tesseract OCR (system binary with `spa`) from the exact pins in `backend/requirements-docparse.txt`. `--check-runtime` prints one plain line per capability; a missing runtime, binary, or language degrades that capability with a fixed reason, never silently or over the network.
+
+Bounds and exit codes: 1,000 candidates, 5,000 blocks / 2,000,000 characters, 8 MiB per file, 50 table pages, 100 OCR pages at 60 s; a table/OCR budget degrades with a warning, a document bound fails that document. Exit `0` parsed, `1` at least one document failed, `2` aborted before writing with `{"error": "<TypeName>"}` (invalid state, over 1,000 candidates, an output root under `knowledge/` or equal to the quarantine).
+Failures use fixed codes and leave that candidate's previous pair byte-identical; an unchanged source, parser, and runtime signature is skipped; the manifest is written last, so rerun after an interruption. Full rules: [feature spec](../docs/specs/legal_document_parser.md).
+
+## Article-scale chunks of parsed legal Markdown
+
+`backend/scripts/chunk_legal_documents.py` turns the parser's Markdown and manifest into derived
+chunks: one deterministic chunk set per document plus one run manifest, under an operator-owned output
+root outside `knowledge/`. It reads no PDF, uses no model or network, never writes `knowledge/`, never
+changes a `review_status`, and nothing it writes is answerable.
+
+```sh
+backend/.venv/bin/python backend/scripts/chunk_legal_documents.py --documents /path/to/legal-markdown \
+  --catalog knowledge/source_catalog.json --output /path/to/legal-chunks
+```
+
+`<output>/<candidate_id>/chunks-<source_sha256>.json` (`legal-chunk-set-v1`) holds one chunk per
+non-empty article/chapter/annex segment with `heading_path`, `location`, the `<!-- page: N -->` page
+range, both hashes, a stable id, and text made of a `[title · heading path]` line, a blank line, and
+the verbatim body. Text before the first heading is one `preamble` chunk (`location: "Documento"`);
+a heading with no text after it emits no chunk. `chunks-manifest.json`
+(`legal-chunk-manifest-v1`) is written last; both shapes are in `knowledge/legal-chunk-set.schema.json`.
+
+Only standalone `Artículo|Capítulo|Anexo` + numeral lines ending at end-of-line or `.`, `:`, `–`, `-`
+split; `Título`, `Sección`, `Disposición`, `Preámbulo`, sub-items, and table rows never do. Validity
+comes only from a catalog entry whose `content_sha256` equals `source_sha256` (else `unknown` with
+`catalog_source_unknown`), validated as of `0001-01-01`, so expiry stays retrieval's `--as-of`.
+
+Bounds: 1,000 manifests, 8 MiB Markdown and 2,000 chunks per document, 200-character heading lines; a
+chunk over 8,000 characters stays whole with `chunk_over_soft_limit`. Exit `0` every document chunked or
+unstructured, `1` a document failed, `2` refused before writing with `{"error": "ChunkerError"}` (unsafe
+or missing root, unreadable or invalid catalog, over 1,000 manifests). `--check-contract` alone checks
+the schema and prints one line. Full rules: [feature spec](../docs/specs/legal_structure_chunker.md).
 
 ## Legal change-impact analysis
 
@@ -1703,6 +1857,39 @@ quarantine. Nothing in this command updates the corpus, so no legal-coverage or
 answer-quality claim follows from it. Only synthetic fixtures back the feature
 today; there is no live run against a published amendment and detection
 precision/recall is unmeasured.
+
+## Source-validity review
+
+`app/source_validity.py` (CLI `backend/scripts/check_source_validity.py`) turns the
+approved catalog, reviewed passages, and one accepted
+`legal-change-impact-report-v1` report into a derived `validity-review-v1`
+artifact outside `knowledge/`. It is read-only and never retires or admits a source.
+
+```sh
+backend/.venv/bin/python backend/scripts/check_source_validity.py \
+  --catalog knowledge/source_catalog.json --passages knowledge/passages.json \
+  --impact-report /path/to/legal-change-impact-report.json \
+  --as-of 2026-10-27 --report /path/to/validity-review.json
+```
+
+The catalog is validated at the earliest reviewed `valid_until`, so an expired
+entry stays inspectable while every other policy, host, date-order, and
+malformed-date error still fails closed. The report's catalog/passages SHA-256
+digests must match the supplied bytes, `--as-of` is one UTC `YYYY-MM-DD` date,
+and `--report` must be outside `knowledge/` and distinct from every input. The
+artifact reports each source's `expiry`, `publication`, and `consolidation`
+state and sorted retirement (structured expiry or a machine-evident repeal linked
+with `repeal_target`), review (ambiguous/negated signal, unmatched repeal,
+validity, linked publication, future publication date), and addition (unlinked,
+non-approved-copy machine-evident publication) proposals. Every proposal has
+`review.required: true` and `review.applied: false`. It prints one `Proposal:`
+line per proposal and one `Result:` line: exit `0` no proposals, `1` proposals
+written, `2` aborted before writing with a fixed failure name only.
+
+This is a review aid, not a legal conclusion. The catalog has no BOE
+consolidation-state field, an addition is a lead, and only synthetic fixtures
+back the feature, so detection precision/recall is unmeasured. See
+[the spec](../docs/specs/validity_checker.md).
 
 ## Human-reviewed knowledge update packages
 
@@ -1959,7 +2146,9 @@ rolled back to, nor served.
 1. **Structural:** catalog and passage contracts at `as_of` (`catalog_invalid`,
    `passages_invalid`, `passage_source_unresolved`), campaign/date readiness
    (`corpus_not_ready:<code>`), a valid case set (`cases_invalid`) whose expected passages
-   and sources are admitted for this campaign and date (`cases_orphaned`). A structural
+   and sources are admitted for this campaign and date (`cases_orphaned`), and no catalog
+   metadata or passage text or `location` carries a model-directed instruction or any
+   personal-identifier shape (`corpus_security`; the scan record is content-free). A structural
    failure skips evaluation (`evaluation_failed`).
 2. **BM25:** two independent fingerprints of the admitted documents (ids, text SHA-256,
    token lengths, term and document frequencies, average length, `k1`, `b`) must match
@@ -2303,3 +2492,24 @@ press `Reintentar` once after an unreachable failure. **Logs** under `build/loca
 the commands and Gradle/adb output; output lines, result files, and logs carry no question,
 answer, or passage text. **Exit codes**: `0` both pass; `1` did not run, a platform failed, or
 Ctrl+C (the child step is ended); `2` an extra argument.
+
+## Contract conformance tests
+
+`backend/tests/test_contract_fuzz.py` proves offline that the local `/ask` service honors
+`contracts/openapi.yaml`: contract-valid generated requests get a schema-valid `200`,
+contract-invalid ones get only `400` or `422` with a `detail`-only body, and the FastAPI
+`/openapi.json` schema must keep `/ask` property names, required keys, enums, and string
+bounds identical to the versioned contract. It reuses `contracts/validate_examples.py` as
+the cross-field oracle and drives the real app through `TestClient` on the synthetic
+clarification fixture corpus (`as_of` 2026-10-13, campaign 2026).
+
+```sh
+python3 contracts/validate_examples.py
+./scripts/init.sh --backend-tests tests/test_contract_fuzz.py -q
+```
+
+`MANIJERO_CONTRACT_FUZZ_SEED` (default `20261106`) and `MANIJERO_CONTRACT_FUZZ_CASES`
+(default `40`; the three fixed state-coverage cases are always included) change the
+generated cases. The run is deterministic per seed and bounded; it makes no network call
+and claims no legal coverage, answer quality, performance, or pilot behavior. `PyYAML` is
+a dev-only dependency used to read the YAML contract.

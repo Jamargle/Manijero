@@ -18,6 +18,7 @@ privacy gate").
 | Question | App → managed tunnel (TLS edge) → loopback API | The question as written; for a land-aware answer, each active land's opaque id and only the needed `municipality`/`water_regime`/`production_method` (unknown as `unknown`) | The app keeps the transcript in memory for the session. The API keeps nothing unless retention applies (below). The tunnel provider terminates TLS and therefore processes the request; its handling is governed by its own terms, which are part of the pending review. |
 | Retention choice | App → API, field `retain_for_improvement` | A boolean, sent only as `true` when the person ticked the box for that one send; otherwise absent | Not stored by itself. |
 | Answer | API → app | Answer text, cited official sources, scope | Not stored by the API unless retention applies. |
+| Answer feedback | App → API, `POST /feedback` | A single closed value, `rating` = `useful` or `not_useful`; never the answer, a question, a land, an identifier, or free text | Nothing is stored: the API keeps only an in-memory, per-process count by rating (`feedback_total{rating}` on `/metrics`), reset on restart, with no link to an answer, question, or person. |
 | Request metadata log | API stdout → systemd journal (pilot profile only) | Method, path, status, duration, gate, time; plus fixed retention/error codes | Journal retention is set by the host (no value configured in this repository). Never contains question, answer, land values, client id, or token. |
 | Product-improvement retention | API → owner-only SQLite file (`MANIJERO_RETENTION_DB`), only when configured **and** opted in | Redacted question and redacted final answer (answered or abstained), answer state, UTC creation date, expiry date | Deleted no later than 30 days after creation (see below). No land context, land id, municipality, client id, token, IP address, device id, or precise time. |
 | Owner export | Owner command → owner-only file outside the repository | The unexpired redacted records | Outside the automatic purge: the owner must delete an export within the same 30-day window. |
@@ -84,8 +85,10 @@ privacy gate").
 1. A qualified privacy/legal reviewer assesses the applicable obligations, this inventory,
    the in-app notice (`Privacidad y ayuda` → "Si permites guardar una pregunta") and the chat
    opt-in copy, the redaction limits, retention/deletion and the individual-deletion
-   limitation, access controls, the incident process and privacy contact, and current host,
-   tunnel, and (separately) Gemini terms.
+   limitation, access controls, the incident process and privacy contact, the answer-feedback
+   rating flow (anonymous, fixed value, nothing stored), and current host,
+   tunnel, and (separately) Gemini terms. The committed review record is still `pending` with an
+   empty scope, so it must cover the feedback flow before real-user use.
 2. The owner records the dated outcome, conditions, qualification, and an evidence reference
    in `backend/config/pilot_privacy_review.json` through a reviewed change, and updates the
    notice copy if the reviewer requires it.

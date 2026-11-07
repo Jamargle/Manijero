@@ -33,9 +33,10 @@ REJECTION_DETAILS = {
     429: "Too many requests.",
 }
 
-# Only the answer route can start work. Liveness and readiness probes stay open so an
-# operator or the tunnel health check can observe the process without a client token.
-GATED_PATHS = frozenset({"/ask", "/metrics"})
+# Only the answer and feedback routes accept a submission and can start work. Liveness and
+# readiness probes stay open so an operator or the tunnel health check can observe the
+# process without a client token.
+GATED_PATHS = frozenset({"/ask", "/feedback", "/metrics"})
 
 REJECTION_HEADERS = {
     401: ((b"www-authenticate", b"Bearer"),),
@@ -152,7 +153,8 @@ class PilotGuardMiddleware:
         client = self.config.client_for_token(token)
         if client is None:
             return 401, "unauthenticated"
-        # Scrapes use their own window so they never consume the client's /ask allowance.
+        # Feedback and metrics use their own per-path window, so they never consume the
+        # client's /ask allowance.
         window_key = client.client_id if path == "/ask" else "{}:{}".format(path, client.client_id)
         if not self.limiter.allow(window_key, client.requests_per_minute):
             return 429, "rate_limited"

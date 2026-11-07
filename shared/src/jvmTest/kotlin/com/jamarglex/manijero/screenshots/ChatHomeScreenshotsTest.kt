@@ -75,6 +75,20 @@ class ChatHomeScreenshotsTest : ScreenshotTestSupport() {
             }
         }
 
+    /** The answered chat after a confirmed `Útil`: the thank-you row replaces the two controls. */
+    @Test
+    fun chatFeedbackSentDark() =
+        capture(name = "chat_feedback_sent_dark", width = CHAT_WIDTH, height = CHAT_HEIGHT) {
+            ManijeroTheme(darkTheme = true) {
+                ChatHomeScreen(
+                    state = ScreenshotFixtures.answeredFeedbackSent,
+                    onAction = {},
+                    onPrivacyClick = {},
+                    onCoverageClick = {},
+                )
+            }
+        }
+
     /** The caution abstention: icon, speaker, scope, state label and the server message verbatim. */
     @Test
     fun chatAbstentionDark() =

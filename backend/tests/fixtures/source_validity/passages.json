@@ -1,0 +1,48 @@
+{
+  "passages": [
+    {
+      "id": "fixture-expired-scope",
+      "location": "Artículo 1",
+      "source_id": "fixture-expired-source",
+      "text": "El procedimiento se inicia mediante solicitud electrónica."
+    },
+    {
+      "critical": true,
+      "id": "fixture-expired-deadline",
+      "location": "Artículo 12",
+      "source_id": "fixture-expired-source",
+      "text": "El plazo de presentación finaliza el 15 de mayo de 2099."
+    },
+    {
+      "id": "fixture-active-scope",
+      "location": "Artículo 3",
+      "source_id": "fixture-active-source",
+      "text": "Las personas solicitantes deben comunicar cualquier cambio."
+    },
+    {
+      "id": "fixture-unknown-note",
+      "location": "Disposición final",
+      "source_id": "fixture-unknown-source",
+      "text": "La comunicación se presenta por medios electrónicos."
+    },
+    {
+      "id": "fixture-future-notice",
+      "location": "Artículo 2",
+      "source_id": "fixture-future-source",
+      "text": "Las ayudas se abonarán tras la resolución favorable."
+    },
+    {
+      "id": "fixture-consolidated-scope",
+      "location": "Artículo 4",
+      "source_id": "fixture-consolidated-source",
+      "text": "La coordinación corresponde a la autoridad competente."
+    },
+    {
+      "id": "fixture-repeal-target-scope",
+      "location": "Artículo 6",
+      "source_id": "fixture-repeal-target",
+      "text": "El incumplimiento se sanciona conforme al régimen general."
+    }
+  ],
+  "schema_version": "passage-set-v1"
+}

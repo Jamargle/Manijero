@@ -34,6 +34,7 @@ from app.ask_api import (
     router as ask_router,
     sanitize_request_validation,
 )
+from app.feedback_api import router as feedback_router
 from app.gemini_generation import GeminiTransport, GenerationClock
 from app.local_generation import resolve_startup_generation
 from app.health_metrics import HealthMetrics
@@ -107,6 +108,7 @@ def create_app(
     application.state.health_metrics = registry
     application.add_middleware(PilotGuardMiddleware, config=resolved, metrics=registry)
     application.include_router(ask_router)
+    application.include_router(feedback_router)
     application.add_exception_handler(RequestValidationError, sanitize_request_validation)
     application.add_exception_handler(Exception, unhandled_exception)
     if resolved.operational_logging:

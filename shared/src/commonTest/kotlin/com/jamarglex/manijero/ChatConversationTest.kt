@@ -1,5 +1,6 @@
 package com.jamarglex.manijero
 
+import com.jamarglex.manijero.chat.AnswerRating
 import com.jamarglex.manijero.chat.AnswerService
 import com.jamarglex.manijero.chat.AnswerServiceErrorException
 import com.jamarglex.manijero.chat.AnswerServiceUnavailableException
@@ -19,6 +20,7 @@ import com.jamarglex.manijero.lands.ProductionMethod as LocalProductionMethod
 import com.jamarglex.manijero.lands.WaterRegime as LocalWaterRegime
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.test.TestScope
 import kotlinx.coroutines.test.advanceUntilIdle
 import kotlinx.coroutines.test.runCurrent
 import kotlinx.coroutines.test.runTest
@@ -571,5 +573,95 @@ class ChatConversationTest {
         assertEquals(originalQuestion, resubmitted.question)
         assertEquals(LandContextMode.general, resubmitted.land_context.mode)
         assertTrue(resubmitted.land_context.lands.isEmpty())
+    }
+
+    // One-tap answer feedback: exactly one rating per tap, and the conversation's question, composer,
+    // failure and clarification stay untouched.
+
+    private fun TestScope.answerOne(conversation: ChatConversation) {
+        conversation.onAction(ChatHomeAction.QuestionChanged(originalQuestion))
+        conversation.onAction(ChatHomeAction.AskClicked)
+        advanceUntilIdle()
+    }
+
+    @Test
+    fun `a rating is sent once and locks only that answer`() = runTest {
+        val ratings = mutableListOf<AnswerRating>()
+        val service = object : AnswerService {
+            override suspend fun ask(request: AskRequest): AskResponse = response("Una respuesta.")
+            override suspend fun sendFeedback(rating: AnswerRating) {
+                ratings += rating
+            }
+        }
+        val conversation = ChatConversation(service, this)
+        answerOne(conversation)
+
+        conversation.onAction(ChatHomeAction.FeedbackClicked(messageIndex = 1, rating = AnswerRating.USEFUL))
+        advanceUntilIdle()
+
+        assertEquals(listOf(AnswerRating.USEFUL), ratings)
+        assertEquals(AnswerFeedback.Sent(AnswerRating.USEFUL), conversation.state.messages[1].feedback)
+        assertEquals(2, conversation.state.messages.size)
+        assertEquals(SubmissionPhase.IDLE, conversation.state.phase)
+        assertNull(conversation.state.failure)
+
+        // The locked answer never sends a second rating, whichever control is tapped.
+        conversation.onAction(
+            ChatHomeAction.FeedbackClicked(messageIndex = 1, rating = AnswerRating.NOT_USEFUL),
+        )
+        advanceUntilIdle()
+
+        assertEquals(listOf(AnswerRating.USEFUL), ratings)
+        assertEquals(AnswerFeedback.Sent(AnswerRating.USEFUL), conversation.state.messages[1].feedback)
+    }
+
+    @Test
+    fun `a failed rating keeps the answer rateable and adds no transcript or failure`() = runTest {
+        var fail = true
+        val ratings = mutableListOf<AnswerRating>()
+        val service = object : AnswerService {
+            override suspend fun ask(request: AskRequest): AskResponse = response("Una respuesta.")
+            override suspend fun sendFeedback(rating: AnswerRating) {
+                ratings += rating
+                if (fail) error("the rating was not accepted")
+            }
+        }
+        val conversation = ChatConversation(service, this)
+        answerOne(conversation)
+        val before = conversation.state
+
+        conversation.onAction(ChatHomeAction.FeedbackClicked(messageIndex = 1, rating = AnswerRating.USEFUL))
+        advanceUntilIdle()
+
+        assertEquals(AnswerFeedback.Failed(AnswerRating.USEFUL), conversation.state.messages[1].feedback)
+        assertEquals(before.messages, conversation.state.messages.map { it.copy(feedback = AnswerFeedback.None) })
+        assertNull(conversation.state.failure)
+        assertNull(conversation.state.failedQuestion)
+        assertEquals(SubmissionPhase.IDLE, conversation.state.phase)
+
+        // An honest retry sends exactly one new rating for the same answer.
+        fail = false
+        conversation.onAction(
+            ChatHomeAction.FeedbackClicked(messageIndex = 1, rating = AnswerRating.NOT_USEFUL),
+        )
+        advanceUntilIdle()
+
+        assertEquals(listOf(AnswerRating.USEFUL, AnswerRating.NOT_USEFUL), ratings)
+        assertEquals(AnswerFeedback.Sent(AnswerRating.NOT_USEFUL), conversation.state.messages[1].feedback)
+    }
+
+    @Test
+    fun `a service without feedback reports the honest failure`() = runTest {
+        val service = object : AnswerService {
+            override suspend fun ask(request: AskRequest): AskResponse = response("Una respuesta.")
+        }
+        val conversation = ChatConversation(service, this)
+        answerOne(conversation)
+
+        conversation.onAction(ChatHomeAction.FeedbackClicked(messageIndex = 1, rating = AnswerRating.USEFUL))
+        advanceUntilIdle()
+
+        assertEquals(AnswerFeedback.Failed(AnswerRating.USEFUL), conversation.state.messages[1].feedback)
+        assertEquals(2, conversation.state.messages.size)
     }
 }

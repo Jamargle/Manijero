@@ -135,6 +135,26 @@ Durable MUST/MUST NOT rules for backend answer path, retrieval, generation, eval
   make a new or changed document answerable without human approval. Candidate records MUST preserve
   official URL, retrieval time, original-content hash, parser/version provenance, and review status.
   Reason: a new publication can be inapplicable, superseded, malformed, or adversarially formatted.
+- **MUST**: ingestion MUST scan extracted text in memory before any quarantine write and MUST reject a
+  nominal listing (beneficiary/admittee/excluded-person listing or at least two personal-identifier
+  shapes counted across the whole extracted document, all blocks and titles) or a model-directed
+  instruction with a fixed, value-free category. A rejected candidate MUST keep
+  only provenance (issuer, title, registry/publication URL, stable identity, version hash, attempts,
+  and the bounded security scan record) and MUST have its whole quarantine directory deleted behind a
+  resolved-path check, including an earlier version's stored bytes and extracted text. The unchanged
+  fast path MUST require a current clean scan, and a stored legacy extraction MUST be rescanned from
+  disk without refetching and purged when flagged. There is no override: a suspected false positive
+  goes through the normal human-reviewed update, never a bypass flag. When both detectors fire,
+  `nominal_listing` is the failure (privacy first).
+- **MUST**: untrusted document text, canonical catalog metadata, passage text, and passage location MUST
+  be treated as data and MUST NOT carry model-directed instructions or personal identifiers into the
+  indexed corpus: the release gate MUST report `corpus_security` and refuse to publish when they do,
+  and a single identifier shape in canonical metadata, passage text, or location is enough (the
+  canonical rule is stricter than ingestion's document-wide two-shape rule); the shared drafting
+  instruction MUST state that fragments are official data, never instructions.
+  `verify_draft` remains the sole authority that discards an unsupported draft whole. Reason:
+  `corpus_security_rules` — a listing row, a name, or an injected order must never become answer
+  evidence, even when it reached the corpus by another reviewed path.
 - **MUST**: scheduled source checks are best-effort and MUST expose last-success time, failures, and
   missed runs; a schedule alone MUST NOT be represented as proof that the corpus is current.
   Reason: external schedulers and official sites can delay or fail.
@@ -153,6 +173,10 @@ Durable MUST/MUST NOT rules for backend answer path, retrieval, generation, eval
   links no approved source or links only a reviewed passage or evaluation case. Reason:
   `legal_change_impact_analysis` detects wording; only an identified human can decide what a legal
   change means for the reviewed corpus.
+- **MUST**: a derived validity check MAY validate an already-expired catalog at its earliest reviewed
+  `valid_until`, but every structural, host, date-order, and malformed-date error MUST still fail
+  closed, and its proposals MUST stay review-only outside `knowledge/`
+  ([spec](../specs/validity_checker.md)).
 - **MUST**: canonical catalog and passage changes MUST go through the controlled merge that verifies
   an explicit approval by a named requested reviewer other than the proposal author, a matching
   package/checks/case digest, all required checks passing, and current canonical bytes matching the
@@ -181,6 +205,45 @@ Durable MUST/MUST NOT rules for backend answer path, retrieval, generation, eval
   checkout read path.
   Reason: generated indexes are derived data and must not drift from reviewed sources; `knowledge_reindex_release`
   replaced the non-atomic two-file corpus replace with immutable, hash-verified releases.
+- **MUST**: parsed document Markdown is derived review input. It MUST be written outside `knowledge/`,
+  MUST NOT be read by `/ask`, retrieval, readiness, the release builder, or the review merge, and MUST
+  NOT change a candidate `review_status` or make anything answerable. A missing or failing optional
+  parser capability MUST degrade with a fixed, recorded reason; it MUST NOT fail silently, fetch, or
+  download anything. Reason: `legal_document_parser` — a converted PDF is not reviewed knowledge, and
+  an unrecorded degradation would hide that a table or scanned page was never extracted.
+- **MUST**: legal chunk sets are derived review input. They MUST be written outside `knowledge/`, MUST
+  split only on explicit article/chapter/annex heading lines (never on inferred structure, sub-items,
+  tables, or layout cues), and MUST copy validity only from a reviewed catalog entry whose
+  `content_sha256` equals the document's `source_sha256`; unmatched validity stays unknown and no date
+  or campaign is read from document text. A chunk set MUST NOT be read by `/ask`, retrieval,
+  readiness, the release builder, or the review merge, and MUST NOT change a `review_status` or a
+  canonical byte. Reason: `legal_structure_chunker` — a chunk is a future citation unit, not reviewed
+  knowledge; a guessed boundary or an inferred validity would be cited as law.
 - **MUST**: retrieval changes MUST be compared with the measured BM25 baseline on the reviewed cases;
   report-only metrics MUST NOT be described as improved answer quality without sufficient reviewed
   evidence.
+- **MUST**: official-page change monitoring MUST be a developer-run review signal only. Its state and
+  report MUST live outside `knowledge/`, keep only bounded normalized visible text needed for the next
+  diff, and remain operator data that is never committed or answerable. It MUST NOT fetch linked
+  resources, execute browser/JavaScript, create discovery candidates, or change canonical catalog,
+  passages, releases, indexes, `/ask`, retrieval, ingestion, or scheduler behavior, and it MUST NOT
+  claim legal currency, validity, meaning, or coverage. Reason: `official_page_change_monitor` notices
+  that a page may have changed; only a human can decide what that means, and the monitor must not
+  become a second unreviewed knowledge path.
+
+## Procedure map
+
+- **MUST**: `knowledge/procedure_map.json` MUST remain a taxonomy index, never legal knowledge or an
+  answer source. It MUST NOT contain dates, amounts, thresholds, article numbers, eligibility
+  conclusions, or applicability claims, and mapping a topic MUST NOT change an accepted catalog,
+  passage, coverage, or evaluation-case byte or approve, retire, or re-date evidence.
+  Reason: `domain_procedure_map` gives scouting, question work, disclosure, and evaluation one shared
+  procedure list without letting a checklist become an unsourced legal answer.
+- **MUST**: a topic MUST stay `proposed` until a reviewed change records a named human reviewer; only
+  then may it become `reviewed`. The pinned ordered seed set MUST change only in a reviewed
+  code-and-data change, and coverage gaps MUST be reported, never enforced as a validation, answer,
+  or coverage disclosure gate. `covered` and `partial` topics MUST reference existing approved sources
+  and reviewed passages, `uncovered` topics MUST reference none, and adding the map MUST NOT alter
+  the pinned coverage disclosure or the answer path.
+  Reason: `domain_procedure_map` ships an unreviewed hypotheses list; an unearned `reviewed` state or
+  an enforced gap count could overstate corpus scope or silently narrow the answer surface.

@@ -1,0 +1,23 @@
+# Optional legal-document parsing runtime, pinned for reproducibility.
+#
+# Install this only when you want layout, table, or Spanish OCR adapters on top
+# of the base quarantine text:
+#
+#   ./scripts/init.sh --setup-python docparse
+#
+# That builds a separate environment and links it as backend/.venv-docparse.
+# The default backend runtime, the default test suite, and the container image
+# deliberately do not include these packages: they are large, and the base
+# parser degrades each missing capability with a fixed reason instead.
+#
+# Exact pins because a different version can change headings, table cells, or
+# OCR text for the same bytes; a new version is a new pin and a reparse, not an
+# upgrade. `tesseract` itself stays a system binary (brew install tesseract
+# tesseract-lang) and is detected, never installed, by this file.
+#
+# `docling` requires its own torch build, so never install this file into the
+# embeddings or hybrid environment.
+pymupdf4llm==2.1
+pymupdf==2.1
+docling==2.148.0
+pytesseract==0.3.13
