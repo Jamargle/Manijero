@@ -18,10 +18,14 @@ const val QA_CHECK_RESULT_PREFIX = "MANIJERO_QA_CHECK_RESULT"
 /** How long the driver waits for the thanks or failure line after pressing `Útil`. */
 const val QA_CHECK_FEEDBACK_TIMEOUT_MILLIS = 30_000L
 
-/** What happened to the one `Útil` press. [NotTried] means no finished reply was shown. */
+/**
+ * What happened to the one `Útil` press. [NotTried] means no finished reply was shown. [NotOnQa]
+ * means `/feedback` answered HTTP 404: QA runs an older version that has no feedback yet.
+ */
 enum class FeedbackOutcome(val code: String) {
     Sent("sent"),
     Failed("failed"),
+    NotOnQa("not_on_qa"),
     NoReply("no_reply"),
     NotShown("not_shown"),
     NotTried("not_tried"),

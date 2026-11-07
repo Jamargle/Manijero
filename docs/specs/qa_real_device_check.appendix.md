@@ -101,6 +101,13 @@
 - `./scripts/init.sh --feature qa_real_device_check`: passed (114 + 1 wiring test passed, jvmTest green).
 - `CI=true ./scripts/init.sh --fast`: 10 offline checks passed (backend-tests 2561 passed, 8 skipped).
 
+2026-11-07 second repair (implementer; live `--qa-check` printed `PASS Answer`, `FAIL Feedback`; QA container log showed `POST /feedback` 404 because QA runs an image older than `feedback_endpoint`):
+
+- Desktop check: a `HttpSend` interceptor in `DesktopQaCheckRun.kt` notes the status code of the one `/feedback` call; `Failed` plus a single 404 becomes new `FeedbackOutcome.NotOnQa` (`feedback=not_on_qa`). Other failures unchanged. New `DesktopQaCheckDriverTest` 404 case; class 13 passed.
+- `qa_check.py`: `not_on_qa` gets its own `FAIL  Feedback:` line (`--container-build`, `--qa-update` answering yes, `--qa-check` again); new test in `test_qa_check.py`. Spec scenario, owner-guide troubleshooting row, and `backend/README.md` code list updated.
+- `./scripts/init.sh --feature qa_real_device_check`: passed. `CI=true ./scripts/init.sh --fast`: 10 offline checks passed (backend-tests 2562 passed, 8 skipped).
+- Owner decision on the QA key being generated for `:shared:runDesktopQaCheck` (rule change) still pending; kept as built.
+
 ## Validator checklist
 
 - [ ] Scope is Desktop only; no Android, adb, or emulator path; non-goals respected.
@@ -113,8 +120,8 @@
 
 ## Handoff
 
-- Status: `passing`; owner-walkthrough repair done (2026-11-07), not committed.
-- Next role: validator. Check the repair only: `shared/build.gradle.kts` classpath wiring, `QaCheckGuardTest`, `backend/tests/test_qa_check_gradle_wiring.py`, the two new `qa_check.py` lines.
-- Then the owner reruns `docs/owner-guide.md` "Owner walkthrough: QA check" steps 1-3 against live QA.
+- Status: `passing`; two owner-walkthrough repairs, neither committed beyond 762b2ca (wiring fix committed; the `not_on_qa` feedback repair is uncommitted).
+- Next role: validator. Review both repairs: 762b2ca (`shared/build.gradle.kts` classpath wiring, `QaCheckGuardTest`, `test_qa_check_gradle_wiring.py`) and the `not_on_qa` mapping (`DesktopQaCheckRun.kt`, `QaCheckProtocol.kt`, `qa_check.py`, their tests).
+- Then the owner updates QA (`--container-build` from the up-to-date main checkout, `--qa-update` answering yes) and reruns `docs/owner-guide.md` "Owner walkthrough: QA check" steps 1-3.
 - If every step matches: orchestrator records it as evidence only, sets `accepted`, deletes this section, commits `feat: complete qa_real_device_check`.
-- Last checks: `--feature qa_real_device_check` passed; `--fast` 10/10 passed.
+- Pending owner decision: QA-key generation on `:shared:runDesktopQaCheck` (rule change). Last checks: `--feature` passed; `--fast` 10/10.

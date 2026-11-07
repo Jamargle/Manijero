@@ -2550,7 +2550,7 @@ exists (existence only, never opened); Java and `gradlew`; `qa_deployment.system
 -PmanijeroSmokeExpected=<address> -PmanijeroSmokeResult=<dir>/desktop-result.txt` (15 min, log
 `desktop.log`). The task asks the fixed question and presses `Útil` once, then writes
 `MANIJERO_QA_CHECK_RESULT outcome=<smoke code|not_qa_build|no_access_key> sources=<n>
-feedback=<sent|failed|no_reply|not_shown|not_tried> address=<default|saved> url=<address>`. An
+feedback=<sent|failed|not_on_qa|no_reply|not_shown|not_tried> address=<default|saved> url=<address>`. An
 abstention fails the answer step; the result names the first failing step. Spec:
 [`qa_real_device_check`](../docs/specs/qa_real_device_check.md).
 

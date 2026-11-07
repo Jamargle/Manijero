@@ -76,6 +76,14 @@ class DesktopQaCheckDriverTest {
     }
 
     @Test
+    fun aFeedbackAddressNotFoundMeansQaHasNoFeedbackYet() {
+        val run = check(ask = { json(answered) }, feedback = { json("{}", HttpStatusCode.NotFound) })
+
+        assertTrue(" outcome=answered " in run.line && " feedback=not_on_qa " in run.line, run.line)
+        assertEquals(1, run.feedbackBodies.size, "exactly one rating is sent")
+    }
+
+    @Test
     fun anAbstentionFailsTheAnswerButStillRates() {
         val run = check(ask = { json(abstained) })
 

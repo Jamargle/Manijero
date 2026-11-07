@@ -277,6 +277,20 @@ def test_each_feedback_failure_names_one_step(c: Check, feedback: str, text: str
     assert c.lines[-1] == FEEDBACK_FAILED
 
 
+def test_a_qa_without_feedback_tells_the_owner_to_update_qa(c: Check) -> None:
+    c.runner.result = result(feedback="not_on_qa") + "\n"
+
+    assert c.run() == 1
+    assert c.lines[3].startswith("PASS  Answer:")
+    assert c.lines[4] == (
+        "FAIL  Feedback: QA runs an older version that does not accept ratings yet. From the up-to-date main "
+        "checkout run ./scripts/init.sh --container-build, then ./scripts/init.sh --qa-update (answer yes), "
+        "then run ./scripts/init.sh --qa-check again."
+    )
+    assert "--qa-status" not in c.lines[4]
+    assert c.lines[-1] == FEEDBACK_FAILED
+
+
 def test_the_result_names_the_answer_step_when_both_fail(c: Check) -> None:
     c.runner.result = result(outcome="abstained", sources=0, feedback="failed") + "\n"
 

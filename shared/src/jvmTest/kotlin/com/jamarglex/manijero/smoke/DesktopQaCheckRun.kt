@@ -19,6 +19,8 @@ import com.jamarglex.manijero.platform.DesktopEnvironment
 import com.jamarglex.manijero.platform.desktopEnvironment
 import com.jamarglex.manijero.platform.desktopPilotToken
 import io.ktor.client.HttpClient
+import io.ktor.client.plugins.HttpSend
+import io.ktor.client.plugins.plugin
 import io.ktor.client.engine.cio.CIO
 import kotlinx.coroutines.runBlocking
 import org.junit.Assume.assumeTrue
@@ -100,6 +102,14 @@ internal fun qaCheckLine(
     if (environment !is DesktopEnvironment.Qa) return qaCheckNotRunLine(QaCheckPrecondition.NotQaBuild)
     if (token == null) return qaCheckNotRunLine(QaCheckPrecondition.NoAccessKey)
 
+    // The app maps every feedback failure to one payload-free signal, so the status of the one
+    // /feedback call is noted here (the code only) to tell "QA has no feedback yet" (404) apart.
+    val feedbackStatuses = java.util.Collections.synchronizedList(mutableListOf<Int>())
+    client.plugin(HttpSend).intercept { request ->
+        val call = execute(request)
+        if (call.request.url.encodedPath.endsWith("/feedback")) feedbackStatuses += call.response.status.value
+        call
+    }
     val address = ActiveServiceAddress(environment.defaultAskBaseUrl(), ReadOnlyServiceAddressStore(savedAddress))
     val tools = ConnectionTools(address, KtorServiceStatusChecker(client))
     val answers = KtorAnswerService(client, address::current, pilotToken = token, acceptInspection = true)
@@ -115,6 +125,9 @@ internal fun qaCheckLine(
                 val report = script.ask(this)
                 asked = report
                 if (report.outcome in RATEABLE) feedback = script.rateUseful(this)
+            }
+            if (feedback == FeedbackOutcome.Failed && feedbackStatuses.singleOrNull() == 404) {
+                feedback = FeedbackOutcome.NotOnQa
             }
             qaCheckResultLine(asked ?: errorReport(address), feedback)
         }

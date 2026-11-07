@@ -41,7 +41,7 @@ BUILD_TIMEOUT_SECONDS = smoke.BUILD_TIMEOUT_SECONDS
 
 RESULT_PREFIX = "MANIJERO_QA_CHECK_RESULT"
 OUTCOMES = smoke.CODES + ("not_qa_build", "no_access_key")
-FEEDBACK_CODES = ("sent", "failed", "no_reply", "not_shown", "not_tried")
+FEEDBACK_CODES = ("sent", "failed", "not_on_qa", "no_reply", "not_shown", "not_tried")
 _RESULT = re.compile(
     r"{} outcome=({}) sources=([0-9]{{1,4}}) feedback=({}) address=(default|saved) url=(invalid|https?://[!-~]{{1,512}})".format(
         RESULT_PREFIX, "|".join(OUTCOMES), "|".join(FEEDBACK_CODES)
@@ -160,6 +160,9 @@ def feedback_line(result: QaCheckResult, log_shown: str) -> Optional[str]:
     if code == "sent":
         return "PASS  {}: QA accepted the app's Útil rating.".format(FEEDBACK)
     texts = {
+        "not_on_qa": "QA runs an older version that does not accept ratings yet. From the up-to-date main "
+        "checkout run ./scripts/init.sh --container-build, then ./scripts/init.sh --qa-update (answer yes), "
+        "then run {} again.".format(CHECK_COMMAND),
         "failed": "QA did not accept the app's Útil rating. " + STEP_STATUS,
         "no_reply": "QA did not confirm the app's Útil rating within 30 seconds. " + STEP_STATUS,
         "not_shown": "the QA app showed no rating buttons. Send {} to a developer.".format(log_shown),
