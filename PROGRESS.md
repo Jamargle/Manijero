@@ -7,7 +7,7 @@ Routine entry point. Exact feature status lives in [`feature_list.json`](feature
 contracts, raw evidence, and acceptance records remain in their owning files. Last updated:
 2026-11-07.
 
-**Feature status** — 91 of 120 features are accepted, including `validity_checker` (offline, digest-bound check of the reviewed catalog and accepted change-impact signals: explicit expiry versus an injected UTC as-of date, machine-evident repeal/expiry only as a review-required retirement proposal, publication additions as review leads, ambiguous/negated signals never retire; writes one derived `validity-review-v1` artifact outside `knowledge/` and leaves the corpus, releases, indexes, and `/ask` untouched; validator accept final, no owner walkthrough), `official_page_change_monitor`
+**Feature status** — 92 of 120 features are accepted, including `answer_cache` (in-memory `/ask` answer cache keyed by a digest of the normalized question, land context, knowledge identity, and model identity; 24-hour cap, cleared on restart or release/model change, grounded answers and abstentions only, every hit re-verified and discarded whole on failure; `MANIJERO_ANSWER_CACHE=off` turns it off; validator accept final, no owner walkthrough), `validity_checker` (offline, digest-bound check of the reviewed catalog and accepted change-impact signals: explicit expiry versus an injected UTC as-of date, machine-evident repeal/expiry only as a review-required retirement proposal, publication additions as review leads, ambiguous/negated signals never retire; writes one derived `validity-review-v1` artifact outside `knowledge/` and leaves the corpus, releases, indexes, and `/ask` untouched; validator accept final, no owner walkthrough), `official_page_change_monitor`
 (developer-only offline-in-tests command that compares approved FEGA, MAPA, and Junta PAC page
 snapshots by exact-byte/text hash and a bounded normalized diff, writes a deterministic report and
 last-good state outside `knowledge/`, and never fetches in tests or changes catalog/releases/indexes
@@ -113,6 +113,8 @@ before making any claim in its area.
   verified by inspection only; picker, file dialog, and screen-reader flows have no device evidence.
 - Pilot privacy gates are closed (review `pending`); retention and redaction are tested locally only.
 - Answer feedback (`POST /feedback`) is an anonymous fixed rating with no storage or answer linkage; counts are per process, there is no export or idempotency (a retry counts again), and the pending review does not name feedback yet. The shared chat's `Útil`/`No útil` rating (`answer_feedback_ui`) is in memory only, unlinked, lost on restart, and unavailable against the mock service.
+- The answer cache is in memory, per process, lost on restart, with no container or QA setting; a hit has no
+  `inspection`; no owner walkthrough, not measured on the owner's Mac.
 - Source monitoring, document ingestion, change-impact analysis, and reviewed update packages are local,
   manual, synthetic-fixture-backed, and guarantee neither completeness nor currency.
 - The procedure map is an unreviewed taxonomy: 16 `proposed` topics, 15 `uncovered`, no owner or

@@ -43,7 +43,7 @@ import threading
 import time
 from typing import Any, Callable, Iterable, List, Mapping, Optional, Protocol, Sequence, Tuple
 
-from app import answer_trace, health_metrics
+from app import answer_cache, answer_trace, health_metrics
 from app.generation import (
     LEAD_IN,
     MAX_ANSWER_CHARS,
@@ -424,6 +424,7 @@ class GatedGeminiGenerator:
         answer_trace.note_provider(self.provider_name, outcome)
         self.log("generation", provider=self.provider_name, outcome=outcome)
         health_metrics.note_generation(self.provider_name, outcome, self.used_outcome)
+        answer_cache.note_generation_outcome(outcome)
         if draft is not None:
             return draft
         return ExtractiveGroundingGenerator(max_claims=self.max_claims).generate(
@@ -488,6 +489,8 @@ class GatedGeminiProvider:
     provider_name: str = PROVIDER_GEMINI
     used_outcome: str = OUTCOME_USED
     log: Callable[..., None] = field(default=operational_log)
+    # Pinned model identity for the answer cache, set at resolution.
+    model_version: Optional[str] = None
 
     def generator_for(
         self, land_context: Any, *, max_claims: int = DEFAULT_MAX_CLAIMS
@@ -511,6 +514,20 @@ class ProviderResolution:
     provider: str
     blockers: Tuple[str, ...] = ()
     gemini: Optional[GatedGeminiProvider] = None
+
+    @property
+    def model_version(self) -> str:
+        """The pinned model identity for the answer cache; ``extractive`` without a provider."""
+
+        if self.gemini is None or not self.gemini.model_version:
+            return PROVIDER_EXTRACTIVE
+        return self.gemini.model_version
+
+    @property
+    def used_outcome(self) -> Optional[str]:
+        """The outcome code of a successful model draft; ``None`` without a model provider."""
+
+        return None if self.gemini is None else self.gemini.used_outcome
 
     def generator_for(
         self, land_context: Any, *, max_claims: int = DEFAULT_MAX_CLAIMS
@@ -558,6 +575,7 @@ def resolve_generation_provider(
                 limits.max_requests_per_minute, limits.max_requests_per_day, active_clock
             ),
             clock=active_clock,
+            model_version="gemini:{}".format(model),
         ),
     )
 

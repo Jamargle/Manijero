@@ -37,7 +37,7 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import Any, Callable, Dict, Mapping, Optional, Protocol, Sequence, Tuple
 
-from app import answer_trace
+from app import answer_cache, answer_trace
 from app.embeddings import EmbeddingError, EmbeddingModel, EmbeddingModelSpec
 from app.pilot_logging import operational_log
 from app.retrieval import Retriever
@@ -179,6 +179,7 @@ class HybridRanker:
             reason = failure_code(error)
             self.last_trace = RankTrace(used_vector=False, fallback_reason=reason)
             answer_trace.note_vector(False, reason, ())
+            answer_cache.note_degraded_retrieval()
             operational_log("hybrid_retrieval_fallback", reason=reason)
             return lexical
         vector_ids = [

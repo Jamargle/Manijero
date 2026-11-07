@@ -24,6 +24,8 @@ from pydantic import BaseModel
 
 from app import health_metrics
 from app.answer_inspection import inspection_allowed
+from app import answer_cache as answer_cache_module
+from app.answer_cache import AnswerCache
 from app.answer_trace import AnswerTrace, load_answer_trace
 from app.ask_api import (
     KNOWLEDGE_RELEASE_ROOT_ENV,
@@ -64,6 +66,7 @@ class ReadinessResponse(BaseModel):
 _RETENTION_FROM_ENV = object()
 _TRACE_FROM_ENV = object()
 _INSPECTION_FROM_ENV = object()
+_CACHE_FROM_ENV = object()
 
 
 def create_app(
@@ -75,6 +78,7 @@ def create_app(
     local_transport: GeminiTransport | None = None,
     answer_trace: AnswerTrace | object = _TRACE_FROM_ENV,
     answer_inspection: bool | object = _INSPECTION_FROM_ENV,
+    answer_cache: AnswerCache | None | object = _CACHE_FROM_ENV,
 ) -> FastAPI:
     """Build the FastAPI application for the configured service profile.
 
@@ -128,6 +132,20 @@ def create_app(
         answer_inspection = inspection_allowed(resolved.profile, os.environ)
     application.state.answer_inspection = answer_inspection is True
     operational_log("answer_inspection", state="on" if answer_inspection is True else "off")
+    if answer_cache is _CACHE_FROM_ENV:
+        answer_cache = answer_cache_module.load_answer_cache(os.environ)
+        _, cache_reason = answer_cache_module.parse_setting(
+            os.environ.get(answer_cache_module.SETTING_ENV)
+        )
+    else:
+        cache_reason = None
+    application.state.answer_cache = answer_cache if isinstance(answer_cache, AnswerCache) else None
+    if application.state.answer_cache is not None:
+        operational_log("answer_cache", state="on")
+    elif cache_reason is not None:
+        operational_log("answer_cache", state="off", reason=cache_reason)
+    else:
+        operational_log("answer_cache", state="off")
     generation = resolve_startup_generation(
         gemini_transport=generation_transport,
         local_transport=local_transport,

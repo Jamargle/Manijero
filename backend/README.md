@@ -180,6 +180,7 @@ Read from the process environment; secrets live in an operator-owned file, never
 | `MANIJERO_RETENTION_DB` | both (optional) | Unset = product-improvement retention off. Otherwise an owner-only SQLite path outside the repository (see "Product-improvement retention and the privacy gate"). |
 | `MANIJERO_GENERATION_PROVIDER` | both (optional) | `extractive` (default), `gemini`, or `local`. `gemini` selects the gated drafting path only when every gate input passes (see "Gated Gemini drafting"); today no transport exists and the gates are closed, so it stays extractive. `local` selects loopback Ollama drafting (see "Local open-weight drafting (Ollama)"); in the pilot profile it also needs a passed pilot review, which is pending, so it is development-only today. The value is exact (`Local` is not `local`). Any other value is a preflight problem. |
 | `MANIJERO_ANSWER_TRACE` | both (optional) | `on` writes a local debug trace per question (see "Answer pipeline trace"); unset, empty, or `off` is off. Any other value stays off and logs `answer_trace state=off reason=value_invalid`. Never set it in `pilot.env`. |
+| `MANIJERO_ANSWER_CACHE` | both (optional) | Unset, empty, or `on` keeps the in-memory answer cache on (see "Answer cache"); `off` turns it off. Any other value turns it off and logs `answer_cache state=off reason=value_invalid`. Not set in the container. |
 | `MANIJERO_GEMINI_MODEL` | both (optional) | The exact model the Gemini review approved; read only by the gate and, when it passes, sent as the request's model id. |
 | `MANIJERO_LOCAL_MODEL` | both (optional) | Read only when the provider is `local`; must equal `model` in `config/local_generation_model.json` exactly (`local_model_mismatch` otherwise). |
 
@@ -602,6 +603,30 @@ of the API contract; the files are read from disk.
 - **Deleted after 7 days:** files whose name time is 7 days or older are deleted at startup (even
   when tracing is off) and before each write. Nothing is deleted while the service is stopped.
 - A trace failure never changes an answer; it logs `answer_trace_skipped reason=<code>` only.
+
+## Answer cache
+
+A repeated question with the same lands returns the same verified answer or abstention without a
+new model draft ([spec](../docs/specs/answer_cache.md)). The code is `backend/app/answer_cache.py`.
+
+- **Where:** in `ask_api._answer`, after the year pre-check, corpus validation, retrieval attach, and
+  land clarification, which run on every request. On a miss the same `answer_or_abstain` runs.
+- **Key:** SHA-256 of the question normalized for case, accents, and whitespace (nothing else:
+  punctuation and wording differ), the land context, the knowledge identity (release id or
+  `repository`, a fingerprint of the admitted passages, the campaign), and the model identity
+  (`extractive`, `gemini:<model>`, or `local:<tag>@<digest>`, plus retrieval mode, `k`, `max_claims`).
+  A change of knowledge or model identity empties the whole cache.
+- **Held:** only the key digest and the response (with its cited reviewed passages). At most 1,000
+  entries, oldest evicted first, 24 hours each. Memory only, per process, empty at every start.
+- **Every hit** re-runs `verify_draft` on the stored draft and passages (or re-checks the code-owned
+  abstention). An entry that fails is discarded whole and the request runs the full pipeline.
+- **Never stored:** a transient model outcome (anything but the `*_used` outcome), a vector-search
+  fallback, a `generation_error` abstention, a clarification, a 4xx/503, or `inspection`.
+- **Metrics:** `manijero_answer_cache_lookups_total{outcome}` with `hit|miss|expired|discarded`. A hit
+  also counts in `answers_total` and `abstentions_total`.
+- **Setting:** `MANIJERO_ANSWER_CACHE=on|off`. For the full local service put
+  `MANIJERO_ANSWER_CACHE=off` in `~/manijero/local/settings.env`. The container and the QA
+  `settings.env` have no setting.
 
 ## Answer inspection (development only)
 

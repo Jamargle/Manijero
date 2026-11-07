@@ -12,6 +12,13 @@ Durable MUST/MUST NOT rules for backend answer path, retrieval, generation, eval
   model — is the authority on whether an answer may be shown, and an
   unverified claim is exactly the failure a wrong Spanish deadline or amount
   would come from.
+- **MUST**: the answer cache (`backend/app/answer_cache.py`) lives in memory only and holds a
+  SHA-256 key digest, never the question or land text. It empties when the knowledge release,
+  admitted passages, campaign, or model identity changes, drops entries after 24 hours, re-runs
+  `verify_draft` on every hit and discards a failing entry whole, and never stores a transient
+  model failure, a generation error, a clarification, or the `inspection` object. Reason:
+  [`answer_cache`](../specs/answer_cache.md) must not serve an answer the current corpus and
+  verifier would not produce.
 - **MUST**: a user-visible answer's citation markers, its `sources` array, and
   the orientative notice are owned by code (`generate_grounded_answer` /
   `to_answer_response`), never by a generator. Draft markers are verified as

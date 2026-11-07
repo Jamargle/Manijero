@@ -190,3 +190,4 @@ Do not over-claim.
   reviewed as `knowledge/source_catalog.json` (the `content_sha256` join; unmatched documents stay
   `unknown`), no date is read from document text, and no chunking or retrieval accuracy is claimed.
   See the [spec](../specs/legal_structure_chunker.md).
+- The answer cache (`answer_cache`) is per process (two pilot workers mean two caches) and lost on restart. It has no container setting and no QA `settings.env` key, a hit carries no `inspection` object, and `answers_total` includes hits. A vector-search fallback is never stored, but a stored hybrid answer can be served while the vector side is failing. It has no owner walkthrough and was not measured on the owner's Mac. See the [spec](../specs/answer_cache.md).

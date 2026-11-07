@@ -27,6 +27,8 @@ returns no candidate, and without a ranker ``search`` is the accepted BM25
 behavior unchanged.
 """
 
+import dataclasses
+import hashlib
 import json
 import math
 import re
@@ -404,6 +406,7 @@ class Retriever:
         ranker: Optional[CandidateRanker] = None,
     ) -> None:
         self._ranker = ranker
+        self._fingerprint: Optional[str] = None
         self._records: Tuple[_PassageRecord, ...] = tuple(records)
         self._records_by_id: Dict[str, _PassageRecord] = {
             record.passage_id: record for record in self._records
@@ -506,6 +509,23 @@ class Retriever:
 
         return tuple((record.passage_id, record.excerpt) for record in self._records)
 
+    def admitted_fingerprint(self) -> str:
+        """SHA-256 of every admitted passage record, ordered by ``passage_id``.
+
+        It identifies the exact admitted knowledge (a checkout edit changes it) without
+        exposing it; the answer cache keys on it. Read-only; computed once per instance.
+        """
+
+        if self._fingerprint is None:
+            canonical = json.dumps(
+                [dataclasses.asdict(record) for record in self._records],
+                sort_keys=True,
+                separators=(",", ":"),
+                ensure_ascii=False,
+            )
+            self._fingerprint = hashlib.sha256(canonical.encode("utf-8")).hexdigest()
+        return self._fingerprint
+
     @property
     def uses_ranker(self) -> bool:
         """Whether ``search`` composes a :class:`CandidateRanker` after BM25."""
@@ -519,7 +539,7 @@ class Retriever:
         only the final ordering step changes. ``self`` is left unchanged.
         """
 
-        return Retriever(
+        shared = Retriever(
             records=self._records,
             index=self._index,
             as_of=self._as_of,
@@ -527,6 +547,8 @@ class Retriever:
             excluded_passage_count=self._excluded_passage_count,
             ranker=ranker,
         )
+        shared._fingerprint = self._fingerprint
+        return shared
 
     def search(self, question: str, k: int = DEFAULT_K) -> Tuple[RetrievedPassage, ...]:
         """Return up to ``k`` candidate passages ranked best-first.

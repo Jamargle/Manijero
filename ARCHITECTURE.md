@@ -55,6 +55,8 @@ The data-flow inventory is [`docs/pilot-privacy.md`](docs/pilot-privacy.md). `PO
 
 A local-only debug trace (`backend/app/answer_trace.py`) is off unless `MANIJERO_ANSWER_TRACE=on`: it writes one `answer-trace-v1` JSON file per `/ask` to the git-ignored `build/answer-traces/` folder (deleted after 7 days) with question, answer, and draft text only when `MANIJERO_DEPLOYMENT_PROFILE` is explicitly `development` (the local service start states it; an unset profile records no text) and ids, scores, timings, and verification codes everywhere else; it never changes an answer.
 
+An in-memory answer cache (`backend/app/answer_cache.py`) sits in `ask_api._answer` after the year pre-check, corpus validation, retrieval attach, and land clarification: it is per process, empty at every start, on by default (`MANIJERO_ANSWER_CACHE=off` disables it), and holds only a SHA-256 key digest and the verified response. The key is the question normalized for case, accents, and whitespace, the land context, the knowledge identity (release id, admitted-passage fingerprint, campaign), and the model identity (provider model, retrieval mode, `k`, `max_claims`); every hit re-runs `verify_draft`, entries live at most 24 hours, and transient failures are never stored ([spec](docs/specs/answer_cache.md)).
+
 In the same explicit `development` profile only, `/ask` adds an optional `inspection` object (`answer-inspection-v1`: retrieved passages, scores, drafting and verification codes; `backend/app/answer_inspection.py`). The client keeps it only for a test-tools host on a loopback address and shows it behind an `Inspeccionar` link.
 
 ## Data and platform boundaries

@@ -79,6 +79,7 @@ LOCAL_HOME_ENV = "MANIJERO_LOCAL_HOME"  # tests only
 OLLAMA_CLI_ENV = "MANIJERO_OLLAMA_CLI"  # tests only
 CAMPAIGN_KEY = "MANIJERO_ACTIVE_CAMPAIGN"
 ANSWER_TRACE_KEY = "MANIJERO_ANSWER_TRACE"
+ANSWER_CACHE_KEY = "MANIJERO_ANSWER_CACHE"
 DEFAULT_CAMPAIGN = "2026"  # the same default as ./scripts/init.sh --backend
 ENVIRONMENT_KEY = "MANIJERO_ENVIRONMENT"
 PROFILE_KEY = "MANIJERO_DEPLOYMENT_PROFILE"
@@ -325,6 +326,7 @@ class Settings:
     answer_trace: bool = False
     environment: Optional[str] = None  # None: the file does not say (an older local file)
     deployment_profile: Optional[str] = None
+    answer_cache: bool = True
 
     @property
     def names_environment(self) -> bool:
@@ -353,6 +355,10 @@ SETTINGS_TEMPLATE = """\
 # Optional, for developers: on writes one debug file per question to build/answer-traces
 # in the repository (question and answer text included, deleted after 7 days). Off by default.
 # {trace_key}=off
+
+# Optional: the assistant reuses a verified answer to a repeated question for up to 24 hours,
+# kept only in memory. Write off to turn it off. On by default.
+# {cache_key}=on
 """.format(
     setup=SETUP_COMMAND,
     status=STATUS_COMMAND,
@@ -365,6 +371,7 @@ SETTINGS_TEMPLATE = """\
     key=CAMPAIGN_KEY,
     campaign=DEFAULT_CAMPAIGN,
     trace_key=ANSWER_TRACE_KEY,
+    cache_key=ANSWER_CACHE_KEY,
 )
 
 _LOCAL_VALUES = {ENVIRONMENT_KEY: LOCAL_ENVIRONMENT, PROFILE_KEY: LOCAL_PROFILE}
@@ -395,7 +402,7 @@ def read_settings(path: Path) -> Optional[Settings]:
         if "=" not in line:
             raise _line_error(target, number, "it must look like NAME=value")
         key, value = (part.strip() for part in line.split("=", 1))
-        if key not in (CAMPAIGN_KEY, ANSWER_TRACE_KEY, ENVIRONMENT_KEY, PROFILE_KEY):
+        if key not in (CAMPAIGN_KEY, ANSWER_TRACE_KEY, ANSWER_CACHE_KEY, ENVIRONMENT_KEY, PROFILE_KEY):
             raise _line_error(target, number, "it is not a setting this tool knows")
         if key in values:
             raise _line_error(target, number, "this setting appears twice")
@@ -403,6 +410,11 @@ def read_settings(path: Path) -> Optional[Settings]:
         if key == ANSWER_TRACE_KEY:
             if value not in ("on", "off"):
                 raise _line_error(target, number, "the answer trace must be on or off")
+            values[key] = value
+            continue
+        if key == ANSWER_CACHE_KEY:
+            if value not in ("on", "off"):
+                raise _line_error(target, number, "the answer cache must be on or off")
             values[key] = value
             continue
         if key in _LOCAL_VALUES:
@@ -424,6 +436,7 @@ def read_settings(path: Path) -> Optional[Settings]:
     return Settings(
         active_campaign=values[CAMPAIGN_KEY],
         answer_trace=values.get(ANSWER_TRACE_KEY) == "on",
+        answer_cache=values.get(ANSWER_CACHE_KEY) != "off",
         environment=values.get(ENVIRONMENT_KEY),
         deployment_profile=values.get(PROFILE_KEY),
     )
