@@ -5,9 +5,12 @@
 Routine entry point. Exact feature status lives in [`feature_list.json`](feature_list.json); use
 [`./scripts/select-feature.sh --status`](scripts/select-feature.sh) to read the board. Feature
 contracts, raw evidence, and acceptance records remain in their owning files. Last updated:
-2026-11-02.
+2026-11-07.
 
-**Feature status** — 82 of 120 features are accepted, including `rag_inspector_view` (developer
+**Feature status** — 83 of 120 features are accepted, including `rag_demo_rehearsal` (one
+`./scripts/init.sh --demo-rehearsal` command for the service-level demo steps plus the Spanish
+`docs/demo-script.md`; owner walkthrough passed 2026-11-07, land clarification not demoable on the
+approved corpus), `rag_inspector_view` (developer
 `Inspeccionar` view of retrieved passages, scores, and verification steps; local test builds on a
 loopback service only, data sent only in the `development` profile; validator accept, no owner
 walkthrough by owner decision), `backend_health_metrics`

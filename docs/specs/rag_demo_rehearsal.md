@@ -101,4 +101,4 @@ The live run (`./scripts/init.sh --demo-rehearsal` with `--local-rag-start` runn
 
 ## Appendix
 
-See [`rag_demo_rehearsal.appendix.md`](rag_demo_rehearsal.appendix.md) for repository research, plan, evidence, and the validator checklist.
+See [`rag_demo_rehearsal.appendix.md`](../archive/specs/rag_demo_rehearsal.appendix.md) for repository research, plan, evidence, and the validator checklist.
