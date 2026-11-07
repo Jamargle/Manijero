@@ -39,6 +39,7 @@ class SmokeUiScript(
     private val answerService: AnswerService,
     private val expected: String,
     private val replyTimeoutMillis: Long = LOCAL_SMOKE_REPLY_TIMEOUT_MILLIS,
+    private val feedbackTimeoutMillis: Long = QA_CHECK_FEEDBACK_TIMEOUT_MILLIS,
 ) {
     /** Steps 1 and 2: a final report when the app would not ask, else `null`. */
     suspend fun preflight(): SmokeReport? {
@@ -63,6 +64,28 @@ class SmokeUiScript(
             screen = test.awaitSettled()
         }
         return report(smokeOutcomeFor(screen), screen.sourceCards)
+    }
+
+    /**
+     * Step 5 of the QA check, in the same Compose session as [ask]: press `Útil` exactly once and
+     * wait up to [feedbackTimeoutMillis] for the thanks line or the failure line. It never presses a
+     * rating button twice and never reads the answer text.
+     */
+    fun rateUseful(test: ComposeUiTest): FeedbackOutcome {
+        if (test.count(ChatTestTags.FEEDBACK_USEFUL) == 0) return FeedbackOutcome.NotShown
+        test.onNodeWithTag(ChatTestTags.FEEDBACK_USEFUL).performScrollTo().performClick()
+        try {
+            test.waitUntil(timeoutMillis = feedbackTimeoutMillis) {
+                test.count(ChatTestTags.FEEDBACK_SENT) > 0 || test.count(ChatTestTags.FEEDBACK_FAILED) > 0
+            }
+        } catch (_: ComposeTimeoutException) {
+            // Neither line appeared in time: classified as `no_reply` below.
+        }
+        return when {
+            test.count(ChatTestTags.FEEDBACK_SENT) > 0 -> FeedbackOutcome.Sent
+            test.count(ChatTestTags.FEEDBACK_FAILED) > 0 -> FeedbackOutcome.Failed
+            else -> FeedbackOutcome.NoReply
+        }
     }
 
     private fun report(outcome: SmokeOutcome, sources: Int = 0) =

@@ -82,6 +82,7 @@ internal fun AnswerFeedbackControl(
                     text = stringResource(Res.string.chat_feedback_failed),
                     style = MaterialTheme.typography.bodyMedium,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    modifier = Modifier.testTag(ChatTestTags.FEEDBACK_FAILED),
                 )
             }
         }

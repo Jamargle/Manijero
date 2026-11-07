@@ -138,7 +138,7 @@ before making any claim in its area.
 - The local smoke test (`--local-smoke`) passed once on the owner's Mac (offscreen Desktop, API 37 emulator); it proves reach and rendering, not answer quality, and lands kept could not be observed (no lands existed on the emulator).
 - Environment profiles: QA has only a placeholder template and empty release folder, prod is unconfigured, and the local service does not enforce local access keys; tested in temporary homes only.
 - Hosted operations are prepared but not deployed; no host, domain, tunnel, or release artifacts exist.
-- QA test builds exist (`--android-qa`, `--desktop-qa`) but point at a placeholder address until `qa_server_deployment`; no QA build has run on a device.
+- QA test builds exist (`--android-qa`, `--desktop-qa`) but point at a placeholder address until `qa_server_deployment`; no QA build has run on a device. `./scripts/init.sh --qa-check` (`qa_real_device_check`) checks the QA Desktop app offscreen against live QA; no Android device or emulator check is planned (owner has no device, 2026-11-07; see known limitations).
 - The health dashboard runs only on the owner's Mac, is not alerting, shows QA as "Not set up yet", uses initial thresholds, and its image pins have no digests yet; the local row was checked in the owner walkthrough, the QA scrape is unverified.
 - Only test builds carry the pilot token (release and packaged apps cannot reach a pilot service); it is extractable from a test build; token auth is tested against an in-process fake only, with no live pilot-profile answer observed.
 - The mock answer service serves fixed contract examples only (not real or legal answers), on loopback for Desktop and the Android emulator.

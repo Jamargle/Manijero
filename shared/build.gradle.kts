@@ -162,6 +162,8 @@ val jvmTestTask = tasks.named<Test>("jvmTest") {
         // The live local smoke check reaches the real local answer service; only
         // :shared:runDesktopLocalSmoke runs it.
         excludeTestsMatching("com.jamarglex.manijero.smoke.DesktopLocalSmokeRun")
+        // The live QA check reaches the real QA service; only :shared:runDesktopQaCheck runs it.
+        excludeTestsMatching("com.jamarglex.manijero.smoke.DesktopQaCheckRun")
     }
     // AndroidBackupExclusionGuardTest reads the checked-in Android manifest and backup rule files
     // (it needs no Android SDK), so declare them as inputs: editing them must rerun the guard
@@ -315,6 +317,45 @@ tasks.register<Test>("runDesktopLocalSmoke") {
         isFailOnNoMatchingTests = true
     }
     systemProperty("java.awt.headless", "true")
+    val expected = smokeExpected
+    val result = smokeResult
+    jvmArgumentProviders.add(
+        CommandLineArgumentProvider {
+            listOfNotNull(
+                expected.orNull?.let { "-Dmanijero.smoke.expected=$it" },
+                result.orNull?.let { "-Dmanijero.smoke.result=$it" },
+            )
+        },
+    )
+    outputs.upToDateWhen { false }
+}
+
+// ---------------------------------------------------------------------------------------------
+// QA Desktop check (test-only, never part of a tier)
+// ---------------------------------------------------------------------------------------------
+// ./scripts/init.sh --qa-check runs this task through backend/app/qa_check.py with
+// -PmanijeroEnvironment=qa. It renders the shared App offscreen as the QA Desktop test build is
+// wired, asks the fixed synthetic question of the live QA service, presses Útil once, and writes
+// one result line to the file named by -PmanijeroSmokeResult (-PmanijeroSmokeExpected is the QA
+// address). Like the Desktop `run` task it alone appends the desktopApp generated environment and
+// access-key resource folders to its classpath when it starts (never a JVM property, environment
+// entry, or argument); PilotTokenGuardTest and QaCheckGuardTest keep it that way.
+tasks.register<Test>("runDesktopQaCheck") {
+    group = "verification"
+    description = "Ask the live QA service once through the QA Desktop app wiring (./scripts/init.sh --qa-check)."
+    testClassesDirs = jvmTestTask.get().testClassesDirs
+    classpath = jvmTestTask.get().classpath
+    useJUnit()
+    filter {
+        includeTestsMatching("com.jamarglex.manijero.smoke.DesktopQaCheckRun")
+        isFailOnNoMatchingTests = true
+    }
+    systemProperty("java.awt.headless", "true")
+    dependsOn(":desktopApp:generateEnvironmentResource", ":desktopApp:generatePilotTokenResource")
+    val environmentFolder = project(":desktopApp").layout.buildDirectory.dir("generated/environment")
+    val pilotTokenFolder = project(":desktopApp").layout.buildDirectory.dir("generated/pilotToken")
+    val generatedFolders = files(environmentFolder, pilotTokenFolder)
+    doFirst { (this as Test).classpath += generatedFolders }
     val expected = smokeExpected
     val result = smokeResult
     jvmArgumentProviders.add(

@@ -2539,6 +2539,21 @@ the owner walkthrough confirms them on a real Mac. Test-only variables: `MANIJER
 `MANIJERO_DOCKER_CLI`, `MANIJERO_QA_PORT`, `MANIJERO_QA_HOME`, `MANIJERO_QA_ADDRESS_FILE`.
 Logs: `<QA home>/logs/qa-<operation>-<UTC>.log` (container output only; no tokens or question text).
 
+### QA Desktop check
+
+`./scripts/init.sh --qa-check` runs `scripts/qa_check.py`, implemented by `app/qa_check.py`
+(operator-only, stdlib-only, reuses the `local_smoke` runner and Java checks). In order, stopping at
+the first gap: lock `build/qa-check/.lock`; address from `qa-address.local` (or
+`MANIJERO_QA_ADDRESS_FILE`; not missing, not the `.invalid` placeholder, `https://`); the QA key file
+exists (existence only, never opened); Java and `gradlew`; `qa_deployment.system_public_probe`
+(`/health`); then `./gradlew --console=plain --quiet -PmanijeroEnvironment=qa :shared:runDesktopQaCheck
+-PmanijeroSmokeExpected=<address> -PmanijeroSmokeResult=<dir>/desktop-result.txt` (15 min, log
+`desktop.log`). The task asks the fixed question and presses `Útil` once, then writes
+`MANIJERO_QA_CHECK_RESULT outcome=<smoke code|not_qa_build|no_access_key> sources=<n>
+feedback=<sent|failed|no_reply|not_shown|not_tried> address=<default|saved> url=<address>`. An
+abstention fails the answer step; the result names the first failing step. Spec:
+[`qa_real_device_check`](../docs/specs/qa_real_device_check.md).
+
 ### Local smoke test
 
 `./scripts/init.sh --local-smoke` (owner steps in [`docs/owner-guide.md`](../docs/owner-guide.md))

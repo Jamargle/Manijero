@@ -63,8 +63,11 @@ Durable MUST/MUST NOT rules for hosted pilot operations and provider boundaries.
   loopback host (`localhost`, `127.0.0.1`, `[::1]`, `10.0.2.2`), and MUST NOT be shown, logged,
   committed, put in state or exceptions, or sent on `/health` or `/ready`. It MUST NOT be built into an Android release variant
   or a packaged/release Desktop output, even when the file exists; only Android debug and the
-  Desktop `run` task may carry it. Reason:
-  [`client_pilot_credentials`](../specs/client_pilot_credentials.md) — the token is a per-client
+  Desktop `run` task (and, for the QA key, the test-only `:shared:runDesktopQaCheck`, which appends the
+  generated resource folder when it starts and never passes the key as a JVM property, environment
+  entry, or argument) may carry it. Reason:
+  [`client_pilot_credentials`](../specs/client_pilot_credentials.md) and
+  [`qa_real_device_check`](../specs/qa_real_device_check.md) — the token is a per-client
   access credential, and a cleartext LAN request or a logged header would hand it to anyone on the
   path; decision 5 keeps it out of anything that could be distributed.
 - **MUST**: `POST /feedback` MUST accept exactly one field, `rating`, with a fixed value (`useful`
