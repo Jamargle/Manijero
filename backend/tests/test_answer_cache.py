@@ -323,6 +323,20 @@ def test_model_and_retrieval_mode_identity_flush_the_whole_cache() -> None:
     assert len(cache) == 0
 
 
+def test_a_new_as_of_day_flushes_the_cache() -> None:
+    """Deadline notices depend on the as-of day, so a cached answer never outlives it."""
+
+    cache = AnswerCache()
+    model = cache_module.model_identity("extractive", "bm25", 5, 2)
+    day_one = cache_module.knowledge_identity(None, "f" * 64, "2026", "2026-06-14")
+    cache.sync_identity(day_one, model)
+    cache._put("a" * 64, cache_module._Entry(stored_at=0.0, response={}, status="abstained", reason="no_evidence"))
+    cache.sync_identity(cache_module.knowledge_identity(None, "f" * 64, "2026", "2026-06-14"), model)
+    assert len(cache) == 1
+    cache.sync_identity(cache_module.knowledge_identity(None, "f" * 64, "2026", "2026-06-16"), model)
+    assert len(cache) == 0
+
+
 def test_key_changes_with_every_part() -> None:
     lands = {"mode": "general", "lands": []}
     base = cache_module.cache_key("¿Hola?", lands, "k", "m")

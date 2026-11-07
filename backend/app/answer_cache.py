@@ -71,10 +71,17 @@ def load_answer_cache(environ: Mapping[str, str]) -> Optional["AnswerCache"]:
     return AnswerCache() if on else None
 
 
-def knowledge_identity(release_id: Optional[str], fingerprint: str, campaign: str) -> str:
-    """The served release id (or ``repository``) plus the admitted passages and the campaign."""
+def knowledge_identity(
+    release_id: Optional[str], fingerprint: str, campaign: str, as_of: Optional[str] = None
+) -> str:
+    """The served release id (or ``repository``), the admitted passages, the campaign, and the as-of day.
 
-    return "{}|{}|{}".format(release_id or "repository", fingerprint, campaign)
+    The as-of day is part of the identity because a verified answer can carry a code-owned
+    deadline notice (``deadline_notices``) whose expired/not-expired choice depends on it: a
+    new day flushes the cache rather than serve yesterday's notice.
+    """
+
+    return "{}|{}|{}|{}".format(release_id or "repository", fingerprint, campaign, as_of or "-")
 
 
 def model_identity(model_version: str, retrieval_mode: str, k: int, max_claims: int) -> str:

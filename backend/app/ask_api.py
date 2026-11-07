@@ -528,7 +528,7 @@ def _answer_through_cache(
         return _respond(decision, mode), False
 
     knowledge = answer_cache.knowledge_identity(
-        release_id, corpus.admitted_fingerprint(), active_campaign
+        release_id, corpus.admitted_fingerprint(), active_campaign, as_of.isoformat()
     )
     model = answer_cache.model_identity(
         generation.model_version if generation is not None else "extractive",
