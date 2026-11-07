@@ -7,7 +7,7 @@ Routine entry point. Exact feature status lives in [`feature_list.json`](feature
 contracts, raw evidence, and acceptance records remain in their owning files. Last updated:
 2026-11-07.
 
-**Feature status** — 92 of 121 features are accepted, including `validity_checker` (offline, digest-bound check of the reviewed catalog and accepted change-impact signals: explicit expiry versus an injected UTC as-of date, machine-evident repeal/expiry only as a review-required retirement proposal, publication additions as review leads, ambiguous/negated signals never retire; writes one derived `validity-review-v1` artifact outside `knowledge/` and leaves the corpus, releases, indexes, and `/ask` untouched; validator accept final, no owner walkthrough), `official_page_change_monitor`
+**Feature status** — 93 of 121 features are accepted, including `validity_checker` (offline, digest-bound check of the reviewed catalog and accepted change-impact signals: explicit expiry versus an injected UTC as-of date, machine-evident repeal/expiry only as a review-required retirement proposal, publication additions as review leads, ambiguous/negated signals never retire; writes one derived `validity-review-v1` artifact outside `knowledge/` and leaves the corpus, releases, indexes, and `/ask` untouched; validator accept final, no owner walkthrough), `official_page_change_monitor`
 (developer-only offline-in-tests command that compares approved FEGA, MAPA, and Junta PAC page
 snapshots by exact-byte/text hash and a bounded normalized diff, writes a deterministic report and
 last-good state outside `knowledge/`, and never fetches in tests or changes catalog/releases/indexes
@@ -104,9 +104,9 @@ before making any claim in its area.
 - Answers need the local service and an explicit campaign; legal scope is only the narrow reviewed
   corpus in [`knowledge/pac_coverage.md`](knowledge/pac_coverage.md).
 - All answer metrics are report-only: synthetic fixtures plus a 14-case author-reviewed sample with
-  visible gaps (12/14 states, 8/11 expected source and passage); no general-accuracy or legal-review claim.
-- Out-of-scope questions can be answered: there is no deliberate scope check, and two known regressions
-  (an aid-amount question, a reclamación) must be fixed by `question_scope_guard`.
+  visible gaps (14/14 states, 8/11 expected source and passage); no general-accuracy or legal-review claim.
+- The question-scope guard is lexical: questions on declared omissions (aid amounts, individual cases,
+  reclamaciones) abstain before retrieval, but an unlisted paraphrase can still reach retrieval.
 - The 72 screenshot baselines are host-rendered pixel checks, not device, accessibility, usability, or iOS
   evidence; known 2× text wrapping on compact layouts.
 - Land-field, search, and summary decisions have no target-user or real-device upgrade evidence.

@@ -56,14 +56,14 @@ Los resultados son informativos: no hay umbral numérico ni puerta de calidad.
 | `plazo-modificacion` | tema | 4 | 3 correctos; 1 cita otro plazo |
 | `distincion-fechas` | límite | 1 | cita el plazo de modificación, no aclara la premisa |
 | `campana-fuera-de-alcance` | límite | 1 | se abstiene correctamente |
-| `tema-fuera-de-alcance` | límite | 1 | se abstiene correctamente |
-| `reclamacion-fuera-de-alcance` | límite | 1 | responde con un plazo no solicitado |
+| `tema-fuera-de-alcance` | límite | 1 | se abstiene correctamente (guardia de alcance) |
+| `reclamacion-fuera-de-alcance` | límite | 1 | se abstiene correctamente (guardia de alcance) |
 | `alcance-terrenos` | límite | 1 | responde igual para todos los terrenos; no procede aclaración |
 
 Totales: **14 casos**, **3 temas** (9 casos) y **5 límites** (5 casos). De los 11
 casos que esperan respuesta, 11 responden, 8 coinciden en fuente y pasaje y 9
-coinciden en la frase crítica literal. De los 3 casos que esperan abstención, 2 se
-abstienen y 1 responde. No hay casos de aclaración de terrenos: el corpus aprobado
+coinciden en la frase crítica literal. De los 3 casos que esperan abstención, los 3 se
+abstienen y no hay respuestas inesperadas. No hay casos de aclaración de terrenos: el corpus aprobado
 no declara `applicability`, así que la respuesta no cambia entre terrenos; la
 aclaración mixta sigue cubierta por `land_safety_eval`, no por este conjunto PAC.
 
@@ -80,9 +80,9 @@ Casos concretos (el informe conserva cada fallo visible):
   pero la recuperación prioriza el pasaje de modificación y no corrige la premisa.
   Queda como límite conocido.
 - `reclamacion-fuera-de-alcance` (límite): una reclamación no cubierta comparte
-  `plazo` con el corpus y recibe el plazo de modificación. Queda como límite
-  conocido de relevancia; el informe lo cuenta como respuesta inesperada, nunca
-  como acierto.
+  `plazo` con el corpus; la guardia de alcance (`question_scope_guard`) ahora se
+  abstiene antes de la recuperación. La guardia es léxica: una paráfrasis no
+  listada aún puede llegar a la recuperación.
 
 Defecto corregido en este cambio: dos afirmaciones extractivas podían unirse en
 una sola frase cuando el primer pasaje no terminaba en punto, y la segunda

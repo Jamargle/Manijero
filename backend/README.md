@@ -1113,6 +1113,19 @@ miss or two unrelated critical passages sharing a unit can abstain); that is the
 safe direction, and the measured trap set and any score threshold belong to
 `land_safety_evaluation`.
 
+### Question-scope pre-check
+
+`app/question_scope.py` holds a code-owned, standard-library-only list with one
+entry per omission declared in `knowledge/pac_coverage.md` (kept one-to-one with
+`coverage.omissions` by a test). `answer_or_abstain` and `answer_with_clarification`
+check it after the stale-corpus, blank, and length checks and before any
+`search` or land clarification. A match abstains with an existing pinned reason
+(`unsafe_request` for aid amounts, individual eligibility, and individual
+notifications; `no_evidence` for the rest) and one `out_of_scope_question` issue
+that carries the omission label, never the question text. Matching is lexical on
+accent- and case-insensitive text, so an unlisted paraphrase can still reach
+retrieval.
+
 Run the report-only tool against the synthetic fixtures:
 
 ```sh

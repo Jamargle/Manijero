@@ -12,29 +12,23 @@ Do not over-claim.
 - Offline retrieval, generation, abstention, clarification, and safety metrics use synthetic
   fixtures and are report-only. The reviewed `/ask` evaluation is a 14-case sample over the three
   approved topics and five boundaries, reviewed only by the project author. Its exact result is
-  12/14 expected states (13/14 before the 2026-11-07 extractive change below), 11/11 expected-answer cases answered, 8/11 with the expected source and
-  passage, 9/11 with the expected critical literal, and 1/3 expected abstentions. Known gaps stay
+  14/14 expected states, 11/11 expected-answer cases answered, 8/11 with the expected source and
+  passage, 9/11 with the expected critical literal, and 3/3 expected abstentions with 0 unexpected answers. Known gaps stay
   visible in [`knowledge/pac_coverage.md`](../../knowledge/pac_coverage.md): `canal-sga-2026`,
-  `fecha-modificacion-2026`, and `distingue-fechas-2026` cite a different reviewed passage, and
-  `reclamacion-fuera-de-alcance` answers an out-of-scope reclamación. Neither that sample nor the
+  `fecha-modificacion-2026`, and `distingue-fechas-2026` cite a different reviewed passage. Neither that sample nor the
   fixture metrics are independent legal review or evidence of general accuracy.
-- **No deliberate question-scope check; regressions owned by `question_scope_guard`.** Out-of-scope
-  questions are refused only when retrieval or verification happens to fail. On 2026-11-07 the
-  extractive generator began citing every sentence of a multi-sentence excerpt
-  (`fix/extractive-cite-every-sentence`), so multi-sentence passages such as the recinto SIGPAC
-  definition can now answer. Known regressions that `question_scope_guard` must fix and prove with
-  the reviewed `/ask` evaluation:
-  - `tema-no-cubierto` (“¿Qué importe de ayuda me corresponde por hectárea?”) is answered with
-    `pasaje-definicion-recinto-sigpac` instead of abstaining (was refused only by accident before).
-  - `reclamacion-fuera-de-alcance` is answered with `pasaje-plazo-modificacion-2026-andalucia`
-    (pre-existing).
-  - Trial evidence, not merged: matching Spanish singular/plural forms in `retrieval.py` made the
-    draft case `rectificacion-errores-2026` (“¿Puede la Administración corregir un error material en
-    un acto?”) answer, but also answered `tema-no-cubierto` with the channel passage, answered an
-    individual-notification boundary (“¿Me han enviado ya la notificación de mi expediente de la
-    PAC?”), and broke `plazo-modificacion-parcelas-2026`. Retry it only behind the scope guard.
-  The knowledge-release no-regression gate compares against the published release, so expect it to
-  flag `tema-no-cubierto` until the guard lands.
+- **The question-scope guard is lexical** ([`question_scope_guard`](../specs/question_scope_guard.md)).
+  Questions matching a declared omission of `knowledge/pac_coverage.md` (aid amounts, individual
+  eligibility, individual notifications, reclamaciones, late-filing penalties, fuerza mayor,
+  monitoring adaptations, other campaigns) abstain before retrieval, which fixed the
+  `tema-no-cubierto` and `reclamacion-fuera-de-alcance` regressions. The list is a code-owned set of
+  patterns in `backend/app/question_scope.py`, so an unlisted paraphrase of an omitted topic can still
+  reach retrieval and be answered with a nearby passage. Trial evidence, not merged: matching Spanish
+  singular/plural forms in `retrieval.py` made the draft case `rectificacion-errores-2026`
+  (“¿Puede la Administración corregir un error material en un acto?”) answer, but also broke
+  `plazo-modificacion-parcelas-2026`. The guard already covers its other two side effects
+  (`tema-no-cubierto` and the individual-notification boundary); retry it only with that ranking break
+  fixed.
 - The numeric-fact check in `verify_draft` ([`numeric_grounding_check`](../specs/numeric_grounding_check.md))
   is lexical and Spanish-only, not entailment: it rejects some correct paraphrases (ranges, an
   added year), checks only day/week/month/year durations and `por ciento`, and its effect on the
