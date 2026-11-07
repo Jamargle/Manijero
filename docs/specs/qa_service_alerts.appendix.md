@@ -73,7 +73,7 @@ Implementer session 2026-11-07.
 - `CI=true ./scripts/init.sh --fast`: all 10 checks passed; backend `2596 passed, 7 skipped, 1 warning`.
 - Offline guard: tests use fake `launchctl`/Docker/Tailscale shell scripts (`MANIJERO_LAUNCHCTL_CLI` etc.), in-process fakes, and a fake Telegram `HTTPServer` on `127.0.0.1:0`; `MANIJERO_TELEGRAM_API` accepts only `http://127.0.0.1:<port>`, the command tests default it to the closed port `9`, and a test asserts every recorded launchctl call is `print|bootstrap|bootout` naming `org.manijero.qa-alerts`. No real launchctl, Docker, Tailscale, Telegram, or internet is called. `--verify` not run: no Android/Desktop/Gradle/packaging change.
 - Implementation choices to check: one problem kind per check (priority down, not ready, erroring, unreachable), so an erroring QA that is also unreachable reports erroring only; stopped-on-purpose counts as an OK check (2 needed for recovery); a problem message suppressed by the 60-minute cap sends no recovery message; `qa_deployment.read_tailscale(cli, port)` is the only refactor (the old `_read_tailscale(ports)` delegates to it), plus `is_qa_container`. Setup's positive path is covered in process (it needs a Terminal); the subprocess tests cover its no-terminal refusal.
-- Owner walkthrough: pending owner walkthrough (real Telegram, launchd, QA running).
+- Owner walkthrough 2026-11-07: passed. Owner reported "QA alerts is working fine. Telegram Bot is working also." Individual step results not reported.
 
 ## Validator checklist
 
@@ -86,9 +86,3 @@ Implementer session 2026-11-07.
 - [ ] `qa_deployment.py` behavior unchanged; no new dependency; service never imports `qa_alerts`.
 - [ ] Docs per the contract within budgets; operations.md amendment cites owner decision 2026-11-07; known limitation for a sleeping/off Mac recorded.
 - [ ] Acceptance: owner walkthrough done, or accept recorded as `pending owner walkthrough`.
-
-## Handoff
-
-- Status: `passing`; validator 2026-11-07 returned accept with condition `pending owner walkthrough` (`docs/validations/qa_service_alerts.md`). Holding commit made on `feature/qa_service_alerts`.
-- Next: owner runs `docs/owner-guide.md` "Owner walkthrough: QA alerts" (6 steps). If every step matches, orchestrator records it as evidence only, sets `accepted`, commits `feat: complete qa_service_alerts`; no second validator. A defect goes back to the implementer.
-- Last checks: `--feature qa_service_alerts` 195 passed; `CI=true --fast` all 10 checks passed.

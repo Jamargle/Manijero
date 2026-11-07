@@ -1,6 +1,6 @@
 # Validation: qa_service_alerts
 
-- Verdict: accept, condition `pending owner walkthrough` (validator, 2026-11-07). Spec: [qa_service_alerts.md](../specs/qa_service_alerts.md); evidence: [appendix](../specs/qa_service_alerts.appendix.md).
+- Verdict: accept (validator, 2026-11-07, condition `pending owner walkthrough`); owner walkthrough passed 2026-11-07, so the feature is accepted. Spec: [qa_service_alerts.md](../specs/qa_service_alerts.md); evidence: [appendix](../specs/qa_service_alerts.appendix.md).
 - Scope: operator-only (backend, `scripts/init.sh`, docs). No `shared/`, apps, Gradle, contracts, or knowledge changes, so `--verify` was not rerun.
 
 ## Checks rerun (independent)
@@ -26,3 +26,8 @@
 - The test alert arrives on the phone.
 - launchd runs the job every 5 minutes (and the macOS "Background item added" notice is as described).
 - A real stop of QA produces the alert, then the "back to normal" message.
+
+## Owner walkthrough (2026-11-07)
+
+- Owner report: "QA alerts is working fine. Telegram Bot is working also." Recorded as passed.
+- Per-step results (bot token and chat id, test alert, launchd every 5 minutes, down alert, back-to-normal message) were not reported individually.
