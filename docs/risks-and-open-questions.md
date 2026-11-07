@@ -50,6 +50,8 @@ current implementation limits and manual checks.
 | Search cannot find a land the person expects | A blank or unexpected result may read as “my land is gone” instead of “this word is not in the record” | Search covers only name, zone, municipality, variety (or custom `Otra` text), water regime and production method; the hint names those fields and the results keep the stored order. Searching by surface or tree count is deliberately unsupported. **No user test yet**: expect questions about why a measure does not match. |
 | Refreshed chat, lands, and help screens have incomplete device and user evidence | Host-rendered screenshots do not prove device behavior, screen-reader output, or that people with low digital confidence can complete the flows. | Complete the manual checks and owner review listed in [`PROGRESS.md`](../PROGRESS.md) and the relevant feature acceptance records before making usability claims. On compact chat the `Preguntar` action may require a short scroll; confirm that cost before release. |
 
+- QA (`qa_server_deployment`) runs on the owner's Mac: it stops when the Mac sleeps or restarts, Tailscale Funnel exposes a public `*.ts.net` hostname (the service still enforces its pilot token, rate and size limits), and "test data only" is a rule, not a technical filter. QA serves the knowledge release baked into the image until `qa_knowledge_deployment`. Update and rollback were not exercised live.
+
 ## Open decisions
 
 ### Blocking next phase

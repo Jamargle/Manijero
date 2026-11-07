@@ -2,6 +2,8 @@
 
 ## Verdict
 
+**Accepted** (2026-11-07) after the owner walkthrough; evidence-only acceptance, no second validator (see "Owner walkthrough" below).
+
 **Accept, condition: pending owner walkthrough** (2026-11-03). Independent validation of the uncommitted diff against `docs/specs/qa_server_deployment.md`. Feature stays `passing` until the owner reports the "Owner walkthrough: QA" in `docs/owner-guide.md` matched.
 
 ## Checks rerun
@@ -31,3 +33,11 @@
 - The container reaches Ollama through the relay on the Mac.
 - A phone browser opens `<address>/health`; update and rollback swap images for real.
 - At acceptance, record in `docs/risks-and-open-questions.md`, `docs/progress/known-limitations.md`, and `PROGRESS.md`: QA needs the Mac awake, Funnel exposes a public hostname, test-data-only is a rule and not a technical filter.
+
+## Owner walkthrough (2026-11-07)
+
+Owner ran "Owner walkthrough: QA" on their Mac and reported every step matched, except step 6.
+
+- Steps 1-5, 7, 8: matched. Tailscale HTTPS certificates and Funnel had to be enabled in the Tailscale admin pages first (the first `--qa-deploy` correctly refused and named the step). Deploy printed `Result: QA is running at https://<mac>.<tailnet>.ts.net for test data only.`, a phone on mobile data opened `/health`, and the QA app answered a made-up question.
+- Step 6 (update and roll back): **not exercised**. With no newer image there was nothing to update, so there was nothing to roll back to. Real image swaps are still unverified live, and only the tests cover them.
+- The guide's `tailscale status` check fails when the Tailscale CLI is not on `PATH`; the deploy tool already falls back to the app's bundled CLI.

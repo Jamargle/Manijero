@@ -85,7 +85,7 @@ Contract: [`qa_server_deployment.md`](qa_server_deployment.md).
 
 ## Handoff
 
-- Status: `passing`; validator accept with condition `pending owner walkthrough` (2026-11-03); holding commit made. Next: owner walkthrough, then evidence-only acceptance (no second validator).
+- Status: `accepted` 2026-11-07 after the owner walkthrough (update/rollback not exercised: no newer image). Earlier: `passing`; validator accept with condition `pending owner walkthrough` (2026-11-03); holding commit made. Next: owner walkthrough, then evidence-only acceptance (no second validator).
 - Done: gate (`privacy_review.pilot_gate`), launcher warning, image entrypoint/Dockerfile/allowlist, `qa_deployment.py`, `qa_service.py`, `init.sh` dispatch, tests, constraints, hosting addendum, ARCHITECTURE, owner guide, backend README.
 - Left for acceptance: owner walkthrough (confirms Tailscale JSON/CLI forms and Docker clients-file access); then `docs/risks-and-open-questions.md`, `docs/progress/known-limitations.md`, `PROGRESS.md` (Mac sleep, public Funnel hostname, test-data rule, QA serves the image's release until `qa_knowledge_deployment`).
 - Needs `--container-build` before a real deploy: the current `local` image lacks the pilot launcher label.
