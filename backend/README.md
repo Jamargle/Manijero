@@ -1131,6 +1131,19 @@ generator) and pipeline mappings produce exactly one reason:
 | `unsafe_request` | A generated claim asserts the person's legal status (generation `policy_failed`). |
 | `generator_abstained` | The generator explicitly declined; its copy is discarded. |
 | `generation_error` | The generator raised or returned an unusable object. |
+| `personal_data` | Screen: the question holds a DNI, NIE, company NIF, phone, email, or IBAN. |
+| `prompt_injection` | Screen: the question asks to ignore or reveal instructions, or to take another role. |
+| `out_of_domain` | Screen: an off-topic marker (sport, recipes, jokes, programming, betting...) and no PAC, farming, or land term. |
+
+The last three come from `app/input_guardrails.py`, which `/ask` runs before
+retrieval. It is standard-library only, deterministic (word lists and patterns, no
+model), and returns only a reason code. Precedence is `personal_data`, then
+`prompt_injection`, then `out_of_domain`. SIGPAC and cadastral references are masked
+first and never screened. A `personal_data` hit is not retained (even when opted
+in), its trace holds no text, and nothing is logged. Limits: lexical, Spanish and
+English only; out-of-domain fires only on listed topics; names and addresses are
+not screened (retention redaction still handles those). Precision comes first, so a
+miss falls through to the grounded path, which abstains when unsupported.
 
 Server-side copy is **code-owned**: `ABSTENTION_MESSAGES` maps every reason to one
 pinned plain-Spanish message, an `Abstention` has no text field, and no message

@@ -274,6 +274,9 @@ def test_taxonomy_lists_the_documented_reasons_in_order() -> None:
         "unsafe_request",
         "generator_abstained",
         "generation_error",
+        "personal_data",
+        "prompt_injection",
+        "out_of_domain",
     )
     assert tuple(ABSTENTION_MESSAGES) == ABSTENTION_REASONS
 

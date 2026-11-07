@@ -46,7 +46,7 @@ FEEDBACK_RATINGS = ("useful", "not_useful")
 ABSTENTION_REASONS = (
     "invalid_question", "no_evidence", "insufficient_evidence", "stale_evidence",
     "conflicting_evidence", "false_premise", "unsafe_request", "generator_abstained",
-    "generation_error",
+    "generation_error", "personal_data", "prompt_injection", "out_of_domain",
 )
 GENERATION_OUTCOMES = (
     "used", "rate_limited", "redaction_failed", "payload_invalid", "transport_error",

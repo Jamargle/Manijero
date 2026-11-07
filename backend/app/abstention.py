@@ -34,6 +34,9 @@ Durable rules:
   an unknown ``source_id``, or an unreadable file stays a hard
   ``PassageSetError``/``CatalogReadError``, because a broken deployment must be
   loud, not silent.
+* The last three reasons (``personal_data``, ``prompt_injection``, ``out_of_domain``)
+  come from the pre-retrieval screen in :mod:`app.input_guardrails`, not from the
+  answer pipeline.
 * ``AskResponse`` forbids extra properties, so the abstention sub-reason is not
   on the wire: it stays a Python-level value on :class:`Abstention`.
 """
@@ -73,6 +76,10 @@ ABSTENTION_REASONS: Tuple[str, ...] = (
     "unsafe_request",
     "generator_abstained",
     "generation_error",
+    # Pre-retrieval screening reasons (see ``app.input_guardrails``).
+    "personal_data",
+    "prompt_injection",
+    "out_of_domain",
 )
 
 # The pinned plain-Spanish copy, one message per reason. Code owns this copy: no
@@ -118,6 +125,20 @@ ABSTENTION_MESSAGES: Dict[str, str] = {
         "Ahora mismo no he podido preparar la respuesta. Vuelve a intentarlo dentro de "
         "un momento; si sigue igual, pregunta en tu oficina comarcal agraria o con tu "
         "cooperativa."
+    ),
+    "personal_data": (
+        "Por tu seguridad, no uso datos personales como el DNI, el NIE, el teléfono, "
+        "el correo electrónico o la cuenta bancaria. Escribe tu pregunta sin esos "
+        "datos e inténtalo otra vez."
+    ),
+    "prompt_injection": (
+        "Lo siento, no puedo cambiar cómo funciono ni enseñar mis instrucciones. "
+        "Solo respondo sobre las ayudas de la PAC y tus terrenos. Escribe tu "
+        "pregunta e inténtalo otra vez."
+    ),
+    "out_of_domain": (
+        "Solo puedo ayudarte con las ayudas de la PAC y con tus terrenos. Escribe "
+        "una pregunta sobre esos temas e inténtalo otra vez."
     ),
 }
 

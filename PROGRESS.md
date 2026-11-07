@@ -7,7 +7,7 @@ Routine entry point. Exact feature status lives in [`feature_list.json`](feature
 contracts, raw evidence, and acceptance records remain in their owning files. Last updated:
 2026-11-07.
 
-**Feature status** — 91 of 120 features are accepted, including `validity_checker` (offline, digest-bound check of the reviewed catalog and accepted change-impact signals: explicit expiry versus an injected UTC as-of date, machine-evident repeal/expiry only as a review-required retirement proposal, publication additions as review leads, ambiguous/negated signals never retire; writes one derived `validity-review-v1` artifact outside `knowledge/` and leaves the corpus, releases, indexes, and `/ask` untouched; validator accept final, no owner walkthrough), `official_page_change_monitor`
+**Feature status** — 92 of 120 features are accepted, including `input_guardrails` (`/ask` screens each question before retrieval with deterministic rules: personal data, prompt injection, and out-of-domain topics get one fixed code-owned Spanish abstention; personal data is never retained, traced, logged, or put in metrics; SIGPAC and land data pass; validator accept final, no owner walkthrough), `validity_checker` (offline, digest-bound check of the reviewed catalog and accepted change-impact signals: explicit expiry versus an injected UTC as-of date, machine-evident repeal/expiry only as a review-required retirement proposal, publication additions as review leads, ambiguous/negated signals never retire; writes one derived `validity-review-v1` artifact outside `knowledge/` and leaves the corpus, releases, indexes, and `/ask` untouched; validator accept final, no owner walkthrough), `official_page_change_monitor`
 (developer-only offline-in-tests command that compares approved FEGA, MAPA, and Junta PAC page
 snapshots by exact-byte/text hash and a bounded normalized diff, writes a deterministic report and
 last-good state outside `knowledge/`, and never fetches in tests or changes catalog/releases/indexes
@@ -142,6 +142,7 @@ before making any claim in its area.
 - The answer trace is off by default and local-only tested; old traces are purged only while the service runs.
 - The answer inspector shows only in test builds talking to a loopback service in the `development` profile; a real device on a LAN address never shows it, and no GUI run was done.
 - Health metrics (`GET /metrics`) are per-process counts that reset on restart; source-update recency shows only when its state folder is set; in-process tests only.
+- The `/ask` input screen (personal data, prompt injection, off-topic) is lexical, Spanish and English only, and fires only on listed topics; names and addresses are not screened.
 
 **Detail on demand**
 
