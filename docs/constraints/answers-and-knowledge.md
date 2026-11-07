@@ -245,6 +245,13 @@ Durable MUST/MUST NOT rules for backend answer path, retrieval, generation, eval
   readiness, the release builder, or the review merge, and MUST NOT change a `review_status` or a
   canonical byte. Reason: `legal_structure_chunker` — a chunk is a future citation unit, not reviewed
   knowledge; a guessed boundary or an inferred validity would be cited as law.
+- **MUST**: the structured-chunk index is derived and lives outside `knowledge/`. It MUST be built only
+  from chunk sets joined to approved catalog entries bound to approval evidence, MUST fail closed on any
+  malformed or unreviewed input, and MUST copy validity only from the catalog. `/ask` and `/ready` MAY
+  read it only with `MANIJERO_STRUCTURED_INDEX=on` in `MANIJERO_ENVIRONMENT=local` plus
+  `MANIJERO_DEPLOYMENT_PROFILE=development`, or in `MANIJERO_ENVIRONMENT=qa`; every other or unset
+  environment MUST ignore it. Release gates and the review merge MUST NOT read it. Reason:
+  `structured_chunk_index` — chunk text is only source-level reviewed, so it must not reach pilot or prod.
 - **MUST**: retrieval changes MUST be compared with the measured BM25 baseline on the reviewed cases;
   report-only metrics MUST NOT be described as improved answer quality without sufficient reviewed
   evidence.

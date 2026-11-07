@@ -3,7 +3,8 @@
 This directory holds the admission gate for the Manijero MVP knowledge corpus.
 A document may only become eligible for ingestion when a human has approved it
 and its catalog metadata is complete, and only reviewed passages of such a
-document are ever searchable. Both artifacts are Git-tracked text files, so
+document are ever searchable (the one exception is the flag-only structured
+index, local development and QA only, built from reviewed chunk sets). Both artifacts are Git-tracked text files, so
 every addition and change is reviewable, diffable, and revertible.
 
 ## What this does and does not do
@@ -47,6 +48,7 @@ measurement, not evidence about legal coverage or real user questions.
 | `legal-change-impact.schema.json` | The readable contract for the derived change-impact report (`legal-change-impact-report-v1`). It is not canonical knowledge. |
 | `validity-review.schema.json` | The readable contract for the derived source-validity review (`validity-review-v1`). It is not canonical knowledge. |
 | `legal-markdown-document.schema.json` | The readable contract for one derived Markdown document parsed from a quarantined official PDF (`legal-markdown-document-v1`), including page line ranges and per-capability status. It is not canonical knowledge. |
+| `structured-chunk-index.schema.json` | The readable contract for the derived structured-chunk index manifest (`structured-chunk-index-v1`). It holds no data and is not canonical knowledge. |
 | `legal-chunk-set.schema.json` | The readable contract for one derived chunk set and its run manifest (`legal-chunk-set-v1`, `legal-chunk-manifest-v1`), including the reviewed-validity block. It is not canonical knowledge. |
 | `knowledge-update-review.schema.json` | The readable contract for one local human-review package (`knowledge-update-review-package-v1`), including the after-state evaluation-case binding and merge readiness. It is not canonical knowledge. |
 | `knowledge-update-review-decisions.schema.json` | The readable contract for the review decision history (`knowledge-update-review-decisions-v1`) that the controlled merge verifies. It is not canonical knowledge. |
