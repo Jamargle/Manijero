@@ -332,3 +332,13 @@ server exists or is reliable, that the tunnel has been installed, that costs wil
 price, or that a provider will not change terms. No account, domain, server, deployment, load test,
 restore drill, or provider incident exercise was performed. No real user data was used. The current
 API remains extractive and unauthenticated, and no Gemini call exists.
+
+### QA transport (2026-11-02)
+
+Owner decision: the QA answer service runs on the owner's own Mac and is reached over HTTPS through
+Tailscale Funnel (free account, fixed `https://<mac>.<tailnet>.ts.net`). This is transport only, for
+QA with made-up test data only and no real users; the service still enforces its own token
+authentication, rate limits, and request-size limits. It does not change the pilot selection above:
+the owned-server path stays blocked, Cloudflare Tunnel stays the conditional pilot transport, and no
+Tailscale terms were reviewed for real-user data. See
+[`qa_server_deployment`](qa_server_deployment.md).

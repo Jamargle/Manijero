@@ -32,6 +32,10 @@ Durable rules:
 * A sentence asserting the person's legal status is rejected.
 * The orientative notice is added by code, never produced by a generator, and
   neither pinned string contains a digit or a date.
+* Deadline notices (``app.deadline_notices``) are also code-owned: one final
+  paragraph appended after ``verify_draft``, driven only by a cited passage's
+  reviewed ``official_deadline`` and ``as_of``. A generator draft containing
+  their text is rejected, and the paragraph is recomputed for the claims kept.
 
 The checks are lexical by design: figure presence is not entailment, the
 eligibility check is a phrase list, and semantic grounding and conflict
@@ -46,6 +50,7 @@ from datetime import date
 from typing import Any, Dict, FrozenSet, List, Optional, Protocol, Sequence, Tuple, Union
 
 from app import answer_trace
+from app.deadline_notices import deadline_paragraph
 from app.retrieval import (
     DEFAULT_K,
     RetrievedPassage,
@@ -230,8 +235,8 @@ class GroundingGenerator(Protocol):
 class ExtractiveGroundingGenerator:
     """The default, deterministic, offline generator: no clock, no model.
 
-    For the top ``max_claims`` candidates in rank order it emits one claim per
-    candidate whose text is the candidate's reviewed ``excerpt`` followed by its
+    For the top ``max_claims`` candidates in rank order it emits each sentence of
+    the candidate's reviewed ``excerpt`` as its own claim, followed by its
     marker. The text is copied verbatim, so the figure/date and critical
     extractive checks hold by construction.
     """
@@ -249,7 +254,12 @@ class ExtractiveGroundingGenerator:
         claims: List[str] = []
         markers: List[int] = []
         for rank, passage in numbered_candidates[:limit]:
-            claims.append("{} [{}]".format(passage.excerpt.strip(), rank))
+            # Cite every sentence of a multi-sentence excerpt: the verifier
+            # requires a marker on each sentence, so a single trailing marker
+            # would reject a literal, reviewed excerpt as ``uncited_sentence``.
+            excerpt = passage.excerpt.strip()
+            sentences = split_sentences(excerpt) or (excerpt,)
+            claims.extend("{} [{}]".format(sentence, rank) for sentence in sentences)
             markers.append(rank)
         if not claims:
             return DraftAnswer(status="abstained", answer="", source_markers=())
@@ -1093,7 +1103,8 @@ def generate_grounded_answer(
     if not report.ok:
         return NotAnswered(_reason_for(report.issues), report.issues, report.claims)
 
-    answer, kept_claims = _fit_claims(report.claims)
+    passages_by_rank = {rank: passage for rank, passage in numbered_candidates}
+    answer, kept_claims = _fit_claims(report.claims, passages_by_rank, as_of)
     if not kept_claims:
         return NotAnswered(
             "grounding_failed",
@@ -1108,7 +1119,6 @@ def generate_grounded_answer(
     cited_markers = tuple(
         sorted({marker for claim in kept_claims for marker in claim.markers})
     )
-    passages_by_rank = {rank: passage for rank, passage in numbered_candidates}
     sources = tuple(passages_by_rank[marker] for marker in cited_markers)
     response_marker_by_rank = {
         rank: ordinal for ordinal, rank in enumerate(cited_markers, start=1)
@@ -1192,16 +1202,27 @@ def _assemble_claims(claims: Sequence[ClaimVerdict]) -> str:
 
 def _fit_claims(
     claims: Sequence[ClaimVerdict],
+    passages_by_rank: Dict[int, RetrievedPassage],
+    as_of: Optional[date],
 ) -> Tuple[str, Tuple[ClaimVerdict, ...]]:
-    """Assemble the surviving claims, dropping trailing ones until the payload fits.
+    """Assemble the surviving claims and the deadline paragraph, dropping trailing claims until it fits.
 
-    Claims are dropped whole, never mid-sentence, and the first claim is always
-    kept because :func:`verify_draft` already checked that it fits.
+    Claims are dropped whole, never mid-sentence, and the paragraph is recomputed
+    from the claims that remain. When even the first claim plus its paragraph
+    does not fit, nothing is kept (the ``answer_too_long`` path).
     """
 
     kept = list(claims)
     while kept:
         answer = _assemble_claims(kept)
+        cited = [
+            passages_by_rank[marker]
+            for marker in sorted({m for claim in kept for m in claim.markers})
+            if marker in passages_by_rank
+        ]
+        paragraph = deadline_paragraph(cited, as_of)
+        if paragraph:
+            answer = "{}\n\n{}".format(answer, paragraph)
         if len(answer) <= MAX_ANSWER_CHARS:
             return answer, tuple(kept)
         kept.pop()

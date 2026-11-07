@@ -46,7 +46,7 @@ FEEDBACK_RATINGS = ("useful", "not_useful")
 ABSTENTION_REASONS = (
     "invalid_question", "no_evidence", "insufficient_evidence", "stale_evidence",
     "conflicting_evidence", "false_premise", "unsafe_request", "generator_abstained",
-    "generation_error",
+    "generation_error", "personal_data", "prompt_injection", "out_of_domain",
 )
 GENERATION_OUTCOMES = (
     "used", "rate_limited", "redaction_failed", "payload_invalid", "transport_error",
@@ -55,6 +55,7 @@ GENERATION_OUTCOMES = (
 READINESS_PROBLEMS = (
     "campaign_unavailable", "corpus_unavailable", "corpus_not_current", "no_eligible_sources",
 )
+CACHE_OUTCOMES = ("hit", "miss", "expired", "discarded")
 RELEASE_STATES = ("served", "refused", "repository")
 JOBS = ("monitor", "boe", "boja")
 RELEASE_ID = re.compile(r"^[0-9a-f]{16}$")
@@ -73,6 +74,7 @@ FAMILIES: Dict[str, Tuple[str, str]] = {
     "request_duration_seconds": ("histogram", "Request duration in seconds by route."),
     "request_rejections_total": ("counter", "Requests refused at the gate by route and reason."),
     "answers_total": ("counter", "Answer responses by status since process start."),
+    "answer_cache_lookups_total": ("counter", "Answer cache lookups by fixed outcome since process start."),
     "feedback_total": ("counter", "Accepted answer feedback by fixed rating, never by content."),
     "abstentions_total": ("counter", "Abstained answers by fixed reason since process start."),
     "generation_outcomes_total": ("counter", "Model drafts by provider and fixed outcome."),
@@ -133,6 +135,8 @@ class HealthMetrics:
             self._counters["answers_total"][_labels(status=status)] = 0
         for reason in ABSTENTION_REASONS:
             self._counters["abstentions_total"][_labels(reason=reason)] = 0
+        for outcome in CACHE_OUTCOMES:
+            self._counters["answer_cache_lookups_total"][_labels(outcome=outcome)] = 0
         for rating in FEEDBACK_RATINGS:
             self._counters["feedback_total"][_labels(rating=rating)] = 0
 
@@ -180,6 +184,9 @@ class HealthMetrics:
             "generation_outcomes_total",
             _labels(provider=clamp(provider, PROVIDERS), outcome=clamp(outcome, GENERATION_OUTCOMES)),
         )
+
+    def count_cache_lookup(self, outcome: str) -> None:
+        self._increment("answer_cache_lookups_total", _labels(outcome=clamp(outcome, CACHE_OUTCOMES)))
 
     def count_feedback(self, rating: str) -> None:
         self._increment("feedback_total", _labels(rating=clamp(rating, FEEDBACK_RATINGS)))
@@ -356,6 +363,13 @@ def note_generation(provider: str, outcome: str, used_outcome: str) -> None:
     registry = _ACTIVE.get()
     if registry is not None:
         registry.count_generation(provider, "used" if outcome == used_outcome else outcome)
+
+
+@_safe
+def note_cache_lookup(outcome: str) -> None:
+    registry = _ACTIVE.get()
+    if registry is not None:
+        registry.count_cache_lookup(outcome)
 
 
 @_safe

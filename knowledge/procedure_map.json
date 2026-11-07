@@ -18,15 +18,20 @@
           "res_20260121",
           "dl_1_2026",
           "rd_1048_2022",
-          "rd_537_2026"
+          "rd_537_2026",
+          "rd_1047_2022",
+          "ley_39_2015"
         ],
         "passage_ids": [
           "pasaje-canal-presentacion-andalucia",
           "pasaje-canal-presentacion-excepcion-nacional",
           "pasaje-plazo-presentacion-2026-andalucia",
-          "pasaje-plazo-modificacion-2026-andalucia"
+          "pasaje-plazo-modificacion-2026-andalucia",
+          "pasaje-definicion-recinto-sigpac",
+          "pasaje-notificacion-preferencia-electronica",
+          "pasaje-rectificacion-errores-materiales"
         ],
-        "gap_note": "Solo hay evidencia revisada sobre el canal y los plazos de presentación; faltan otros pasos del procedimiento."
+        "gap_note": "Hay evidencia revisada sobre canal, plazos, recinto SIGPAC, notificación electrónica y rectificación de errores; faltan otros pasos del procedimiento."
       }
     },
     {

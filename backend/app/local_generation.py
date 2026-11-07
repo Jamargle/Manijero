@@ -57,8 +57,8 @@ from app.gemini_generation import (
 from app.privacy_review import (
     GENERATION_PROVIDER_ENV,
     GateResult,
-    evaluate_pilot_review,
     load_review_record,
+    pilot_gate,
 )
 
 # --- Constants ------------------------------------------------------------------------
@@ -503,7 +503,7 @@ def resolve_local_provider(
         blockers.append(BLOCKER_MODEL_MISMATCH)
     elif record is None and not configured_model:
         blockers.insert(0, BLOCKER_MODEL_MISMATCH)
-    if pilot and not evaluate_pilot_review(review_record, as_of=as_of).passed:
+    if pilot and not pilot_gate(review_record, source, as_of=as_of).passed:
         blockers.append(BLOCKER_PILOT_REVIEW)
     if blockers or record is None:
         return ProviderResolution(PROVIDER_EXTRACTIVE, tuple(dict.fromkeys(blockers)))
@@ -522,6 +522,7 @@ def resolve_local_provider(
             clock=active_clock,
             provider_name=PROVIDER_LOCAL,
             used_outcome=OUTCOME_LOCAL_USED,
+            model_version="local:{}@{}".format(record.model, record.digest),
         ),
     )
 

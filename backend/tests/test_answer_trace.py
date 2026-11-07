@@ -375,6 +375,9 @@ def test_hybrid_trace_records_vector_matches_and_fallback_code(tmp_path: Path) -
 
 
 class _Resolution:
+    model_version = "test-double"
+    used_outcome = None
+
     def __init__(self, generator: Any) -> None:
         self._generator = generator
 

@@ -998,6 +998,40 @@ def test_new_settings_template_shows_the_answer_trace_line_commented_off(env: En
     assert env.paths.settings.read_text(encoding="utf-8") == "MANIJERO_ACTIVE_CAMPAIGN=2027\n"
 
 
+@pytest.mark.parametrize(
+    "extra, expected",
+    [("", True), ("MANIJERO_ANSWER_CACHE=on\n", True), ("MANIJERO_ANSWER_CACHE=off\n", False),
+     ('MANIJERO_ANSWER_CACHE="off"\n', False)],
+)
+def test_settings_accept_the_optional_answer_cache_line(env: Env, extra: str, expected: bool) -> None:
+    _write_settings(env, "MANIJERO_ACTIVE_CAMPAIGN=2026\n" + extra)
+
+    settings = lrb.read_settings(env.paths.settings)
+
+    assert settings is not None and settings.answer_cache is expected
+
+
+@pytest.mark.parametrize(
+    "text, line",
+    [
+        ("MANIJERO_ACTIVE_CAMPAIGN=2026\nMANIJERO_ANSWER_CACHE=Off\n", 2),
+        ("MANIJERO_ACTIVE_CAMPAIGN=2026\nMANIJERO_ANSWER_CACHE=yes\n", 2),
+        ("MANIJERO_ACTIVE_CAMPAIGN=2026\nMANIJERO_ANSWER_CACHE=on\nMANIJERO_ANSWER_CACHE=off\n", 3),
+    ],
+)
+def test_invalid_or_repeated_answer_cache_line_names_the_line(env: Env, text: str, line: int) -> None:
+    _write_settings(env, text)
+
+    with pytest.raises(lrb.SettingsError, match="problem on line {}".format(line)):
+        lrb.read_settings(env.paths.settings)
+
+
+def test_new_settings_template_shows_the_answer_cache_line_commented_on(env: Env) -> None:
+    assert lrb.create_settings(env.paths.settings) is True
+
+    assert "\n# MANIJERO_ANSWER_CACHE=on\n" in env.paths.settings.read_text(encoding="utf-8")
+
+
 def test_local_paths_layout() -> None:
     paths = lrb.local_paths(Path("/x/home"))
     assert paths.settings == Path("/x/home/settings.env")

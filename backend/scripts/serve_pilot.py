@@ -16,6 +16,10 @@ Before serving traffic the launcher:
 5. starts Uvicorn with the access log off (the application writes the reviewed request
    line) and without reload.
 
+In QA test-data-only mode (``MANIJERO_ENVIRONMENT=qa`` and ``MANIJERO_QA_TEST_DATA_ONLY=yes``,
+set only by ``./scripts/init.sh --qa-deploy``) a pending privacy review does not refuse the
+start; a plain warning is printed instead. Pilot and prod stay blocked.
+
 Config, not secrets, is printed at startup. ``--preflight-only`` exits after the checks so
 a service manager can run it as a precondition.
 
@@ -39,6 +43,10 @@ from app.pilot_ops import run_preflight  # noqa: E402
 
 PROFILE_REQUIRED = "pilot_profile_required"
 PUBLIC_BIND_REFUSED = "public_bind_refused"
+QA_WARNING = (
+    "WARNING: QA test-data-only mode. The privacy review is still pending: use only made-up test "
+    "questions; no real users."
+)
 DEFAULT_HOST = "127.0.0.1"
 DEFAULT_PORT = 8000
 DEFAULT_WORKERS = 2
@@ -85,6 +93,9 @@ def main(argv: list[str] | None = None) -> int:
         _fail("concurrency_invalid")
         return 2
 
+    if report.qa_test_data_only:
+        print(QA_WARNING, flush=True)
+        print(QA_WARNING, file=sys.stderr, flush=True)
     _summary(config, args.host, args.port, args.workers, concurrency, report)
     if args.preflight_only:
         return 0
@@ -119,7 +130,11 @@ def _summary(config, host: str, port: int, workers: int, concurrency: int, repor
     print("reload: disabled", flush=True)
     print("access_log: application-owned", flush=True)
     print(f"corpus_ready: {'yes' if report.readiness and report.readiness.ready else 'no'}", flush=True)
-    print(f"privacy_review: {'passed' if report.privacy_review_passed else 'blocked'}", flush=True)
+    if report.qa_test_data_only:
+        review = "pending (QA test data only)"
+    else:
+        review = "passed" if report.privacy_review_passed else "blocked"
+    print(f"privacy_review: {review}", flush=True)
     print(f"retention: {'configured' if report.retention_configured else 'off'}", flush=True)
     print(f"generation_provider: {report.generation_provider}", flush=True)
 

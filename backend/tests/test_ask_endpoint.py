@@ -285,3 +285,68 @@ def test_invalid_corpus_source_metadata_fails_closed(client) -> None:
 
     assert response.status_code == 503
     assert response.json() == {"detail": "Answer service is temporarily unavailable."}
+
+
+DEADLINE_PASSAGE_ID = "fixture-clar-solicitud-1"
+EXPIRED_SENTENCE = "El plazo oficial terminó el 1 de octubre de 2026."
+
+
+def documents_with_deadline(value: Any = "2026-10-01") -> CorpusDocuments:
+    documents = fixture_documents()
+    passages = deepcopy(documents.passages)
+    for passage in passages["passages"]:
+        if passage["id"] == DEADLINE_PASSAGE_ID:
+            passage["official_deadline"] = value
+    return CorpusDocuments(catalog=documents.catalog, passages=passages)
+
+
+def test_deadline_notice_follows_the_injected_as_of_date(client) -> None:
+    from app.deadline_notices import COOPERATIVE
+
+    app.dependency_overrides[get_corpus_documents] = documents_with_deadline
+    app.dependency_overrides[get_as_of_date] = lambda: date(2026, 10, 1)
+    before = client.post("/ask", json=payload()).json()
+    app.dependency_overrides[get_as_of_date] = lambda: date(2026, 10, 2)
+    after = client.post("/ask", json=payload()).json()
+
+    assert before["answer"].endswith("\n\n" + COOPERATIVE)
+    assert EXPIRED_SENTENCE not in before["answer"]
+    assert after["answer"].endswith("\n\n" + EXPIRED_SENTENCE + " " + COOPERATIVE)
+    for body in (before, after):
+        assert set(body) == {"status", "answer", "sources", "land_scope", "land_ids_to_choose"}
+        assert set(body["sources"][0]) == {
+            "title", "issuing_body", "url", "location",
+            "published_or_updated_on", "verified_on", "excerpt",
+        }
+
+
+def test_abstentions_and_clarifications_never_carry_a_notice(client) -> None:
+    from app.deadline_notices import COOPERATIVE
+
+    app.dependency_overrides[get_corpus_documents] = documents_with_deadline
+    app.dependency_overrides[get_as_of_date] = lambda: date(2026, 10, 2)
+    abstained = client.post("/ask", json=payload("zzzz qqqq"))
+    request = payload("¿Puedo regar mi olivar de ejemplo?")
+    request["land_context"] = {
+        "mode": "all_active",
+        "lands": [
+            {"id": "opaque-one", "water_regime": "irrigated"},
+            {"id": "opaque-two", "water_regime": "dryland"},
+        ],
+    }
+    clarified = client.post("/ask", json=request)
+
+    assert abstained.json()["status"] == "abstained"
+    assert COOPERATIVE not in abstained.text and "plazo oficial" not in abstained.text
+    assert clarified.json()["status"] == "needs_land_clarification"
+    assert clarified.json()["answer"] == ""
+
+
+@pytest.mark.parametrize("value", ["2026-02-30", "15/05/2026", None, "20260515"])
+def test_invalid_official_deadline_returns_generic_503(client, value) -> None:
+    app.dependency_overrides[get_corpus_documents] = lambda: documents_with_deadline(value)
+
+    response = client.post("/ask", json=payload())
+
+    assert response.status_code == 503
+    assert response.json() == {"detail": "Answer service is temporarily unavailable."}

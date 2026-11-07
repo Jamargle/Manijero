@@ -37,7 +37,7 @@ from dataclasses import dataclass
 from datetime import date
 from typing import Any, Dict, List, Mapping, Optional, Tuple, Union
 
-from app.abstention import Abstention, answer_or_abstain
+from app.abstention import Abstention, answer_or_abstain, scope_abstention
 from app.generation import (
     LAND_SCOPES,
     Answered,
@@ -237,12 +237,17 @@ def answer_with_clarification(
 ) -> Union[Answered, Abstention, NeedsLandClarification]:
     """Return a clarification decision, or the accepted answer/abstention.
 
-    :func:`clarify_land_scope` runs first; on a decision it is returned
+    A question about a declared omission abstains first, before any retrieval
+    (:func:`app.abstention.scope_abstention`). Then :func:`clarify_land_scope` runs; on a decision it is returned
     unchanged. Otherwise the accepted :func:`answer_or_abstain` runs with
     ``land_scope = land_context.mode``, so ``general``, a single land, and a
     ``selected`` request behave exactly as accepted.
     """
 
+    if isinstance(corpus, Retriever):
+        out_of_scope = scope_abstention(question)
+        if out_of_scope is not None:
+            return out_of_scope
     decision = clarify_land_scope(
         question,
         land_context,

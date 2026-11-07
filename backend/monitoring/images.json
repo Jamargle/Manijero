@@ -1,0 +1,14 @@
+{
+  "grafana": {
+    "image": "grafana/grafana-oss:12.0.0",
+    "digest": null,
+    "reviewed_on": "2026-11-02",
+    "reason": "Official free Grafana OSS image, pinned to an explicit version tag. The index digest could not be read in the offline implementation session; a developer must fill it in (see backend/README.md, Health dashboard)."
+  },
+  "prometheus": {
+    "image": "prom/prometheus:v3.4.0",
+    "digest": null,
+    "reviewed_on": "2026-11-02",
+    "reason": "Official Prometheus image, pinned to an explicit version tag. The index digest could not be read in the offline implementation session; a developer must fill it in (see backend/README.md, Health dashboard)."
+  }
+}

@@ -180,6 +180,7 @@ Read from the process environment; secrets live in an operator-owned file, never
 | `MANIJERO_RETENTION_DB` | both (optional) | Unset = product-improvement retention off. Otherwise an owner-only SQLite path outside the repository (see "Product-improvement retention and the privacy gate"). |
 | `MANIJERO_GENERATION_PROVIDER` | both (optional) | `extractive` (default), `gemini`, or `local`. `gemini` selects the gated drafting path only when every gate input passes (see "Gated Gemini drafting"); today no transport exists and the gates are closed, so it stays extractive. `local` selects loopback Ollama drafting (see "Local open-weight drafting (Ollama)"); in the pilot profile it also needs a passed pilot review, which is pending, so it is development-only today. The value is exact (`Local` is not `local`). Any other value is a preflight problem. |
 | `MANIJERO_ANSWER_TRACE` | both (optional) | `on` writes a local debug trace per question (see "Answer pipeline trace"); unset, empty, or `off` is off. Any other value stays off and logs `answer_trace state=off reason=value_invalid`. Never set it in `pilot.env`. |
+| `MANIJERO_ANSWER_CACHE` | both (optional) | Unset, empty, or `on` keeps the in-memory answer cache on (see "Answer cache"); `off` turns it off. Any other value turns it off and logs `answer_cache state=off reason=value_invalid`. Not set in the container. |
 | `MANIJERO_GEMINI_MODEL` | both (optional) | The exact model the Gemini review approved; read only by the gate and, when it passes, sent as the request's model id. |
 | `MANIJERO_LOCAL_MODEL` | both (optional) | Read only when the provider is `local`; must equal `model` in `config/local_generation_model.json` exactly (`local_model_mismatch` otherwise). |
 
@@ -603,6 +604,30 @@ of the API contract; the files are read from disk.
   when tracing is off) and before each write. Nothing is deleted while the service is stopped.
 - A trace failure never changes an answer; it logs `answer_trace_skipped reason=<code>` only.
 
+## Answer cache
+
+A repeated question with the same lands returns the same verified answer or abstention without a
+new model draft ([spec](../docs/specs/answer_cache.md)). The code is `backend/app/answer_cache.py`.
+
+- **Where:** in `ask_api._answer`, after the year pre-check, corpus validation, retrieval attach, and
+  land clarification, which run on every request. On a miss the same `answer_or_abstain` runs.
+- **Key:** SHA-256 of the question normalized for case, accents, and whitespace (nothing else:
+  punctuation and wording differ), the land context, the knowledge identity (release id or
+  `repository`, a fingerprint of the admitted passages, the campaign), and the model identity
+  (`extractive`, `gemini:<model>`, or `local:<tag>@<digest>`, plus retrieval mode, `k`, `max_claims`).
+  A change of knowledge or model identity empties the whole cache.
+- **Held:** only the key digest and the response (with its cited reviewed passages). At most 1,000
+  entries, oldest evicted first, 24 hours each. Memory only, per process, empty at every start.
+- **Every hit** re-runs `verify_draft` on the stored draft and passages (or re-checks the code-owned
+  abstention). An entry that fails is discarded whole and the request runs the full pipeline.
+- **Never stored:** a transient model outcome (anything but the `*_used` outcome), a vector-search
+  fallback, a `generation_error` abstention, a clarification, a 4xx/503, or `inspection`.
+- **Metrics:** `manijero_answer_cache_lookups_total{outcome}` with `hit|miss|expired|discarded`. A hit
+  also counts in `answers_total` and `abstentions_total`.
+- **Setting:** `MANIJERO_ANSWER_CACHE=on|off`. For the full local service put
+  `MANIJERO_ANSWER_CACHE=off` in `~/manijero/local/settings.env`. The container and the QA
+  `settings.env` have no setting.
+
 ## Answer inspection (development only)
 
 - `/ask` adds an optional `inspection` object (`answer-inspection-v1`) with the retrieved passages,
@@ -620,8 +645,8 @@ of the API contract; the files are read from disk.
 
 ## Health metrics
 
-`GET /metrics` serves Prometheus text format 0.0.4 (`text/plain; version=0.0.4`) for the later
-`monitoring_dashboard` and for `curl`. It is not in the OpenAPI contract and has no owner command.
+`GET /metrics` serves Prometheus text format 0.0.4 (`text/plain; version=0.0.4`) for the
+[health dashboard](#health-dashboard) and for `curl`. It is not in the OpenAPI contract.
 
 - **Gate:** open in the `development` profile; in `pilot` (QA) it needs the same client bearer token
   as `/ask`, answering the same detail-free `401`/`429`. Scrapes use their own per-client window with
@@ -667,6 +692,30 @@ of the API contract; the files are read from disk.
 - **Not implemented:** no durable feedback store, export, dashboard, alert, or per-answer
   linkage, and no idempotency (a retry after an unknown outcome counts again); durable feedback
   retention is still an open privacy decision.
+
+## Health dashboard
+
+`./scripts/init.sh --monitoring-start|--monitoring-status|--monitoring-stop`
+(`app/local_monitoring.py`, `scripts/monitoring.py`; spec `docs/specs/monitoring_dashboard.md`) runs a
+Prometheus and a Grafana container in Docker Desktop, both labelled `org.manijero.managed=1`. Only
+Grafana is published, on `127.0.0.1:3000` (`MANIJERO_MONITORING_PORT`, tests and developers only).
+
+- **Files** (`backend/monitoring/`, JSON documents that are also valid YAML): `images.json` (reviewed
+  pins), `thresholds.json` (the one place the OK/warning/problem bounds live), `prometheus/rules.json`
+  (recording rules `manijero:status_*`: codes `-1` no data, `0` OK, `1` warning, `2`/`3` problem,
+  `4` not set up), `grafana/provisioning/*`, and `grafana/dashboards/manijero-health.json` (stat panels
+  whose value mappings carry each state's sentence). Change a bound in `thresholds.json`, the rule, and
+  the panel text together; `tests/test_monitoring_files.py` fails when they differ.
+- **Runtime settings:** `prometheus.yml` is generated at each start into `<local home>/monitoring/`:
+  local job `host.docker.internal:<MANIJERO_LOCAL_RAG_PORT>` every 15 s; a QA job every 30 s only when
+  `settings.env` of QA has a non-placeholder `MANIJERO_PUBLIC_URL` and complete access keys, with the
+  QA token read from a read-only mounted file (never in arguments, files, or output). Prometheus keeps
+  only `manijero_*` series and the `backend_health_metrics` labels plus `env`, `job`, `instance`.
+- **Pins:** `images.json` names `tag` and, once read, `digest`; a null digest pulls by the explicit
+  version tag. To fill one in: `docker buildx imagetools inspect <image:tag>` and copy the
+  `Digest: sha256:...` line (the multi-platform index digest) into `images.json`.
+- **Optional smoke:** `MANIJERO_MONITORING_DOCKER_SMOKE=1 ./scripts/init.sh --backend-tests tests/test_monitoring_docker_smoke.py`
+  (Docker Desktop open): `promtool check`, a real start, anonymous Grafana health, stop.
 
 ## Offline retrieval baseline
 
@@ -1063,6 +1112,12 @@ candidate's claim and inherit its figure or critical-literal rules. The pipeline
 then returns a `NotAnswered` reason code and no text; `safe_abstention` owns the
 user-facing limitation and next step.
 
+After verification, `app/deadline_notices.py` appends one fixed Spanish paragraph when a
+cited passage has a reviewed `official_deadline`: the cooperative may set an earlier date,
+and, when the date is before the injected UTC `as_of`, the exact end date. The paragraph
+is code-owned, never drafted by a model, and is recomputed so the answer stays within 1200
+characters.
+
 Run the report-only grounded-generation tool against the synthetic fixtures:
 
 ```sh
@@ -1101,6 +1156,19 @@ generator) and pipeline mappings produce exactly one reason:
 | `unsafe_request` | A generated claim asserts the person's legal status (generation `policy_failed`). |
 | `generator_abstained` | The generator explicitly declined; its copy is discarded. |
 | `generation_error` | The generator raised or returned an unusable object. |
+| `personal_data` | Screen: the question holds a DNI, NIE, company NIF, phone, email, or IBAN. |
+| `prompt_injection` | Screen: the question asks to ignore or reveal instructions, or to take another role. |
+| `out_of_domain` | Screen: an off-topic marker (sport, recipes, jokes, programming, betting...) and no PAC, farming, or land term. |
+
+The last three come from `app/input_guardrails.py`, which `/ask` runs before
+retrieval. It is standard-library only, deterministic (word lists and patterns, no
+model), and returns only a reason code. Precedence is `personal_data`, then
+`prompt_injection`, then `out_of_domain`. SIGPAC and cadastral references are masked
+first and never screened. A `personal_data` hit is not retained (even when opted
+in), its trace holds no text, and nothing is logged. Limits: lexical, Spanish and
+English only; out-of-domain fires only on listed topics; names and addresses are
+not screened (retention redaction still handles those). Precision comes first, so a
+miss falls through to the grounded path, which abstains when unsupported.
 
 Server-side copy is **code-owned**: `ABSTENTION_MESSAGES` maps every reason to one
 pinned plain-Spanish message, an `Abstention` has no text field, and no message
@@ -1112,6 +1180,19 @@ and `contracts/` is untouched. Detection is lexical and conservative (a retrieva
 miss or two unrelated critical passages sharing a unit can abstain); that is the
 safe direction, and the measured trap set and any score threshold belong to
 `land_safety_evaluation`.
+
+### Question-scope pre-check
+
+`app/question_scope.py` holds a code-owned, standard-library-only list with one
+entry per omission declared in `knowledge/pac_coverage.md` (kept one-to-one with
+`coverage.omissions` by a test). `answer_or_abstain` and `answer_with_clarification`
+check it after the stale-corpus, blank, and length checks and before any
+`search` or land clarification. A match abstains with an existing pinned reason
+(`unsafe_request` for aid amounts, individual eligibility, and individual
+notifications; `no_evidence` for the rest) and one `out_of_scope_question` issue
+that carries the omission label, never the question text. Matching is lexical on
+accent- and case-insensitive text, so an unlisted paraphrase can still reach
+retrieval.
 
 Run the report-only tool against the synthetic fixtures:
 
@@ -1750,7 +1831,7 @@ original hashes, whether the version is an approved copy, unchanged since
 ingestion, a new version, or has no baseline; a bounded block-level old/new text
 diff (counts plus at most five excerpts); explicit `publication`, `amendment`,
 `repeal`, and `validity` signals with page/section location and a bounded
-excerpt of at most 280 characters (at most 50 signals per candidate); and the
+excerpt of at most 280 characters (at most 200 signals per candidate); and the
 potentially affected catalog sources, reviewed passages, and reviewed evaluation
 cases with the reason for each link. Reported links come from the candidate's own
 approved-source identity or URL, the candidate's `content_sha256`, instrument
@@ -1826,7 +1907,7 @@ categories (`missing_extracted_document`, `extracted_text_mismatch`,
 never abort the other candidates; that candidate's previous good report entry is
 not preserved, because the report is a derived artifact and is meant to be
 regenerated. A globally invalid input exits `2` and overwrites nothing. Bounds
-per candidate: 5,000 blocks / 2,000,000 characters of current text, 50 signals
+per candidate: 5,000 blocks / 2,000,000 characters of current text, 200 signals
 (each with an excerpt of at most 280 characters), five text-diff excerpts, and
 1,000 candidates per run.
 
@@ -2441,6 +2522,23 @@ limits**: no real Docker ran in automated checks; images are never pruned; trans
 are not hash-locked, so the same inputs can rebuild with different transitive versions; native
 platform only; the image is a default-profile local runtime, not a pilot launcher.
 
+### QA deployment
+
+`./scripts/init.sh --qa-deploy`, `--qa-update`, `--qa-rollback`, `--qa-status`, and `--qa-stop` (owner
+steps in [`docs/owner-guide.md`](../docs/owner-guide.md)) run `scripts/qa_service.py <operation>`,
+implemented by `app/qa_deployment.py` (operator-only, never imported by the service; spec
+[`qa_server_deployment`](../docs/specs/qa_server_deployment.md)). QA is container `manijero-qa` from
+tag `manijero-backend:qa-current` (update promotes `:local` and keeps `:qa-previous`; rollback swaps
+them), published on `127.0.0.1:8100` only, started through `serve_pilot.py` by the image entry point
+when `MANIJERO_DEPLOYMENT_PROFILE=pilot`. The fixed `docker run` arguments are `qa_deployment.run_argv`;
+the environment is the campaign, `pilot`, `qa`, `MANIJERO_QA_TEST_DATA_ONLY=yes` (the only way the
+pending privacy review is accepted, `privacy_review.pilot_gate`), and a read-only mount of the digest-only
+clients file. The Tailscale forms live in one block of `qa_deployment.py`: `status --json`,
+`funnel status --json`, `funnel --bg --https=443 http://127.0.0.1:8100`, and `funnel --https=443 off`;
+the owner walkthrough confirms them on a real Mac. Test-only variables: `MANIJERO_TAILSCALE_CLI`,
+`MANIJERO_DOCKER_CLI`, `MANIJERO_QA_PORT`, `MANIJERO_QA_HOME`, `MANIJERO_QA_ADDRESS_FILE`.
+Logs: `<QA home>/logs/qa-<operation>-<UTC>.log` (container output only; no tokens or question text).
+
 ### Local smoke test
 
 `./scripts/init.sh --local-smoke` (owner steps in [`docs/owner-guide.md`](../docs/owner-guide.md))
@@ -2513,3 +2611,63 @@ python3 contracts/validate_examples.py
 generated cases. The run is deterministic per seed and bounded; it makes no network call
 and claims no legal coverage, answer quality, performance, or pilot behavior. `PyYAML` is
 a dev-only dependency used to read the YAML contract.
+
+### Local load test
+
+`./scripts/init.sh --local-rag-load-test` (owner steps in [`docs/owner-guide.md`](../docs/owner-guide.md))
+runs `scripts/measure_local_load.py` (operator-only, stdlib-only, no k6/Locust or new dependency,
+never imported by the service). With the service started by `--local-rag-start`, it sends each
+reviewed case question with the empty `general` land context from 10 clients, closed loop with no
+think time: 10 s ramp (client *i* at *t0 + i*), 180 s steady, 2 warm-up questions, 60 s per-request
+timeout. It prints median, p95 (nearest rank), slowest and requests per second over successful
+steady requests, plus `status` answer-kind counts; failures and timeouts are counted, never given a
+latency. It writes one aggregate-only `local-load-measurement-v1` JSON report to
+`<local home>/reports/local-load-<UTC>.json` (mode `0600`) with no question, answer, passage, land,
+or token text.
+
+The gate stops at the first gap, sends nothing, and writes no report: unreadable settings, no
+settings, no verified run record (a stale record is cleared), then the same three
+`service_checks` as `--local-rag-service-status`. Refusing when Ollama is closed is deliberate: a
+run without drafting would measure a different stack. Exit codes: `0` finished with no failed
+question and the same service running; `1` refused, some question failed, the service stopped or
+its release changed mid-run, warm-up failed, busy lock, or Ctrl+C; `2` an extra argument or an
+unreadable/invalid case set. Ctrl+C writes no report and changes nothing. The printed `p95`
+candidate reference (8 s) is context only, and the numbers are one Mac's evidence, not pilot
+capacity or a pass/fail result; the service can silently switch to extractive answers at its 10 s
+draft timeout or 30 requests/minute limit, so a low p95 can hide drafting.
+
+### Demo rehearsal
+
+`./scripts/init.sh --demo-rehearsal` (owner steps in [`docs/owner-guide.md`](../docs/owner-guide.md),
+live order in [`docs/demo-script.md`](../docs/demo-script.md)) runs
+`backend/scripts/demo_rehearsal.py` (operator-only, stdlib-only plus `app.review_package` and
+`app.abstention`, never imported by the service). The dispatch runs before the `local.properties`
+write, links the shared dev environment with `scripts/python-env.sh dev --if-present` when
+`backend/.venv` is absent, and `exec`s the script with no extra argument.
+
+It makes one `GET /health`, one `GET /ready`, and two `POST /ask` calls at
+`http://127.0.0.1:${MANIJERO_LOCAL_RAG_PORT:-8000}` (`--url` overrides for tests and developers),
+with the fixed PAC 2026 questions and the closed request shape
+`land_context: {mode: "general", lands: []}`, `retain_for_improvement: false`; health/ready wait 5 s
+and each answer 120 s. In order it checks:
+
+1. **Service** — `/health` returns `ok` and `/ready` returns `ready`; a refused connection or
+   `503`/`unavailable` is `SKIP`, not a traceback.
+2. **Grounded answer** — `answered`, non-empty answer, at least one source, every source URL in
+   the approved catalog and at least one in the approved 2026 campaign, `land_scope: "general"`;
+   when the development `inspection` is present it must cite at least one passage.
+3. **Trap abstention** — `abstained`, empty `sources`, non-empty answer; with `inspection`, the
+   `outcome.abstention_reason` must be one of `app.abstention.ABSTENTION_REASONS`.
+4. **Reviewed update** — copies `backend/tests/fixtures/change_impact` into one
+   `tempfile.mkdtemp()` workspace, writes the synthetic proposal (`Revisora de ensayo`,
+   `preparador-sintetico`, `fixture-rd-2200-2099`, synthetic passage text), and calls
+   `prepare`, an unapproved `merge` (must be refused with `approval_required`), `record_decision`
+   `approve`, and `merge` with the same case file. It passes only when preparation is
+   `ready_for_review` with zero failed checks, the unapproved merge is refused, the approved merge
+   adds the new ids, and `knowledge/source_catalog.json` and `knowledge/passages.json` stay
+   byte-identical. The workspace is removed in a `finally`.
+
+Output is one `PASS`/`FAIL`/`SKIP` line per step and exactly one `Result:` line, with no colors,
+tracebacks, question, answer, passage, land, or token text: only fixed labels, reason codes, source
+counts, and the address. **Exit codes**: `0` all four passed; `1` any failed or skipped step (the
+`Result:` line names them and, for skips, the `--local-rag-start` fix); `2` an extra argument.

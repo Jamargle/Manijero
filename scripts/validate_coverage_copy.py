@@ -10,6 +10,7 @@ CONTENT = ROOT / "shared/src/commonMain/kotlin/com/jamarglex/manijero/coverage/C
 SCREEN = ROOT / "shared/src/commonMain/kotlin/com/jamarglex/manijero/coverage/CoverageScreen.kt"
 DISPLAY_SOURCES = (
     SCREEN,
+    ROOT / "shared/src/commonMain/kotlin/com/jamarglex/manijero/chat/ChatHomeScreen.kt",
     ROOT / "shared/src/commonMain/kotlin/com/jamarglex/manijero/privacy/PrivacyScreen.kt",
     ROOT / "shared/src/commonMain/kotlin/com/jamarglex/manijero/App.kt",
 )

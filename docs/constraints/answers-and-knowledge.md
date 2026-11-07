@@ -12,6 +12,13 @@ Durable MUST/MUST NOT rules for backend answer path, retrieval, generation, eval
   model — is the authority on whether an answer may be shown, and an
   unverified claim is exactly the failure a wrong Spanish deadline or amount
   would come from.
+- **MUST**: the answer cache (`backend/app/answer_cache.py`) lives in memory only and holds a
+  SHA-256 key digest, never the question or land text. It empties when the knowledge release,
+  admitted passages, campaign, or model identity changes, drops entries after 24 hours, re-runs
+  `verify_draft` on every hit and discards a failing entry whole, and never stores a transient
+  model failure, a generation error, a clarification, or the `inspection` object. Reason:
+  [`answer_cache`](../specs/answer_cache.md) must not serve an answer the current corpus and
+  verifier would not produce.
 - **MUST**: a user-visible answer's citation markers, its `sources` array, and
   the orientative notice are owned by code (`generate_grounded_answer` /
   `to_answer_response`), never by a generator. Draft markers are verified as
@@ -28,6 +35,14 @@ Durable MUST/MUST NOT rules for backend answer path, retrieval, generation, eval
   [`numeric_grounding_check`](../specs/numeric_grounding_check.md) closed the gap
   where a reworded claim could change "15 de mayo" to "en junio" or drop "hábiles"
   against a non-critical passage.
+
+- **MUST**: deadline notices are fixed, code-owned Spanish sentences appended
+  after `verify_draft` as the answer's final paragraph. They are driven only by
+  a cited passage's reviewed `official_deadline` and the injected UTC `as_of`
+  (a deadline has passed only when strictly before `as_of`), never by a
+  generator or by dates parsed from text. They never appear on abstentions or
+  clarifications, and the answer plus paragraph MUST fit the 1200 bound.
+  Reason: [`answer_deadline_notices`](../specs/answer_deadline_notices.md).
 
 ## Local embeddings
 
@@ -80,6 +95,10 @@ Durable MUST/MUST NOT rules for backend answer path, retrieval, generation, eval
 
 ## Abstention
 
+- **MUST**: questions matching a declared `pac_coverage.md` omission abstain before
+  retrieval through the code-owned list in `app/question_scope.py`, kept one-to-one
+  with `coverage.omissions`. Reason: retrieval alone presents a nearby unrelated
+  passage as the answer ([spec](../specs/question_scope_guard.md)).
 - **MUST**: no component may emit an abstention that carries a source, a figure,
   or a date, and abstention copy is code-owned (`ABSTENTION_MESSAGES` /
   `to_abstention_response`), never generated, paraphrased, or supplied by a
@@ -90,6 +109,13 @@ Durable MUST/MUST NOT rules for backend answer path, retrieval, generation, eval
   figures into the "I cannot answer" path would reintroduce exactly that failure,
   and generated abstention prose could contradict the pinned counsel to consult
   the Oficina Comarcal Agraria or the cooperative.
+- **MUST**: `/ask` screens every question with the deterministic
+  `backend/app/input_guardrails.py` rules before retrieval. A hit returns only its pinned
+  message (`personal_data`, `prompt_injection`, `out_of_domain`), and a `personal_data` hit is
+  never retained, traced as text, logged, or counted beyond its reason label. SIGPAC and other
+  land data MUST NOT be screened. Reason: [`input_guardrails`](../specs/input_guardrails.md);
+  personal details must not reach storage or a provider, and a false positive blocks a real
+  farming question.
 
 ## Safety evaluation
 

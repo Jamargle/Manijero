@@ -30,6 +30,7 @@ if str(BACKEND_ROOT) not in sys.path:
     sys.path.insert(0, str(BACKEND_ROOT))
 
 from app import retrieval_backend  # noqa: E402  (path setup must run first)
+from app.answer_cache import AnswerCache  # noqa: E402
 from app.ask_api import (  # noqa: E402
     AskResponse,
     CorpusDocuments,
@@ -715,8 +716,12 @@ def ask_client():
     app.dependency_overrides[get_corpus_documents] = clarification_documents
     app.dependency_overrides[get_as_of_date] = lambda: AS_OF
     app.dependency_overrides[get_active_campaign] = lambda: CAMPAIGN
+    # A fresh cache per test: the module-level app would otherwise share entries across tests.
+    previous_cache = app.state.answer_cache
+    app.state.answer_cache = AnswerCache()
     with TestClient(app) as test_client:
         yield test_client
+    app.state.answer_cache = previous_cache
     app.dependency_overrides.clear()
 
 

@@ -42,6 +42,9 @@ RUN grep -E '^torch==' requirements-embeddings.txt > requirements-torch.txt \
 COPY backend/app/ /opt/manijero/backend/app/
 COPY backend/config/ /opt/manijero/backend/config/
 COPY backend/container/ /opt/manijero/backend/container/
+# The pilot launcher, which the QA deployment starts through the entrypoint.
+COPY backend/scripts/serve_pilot.py /opt/manijero/backend/scripts/serve_pilot.py
+LABEL org.manijero.launchers="default,pilot"
 
 # The published knowledge release (with its vector store, which the service opens in place and
 # must be able to write) and the pin-verified search model.

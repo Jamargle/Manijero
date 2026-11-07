@@ -12,12 +12,23 @@ Do not over-claim.
 - Offline retrieval, generation, abstention, clarification, and safety metrics use synthetic
   fixtures and are report-only. The reviewed `/ask` evaluation is a 14-case sample over the three
   approved topics and five boundaries, reviewed only by the project author. Its exact result is
-  13/14 expected states, 11/11 expected-answer cases answered, 8/11 with the expected source and
-  passage, 9/11 with the expected critical literal, and 2/3 expected abstentions. Known gaps stay
+  14/14 expected states, 11/11 expected-answer cases answered, 8/11 with the expected source and
+  passage, 9/11 with the expected critical literal, and 3/3 expected abstentions with 0 unexpected answers. Known gaps stay
   visible in [`knowledge/pac_coverage.md`](../../knowledge/pac_coverage.md): `canal-sga-2026`,
-  `fecha-modificacion-2026`, and `distingue-fechas-2026` cite a different reviewed passage, and
-  `reclamacion-fuera-de-alcance` answers an out-of-scope reclamación. Neither that sample nor the
+  `fecha-modificacion-2026`, and `distingue-fechas-2026` cite a different reviewed passage. Neither that sample nor the
   fixture metrics are independent legal review or evidence of general accuracy.
+- **The question-scope guard is lexical** ([`question_scope_guard`](../specs/question_scope_guard.md)).
+  Questions matching a declared omission of `knowledge/pac_coverage.md` (aid amounts, individual
+  eligibility, individual notifications, reclamaciones, late-filing penalties, fuerza mayor,
+  monitoring adaptations, other campaigns) abstain before retrieval, which fixed the
+  `tema-no-cubierto` and `reclamacion-fuera-de-alcance` regressions. The list is a code-owned set of
+  patterns in `backend/app/question_scope.py`, so an unlisted paraphrase of an omitted topic can still
+  reach retrieval and be answered with a nearby passage. Trial evidence, not merged: matching Spanish
+  singular/plural forms in `retrieval.py` made the draft case `rectificacion-errores-2026`
+  (“¿Puede la Administración corregir un error material en un acto?”) answer, but also broke
+  `plazo-modificacion-parcelas-2026`. The guard already covers its other two side effects
+  (`tema-no-cubierto` and the individual-notification boundary); retry it only with that ranking break
+  fixed.
 - The numeric-fact check in `verify_draft` ([`numeric_grounding_check`](../specs/numeric_grounding_check.md))
   is lexical and Spanish-only, not entailment: it rejects some correct paraphrases (ranges, an
   added year), checks only day/week/month/year durations and `por ciento`, and its effect on the
@@ -155,6 +166,11 @@ Do not over-claim.
   answer-quality or legal-coverage claim. Whether the emulator app keeps its lands could not be
   observed: the emulator had no lands before the run. Physical devices are never used. See the
   [acceptance record](../validations/local_end_to_end_smoke.md).
+- The local load test (`./scripts/init.sh --local-rag-load-test`, `local_load_test`) ran once on one Mac
+  (10 clients, 3 minutes steady: 1844 answers, none failed, median 0.70 s, p95 1.18 s, 10.2 per
+  second; the first requests were much slower while the model loaded). It is host-specific evidence
+  only: no pass/fail, capacity, or pilot-readiness claim, and the pilot host is unmeasured. See the
+  [acceptance record](../validations/local_load_test.md).
 - The answer trace (`MANIJERO_ANSWER_TRACE=on`, `answer_pipeline_trace`) is off by default and tested
   locally only; no hosted trace has been observed. Old traces are purged only while the service runs,
   so a stopped service keeps files older than 7 days until its next start. Text is recorded only when
@@ -190,3 +206,11 @@ Do not over-claim.
   reviewed as `knowledge/source_catalog.json` (the `content_sha256` join; unmatched documents stay
   `unknown`), no date is read from document text, and no chunking or retrieval accuracy is claimed.
   See the [spec](../specs/legal_structure_chunker.md).
+- The health dashboard (`monitoring_dashboard`, `./scripts/init.sh --monitoring-start`) runs only on the owner's Mac while Docker Desktop is open and is not alerting or outage detection. QA shows "Not set up yet" until `qa_server_deployment` gives a real address; the QA scrape (token file mount) is unverified live. The OK/warning/problem bounds in `backend/monitoring/thresholds.json` are initial planner choices, not measured. The image pins use explicit version tags with null digests until a developer reads them from the registry (the implementation session was offline), and the Docker-backed parts (`host.docker.internal` reaching the local service, image start) were first seen working in the owner walkthrough on 2026-11-03; `promtool` was not run. See the [spec](../specs/monitoring_dashboard.md).
+- Deadline notices (`answer_deadline_notices`) cover only the two hand-entered `official_deadline` dates in `knowledge/passages.json` (15 May and 15 June 2026); passages without a reviewed date get no notice. A knowledge release or embedding index built before this change serves answers without notices until it is rebuilt. Verified by backend tests and the offline evaluation only. See the [acceptance record](../validations/answer_deadline_notices.md).
+
+- **Input screen is lexical (`input_guardrails`).** It covers Spanish and English only,
+  out-of-domain fires only on listed topics, and names and addresses are not screened; a miss
+  falls through to the grounded path. See the [spec](../specs/input_guardrails.md).
+- The answer cache (`answer_cache`) is per process (two pilot workers mean two caches) and lost on restart. It has no container setting and no QA `settings.env` key, a hit carries no `inspection` object, and `answers_total` includes hits. A vector-search fallback is never stored, but a stored hybrid answer can be served while the vector side is failing. It has no owner walkthrough and was not measured on the owner's Mac. See the [spec](../specs/answer_cache.md).
+- QA deployment (`qa_server_deployment`) is on the owner's Mac through Tailscale Funnel: it is unavailable while the Mac sleeps or restarts (rerun `--qa-deploy`), the hostname is public, and test-data-only is a rule, not a filter. QA serves the image's knowledge release until `qa_knowledge_deployment`. `--qa-update`/`--qa-rollback` were not exercised live in the owner walkthrough (no newer image). See the [spec](../specs/qa_server_deployment.md).

@@ -228,6 +228,47 @@ looks; it never starts, stops, or downloads anything.
 | `PROBLEM  Answers: the service does not answer. ...` | The service is stuck. | Stop it and start it again. If it happens again, send the log file named on the screen to a developer. |
 | `PROBLEM  Answers: the service runs but cannot answer questions right now. ...` | The knowledge is not ready to answer. | Run `./scripts/init.sh --local-rag-status` and do its first step. |
 
+## Measure answer speed under pilot load
+
+This command asks the 14 reviewed questions from 10 pretend users at once for about five minutes and
+tells you how long answers took and how many the service handled. It only asks questions and writes
+one report; it never changes your lands, the service, or the knowledge. It does not say whether the
+answers are right, and the numbers are for this computer only.
+
+1. **Start the service** if it is not running: `./scripts/init.sh --local-rag-start`. The check
+   `./scripts/init.sh --local-rag-service-status` should show three `OK` lines.
+2. **Measure.** Paste:
+
+   ```sh
+   ./scripts/init.sh --local-rag-load-test
+   ```
+
+   - Expected: `Checking the local answer service...`, the service address, a plan line
+     (`The plan: 14 reviewed questions, 2 warm-up questions, 10 clients, one more every second for 10 seconds, 3 minutes at once, about five minutes.`), the warm-up line, then after a few minutes:
+     `Ramp: … questions finished, … did not answer.` and
+     `Steady phase: … questions finished, … did not answer.`, a line
+     `  Median … s, p95 … s, slowest … s.`, a line
+     `  Requests per second: … (… successful questions over … s).`, a line
+     `  Answers: … answered, … abstained, … needed a land choice.`, and
+     `The report is saved as: ~/manijero/local/reports/local-load-….json`.
+   - Then three honesty lines (the numbers describe this Mac at that moment, the 8 s p95 is only a
+     reference, and a low p95 can hide answers written without the drafting model), and
+     `Result: the load test finished; the report is in ~/manijero/local/reports/local-load-….json.`
+   - Leave the Terminal open and wait; stopping it with Ctrl+C cancels the measurement.
+
+### If the load test shows something else
+
+| You see | What it means | What to do |
+|---|---|---|
+| `Result: the load test did not run. Start the local answer service with ./scripts/init.sh --local-rag-start, ...` | The service is not running. | Start it, then run the command again. |
+| `The local answer tools are not set up yet. ...`, then `Result: the load test did not run. Do the first step shown above.` | The local answer tools were never set up. | Follow [Set up the local answer tools](#set-up-the-local-answer-tools), then run the command again. |
+| A `PROBLEM ...` line, then `Result: the load test did not run. Do the first step shown above.` | A service check is not `OK` (for example Ollama is closed). | Do what the `PROBLEM` line says, then run the command again. |
+| `Another load test is running in another Terminal window.` | One is already running. | Wait for its `Result:` line, then run it again. |
+| `Result: the load test finished, but … questions failed. ...` | Some questions did not answer; the timing numbers are incomplete. | Run it once more. If it repeats, send the report file to a developer. |
+| `Result: the load test finished, but the local answer service changed during the run, ...` | The service stopped, restarted, or its knowledge changed during the run. | Run `./scripts/init.sh --local-rag-start`, then run the test again. |
+| `Result: the load test was stopped.` | You pressed Ctrl+C. | Run it again when you are ready; nothing was changed. |
+| `Something unexpected went wrong. ... <log file>` | The command itself failed. | Send that log file to a developer. |
+
 ## Stop the local answer service
 
 1. **Stop.** Paste:
@@ -284,6 +325,41 @@ version of the app over the existing one and keeps its data.
 | `FAIL  <app>: the check could not run. Details are in build/local-smoke/<app>.log; ...`, `FAIL  Android emulator: the Android test tools do not match this emulator's Android version. ...`, or another `FAIL` line naming a log | The build, install, or check itself failed. | Send that log file to a developer. |
 | `The smoke test was stopped.` | You pressed Ctrl+C. | Run it again when you are ready. |
 
+## Rehearse the live demo
+
+Run this before showing Manijero to anyone. It checks the running local answer service and the
+review step, and prints one line per step. It changes nothing: it never writes your lands or the
+approved knowledge, and the review step uses a temporary, synthetic copy that it removes.
+
+1. **Start the service** if it is not running: `./scripts/init.sh --local-rag-start`.
+2. **Rehearse.** Paste:
+
+   ```sh
+   ./scripts/init.sh --demo-rehearsal
+   ```
+
+   - Expected: four `PASS` lines — `PASS  Service: /health and /ready answer`,
+     `PASS  Grounded answer: ... land_scope general`, `PASS  Trap abstention: no sources`, and
+     `PASS  Reviewed update: draft blocked, human approval, temporary merge (synthetic)` — and
+     `Result: the demo rehearsal passed (4 of 4 steps) against http://127.0.0.1:8000. The
+     reviewed update used synthetic fixtures; canonical knowledge was not changed.`
+   - If the service is not running it prints `SKIP` lines for the service steps, still runs the
+     review step, and ends with
+     `Result: the demo rehearsal is incomplete ... Start it with ./scripts/init.sh --local-rag-start, then run this command again.`
+3. **Read the script before the demo:** [demo-script.md](demo-script.md) gives the order, the two
+   fixed questions, the app steps to do by hand, and what you must not promise.
+
+### If the rehearsal shows something else
+
+| You see | What it means | What to do |
+|---|---|---|
+| `Result: the demo rehearsal did not run. Run ./scripts/init.sh --local-rag-setup.` | The local answer tools are not set up. | Follow [Set up the local answer tools](#set-up-the-local-answer-tools), then repeat step 2. |
+| `SKIP  Service: /health and /ready answer: the service is not reachable.` or `... running but not ready.` | The service is not running or is still starting. | Do step 1 (or wait a minute), then repeat step 2. |
+| `FAIL  Grounded answer: ...` | The fixed question did not return an answer with approved sources. | Do not demo that question; send the `Result:` line to a developer. |
+| `FAIL  Trap abstention: ...` | The trap question answered instead of abstaining. | Do not demo that question; send the `Result:` line to a developer. |
+| `FAIL  Reviewed update: ...` | The review step did not prepare, block, approve, and merge its temporary copy as it must. | Do not explain the reviewed update; send the `Result:` line to a developer. |
+| `Result: the demo rehearsal failed ...` | At least one step failed. | Read the `FAIL` line, fix that step, then repeat step 2. |
+
 ## Owner walkthrough: local smoke test
 
 Do this once, in a Terminal opened at the Manijero folder, after the local answer tools are set up.
@@ -305,6 +381,29 @@ Write down each `Result:` line and send them to the developer.
    and `Result: the smoke test failed on the Android emulator. Do the first step shown above.`
 7. Run `./scripts/init.sh --local-rag-stop`. Report each `Result:` line, the two `PASS` lines, and
    whether the emulator app still shows the lands it had before.
+
+## Owner walkthrough: load test
+
+Do this once the local service works, preferably when you can leave the computer alone for about
+ten minutes. Write down each `Result:` line and the numbers the test prints, and send them to the
+person who asked for them.
+
+1. **Check the service.** Run `./scripts/init.sh --local-rag-service-status`. Expect three `OK`
+   lines and its running `Result:`. If not, run `./scripts/init.sh --local-rag-start` first.
+2. **Missing prerequisite:** run `./scripts/init.sh --local-rag-stop`, then
+   `./scripts/init.sh --local-rag-load-test`. Expect
+   `Result: the load test did not run. Start the local answer service with ./scripts/init.sh --local-rag-start, then run this command again.`
+3. **Missing model:** start the service, then quit Ollama (llama icon, `Quit Ollama`), then run
+   `./scripts/init.sh --local-rag-load-test`. Expect one `PROBLEM` line about the model and
+   `Result: the load test did not run. Do the first step shown above.`
+4. **Measure:** open Ollama again, wait 10 seconds, then run
+   `./scripts/init.sh --local-rag-load-test`. The first warm-up answer may be slow while the
+   drafting model loads. Expect the plan, the two warm-up times, the steady summary, the honesty
+   note, and `Result: the load test finished; the report is in <path>.` after about five minutes.
+   Report the median, p95, slowest, requests per second, finished and failed counts, the answer
+   kinds, and the report path.
+5. Send the report file to the person who asked (it contains only counts and times), then run
+   `./scripts/init.sh --local-rag-stop`.
 
 ## Owner walkthrough: local answer service
 
@@ -494,6 +593,53 @@ anything that looked different from this guide) and send them to the developer.
     `Result: the answer service in the container has stopped.` Run it again and expect
     `... was not running, so there was nothing to stop.` Run `./scripts/init.sh --container-status`
     and expect `Result: the answer service in the container is not running. ...` Report all three.
+
+## Open the health dashboard
+
+A free page on this Mac that says, in plain words, whether the answer service is working. It needs
+[Docker Desktop](#install-docker-desktop-one-time) open. It is not an alarm: it only shows what is
+happening while it runs, and it does not tell you when something stops.
+
+1. **Start.** Paste `./scripts/init.sh --monitoring-start`. The first time it downloads two images
+   (a few minutes). Expected: `Open http://127.0.0.1:3000 in your web browser.` and
+   `Result: the health dashboard started at http://127.0.0.1:3000.`
+2. **Open** that address in your web browser. Each box starts with a state word:
+
+| Word (colour) | What it means | What to do |
+|---|---|---|
+| `OK` (green) | This check is fine. | Nothing. |
+| `Warning` (amber) | Something is slower, rarer, or less reliable than usual. | Do the first step in the box; look again in a few minutes. |
+| `Problem` (red) | People are probably affected. | Do the first step in the box; if it stays, tell a developer. |
+| `Not enough data` / `Not set up yet` (grey) | Nobody asked anything lately, or QA does not exist yet. | Nothing. |
+
+3. **Check** any time with `./scripts/init.sh --monitoring-status`; expect
+   `Result: the health dashboard is running at http://127.0.0.1:3000.`
+4. **Stop** with `./scripts/init.sh --monitoring-stop`; expect `Result: the health dashboard has stopped.`
+   The history is kept for the next start.
+
+| You see | What it means | What to do |
+|---|---|---|
+| `Docker Desktop is not open ...` | Docker Desktop is closed. | Open it, wait until it says it is running, then run the command again. |
+| `Port 3000 is in use by another program.` | Another program uses the dashboard's port. | Close that program, then start again. |
+| Boxes say `No information yet` | The dashboard has no data yet. | Wait a minute, then run `./scripts/init.sh --monitoring-status`. |
+| `Problem ... cannot reach the answer service` for Local | The local service is not running. | Start it with `./scripts/init.sh --local-rag-start` (or `--container-start`). |
+
+## Owner walkthrough: health dashboard
+
+Do this once, in a Terminal opened at the Manijero folder, with Docker Desktop open and the local
+answer service stopped. Write down each `Result:` line and anything unclear on the page.
+
+1. Run `./scripts/init.sh --monitoring-start` and open the printed address. Report the `Result:`
+   line and how many minutes the first start took.
+2. Read the **Local** row. With the service stopped, expect `Problem` boxes for the service that say
+   what to do, and grey boxes for the rest. Say whether you understood each box without help.
+3. Start the service (`./scripts/init.sh --local-rag-start`), wait two minutes, and reload the page.
+   Expect the Local service box to read `OK`. Report what the other boxes say.
+4. **Missing prerequisite:** quit Docker Desktop and run `./scripts/init.sh --monitoring-start`.
+   Expect the line `Docker Desktop is not open ...` and a `Result: the health dashboard did not start. ...` line.
+5. **Recovery:** open Docker Desktop and run the start again; expect the address and a started `Result:`.
+6. Run `./scripts/init.sh --monitoring-stop`, then `--monitoring-status`; report both `Result:` lines.
+
 ## Give the apps the pilot token
 
 When you are given a pilot token for the pilot answer service, save it once. The test apps you
@@ -567,6 +713,41 @@ server is contacted.
 | `... must say MANIJERO_DEPLOYMENT_PROFILE=pilot; it is never treated as local` | Open the QA settings file named in the message in TextEdit and fix the line it names. |
 | `The folder ... is inside the Manijero folder` | Ask a developer; the QA folder must be outside the Manijero folder. |
 
+## Set up Tailscale (one time)
+
+QA is reachable from phones through Tailscale Funnel (free). You do this once; no command does it for you.
+
+1. Create a free account at <https://login.tailscale.com/start> and install the Tailscale app for Mac. Open it and log in.
+2. In the Tailscale admin page (<https://login.tailscale.com/admin/dns>), under DNS, turn on **HTTPS Certificates**.
+3. In the admin page under **Access controls**, make sure your account may use Funnel (the page offers a button called **Funnel** or **Add Funnel to policy**; press it).
+4. Check: open Terminal and run `tailscale status`. Expect your Mac listed. If `tailscale` is not found, open the Tailscale app once and try again.
+
+## Deploy, update, roll back, check, and stop QA
+
+QA runs the answer service from the image on this Mac and is for made-up test questions only. Docker Desktop and Ollama must be open. First run `./scripts/init.sh --container-build` and `./scripts/init.sh --qa-settings-setup`.
+
+| To do this | Run | Expect |
+|---|---|---|
+| Deploy QA | `./scripts/init.sh --qa-deploy`, then type `yes` | `Result: QA is running at https://<mac>.<tailnet>.ts.net for test data only.` |
+| Ship a newer image | `./scripts/init.sh --container-build`, then `./scripts/init.sh --qa-update` and `yes` | `Result: QA was updated to ...` |
+| Go back one version | `./scripts/init.sh --qa-rollback` and `yes` (again to go forward) | `Result: QA was rolled back to ...` |
+| Check | `./scripts/init.sh --qa-status` | `OK` lines and `Result: QA is running at ...` |
+| Take QA off the internet | `./scripts/init.sh --qa-stop` | `Result: QA has stopped and is no longer reachable from the internet.` |
+
+A line starting `PROBLEM` or a `Result:` that begins `QA was not ...` names its one fix; do it and run the command again. QA stops when the Mac sleeps or restarts: run `--qa-deploy` again (it restarts the same version). The warning `Test data only` is a rule, not a filter: never type real questions or land details into QA.
+
+## Owner walkthrough: QA
+
+Manual acceptance for QA deployment. Write the result of each step in the session notes.
+
+1. Do "Set up Tailscale (one time)".
+2. Run `./scripts/init.sh --qa-deploy`; type `yes`. Expect the `Result: QA is running at https://...` line.
+3. On your phone, open the printed address plus `/health` in the browser. Expect a short status.
+4. Rebuild a QA app (`./scripts/init.sh --android-qa`), install it, and ask one made-up question. Expect an answer.
+5. Run `./scripts/init.sh --container-build`, then `./scripts/init.sh --qa-update` (`yes`), then `--qa-rollback` (`yes`). Expect each `Result:` line.
+6. Missing prerequisite: quit the Tailscale app, run `./scripts/init.sh --qa-deploy` or `--qa-status`. Expect a line naming Tailscale and the "Set up Tailscale" step; open Tailscale and run it again.
+7. Run `./scripts/init.sh --qa-stop`. Expect the stopped `Result:`; the phone address no longer answers.
+
 ## Build the QA test apps
 
 The QA apps are named `Manijero QA`. They install beside your normal Manijero app and keep their
@@ -577,11 +758,12 @@ the QA apps carry the QA access key.
    - Expect `Result: the Manijero QA app was built: androidApp/build/outputs/apk/debug/androidApp-debug.apk`.
 2. **Desktop:** run `./scripts/init.sh --desktop-qa`. The `Manijero QA` window opens. Its notes and
    lands are kept apart from the normal app.
-3. **The QA address.** Until a QA server is chosen you will see
+3. **The QA address.** `./scripts/init.sh --qa-deploy` saves the address in `qa-address.local` in
+   the Manijero folder (never shared or uploaded), so run it first, then build. Before QA is
+   deployed you will see
    `The QA address is a placeholder (https://qa.manijero.invalid) until the QA server is chosen; this app cannot reach QA yet.`
-   That is expected: the app builds, but it cannot reach QA yet. When a server exists, save its
-   `https://` address as one line in a file named `qa-address.local` in the Manijero folder. The
-   file is never shared or uploaded. Then build again.
+   That is expected: the app builds, but it cannot reach QA yet. Build again after each new deploy
+   to a different address.
 
 | What it shows | What to do |
 |---|---|

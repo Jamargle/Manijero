@@ -70,7 +70,8 @@ ALLOWED_LABEL_VALUES: dict[str, set[str]] = {
     "reason": {
         "too_large", "unauthenticated", "rate_limited", "invalid_question", "no_evidence",
         "insufficient_evidence", "stale_evidence", "conflicting_evidence", "false_premise",
-        "unsafe_request", "generator_abstained", "generation_error",
+        "unsafe_request", "generator_abstained", "generation_error", "personal_data",
+        "prompt_injection", "out_of_domain",
     },
     "status": {"answered", "abstained", "needs_land_clarification"},
     "outcome": {
@@ -88,7 +89,7 @@ EXPECTED_FAMILIES = {
     "service_info", "generation_provider_info", "process_start_time_seconds", "ready",
     "readiness_problem", "http_requests_total", "request_duration_seconds",
     "request_rejections_total", "answers_total", "feedback_total", "abstentions_total",
-    "generation_outcomes_total", "knowledge_release_info", "source_updates_configured",
+    "generation_outcomes_total", "answer_cache_lookups_total", "knowledge_release_info", "source_updates_configured",
     "source_updates_readable", "source_updates_healthy", "source_update_stale",
     "source_update_last_success_timestamp_seconds",
 }
@@ -212,7 +213,10 @@ def assert_privacy_invariants(page: Page) -> None:
             if label == "release_id":
                 assert value == "none" or re.fullmatch(r"[0-9a-f]{16}", value), value
             else:
-                assert value in ALLOWED_LABEL_VALUES[label], (name, label, value)
+                allowed = ALLOWED_LABEL_VALUES[label]
+                if name == "manijero_answer_cache_lookups_total":
+                    allowed = {"hit", "miss", "expired", "discarded"}
+                assert value in allowed, (name, label, value)
 
 
 # --- scenario 1: format and open development profile ----------------------------------------
@@ -482,7 +486,8 @@ def _generation_app(monkeypatch: pytest.MonkeyPatch, transport: ScriptedTranspor
         limits = dict(limits, max_requests_per_minute=100, max_requests_per_day=1000)
     monkeypatch.setattr(gemini_module, "load_review_record", lambda: _json(SYNTHETIC_REVIEW))
     monkeypatch.setattr(gemini_module, "load_gemini_limits", lambda: limits)
-    return build_app(generation_transport=transport, generation_clock=FixedClock())
+    # The cache is off so every request makes the model draft being counted.
+    return build_app(generation_transport=transport, generation_clock=FixedClock(), answer_cache=None)
 
 
 def test_generation_used_and_fallbacks_counted(monkeypatch: pytest.MonkeyPatch) -> None:
@@ -766,3 +771,28 @@ def test_registry_isolated_between_apps() -> None:
 def test_requirements_stay_free_of_a_metrics_library() -> None:
     requirements = (Path(__file__).resolve().parents[1] / "requirements.txt").read_text(encoding="utf-8")
     assert "prometheus" not in requirements.lower()
+
+
+# --- answer cache lookups ---------------------------------------------------------------------
+
+
+def test_answer_cache_lookup_family_is_zero_seeded_with_fixed_outcomes() -> None:
+    with TestClient(build_app()) as client:
+        page = scrape(client)
+
+    assert_privacy_invariants(page)
+    for outcome in ("hit", "miss", "expired", "discarded"):
+        assert page.value("answer_cache_lookups_total", outcome=outcome) == 0
+    assert len(page.values("answer_cache_lookups_total")) == 4
+
+
+def test_answer_cache_lookup_outcomes_clamp_to_the_fixed_values() -> None:
+    registry = health_metrics.HealthMetrics()
+    registry.count_cache_lookup("hit")
+    registry.count_cache_lookup("mi pregunta secreta")
+
+    page = Page(registry.render(ready=True))
+
+    assert page.value("answer_cache_lookups_total", outcome="hit") == 1
+    assert page.value("answer_cache_lookups_total", outcome="other") == 1
+    assert "secreta" not in page.text

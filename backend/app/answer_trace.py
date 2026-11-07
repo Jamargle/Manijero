@@ -498,7 +498,10 @@ class TraceSession:
         question: str,
         land_scope: str,
         response: Optional[Dict[str, Any]],
+        withhold_text: bool = False,
     ) -> None:
+        """Write the trace; ``withhold_text`` forces a metadata-only document."""
+
         if self._trace is None or self._collector is None:
             return
         try:
@@ -513,7 +516,7 @@ class TraceSession:
             document = build_document(
                 self._collector,
                 profile=trace.profile,
-                text_included=trace.text_included,
+                text_included=trace.text_included and not withhold_text,
                 question=question,
                 answer=answer,
                 status=status,

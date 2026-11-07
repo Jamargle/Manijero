@@ -892,6 +892,20 @@ def test_signal_count_is_bounded(tmp_path, monkeypatch):
     assert candidate(report, AMENDING_RD)["analysis_failure"] == "size_limit_exceeded"
 
 
+def test_signal_count_bound_is_inclusive(tmp_path, monkeypatch):
+    fixtures = copy_fixtures(tmp_path)
+    report = run(fixtures)
+    signal_count = len(candidate(report, AMENDING_RD)["signals"])
+    assert signal_count >= 1
+
+    monkeypatch.setattr("app.change_impact.MAX_SIGNALS_PER_CANDIDATE", signal_count)
+
+    report = run(fixtures)
+
+    assert candidate(report, AMENDING_RD)["analysis_failure"] is None
+    assert len(candidate(report, AMENDING_RD)["signals"]) == signal_count
+
+
 def test_as_of_is_required_and_rejects_invalid_values(tmp_path):
     fixtures = copy_fixtures(tmp_path)
 

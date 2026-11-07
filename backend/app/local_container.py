@@ -71,6 +71,7 @@ COPIED_PATHS = (
     "backend/requirements-hybrid.txt",
     "backend/deploy/requirements-production.txt",
     "backend/container",
+    "backend/scripts/serve_pilot.py",
 )
 CONTAINER_DIR = Path("backend") / "container"
 DOCKERFILE = CONTAINER_DIR / "Dockerfile"
@@ -190,6 +191,7 @@ class ContainerPorts:
 class ImageInfo:
     labels: Mapping[str, str]
     size_bytes: int
+    image_id: str = ""
 
 
 @dataclass(frozen=True)
@@ -236,11 +238,16 @@ def image_info(docker: DockerCli, reference: str) -> Optional[ImageInfo]:
     if document is None:
         return None
     size = document.get("Size")
-    return ImageInfo(_labels(document.get("Config")), size if isinstance(size, int) and size > 0 else 0)
+    identifier = document.get("Id")
+    return ImageInfo(
+        _labels(document.get("Config")),
+        size if isinstance(size, int) and size > 0 else 0,
+        identifier if isinstance(identifier, str) else "",
+    )
 
 
-def container_info(docker: DockerCli) -> Optional[ContainerInfo]:
-    document = _inspect(docker, "container", CONTAINER_NAME)
+def container_info(docker: DockerCli, name: str = CONTAINER_NAME) -> Optional[ContainerInfo]:
+    document = _inspect(docker, "container", name)
     if document is None:
         return None
     state = document.get("State") if isinstance(document.get("State"), dict) else {}
@@ -354,8 +361,8 @@ def run_argv(port: int, campaign: str) -> List[str]:
 
 
 @contextmanager
-def container_lock(path: Path) -> Iterator[None]:
-    """Hold an exclusive ``flock`` on ``<local home>/.container.lock`` during a command."""
+def container_lock(path: Path, busy: str = MSG_BUSY) -> Iterator[None]:
+    """Hold an exclusive ``flock`` on a lock file (default ``<local home>/.container.lock``)."""
 
     Path(path).parent.mkdir(parents=True, exist_ok=True)
     handle = os.open(path, os.O_RDWR | os.O_CREAT, 0o600)
@@ -363,7 +370,7 @@ def container_lock(path: Path) -> Iterator[None]:
         try:
             fcntl.flock(handle, fcntl.LOCK_EX | fcntl.LOCK_NB)
         except BlockingIOError:
-            raise bootstrap.BootstrapError(MSG_BUSY) from None
+            raise bootstrap.BootstrapError(busy) from None
         try:
             yield
         finally:

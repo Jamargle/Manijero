@@ -163,7 +163,7 @@ def test_empty_catalog_fixture_is_valid() -> None:
 def test_canonical_catalog_contains_reviewed_sources() -> None:
     document = load_catalog(CANONICAL_CATALOG)
 
-    assert len(document["sources"]) == 4
+    assert len(document["sources"]) == 6
     assert all(source["review_status"] == "approved" for source in document["sources"])
     report = validate_catalog(document, as_of=date.fromisoformat(AS_OF))
     assert report.ok
@@ -327,7 +327,7 @@ def test_cli_without_as_of_still_validates() -> None:
     )
 
     assert result.returncode == 0, result.stderr
-    assert "4 source(s) checked" in result.stdout
+    assert "6 source(s) checked" in result.stdout
 
 
 # --- schema / validator contract sync ---------------------------------------

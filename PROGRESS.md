@@ -7,7 +7,10 @@ Routine entry point. Exact feature status lives in [`feature_list.json`](feature
 contracts, raw evidence, and acceptance records remain in their owning files. Last updated:
 2026-11-07.
 
-**Feature status** — 91 of 120 features are accepted, including `validity_checker` (offline, digest-bound check of the reviewed catalog and accepted change-impact signals: explicit expiry versus an injected UTC as-of date, machine-evident repeal/expiry only as a review-required retirement proposal, publication additions as review leads, ambiguous/negated signals never retire; writes one derived `validity-review-v1` artifact outside `knowledge/` and leaves the corpus, releases, indexes, and `/ask` untouched; validator accept final, no owner walkthrough), `official_page_change_monitor`
+**Feature status** — 100 of 121 features are accepted, including `question_scope_guard` (deliberate pre-retrieval abstention for questions matching a declared coverage omission), `seed_corpus_expansion` (6 sources / 7 passages after a reviewed hold-back), `rag_demo_rehearsal` (one
+`./scripts/init.sh --demo-rehearsal` command for the service-level demo steps plus the Spanish
+`docs/demo-script.md`; owner walkthrough passed 2026-11-07, land clarification not demoable on the
+approved corpus), `qa_server_deployment` (QA on the owner's Mac from the container image over Tailscale Funnel, one named command each for deploy/update/rollback/status/stop, QA-only test-data privacy gate; owner walkthrough passed, update/rollback not exercised live), `answer_cache` (per-process in-memory cache of verified answers and abstentions keyed by normalized question, land context, knowledge identity and as-of day, and model identity; every hit re-verified, at most 24 hours, `MANIJERO_ANSWER_CACHE=off` disables it; validator accept final), `answer_deadline_notices` (code-owned cooperative and expired-deadline notices from reviewed deadline metadata; validator accept final), `monitoring_dashboard` (free Grafana health dashboard on Docker Desktop with plain-language OK/warning/problem boxes; owner walkthrough passed, QA row not exercised), `input_guardrails` (`/ask` screens each question before retrieval with deterministic rules: personal data, prompt injection, and out-of-domain topics get one fixed code-owned Spanish abstention; personal data is never retained, traced, logged, or put in metrics; SIGPAC and land data pass; validator accept final, no owner walkthrough), `validity_checker` (offline, digest-bound check of the reviewed catalog and accepted change-impact signals: explicit expiry versus an injected UTC as-of date, machine-evident repeal/expiry only as a review-required retirement proposal, publication additions as review leads, ambiguous/negated signals never retire; writes one derived `validity-review-v1` artifact outside `knowledge/` and leaves the corpus, releases, indexes, and `/ask` untouched; validator accept final, no owner walkthrough), `official_page_change_monitor`
 (developer-only offline-in-tests command that compares approved FEGA, MAPA, and Junta PAC page
 snapshots by exact-byte/text hash and a bounded normalized diff, writes a deterministic report and
 last-good state outside `knowledge/`, and never fetches in tests or changes catalog/releases/indexes
@@ -52,7 +55,7 @@ default; measured on the owner's Mac, host decision pending), `knowledge_reindex
 (rehearsed locally only; no host step executed), `local_rag_bootstrap` (one guided setup
 command and a status check, walked through on the owner's Mac), `mock_answer_server` (Desktop and
 emulator walkthroughs not yet run), and `local_service_connection` (test builds only);
-`private_pilot_distribution` is `on_hold` by owner decision (2026-11-01). The 28 `not_started` features are the remaining MasterPlanV3 work, ordered
+`private_pilot_distribution` is `on_hold` by owner decision (2026-11-01). `local_load_test` and `rag_demo_rehearsal` are `passing` pending owner walkthroughs, and `seed_corpus_expansion` is `in_progress` pending owner approval. The 20 `not_started` features are the remaining MasterPlanV3 work, ordered
 local environment first, then the QA environment for remote real-device testing; prod is not planned yet. `feature_list.json` and the selector remain the status authority;
 this page does not duplicate the feature-id list.
 
@@ -104,7 +107,9 @@ before making any claim in its area.
 - Answers need the local service and an explicit campaign; legal scope is only the narrow reviewed
   corpus in [`knowledge/pac_coverage.md`](knowledge/pac_coverage.md).
 - All answer metrics are report-only: synthetic fixtures plus a 14-case author-reviewed sample with
-  visible gaps (13/14 states, 8/11 expected source and passage); no general-accuracy or legal-review claim.
+  visible gaps (14/14 states, 8/11 expected source and passage); no general-accuracy or legal-review claim.
+- The question-scope guard is lexical: questions on declared omissions (aid amounts, individual cases,
+  reclamaciones) abstain before retrieval, but an unlisted paraphrase can still reach retrieval.
 - The 72 screenshot baselines are host-rendered pixel checks, not device, accessibility, usability, or iOS
   evidence; known 2× text wrapping on compact layouts.
 - Land-field, search, and summary decisions have no target-user or real-device upgrade evidence.
@@ -113,6 +118,8 @@ before making any claim in its area.
   verified by inspection only; picker, file dialog, and screen-reader flows have no device evidence.
 - Pilot privacy gates are closed (review `pending`); retention and redaction are tested locally only.
 - Answer feedback (`POST /feedback`) is an anonymous fixed rating with no storage or answer linkage; counts are per process, there is no export or idempotency (a retry counts again), and the pending review does not name feedback yet. The shared chat's `Útil`/`No útil` rating (`answer_feedback_ui`) is in memory only, unlinked, lost on restart, and unavailable against the mock service.
+- The answer cache is in memory, per process, lost on restart, with no container or QA setting; a hit has no
+  `inspection`; no owner walkthrough, not measured on the owner's Mac.
 - Source monitoring, document ingestion, change-impact analysis, and reviewed update packages are local,
   manual, synthetic-fixture-backed, and guarantee neither completeness nor currency.
 - The procedure map is an unreviewed taxonomy: 16 `proposed` topics, 15 `uncovered`, no owner or
@@ -132,6 +139,7 @@ before making any claim in its area.
 - Environment profiles: QA has only a placeholder template and empty release folder, prod is unconfigured, and the local service does not enforce local access keys; tested in temporary homes only.
 - Hosted operations are prepared but not deployed; no host, domain, tunnel, or release artifacts exist.
 - QA test builds exist (`--android-qa`, `--desktop-qa`) but point at a placeholder address until `qa_server_deployment`; no QA build has run on a device.
+- The health dashboard runs only on the owner's Mac, is not alerting, shows QA as "Not set up yet", uses initial thresholds, and its image pins have no digests yet; the local row was checked in the owner walkthrough, the QA scrape is unverified.
 - Only test builds carry the pilot token (release and packaged apps cannot reach a pilot service); it is extractable from a test build; token auth is tested against an in-process fake only, with no live pilot-profile answer observed.
 - The mock answer service serves fixed contract examples only (not real or legal answers), on loopback for Desktop and the Android emulator.
 - Local `bge-m3` embeddings and Chroma hybrid retrieval are off the default answer path; measured
@@ -141,6 +149,7 @@ before making any claim in its area.
 - The answer trace is off by default and local-only tested; old traces are purged only while the service runs.
 - The answer inspector shows only in test builds talking to a loopback service in the `development` profile; a real device on a LAN address never shows it, and no GUI run was done.
 - Health metrics (`GET /metrics`) are per-process counts that reset on restart; source-update recency shows only when its state folder is set; in-process tests only.
+- The `/ask` input screen (personal data, prompt injection, off-topic) is lexical, Spanish and English only, and fires only on listed topics; names and addresses are not screened.
 
 **Detail on demand**
 

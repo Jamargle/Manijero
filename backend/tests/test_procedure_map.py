@@ -366,13 +366,13 @@ REJECTION_CASES = [
     (
         "unknown source reference",
         _unknown_source_reference,
-        "$.topics[0].coverage.source_ids[4]",
+        "$.topics[0].coverage.source_ids[6]",
         "unknown catalog source id",
     ),
     (
         "unknown passage reference",
         _unknown_passage_reference,
-        "$.topics[0].coverage.passage_ids[4]",
+        "$.topics[0].coverage.passage_ids[7]",
         "unknown reviewed passage id",
     ),
     (
@@ -498,10 +498,10 @@ def test_cli_reports_the_valid_map_and_every_topic() -> None:
     assert "valid procedure map:" in result.stdout
     assert "16 topics: 16 proposed, 0 reviewed" in result.stdout
     assert "1 partial, 15 uncovered" in result.stdout
-    assert "4 mapped source(s), 4 mapped passage(s)" in result.stdout
+    assert "6 mapped source(s), 7 mapped passage(s)" in result.stdout
     assert "unreferenced source ids: none" in result.stdout
     assert "unreferenced passage ids: none" in result.stdout
-    assert "topic solicitud-unica-pac: proposed, partial, 4 source(s), 4 passage(s)" in (
+    assert "topic solicitud-unica-pac: proposed, partial, 6 source(s), 7 passage(s)" in (
         result.stdout
     )
     assert sum(1 for line in result.stdout.splitlines() if line.startswith("topic ")) == 16

@@ -2,7 +2,8 @@
 
 * the Dockerfile pins its base by digest, runs as a non-root user, sets the same service
   environment as ``--local-rag-start`` with image paths, installs the pinned requirements
-  with torch from the CPU index, and never mentions a drafting runtime, reload, or a pilot key;
+  with torch from the CPU index, and never mentions a drafting runtime, reload, or a pilot key (it only copies the pilot launcher and
+  labels it);
 * that environment passes the real hybrid-retrieval and local-provider gates;
 * ``Dockerfile.dockerignore`` is an allowlist (evaluated here with Docker's matching rules);
 * the entry point's server settings are fixed, and the Ollama relay forwards bytes both ways
@@ -158,7 +159,7 @@ def test_requirements_are_the_pinned_files_with_torch_from_the_cpu_index() -> No
 
 def test_the_dockerfile_never_mentions_a_drafting_runtime_reload_or_a_pilot_key() -> None:
     text = DOCKERFILE.read_text(encoding="utf-8").lower()
-    for word in ("ollama", "--reload", "pilot", "deployment_profile", "retention", "gemini", "token", ".env", "settings.env"):
+    for word in ("ollama", "--reload", "pilot_clients", "pilot_privacy", "deployment_profile", "retention", "gemini", "token", ".env", "settings.env"):
         assert word not in text, word
 
 
@@ -238,6 +239,7 @@ def test_the_dockerignore_is_an_allowlist_without_tests_virtualenvs_settings_or_
         "!backend/requirements-hybrid.txt",
         "!backend/deploy/requirements-production.txt",
         "!backend/container",
+        "!backend/scripts/serve_pilot.py",
     ]
     for name in ("backend/tests/test_local_container.py", "backend/.venv/bin/python", "settings.env", "backend/app/x.env",
                  "backend/deploy/pilot.env.example", "backend/README.md", "knowledge/passages.json", ".env", "local.properties",
@@ -246,7 +248,8 @@ def test_the_dockerignore_is_an_allowlist_without_tests_virtualenvs_settings_or_
         assert not included(name, patterns), name
     files = context_files()
     assert "backend/app/main.py" in files and "backend/container/ollama_relay.py" in files
-    assert all(file.startswith(("backend/app/", "backend/config/", "backend/container/", "backend/requirements", "backend/deploy/requirements-production.txt")) for file in files)
+    assert all(file.startswith(("backend/app/", "backend/config/", "backend/container/", "backend/requirements", "backend/deploy/requirements-production.txt", "backend/scripts/serve_pilot.py")) for file in files)
+    assert "backend/scripts/serve_pilot.py" in files and "backend/scripts/local_rag.py" not in files
     assert not [file for file in files if "/tests/" in file or file.endswith((".env", ".example", ".pyc"))]
 
 
@@ -277,6 +280,23 @@ def test_the_entrypoint_server_settings_are_fixed() -> None:
         "proxy_headers": False,
         "server_header": False,
     }
+
+
+def test_the_pilot_launcher_is_copied_and_labelled_and_the_entrypoint_branches_on_the_profile(monkeypatch) -> None:
+    copies = [arguments for name, arguments in instructions() if name == "COPY"]
+    assert "backend/scripts/serve_pilot.py /opt/manijero/backend/scripts/serve_pilot.py" in copies
+    assert ("LABEL", 'org.manijero.launchers="default,pilot"') in instructions()
+    assert entrypoint.PILOT_ARGV == ("--host", "0.0.0.0", "--port", "8000", "--workers", "1")
+    seen: List[Any] = []
+    launcher = type(sys)("serve_pilot")
+    launcher.main = lambda argv: seen.append((list(argv), os.environ.get("MANIJERO_PILOT_ALLOW_PUBLIC_BIND"))) or 2  # type: ignore[attr-defined]
+    monkeypatch.setitem(sys.modules, "serve_pilot", launcher)
+    monkeypatch.delenv("MANIJERO_PILOT_ALLOW_PUBLIC_BIND", raising=False)
+    assert entrypoint._serve_pilot() == 2
+    assert seen == [(["--host", "0.0.0.0", "--port", "8000", "--workers", "1"], "1")]
+    monkeypatch.delenv("MANIJERO_PILOT_ALLOW_PUBLIC_BIND", raising=False)
+    source = (CONTAINER / "entrypoint.py").read_text(encoding="utf-8")
+    assert 'os.environ.get("MANIJERO_DEPLOYMENT_PROFILE") == PILOT_PROFILE' in source
 
 
 def test_the_relay_addresses_are_constants() -> None:
@@ -392,7 +412,12 @@ def test_the_relay_check_reports_whether_tags_answer(status: int, body: bytes, e
 # --- Staged-layout smoke -------------------------------------------------------------------
 
 
-COPY_MAP = (("backend/app/", "backend/app/"), ("backend/config/", "backend/config/"), ("backend/container/", "backend/container/"))
+COPY_MAP = (
+    ("backend/app/", "backend/app/"),
+    ("backend/config/", "backend/config/"),
+    ("backend/container/", "backend/container/"),
+    ("backend/scripts/serve_pilot.py", "backend/scripts/serve_pilot.py"),
+)
 
 SMOKE = r"""
 import json, sys
@@ -418,7 +443,7 @@ def test_the_allowlisted_files_start_the_service_in_the_image_layout(tmp_path: P
     for file in context_files():
         for source, target in COPY_MAP:
             if file.startswith(source):
-                destination = opt / target / file[len(source):]
+                destination = opt / target / file[len(source):] if source.endswith("/") else opt / target
                 destination.parent.mkdir(parents=True, exist_ok=True)
                 shutil.copy2(REPO_ROOT / file, destination)
     releases = opt / "knowledge-releases"

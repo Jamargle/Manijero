@@ -40,9 +40,9 @@ from app.pilot_config import (
 )
 from app.privacy_review import (
     decide_generation_provider,
-    evaluate_pilot_review,
     generation_provider_problem,
     load_review_record,
+    pilot_gate,
 )
 from app.readiness import ReadinessResult, evaluate_readiness
 from app.retention import RetentionError, load_retention_store
@@ -110,6 +110,7 @@ class PreflightReport:
     readiness: ReadinessResult | None
     problems: Tuple[str, ...] = ()
     privacy_review_passed: bool = False
+    qa_test_data_only: bool = False
     retention_configured: bool = False
     gemini_configured: bool = False
     generation_provider: str = "extractive"
@@ -187,7 +188,7 @@ def run_preflight(
     problems.extend(readiness.problems)
     source = os.environ if env is None else env
     record = load_review_record(privacy_review_path)
-    review = evaluate_pilot_review(record, as_of=checked_on)
+    review = pilot_gate(record, source, as_of=checked_on)
     problems.extend(review.blockers)
     retention_configured = False
     try:
@@ -206,6 +207,7 @@ def run_preflight(
         readiness=readiness,
         problems=tuple(problems),
         privacy_review_passed=review.passed,
+        qa_test_data_only=review.qa_test_data,
         retention_configured=retention_configured,
         gemini_configured=decision.gemini_configured,
         generation_provider=decision.provider,

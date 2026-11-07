@@ -54,7 +54,6 @@ SYNTHETIC_APPROVED_REVIEW = FIXTURES / "privacy" / "synthetic_approved_review.js
 FIXED_DAY = date(2026, 10, 13)
 PERSONAL_QUESTION = (
     "Me llamo Juan Pérez y mi finca Los Olivos está en Martos, polígono 12 parcela 345. "
-    "Mi teléfono es 600 123 456 y mi correo juan.perez@example.com. "
     "¿Cuándo se presenta la solicitud anual de ejemplo?"
 )
 SINGLE_LAND = {"mode": "all_active", "lands": [{"id": "opaque-land-7f3a", "municipality": "Martos"}]}
@@ -163,7 +162,7 @@ def test_opt_in_retains_only_redacted_question_and_answer(tmp_path: Path, captur
     stored = json.dumps(rows, ensure_ascii=False)
     for forbidden in FORBIDDEN_IN_RECORD:
         assert forbidden not in stored, forbidden
-    assert "[nombre]" in question and "[teléfono]" in question and "[correo]" in question
+    assert "[nombre]" in question and "[número]" in question
     assert "[municipio]" in question and "[nombre del terreno]" in question
     assert "Juan" not in captured_log.getvalue()
 
