@@ -7,7 +7,7 @@ Routine entry point. Exact feature status lives in [`feature_list.json`](feature
 contracts, raw evidence, and acceptance records remain in their owning files. Last updated:
 2026-11-02.
 
-**Feature status** — 82 of 120 features are accepted, including `rag_inspector_view` (developer
+**Feature status** — 83 of 120 features are accepted, including `rag_inspector_view` (developer
 `Inspeccionar` view of retrieved passages, scores, and verification steps; local test builds on a
 loopback service only, data sent only in the `development` profile; validator accept, no owner
 walkthrough by owner decision), `backend_health_metrics`

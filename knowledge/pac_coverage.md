@@ -16,13 +16,26 @@ Las fuentes oficiales aprobadas, ubicaciones y pasajes literales están registra
 
 ## Ampliación del corpus (2026-11-07)
 
-Diego revisó y aprobó el paquete `8c7b2e22…07b9` el 2026-11-07. La fusión controlada añadió 3 fuentes oficiales y 5 pasajes literales (el corpus pasa a 7 fuentes y 9 pasajes):
+Diego revisó y aprobó el paquete `8c7b2e22…07b9` el 2026-11-07. La fusión controlada añadió 3 fuentes oficiales y 5 pasajes literales. El mismo día, Diego aprobó el paquete `dfa5f081…3128`, que retiró 1 fuente y 2 pasajes porque empeoraban las respuestas de los casos revisados (coincidencia de estado 13/14 antes, 8/14 con los cinco pasajes, 13/14 con los tres que se mantienen). El corpus queda en 6 fuentes y 7 pasajes:
 
-- Real Decreto 1047/2022 (BOE): definiciones de parcela SIGPAC (art. 2.1.g) y recinto SIGPAC (art. 2.1.h);
-- Orden de 24 de marzo de 2023 (Junta de Andalucía): alegación SIGPAC en la solicitud única (art. 4.2);
+- Real Decreto 1047/2022 (BOE): definición de recinto SIGPAC (art. 2.1.h);
 - Ley 39/2015 (BOE): preferencia por la notificación electrónica (art. 41.1) y rectificación de errores materiales (art. 109.2).
 
-Cuatro documentos revisados no se añadieron; el motivo de cada uno consta en el apéndice de `seed_corpus_expansion`. Estos pasajes aún no tienen casos de evaluación propios y el índice no se ha regenerado: hasta la reindexación y publicación separadas, ninguna versión publicada los usa. No amplían la cobertura a elegibilidad individual, importes ni notificaciones individuales.
+Retenidos (revisados, no publicados por ahora): la definición de parcela SIGPAC (RD 1047/2022, art. 2.1.g) y la alegación SIGPAC en la solicitud única (Orden de 24 de marzo de 2023, art. 4.2). Desplazaban los pasajes de plazos y canal en la búsqueda; pueden volver en un paquete posterior.
+
+Cuatro documentos revisados no se añadieron y dos se retuvieron; el motivo de cada uno consta en la tabla de veredictos. Estos pasajes aún no tienen casos de evaluación propios y el índice no se ha regenerado: hasta la reindexación y publicación separadas, ninguna versión publicada los usa. No amplían la cobertura a elegibilidad individual, importes ni notificaciones individuales.
+
+### Veredictos de la revisión inicial (2026-11-06)
+
+| Id | Veredicto | URL oficial | Base |
+|---|---|---|---|
+| `rd_1047_2022` | `added` | `https://www.boe.es/buscar/doc.php?id=BOE-A-2022-23047` | Original text; art. 2.g/h wording also appears unchanged in the consolidated copy last updated 20/11/2025. |
+| `rd_1049_2022` | `not_added` | `https://www.boe.es/buscar/doc.php?id=BOE-A-2022-23049` | In force, but conditionality is a pinned "not yet covered" disclosure topic; adding a passage would contradict the copy. |
+| `rd_1054_2022` | `not_added` | `https://www.boe.es/buscar/doc.php?id=BOE-A-2022-23054` | In force, but SIEX and the digital notebook are a pinned "not yet covered" disclosure topic; adding a passage would contradict the copy. |
+| `orden_2023_03_24` | `added`, retenido el 2026-11-07 | `https://www.juntadeandalucia.es/boja/2023/61/4` | Original text; art. 4.2 is the SIGPAC alegación step for the single application, untouched by the BOJA 2023/80 correction. |
+| `orden_2023_03_24_correccion` | `not_added` | `https://www.juntadeandalucia.es/boja/2023/80/1` | Corrects arts. 46–51 of the Order, unrelated to the selected art. 4.2; establishes no independent provision, so it is recorded as evidence only. |
+| `fega_res_2026_05_20` | `not_added` | `https://www.fega.gob.es/es/noticias/node-16804` | News item announcing a deadline of 15/06/2026 that has passed; the extension is consolidated in the already-approved RD 537/2026. |
+| `ley_39_2015` | `added` | `https://www.boe.es/buscar/doc.php?id=BOE-A-2015-10565` | Original text; art. 41.1 and 109.2 wording also appears unchanged in the consolidated copy last updated 06/11/2024. |
 
 ## Evaluación de respuestas revisada
 

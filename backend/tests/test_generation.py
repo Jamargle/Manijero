@@ -707,10 +707,14 @@ def test_a_digit_only_problem_keeps_only_figure_unsupported() -> None:
         assert "numeric_fact_unsupported" not in codes, name
 
 
-# Two abstention fixtures fail on purpose for a non-numeric rule.
+# Two abstention fixtures fail on purpose for a non-numeric rule. The canonical
+# recinto definition is a literal multi-sentence article excerpt (RD 1047/2022 art.
+# 2.1.h, approved 2026-11-07); a one-passage extractive draft cites only its first
+# sentence, so the verifier rejects it and the service abstains rather than paraphrase.
 DELIBERATELY_REJECTED_EXTRACTIVE = {
     "fixture-abs-riego-1": ("uncited_sentence",),
     "fixture-abs-ayuda-1": ("eligibility_claim",),
+    "pasaje-definicion-recinto-sigpac": ("uncited_sentence",) * 2,
 }
 
 
