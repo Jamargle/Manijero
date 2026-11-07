@@ -620,8 +620,8 @@ of the API contract; the files are read from disk.
 
 ## Health metrics
 
-`GET /metrics` serves Prometheus text format 0.0.4 (`text/plain; version=0.0.4`) for the later
-`monitoring_dashboard` and for `curl`. It is not in the OpenAPI contract and has no owner command.
+`GET /metrics` serves Prometheus text format 0.0.4 (`text/plain; version=0.0.4`) for the
+[health dashboard](#health-dashboard) and for `curl`. It is not in the OpenAPI contract.
 
 - **Gate:** open in the `development` profile; in `pilot` (QA) it needs the same client bearer token
   as `/ask`, answering the same detail-free `401`/`429`. Scrapes use their own per-client window with
@@ -667,6 +667,30 @@ of the API contract; the files are read from disk.
 - **Not implemented:** no durable feedback store, export, dashboard, alert, or per-answer
   linkage, and no idempotency (a retry after an unknown outcome counts again); durable feedback
   retention is still an open privacy decision.
+
+## Health dashboard
+
+`./scripts/init.sh --monitoring-start|--monitoring-status|--monitoring-stop`
+(`app/local_monitoring.py`, `scripts/monitoring.py`; spec `docs/specs/monitoring_dashboard.md`) runs a
+Prometheus and a Grafana container in Docker Desktop, both labelled `org.manijero.managed=1`. Only
+Grafana is published, on `127.0.0.1:3000` (`MANIJERO_MONITORING_PORT`, tests and developers only).
+
+- **Files** (`backend/monitoring/`, JSON documents that are also valid YAML): `images.json` (reviewed
+  pins), `thresholds.json` (the one place the OK/warning/problem bounds live), `prometheus/rules.json`
+  (recording rules `manijero:status_*`: codes `-1` no data, `0` OK, `1` warning, `2`/`3` problem,
+  `4` not set up), `grafana/provisioning/*`, and `grafana/dashboards/manijero-health.json` (stat panels
+  whose value mappings carry each state's sentence). Change a bound in `thresholds.json`, the rule, and
+  the panel text together; `tests/test_monitoring_files.py` fails when they differ.
+- **Runtime settings:** `prometheus.yml` is generated at each start into `<local home>/monitoring/`:
+  local job `host.docker.internal:<MANIJERO_LOCAL_RAG_PORT>` every 15 s; a QA job every 30 s only when
+  `settings.env` of QA has a non-placeholder `MANIJERO_PUBLIC_URL` and complete access keys, with the
+  QA token read from a read-only mounted file (never in arguments, files, or output). Prometheus keeps
+  only `manijero_*` series and the `backend_health_metrics` labels plus `env`, `job`, `instance`.
+- **Pins:** `images.json` names `tag` and, once read, `digest`; a null digest pulls by the explicit
+  version tag. To fill one in: `docker buildx imagetools inspect <image:tag>` and copy the
+  `Digest: sha256:...` line (the multi-platform index digest) into `images.json`.
+- **Optional smoke:** `MANIJERO_MONITORING_DOCKER_SMOKE=1 ./scripts/init.sh --backend-tests tests/test_monitoring_docker_smoke.py`
+  (Docker Desktop open): `promtool check`, a real start, anonymous Grafana health, stop.
 
 ## Offline retrieval baseline
 

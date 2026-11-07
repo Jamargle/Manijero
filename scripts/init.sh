@@ -176,6 +176,34 @@ if [[ "${1:-}" == "--container-build" || "${1:-}" == "--container-start" || "${1
   exec "$LOCAL_RAG_PYTHON" "$REPO_ROOT/backend/scripts/local_rag.py" "${1#--}"
 fi
 
+# Owner commands for the health dashboard (Prometheus and Grafana in Docker Desktop, docs/owner-guide.md).
+# It reads /metrics of the local (and, once set up, QA) answer service. MANIJERO_DOCKER_CLI is for tests
+# only; MANIJERO_MONITORING_PORT and MANIJERO_LOCAL_RAG_PORT for tests and developers only.
+if [[ "${1:-}" == "--monitoring-start" || "${1:-}" == "--monitoring-status" || "${1:-}" == "--monitoring-stop" ]]; then
+  REPO_ROOT="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")/.." && pwd)"
+  if (( $# > 1 )); then
+    printf 'Run %s on its own, with nothing after it.\n' "$1" >&2
+    exit 2
+  fi
+  for MONITORING_PORT_VALUE in "${MANIJERO_LOCAL_RAG_PORT:-8000}" "${MANIJERO_MONITORING_PORT:-3000}"; do
+    if [[ ! "$MONITORING_PORT_VALUE" =~ ^[0-9]{1,5}$ ]] || (( 10#$MONITORING_PORT_VALUE < 1 || 10#$MONITORING_PORT_VALUE > 65535 )); then
+      printf 'MANIJERO_LOCAL_RAG_PORT and MANIJERO_MONITORING_PORT must be port numbers between 1 and 65535.\n' >&2
+      exit 2
+    fi
+  done
+  LOCAL_RAG_PYTHON="$REPO_ROOT/backend/.venv/bin/python"
+  if [[ ! -x "$LOCAL_RAG_PYTHON" ]] && ! "$REPO_ROOT/scripts/python-env.sh" dev --if-present >/dev/null 2>&1; then
+    if [[ "$1" == "--monitoring-stop" ]]; then
+      printf 'Result: the health dashboard was not running, so there was nothing to stop.\n'
+      exit 0
+    fi
+    printf 'The local answer tools are not set up yet. Run ./scripts/init.sh --local-rag-setup to set them up.\n'
+    printf 'Result: setup has not run yet.\n'
+    exit 1
+  fi
+  exec "$LOCAL_RAG_PYTHON" "$REPO_ROOT/backend/scripts/monitoring.py" "${1#--monitoring-}"
+fi
+
 # Owner command: smoke-test the Desktop and Android emulator apps against the running local answer
 # service (docs/owner-guide.md). Like --local-rag-*, it runs before the local.properties write; AGP
 # reads ANDROID_HOME instead. backend/app/local_smoke.py checks the service, Java, and the emulator.
@@ -254,7 +282,7 @@ AS_OF="${MANIJERO_AS_OF:-2026-10-13}"
 
 usage() {
   cat <<'EOF'
-Usage: ./scripts/init.sh [--check|--fast|--verify|--feature <id>|--backend-tests [targets]|--setup-python [dev|hybrid|docparse]|--backend|--mock|--mock-status|--mock-stop|--local-rag-setup|--local-rag-status|--local-rag-start|--local-rag-service-status|--local-rag-stop|--container-build|--container-start|--container-status|--container-stop|--pilot-token-save|--local-smoke|--environments-status|--qa-settings-setup|--android|--android-run|--desktop|--android-qa|--desktop-qa|--help]
+Usage: ./scripts/init.sh [--check|--fast|--verify|--feature <id>|--backend-tests [targets]|--setup-python [dev|hybrid|docparse]|--backend|--mock|--mock-status|--mock-stop|--local-rag-setup|--local-rag-status|--local-rag-start|--local-rag-service-status|--local-rag-stop|--container-build|--container-start|--container-status|--container-stop|--monitoring-start|--monitoring-status|--monitoring-stop|--pilot-token-save|--local-smoke|--environments-status|--qa-settings-setup|--android|--android-run|--desktop|--android-qa|--desktop-qa|--help]
 
   --check                   Check Java and the Gradle wrapper, then print standard commands (default)
   --fast                    Shared host tests, contract examples, backend unit tests, and the five
@@ -286,6 +314,10 @@ Usage: ./scripts/init.sh [--check|--fast|--verify|--feature <id>|--backend-tests
                             Ollama on this Mac)
   --container-status        Say whether the container runs, can answer, and where
   --container-stop          Stop and remove the answer service container
+  --monitoring-start        Start the health dashboard (Prometheus and Grafana in Docker Desktop) and
+                            print its browser address (127.0.0.1 only)
+  --monitoring-status       Say whether the health dashboard runs and answers
+  --monitoring-stop         Stop and remove the health dashboard (its history is kept)
   --pilot-token-save        Save the copied pilot token (macOS clipboard) for the next test builds
                             (Android debug, --desktop); it never prints the token
   --local-smoke             With the local answer service running, ask it one fixed question through
