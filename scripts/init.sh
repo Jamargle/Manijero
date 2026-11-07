@@ -149,6 +149,26 @@ if [[ "${1:-}" == "--local-rag-start" || "${1:-}" == "--local-rag-stop" || "${1:
   exec "$LOCAL_RAG_PYTHON" "$REPO_ROOT/backend/scripts/local_rag.py" "$LOCAL_RAG_COMMAND"
 fi
 
+# Owner command: measure answer latency and throughput at pilot concurrency against the running
+# local answer service (docs/owner-guide.md "Measure answer speed under pilot load"). Like the
+# other --local-rag-* commands it runs before the local.properties write and needs no Android SDK
+# or Java. It reads no port from the environment; backend/scripts/measure_local_load.py checks the
+# verified run record and its three checks, then runs the plan.
+if [[ "${1:-}" == "--local-rag-load-test" ]]; then
+  REPO_ROOT="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")/.." && pwd)"
+  if (( $# > 1 )); then
+    printf 'Run %s on its own, with nothing after it.\n' "$1" >&2
+    exit 2
+  fi
+  LOCAL_RAG_PYTHON="$REPO_ROOT/backend/.venv/bin/python"
+  if [[ ! -x "$LOCAL_RAG_PYTHON" ]] && ! "$REPO_ROOT/scripts/python-env.sh" dev --if-present >/dev/null 2>&1; then
+    printf 'The local answer tools are not set up yet. Run ./scripts/init.sh --local-rag-setup to set them up.\n'
+    printf 'Result: setup has not run yet.\n'
+    exit 1
+  fi
+  exec "$LOCAL_RAG_PYTHON" "$REPO_ROOT/backend/scripts/measure_local_load.py"
+fi
+
 # Owner commands for the answer service as a container in Docker Desktop (docs/owner-guide.md).
 # The image packages the local knowledge release and search model; Ollama stays on this Mac.
 # MANIJERO_DOCKER_CLI is for tests only; MANIJERO_LOCAL_RAG_PORT for tests and developers only.
@@ -282,7 +302,7 @@ AS_OF="${MANIJERO_AS_OF:-2026-10-13}"
 
 usage() {
   cat <<'EOF'
-Usage: ./scripts/init.sh [--check|--fast|--verify|--feature <id>|--backend-tests [targets]|--setup-python [dev|hybrid|docparse]|--backend|--mock|--mock-status|--mock-stop|--local-rag-setup|--local-rag-status|--local-rag-start|--local-rag-service-status|--local-rag-stop|--container-build|--container-start|--container-status|--container-stop|--monitoring-start|--monitoring-status|--monitoring-stop|--pilot-token-save|--local-smoke|--environments-status|--qa-settings-setup|--android|--android-run|--desktop|--android-qa|--desktop-qa|--help]
+Usage: ./scripts/init.sh [--check|--fast|--verify|--feature <id>|--backend-tests [targets]|--setup-python [dev|hybrid|docparse]|--backend|--mock|--mock-status|--mock-stop|--local-rag-setup|--local-rag-status|--local-rag-start|--local-rag-service-status|--local-rag-load-test|--local-rag-stop|--container-build|--container-start|--container-status|--container-stop|--monitoring-start|--monitoring-status|--monitoring-stop|--pilot-token-save|--local-smoke|--environments-status|--qa-settings-setup|--android|--android-run|--desktop|--android-qa|--desktop-qa|--help]
 
   --check                   Check Java and the Gradle wrapper, then print standard commands (default)
   --fast                    Shared host tests, contract examples, backend unit tests, and the five
@@ -308,6 +328,9 @@ Usage: ./scripts/init.sh [--check|--fast|--verify|--feature <id>|--backend-tests
   --local-rag-service-status
                             Say whether the local answer service runs, can answer, and where
   --local-rag-stop          Stop the local answer service
+  --local-rag-load-test     With the service running, ask the reviewed questions from 10 clients
+                            for about five minutes and report answer times and throughput (one
+                            aggregate report under the local home; no pass or fail)
   --container-build         Build the answer service image in Docker Desktop with the published
                             knowledge release and the search model (no drafting model)
   --container-start         Run that image in the background on 127.0.0.1 (drafting through
@@ -885,6 +908,7 @@ Build and run:
   ./scripts/init.sh --local-rag-setup  # set up the local answer tools once (see docs/owner-guide.md)
   ./scripts/init.sh --local-rag-status # check the local answer tools in plain words
   ./scripts/init.sh --local-rag-start  # start the real local answer service in the background (--local-rag-service-status, --local-rag-stop)
+  ./scripts/init.sh --local-rag-load-test  # with it running: answer times and throughput from 10 clients for about five minutes
   ./scripts/init.sh --container-build  # build the answer service image in Docker Desktop (see docs/owner-guide.md)
   ./scripts/init.sh --container-start  # run it in the background (--container-status, --container-stop)
   ./scripts/init.sh --local-smoke      # with it running: ask it once through the Desktop and Android emulator apps

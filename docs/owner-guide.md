@@ -228,6 +228,47 @@ looks; it never starts, stops, or downloads anything.
 | `PROBLEM  Answers: the service does not answer. ...` | The service is stuck. | Stop it and start it again. If it happens again, send the log file named on the screen to a developer. |
 | `PROBLEM  Answers: the service runs but cannot answer questions right now. ...` | The knowledge is not ready to answer. | Run `./scripts/init.sh --local-rag-status` and do its first step. |
 
+## Measure answer speed under pilot load
+
+This command asks the 14 reviewed questions from 10 pretend users at once for about five minutes and
+tells you how long answers took and how many the service handled. It only asks questions and writes
+one report; it never changes your lands, the service, or the knowledge. It does not say whether the
+answers are right, and the numbers are for this computer only.
+
+1. **Start the service** if it is not running: `./scripts/init.sh --local-rag-start`. The check
+   `./scripts/init.sh --local-rag-service-status` should show three `OK` lines.
+2. **Measure.** Paste:
+
+   ```sh
+   ./scripts/init.sh --local-rag-load-test
+   ```
+
+   - Expected: `Checking the local answer service...`, the service address, a plan line
+     (`The plan: 14 reviewed questions, 2 warm-up questions, 10 clients, one more every second for 10 seconds, 3 minutes at once, about five minutes.`), the warm-up line, then after a few minutes:
+     `Ramp: … questions finished, … did not answer.` and
+     `Steady phase: … questions finished, … did not answer.`, a line
+     `  Median … s, p95 … s, slowest … s.`, a line
+     `  Requests per second: … (… successful questions over … s).`, a line
+     `  Answers: … answered, … abstained, … needed a land choice.`, and
+     `The report is saved as: ~/manijero/local/reports/local-load-….json`.
+   - Then three honesty lines (the numbers describe this Mac at that moment, the 8 s p95 is only a
+     reference, and a low p95 can hide answers written without the drafting model), and
+     `Result: the load test finished; the report is in ~/manijero/local/reports/local-load-….json.`
+   - Leave the Terminal open and wait; stopping it with Ctrl+C cancels the measurement.
+
+### If the load test shows something else
+
+| You see | What it means | What to do |
+|---|---|---|
+| `Result: the load test did not run. Start the local answer service with ./scripts/init.sh --local-rag-start, ...` | The service is not running. | Start it, then run the command again. |
+| `The local answer tools are not set up yet. ...`, then `Result: the load test did not run. Do the first step shown above.` | The local answer tools were never set up. | Follow [Set up the local answer tools](#set-up-the-local-answer-tools), then run the command again. |
+| A `PROBLEM ...` line, then `Result: the load test did not run. Do the first step shown above.` | A service check is not `OK` (for example Ollama is closed). | Do what the `PROBLEM` line says, then run the command again. |
+| `Another load test is running in another Terminal window.` | One is already running. | Wait for its `Result:` line, then run it again. |
+| `Result: the load test finished, but … questions failed. ...` | Some questions did not answer; the timing numbers are incomplete. | Run it once more. If it repeats, send the report file to a developer. |
+| `Result: the load test finished, but the local answer service changed during the run, ...` | The service stopped, restarted, or its knowledge changed during the run. | Run `./scripts/init.sh --local-rag-start`, then run the test again. |
+| `Result: the load test was stopped.` | You pressed Ctrl+C. | Run it again when you are ready; nothing was changed. |
+| `Something unexpected went wrong. ... <log file>` | The command itself failed. | Send that log file to a developer. |
+
 ## Stop the local answer service
 
 1. **Stop.** Paste:
@@ -305,6 +346,29 @@ Write down each `Result:` line and send them to the developer.
    and `Result: the smoke test failed on the Android emulator. Do the first step shown above.`
 7. Run `./scripts/init.sh --local-rag-stop`. Report each `Result:` line, the two `PASS` lines, and
    whether the emulator app still shows the lands it had before.
+
+## Owner walkthrough: load test
+
+Do this once the local service works, preferably when you can leave the computer alone for about
+ten minutes. Write down each `Result:` line and the numbers the test prints, and send them to the
+person who asked for them.
+
+1. **Check the service.** Run `./scripts/init.sh --local-rag-service-status`. Expect three `OK`
+   lines and its running `Result:`. If not, run `./scripts/init.sh --local-rag-start` first.
+2. **Missing prerequisite:** run `./scripts/init.sh --local-rag-stop`, then
+   `./scripts/init.sh --local-rag-load-test`. Expect
+   `Result: the load test did not run. Start the local answer service with ./scripts/init.sh --local-rag-start, then run this command again.`
+3. **Missing model:** start the service, then quit Ollama (llama icon, `Quit Ollama`), then run
+   `./scripts/init.sh --local-rag-load-test`. Expect one `PROBLEM` line about the model and
+   `Result: the load test did not run. Do the first step shown above.`
+4. **Measure:** open Ollama again, wait 10 seconds, then run
+   `./scripts/init.sh --local-rag-load-test`. The first warm-up answer may be slow while the
+   drafting model loads. Expect the plan, the two warm-up times, the steady summary, the honesty
+   note, and `Result: the load test finished; the report is in <path>.` after about five minutes.
+   Report the median, p95, slowest, requests per second, finished and failed counts, the answer
+   kinds, and the report path.
+5. Send the report file to the person who asked (it contains only counts and times), then run
+   `./scripts/init.sh --local-rag-stop`.
 
 ## Owner walkthrough: local answer service
 
