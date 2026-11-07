@@ -713,6 +713,41 @@ server is contacted.
 | `... must say MANIJERO_DEPLOYMENT_PROFILE=pilot; it is never treated as local` | Open the QA settings file named in the message in TextEdit and fix the line it names. |
 | `The folder ... is inside the Manijero folder` | Ask a developer; the QA folder must be outside the Manijero folder. |
 
+## Set up Tailscale (one time)
+
+QA is reachable from phones through Tailscale Funnel (free). You do this once; no command does it for you.
+
+1. Create a free account at <https://login.tailscale.com/start> and install the Tailscale app for Mac. Open it and log in.
+2. In the Tailscale admin page (<https://login.tailscale.com/admin/dns>), under DNS, turn on **HTTPS Certificates**.
+3. In the admin page under **Access controls**, make sure your account may use Funnel (the page offers a button called **Funnel** or **Add Funnel to policy**; press it).
+4. Check: open Terminal and run `tailscale status`. Expect your Mac listed. If `tailscale` is not found, open the Tailscale app once and try again.
+
+## Deploy, update, roll back, check, and stop QA
+
+QA runs the answer service from the image on this Mac and is for made-up test questions only. Docker Desktop and Ollama must be open. First run `./scripts/init.sh --container-build` and `./scripts/init.sh --qa-settings-setup`.
+
+| To do this | Run | Expect |
+|---|---|---|
+| Deploy QA | `./scripts/init.sh --qa-deploy`, then type `yes` | `Result: QA is running at https://<mac>.<tailnet>.ts.net for test data only.` |
+| Ship a newer image | `./scripts/init.sh --container-build`, then `./scripts/init.sh --qa-update` and `yes` | `Result: QA was updated to ...` |
+| Go back one version | `./scripts/init.sh --qa-rollback` and `yes` (again to go forward) | `Result: QA was rolled back to ...` |
+| Check | `./scripts/init.sh --qa-status` | `OK` lines and `Result: QA is running at ...` |
+| Take QA off the internet | `./scripts/init.sh --qa-stop` | `Result: QA has stopped and is no longer reachable from the internet.` |
+
+A line starting `PROBLEM` or a `Result:` that begins `QA was not ...` names its one fix; do it and run the command again. QA stops when the Mac sleeps or restarts: run `--qa-deploy` again (it restarts the same version). The warning `Test data only` is a rule, not a filter: never type real questions or land details into QA.
+
+## Owner walkthrough: QA
+
+Manual acceptance for QA deployment. Write the result of each step in the session notes.
+
+1. Do "Set up Tailscale (one time)".
+2. Run `./scripts/init.sh --qa-deploy`; type `yes`. Expect the `Result: QA is running at https://...` line.
+3. On your phone, open the printed address plus `/health` in the browser. Expect a short status.
+4. Rebuild a QA app (`./scripts/init.sh --android-qa`), install it, and ask one made-up question. Expect an answer.
+5. Run `./scripts/init.sh --container-build`, then `./scripts/init.sh --qa-update` (`yes`), then `--qa-rollback` (`yes`). Expect each `Result:` line.
+6. Missing prerequisite: quit the Tailscale app, run `./scripts/init.sh --qa-deploy` or `--qa-status`. Expect a line naming Tailscale and the "Set up Tailscale" step; open Tailscale and run it again.
+7. Run `./scripts/init.sh --qa-stop`. Expect the stopped `Result:`; the phone address no longer answers.
+
 ## Build the QA test apps
 
 The QA apps are named `Manijero QA`. They install beside your normal Manijero app and keep their
@@ -723,11 +758,12 @@ the QA apps carry the QA access key.
    - Expect `Result: the Manijero QA app was built: androidApp/build/outputs/apk/debug/androidApp-debug.apk`.
 2. **Desktop:** run `./scripts/init.sh --desktop-qa`. The `Manijero QA` window opens. Its notes and
    lands are kept apart from the normal app.
-3. **The QA address.** Until a QA server is chosen you will see
+3. **The QA address.** `./scripts/init.sh --qa-deploy` saves the address in `qa-address.local` in
+   the Manijero folder (never shared or uploaded), so run it first, then build. Before QA is
+   deployed you will see
    `The QA address is a placeholder (https://qa.manijero.invalid) until the QA server is chosen; this app cannot reach QA yet.`
-   That is expected: the app builds, but it cannot reach QA yet. When a server exists, save its
-   `https://` address as one line in a file named `qa-address.local` in the Manijero folder. The
-   file is never shared or uploaded. Then build again.
+   That is expected: the app builds, but it cannot reach QA yet. Build again after each new deploy
+   to a different address.
 
 | What it shows | What to do |
 |---|---|

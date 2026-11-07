@@ -9,6 +9,7 @@
 !backend/requirements-hybrid.txt
 !backend/deploy/requirements-production.txt
 !backend/container
+!backend/scripts/serve_pilot.py
 
 # Even inside the allowlisted folders.
 **/tests

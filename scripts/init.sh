@@ -224,6 +224,29 @@ if [[ "${1:-}" == "--monitoring-start" || "${1:-}" == "--monitoring-status" || "
   exec "$LOCAL_RAG_PYTHON" "$REPO_ROOT/backend/scripts/monitoring.py" "${1#--monitoring-}"
 fi
 
+# Owner commands for the QA answer service on this Mac, reachable over HTTPS through Tailscale Funnel
+# (docs/owner-guide.md "Owner walkthrough: QA"). QA is for made-up test questions only. Test-only
+# variables: MANIJERO_QA_HOME, MANIJERO_LOCAL_HOME, MANIJERO_DOCKER_CLI, MANIJERO_TAILSCALE_CLI,
+# MANIJERO_QA_PORT, and MANIJERO_QA_ADDRESS_FILE.
+if [[ "${1:-}" == "--qa-deploy" || "${1:-}" == "--qa-update" || "${1:-}" == "--qa-rollback" || "${1:-}" == "--qa-status" || "${1:-}" == "--qa-stop" ]]; then
+  REPO_ROOT="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")/.." && pwd)"
+  if (( $# > 1 )); then
+    printf 'Run %s on its own, with nothing after it.\n' "$1" >&2
+    exit 2
+  fi
+  LOCAL_RAG_PYTHON="$REPO_ROOT/backend/.venv/bin/python"
+  if [[ ! -x "$LOCAL_RAG_PYTHON" ]] && ! "$REPO_ROOT/scripts/python-env.sh" dev --if-present >/dev/null 2>&1; then
+    if [[ "$1" == "--qa-stop" ]]; then
+      printf 'Result: QA was not running, so there was nothing to stop.\n'
+      exit 0
+    fi
+    printf 'The local answer tools are not set up yet. Run ./scripts/init.sh --local-rag-setup to set them up.\n'
+    printf 'Result: setup has not run yet.\n'
+    exit 1
+  fi
+  exec "$LOCAL_RAG_PYTHON" "$REPO_ROOT/backend/scripts/qa_service.py" "${1#--qa-}"
+fi
+
 # Owner command: smoke-test the Desktop and Android emulator apps against the running local answer
 # service (docs/owner-guide.md). Like --local-rag-*, it runs before the local.properties write; AGP
 # reads ANDROID_HOME instead. backend/app/local_smoke.py checks the service, Java, and the emulator.
@@ -320,7 +343,7 @@ AS_OF="${MANIJERO_AS_OF:-2026-10-13}"
 
 usage() {
   cat <<'EOF'
-Usage: ./scripts/init.sh [--check|--fast|--verify|--feature <id>|--backend-tests [targets]|--setup-python [dev|hybrid|docparse]|--backend|--mock|--mock-status|--mock-stop|--local-rag-setup|--local-rag-status|--local-rag-start|--local-rag-service-status|--local-rag-load-test|--local-rag-stop|--container-build|--container-start|--container-status|--container-stop|--monitoring-start|--monitoring-status|--monitoring-stop|--pilot-token-save|--demo-rehearsal|--local-smoke|--environments-status|--qa-settings-setup|--android|--android-run|--desktop|--android-qa|--desktop-qa|--help]
+Usage: ./scripts/init.sh [--check|--fast|--verify|--feature <id>|--backend-tests [targets]|--setup-python [dev|hybrid|docparse]|--backend|--mock|--mock-status|--mock-stop|--local-rag-setup|--local-rag-status|--local-rag-start|--local-rag-service-status|--local-rag-load-test|--local-rag-stop|--container-build|--container-start|--container-status|--container-stop|--monitoring-start|--monitoring-status|--monitoring-stop|--pilot-token-save|--demo-rehearsal|--local-smoke|--environments-status|--qa-settings-setup|--qa-deploy|--qa-update|--qa-rollback|--qa-status|--qa-stop|--android|--android-run|--desktop|--android-qa|--desktop-qa|--help]
 
   --check                   Check Java and the Gradle wrapper, then print standard commands (default)
   --fast                    Shared host tests, contract examples, backend unit tests, and the five
@@ -369,6 +392,12 @@ Usage: ./scripts/init.sh [--check|--fast|--verify|--feature <id>|--backend-tests
   --environments-status     Read-only: say in plain words what the local, QA, and prod
                             environments each have (nothing is deployed or contacted)
   --qa-settings-setup       Prepare the QA settings file and access keys on this computer
+  --qa-deploy               Run QA from the built image, reachable over HTTPS through Tailscale
+                            Funnel, for made-up test questions only
+  --qa-update               Ship the newest built image to QA (the earlier one is kept)
+  --qa-rollback             Put the earlier QA image back (run it again to roll forward)
+  --qa-status               Say whether QA runs, answers, and is reachable
+  --qa-stop                 Take QA off the internet and stop it
                             (placeholder server address; nothing is deployed)
   --android                 Build the Android debug APK
   --android-run             Build, start an emulator if needed, install, and launch the app
@@ -935,6 +964,7 @@ Build and run:
   ./scripts/init.sh --demo-rehearsal   # with it running: rehearse the demo (docs/demo-script.md)
   ./scripts/init.sh --environments-status # what the local, QA, and prod environments each have
   ./scripts/init.sh --qa-settings-setup   # prepare QA settings and access keys on this computer (deploys nothing)
+  ./scripts/init.sh --qa-deploy           # run QA over HTTPS for test data only (--qa-update, --qa-rollback, --qa-status, --qa-stop)
   ./scripts/init.sh --android    # androidApp/build/outputs/apk/debug/androidApp-debug.apk
   ./scripts/init.sh --android-run # build and launch on an Android emulator
   ./scripts/init.sh --desktop    # launch the Desktop app
