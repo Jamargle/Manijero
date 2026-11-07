@@ -48,11 +48,15 @@ import org.jetbrains.compose.resources.stringResource
  * One transcript entry in the order it arrived. A `Tú` entry is the person's own words: it sits at
  * the end of the column at most 85 % wide and keeps its written `Tú` label, so the alignment is a
  * visual cue only and the entry is never announced as a reply. An `Asistente` entry stays a calm
- * neutral card; an abstention keeps the caution pair and both of its labels.
+ * neutral card; an abstention keeps the caution pair and both of its labels. Every finished answer
+ * (answered or abstained) carries the quiet rating row [index] identifies, as a sibling below the
+ * card and its sources and above the development-only `Inspeccionar` link.
  */
 @Composable
 internal fun ChatMessageBubble(
     message: ChatMessage,
+    index: Int,
+    onFeedback: (Int, AnswerRating) -> Unit,
     modifier: Modifier = Modifier,
     onInspect: ((ChatMessage) -> Unit)? = null,
 ) {
@@ -102,6 +106,10 @@ internal fun ChatMessageBubble(
                     if (presentation.cards.isNotEmpty()) {
                         SourceCardsSection(cards = presentation.cards)
                     }
+                    AnswerFeedbackControl(
+                        feedback = message.feedback,
+                        onRating = { rating -> onFeedback(index, rating) },
+                    )
                     if (inspect != null) InspectLink(onClick = inspect)
                 }
             }
@@ -109,14 +117,7 @@ internal fun ChatMessageBubble(
             // An abstention is a decoded answer, not a failure: it stays in the transcript with the
             // caution tokens, an explicit text state label, and the server message verbatim. The
             // limitation and next step are the sentences already inside that message.
-            AnswerStatus.abstained -> if (inspect == null) {
-                ChatAbstentionCard(
-                    modifier = modifier.testTag(ChatTestTags.ABSTAINED),
-                    scopeLabel = stringResource(landScopeCaption(message.landScope)),
-                    stateLabel = stringResource(Res.string.chat_answer_state_abstained),
-                    text = message.text,
-                )
-            } else {
+            AnswerStatus.abstained -> {
                 Column(
                     modifier = modifier.fillMaxWidth(),
                     verticalArrangement = Arrangement.spacedBy(ManijeroSpacing.Small),
@@ -127,7 +128,11 @@ internal fun ChatMessageBubble(
                         stateLabel = stringResource(Res.string.chat_answer_state_abstained),
                         text = message.text,
                     )
-                    InspectLink(onClick = inspect)
+                    AnswerFeedbackControl(
+                        feedback = message.feedback,
+                        onRating = { rating -> onFeedback(index, rating) },
+                    )
+                    if (inspect != null) InspectLink(onClick = inspect)
                 }
             }
 

@@ -5,9 +5,29 @@
 Routine entry point. Exact feature status lives in [`feature_list.json`](feature_list.json); use
 [`./scripts/select-feature.sh --status`](scripts/select-feature.sh) to read the board. Feature
 contracts, raw evidence, and acceptance records remain in their owning files. Last updated:
-2026-11-02.
+2026-11-07.
 
-**Feature status** — 83 of 120 features are accepted, including `rag_inspector_view` (developer
+**Feature status** — 92 of 120 features are accepted, including `validity_checker` (offline, digest-bound check of the reviewed catalog and accepted change-impact signals: explicit expiry versus an injected UTC as-of date, machine-evident repeal/expiry only as a review-required retirement proposal, publication additions as review leads, ambiguous/negated signals never retire; writes one derived `validity-review-v1` artifact outside `knowledge/` and leaves the corpus, releases, indexes, and `/ask` untouched; validator accept final, no owner walkthrough), `official_page_change_monitor`
+(developer-only offline-in-tests command that compares approved FEGA, MAPA, and Junta PAC page
+snapshots by exact-byte/text hash and a bounded normalized diff, writes a deterministic report and
+last-good state outside `knowledge/`, and never fetches in tests or changes catalog/releases/indexes
+or `/ask`; validator accept is final, no owner walkthrough), `feedback_endpoint` (privacy-minimal
+`POST /feedback` rating, only `useful`/`not_useful`, per-process counts with no stored content,
+identifiers, or idempotency; validator accept, no owner walkthrough), `answer_feedback_ui` (`Útil` /
+`No útil` under each finished answer in the shared chat; sends only that rating through the pilot-token
+transport, thanks line locks the answer, failure keeps both enabled; in-memory, no identifiers;
+validator accept, no owner walkthrough) and `contract_fuzz_tests` (developer-only seeded conformance suite generated from `contracts/openapi.yaml`: contract-valid requests get schema-valid `/ask` responses, invalid ones get generic 4xx, and a guard fails on FastAPI-vs-contract drift; offline and fixture-corpus only), `domain_procedure_map`
+(git-tracked, reviewed-taxonomy index of 16 olive-grove topics in `knowledge/procedure_map.json` with
+an offline validator; every topic stays `proposed`, 15 of 16 `uncovered`; validator accept, no owner
+walkthrough by owner decision), `legal_document_parser` (quarantined
+official PDFs → deterministic Markdown plus a provenance manifest, outside `knowledge/` and never
+answerable; tables and Spanish OCR only through an optional pinned runtime, fake/fixture-verified),
+`legal_structure_chunker` (offline developer command that splits that Markdown into
+article/chapter/annex chunks with contextual prefixes and catalog-only validity, outside `knowledge/`
+and never answerable; validator accept, no owner walkthrough by owner decision), `corpus_security_rules` (offline scan
+that rejects prompt-injection or nominal-listing documents at ingestion without keeping their bytes
+or text, plus a canonical release gate that refuses a single identifier shape; heuristic, precision
+unmeasured), `rag_inspector_view` (developer
 `Inspeccionar` view of retrieved passages, scores, and verification steps; local test builds on a
 loopback service only, data sent only in the `development` profile; validator accept, no owner
 walkthrough by owner decision), `backend_health_metrics`
@@ -32,7 +52,7 @@ default; measured on the owner's Mac, host decision pending), `knowledge_reindex
 (rehearsed locally only; no host step executed), `local_rag_bootstrap` (one guided setup
 command and a status check, walked through on the owner's Mac), `mock_answer_server` (Desktop and
 emulator walkthroughs not yet run), and `local_service_connection` (test builds only);
-`private_pilot_distribution` is `on_hold` by owner decision (2026-11-01). The 37 `not_started` features are the remaining MasterPlanV3 work, ordered
+`private_pilot_distribution` is `on_hold` by owner decision (2026-11-01). The 28 `not_started` features are the remaining MasterPlanV3 work, ordered
 local environment first, then the QA environment for remote real-device testing; prod is not planned yet. `feature_list.json` and the selector remain the status authority;
 this page does not duplicate the feature-id list.
 
@@ -48,7 +68,10 @@ Desktop use overridable local development URLs; their test builds (never release
 address. Test builds (Android debug, Desktop `run`; never release or packaged) send a pilot bearer token on `/ask` once the owner saves one
 (`client_pilot_credentials`).
 The reviewed corpus contains four official sources and four literal passages for three topics
-in the Andalusian PAC single application for 2026. `/ready` and `/ask` require an explicit
+in the Andalusian PAC single application for 2026. Ingestion now runs an offline corpus-security
+scan (`corpus_security_rules`): a nominal listing or model-directed document is rejected with a fixed
+category and its quarantined bytes and text are deleted, and the canonical release gate refuses a
+single identifier shape in metadata, passage text, or location. `/ready` and `/ask` require an explicit
 `MANIJERO_ACTIVE_CAMPAIGN`; no hosted model or public deployment is implemented. Scheduled
 source scans exist only as a manual-dispatch runner plus disabled, unrehearsed systemd templates
 (`knowledge_update_scheduler`); no host runs them and no freshness is claimed. A pinned local `BAAI/bge-m3` artifact and a derived
@@ -89,8 +112,19 @@ before making any claim in its area.
   export file; losing the device without an export still loses records. Android backup exclusion is
   verified by inspection only; picker, file dialog, and screen-reader flows have no device evidence.
 - Pilot privacy gates are closed (review `pending`); retention and redaction are tested locally only.
+- Answer feedback (`POST /feedback`) is an anonymous fixed rating with no storage or answer linkage; counts are per process, there is no export or idempotency (a retry counts again), and the pending review does not name feedback yet. The shared chat's `Útil`/`No útil` rating (`answer_feedback_ui`) is in memory only, unlinked, lost on restart, and unavailable against the mock service.
 - Source monitoring, document ingestion, change-impact analysis, and reviewed update packages are local,
   manual, synthetic-fixture-backed, and guarantee neither completeness nor currency.
+- The procedure map is an unreviewed taxonomy: 16 `proposed` topics, 15 `uncovered`, no owner or
+  target-user review; an index, not evidence or a coverage gate.
+- Parsed legal-document Markdown is derived review input outside `knowledge/` and never answerable;
+  tables and Spanish OCR are verified with in-process fakes and small fixtures only (no measured accuracy).
+- Legal chunk sets are derived review input outside `knowledge/`, split only on explicit
+  article/chapter/annex lines (títulos, secciones, and disposiciones stay inside their chunk), with
+  validity only from the reviewed catalog; never answerable, no accuracy claimed.
+- Corpus security exclusion (nominal listings, personal identifiers, model-directed text) is a
+  conservative Spanish-first heuristic with no override; it can miss a reworded listing or instruction,
+  and a false positive removes that document from automation.
 - The test-build `Conexión` screen has unit, guard, compile, and screenshot evidence only; no GUI run.
 - The full local service (start/stop/status) is walked through on the owner's Mac only, with no app question sent; status shows configuration, not per-answer use.
 - The answer service container is walked through on the owner's Apple-silicon Mac only (no app question sent); arm64 only, about 5.6 GB per image, never pruned.

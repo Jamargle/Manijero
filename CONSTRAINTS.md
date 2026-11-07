@@ -9,7 +9,7 @@ listed below.
 
 | File | Sections |
 |---|---|
-| [`docs/constraints/answers-and-knowledge.md`](docs/constraints/answers-and-knowledge.md) | Answer grounding, Local embeddings, Hybrid retrieval, Abstention, Safety evaluation, Campaign scope, Coverage disclosure, Knowledge updates and retrieval |
+| [`docs/constraints/answers-and-knowledge.md`](docs/constraints/answers-and-knowledge.md) | Answer grounding, Local embeddings, Hybrid retrieval, Abstention, Safety evaluation, Campaign scope, Coverage disclosure, Knowledge updates and retrieval, Procedure map |
 | [`docs/constraints/client-chat.md`](docs/constraints/client-chat.md) | Client request failure, Client response states, Client source cards, Client land context, Land clarification, Client land scope, Land data disclosure, Chat accessibility, Chat surface presentation |
 | [`docs/constraints/lands.md`](docs/constraints/lands.md) | Land editing, Land fields and storage, Land automatic copies, Land list search and summary, Land removal, Land form accessibility |
 | [`docs/constraints/ui-shell.md`](docs/constraints/ui-shell.md) | Brand vectors, Shared component layer, App shell and navigation |

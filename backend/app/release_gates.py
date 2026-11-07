@@ -6,7 +6,9 @@ the BM25 fingerprint) only; the answer service never imports this module.
 Gates run in order and collect every failure code instead of stopping at the first:
 
 1. **structural** — catalog and passage contracts at ``as_of``, resolvable passage
-   sources, campaign/date readiness, and a valid, non-orphaned reviewed case set;
+   sources, campaign/date readiness, a valid, non-orphaned reviewed case set, and no
+   model-directed instruction or personal-identifier text in catalog metadata or
+   passage text (``corpus_security``);
 2. **BM25** — two independent fingerprints of the admitted documents must match;
 3. **grounding + evaluation** — the reviewed cases run through the unchanged ``/ask``
    route with BM25 retrieval and extractive generation forced, whatever the shell
@@ -199,6 +201,7 @@ def run_gates(
 ) -> GateOutcome:
     from app.answer_eval import AnswerEvalError, load_case_document
     from app.ask_api import CorpusDocuments
+    from app.corpus_security import scan_canonical
     from app.readiness import evaluate_readiness
     from app.retrieval import (
         CatalogRejectedError,
@@ -229,6 +232,8 @@ def run_gates(
         if any(isinstance(p, dict) and p.get("source_id") not in known for p in passages["passages"]):
             failures.add("passage_source_unresolved")
     if catalog is not None and passages is not None:
+        if scan_canonical(catalog, passages):
+            failures.add("corpus_security")
         verdict = evaluate_readiness(CorpusDocuments(catalog=catalog, passages=passages), as_of, active_campaign)
         if not verdict.ready:
             failures.add("corpus_not_ready:{}".format(verdict.problems[0]))

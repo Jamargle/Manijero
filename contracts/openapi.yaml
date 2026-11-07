@@ -37,6 +37,35 @@ paths:
           description: Pilot profile only. This client exceeded its per-minute request allowance. Limits are enforced per service process.
         '503':
           description: The local answer corpus is unavailable, unsafe, or lacks valid MANIJERO_ACTIVE_CAMPAIGN configuration. The response is generic and contains no corpus details.
+  /feedback:
+    post:
+      operationId: submitAnswerFeedback
+      summary: Report whether an answer was useful
+      description: >-
+        Anonymous and unlinked: the only field is a fixed rating. No question, answer, land
+        context, answer id, client/device identifier, or free text is accepted or kept; the
+        service stores no feedback record and exposes only aggregate, per-process counts, so
+        feedback cannot be joined to a particular answer, question, or person. There is no
+        idempotency key, so a client retry after an unknown outcome counts again.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/FeedbackRequest'
+      responses:
+        '204':
+          description: Feedback accepted. The response has no body.
+        '400':
+          description: Malformed JSON request; the response echoes no submitted value.
+        '401':
+          description: Pilot profile only. The per-client bearer token is missing or unknown; the response is generic and carries no credential detail.
+        '413':
+          description: The request body exceeds the service bound; the response is generic and echoes no request value.
+        '422':
+          description: The request is not exactly one allowed rating; the response echoes no submitted value.
+        '429':
+          description: Pilot profile only. This client exceeded its per-minute feedback allowance. Limits are enforced per service process.
 components:
   schemas:
     AskRequest:
@@ -61,6 +90,17 @@ components:
             redacted question and answer are kept, without land context, land IDs, or
             client/device identifiers, and they are deleted no later than 30 days later.
             Clarification responses are never retained.
+    FeedbackRequest:
+      type: object
+      additionalProperties: false
+      required: [rating]
+      properties:
+        rating:
+          type: string
+          enum: [useful, not_useful]
+          description: >-
+            Whether the answer was useful. No other value, key, comment, question, answer,
+            land, identifier, or free text is accepted or kept.
     LandContext:
       type: object
       additionalProperties: false
@@ -269,6 +309,7 @@ components:
         url:
           type: string
           format: uri
+          minLength: 1
           description: Stable official source URL.
         location:
           type: string
