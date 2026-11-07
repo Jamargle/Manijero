@@ -4,7 +4,9 @@ import json
 from datetime import date
 from pathlib import Path
 
-from app.retrieval import Retriever, validate_passage_set
+from app.deadline_notices import deadline_paragraph
+from app.generation import LEAD_IN, MAX_ANSWER_CHARS, NOTICE, extract_numeric_facts
+from app.retrieval import RetrievedPassage, Retriever, validate_passage_set
 from app.source_catalog import validate_catalog
 
 ROOT = Path(__file__).resolve().parents[2]
@@ -40,3 +42,46 @@ def test_approved_topics_and_exclusions():
     assert "Fecha final de presentación" in coverage
     assert "Fecha separada de modificación" in coverage
     assert "Elegibilidad individual, importes" in coverage
+
+
+DEADLINES = {
+    "pasaje-plazo-presentacion-2026-andalucia": "2026-05-15",
+    "pasaje-plazo-modificacion-2026-andalucia": "2026-06-15",
+}
+
+
+def test_only_the_two_reviewed_deadline_passages_carry_official_deadline():
+    catalog = _json("knowledge/source_catalog.json")
+    passages = _json("knowledge/passages.json")["passages"]
+    campaigns = {source["id"]: source.get("campaign") for source in catalog["sources"]}
+
+    declared = {p["id"]: p["official_deadline"] for p in passages if "official_deadline" in p}
+    assert declared == DEADLINES
+    for passage in passages:
+        value = declared.get(passage["id"])
+        if value is None:
+            continue
+        year, month, day = (int(part) for part in value.split("-"))
+        assert str(year) == campaigns[passage["source_id"]]
+        assert "dm:{}-{}".format(day, month) in extract_numeric_facts(passage["text"])
+
+
+def test_every_real_deadline_passage_fits_alone_with_its_worst_case_paragraph():
+    passages = _json("knowledge/passages.json")["passages"]
+    worst_date = date(2099, 12, 31)
+    checked = 0
+    for passage in passages:
+        if "official_deadline" not in passage:
+            continue
+        cited = RetrievedPassage(
+            passage_id=passage["id"], source_id=passage["source_id"], title="t",
+            issuing_body="b", url="u", location=passage["location"],
+            published_or_updated_on="2026-01-01", verified_on="2026-01-01",
+            excerpt=passage["text"], applicability=None, critical=True, score=1.0, rank=1,
+            official_deadline=passage["official_deadline"],
+        )
+        answer = "{} {} [1] {}".format(LEAD_IN, passage["text"], NOTICE)
+        full = answer + "\n\n" + deadline_paragraph([cited], worst_date)
+        assert len(full) <= MAX_ANSWER_CHARS
+        checked += 1
+    assert checked == 2

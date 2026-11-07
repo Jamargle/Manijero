@@ -1087,6 +1087,12 @@ candidate's claim and inherit its figure or critical-literal rules. The pipeline
 then returns a `NotAnswered` reason code and no text; `safe_abstention` owns the
 user-facing limitation and next step.
 
+After verification, `app/deadline_notices.py` appends one fixed Spanish paragraph when a
+cited passage has a reviewed `official_deadline`: the cooperative may set an earlier date,
+and, when the date is before the injected UTC `as_of`, the exact end date. The paragraph
+is code-owned, never drafted by a model, and is recomputed so the answer stays within 1200
+characters.
+
 Run the report-only grounded-generation tool against the synthetic fixtures:
 
 ```sh

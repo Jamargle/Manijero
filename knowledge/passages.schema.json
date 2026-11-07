@@ -50,6 +50,11 @@
           "type": "boolean",
           "description": "Optional flag marking this passage as carrying a deadline, amount, or threshold. When absent the source-level 'critical' flag applies."
         },
+        "official_deadline": {
+          "type": "string",
+          "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}$",
+          "description": "Optional reviewed deadline date stated by this passage: the inclusive last day, written YYYY-MM-DD and a real calendar date. Never inferred or parsed from the text; leave the key absent when unsure. Drives code-owned deadline notices on answers that cite this passage."
+        },
         "applicability": {
           "type": "object",
           "additionalProperties": false,

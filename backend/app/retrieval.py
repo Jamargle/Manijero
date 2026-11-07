@@ -49,7 +49,7 @@ PASSAGE_SET_SCHEMA_VERSION = "passage-set-v1"
 TOP_LEVEL_KEYS = frozenset({"schema_version", "passages"})
 
 PASSAGE_REQUIRED_KEYS = frozenset({"id", "source_id", "location", "text"})
-PASSAGE_OPTIONAL_KEYS = frozenset({"critical", "applicability"})
+PASSAGE_OPTIONAL_KEYS = frozenset({"critical", "applicability", "official_deadline"})
 
 APPLICABILITY_KEYS = frozenset({"crop", "water_regime", "production_method"})
 
@@ -58,6 +58,7 @@ PRODUCTION_METHODS = ("conventional", "organic", "mixed")
 
 ID_PATTERN = re.compile(r"^[a-z0-9]+(?:[-_][a-z0-9]+)*$")
 ISO_DATE_PATTERN = re.compile(r"^\d{4}-\d{2}-\d{2}$")
+_STRICT_ISO_DATE = re.compile(r"[0-9]{4}-[0-9]{2}-[0-9]{2}")
 
 DEFAULT_K = 5
 
@@ -183,7 +184,8 @@ class RetrievedPassage:
     ``title``, ``issuing_body``, ``url``, ``location``,
     ``published_or_updated_on``, ``verified_on`` and ``excerpt`` intentionally
     mirror the accepted ``AnswerSource`` contract. ``passage_id``, ``source_id``,
-    ``applicability``, ``critical``, ``score`` and ``rank`` are retrieval-local.
+    ``applicability``, ``critical``, ``official_deadline``, ``score`` and ``rank``
+    are retrieval-local.
 
     ``applicability`` and ``critical`` are the passage-level values when the
     passage declares them, otherwise the source-level values. They are surfaced,
@@ -204,6 +206,7 @@ class RetrievedPassage:
     critical: bool
     score: float
     rank: int
+    official_deadline: Optional[str] = None
 
 
 def tokenize(text: str) -> Tuple[str, ...]:
@@ -384,6 +387,7 @@ class _PassageRecord:
     excerpt: str
     applicability: Optional[Dict[str, str]]
     critical: bool
+    official_deadline: Optional[str] = None
 
 
 class Retriever:
@@ -589,6 +593,7 @@ class Retriever:
                     critical=record.critical,
                     score=float(score),
                     rank=len(candidates) + 1,
+                    official_deadline=record.official_deadline,
                 )
             )
             if len(candidates) >= k:
@@ -651,6 +656,7 @@ def _build_record(source: Dict[str, Any], passage: Dict[str, Any]) -> _PassageRe
         excerpt=passage["text"],
         applicability=dict(applicability) if isinstance(applicability, dict) else None,
         critical=bool(critical),
+        official_deadline=passage.get("official_deadline"),
     )
 
 
@@ -711,7 +717,21 @@ class _PassageSetValidator:
             self._fail(join_path(location, "text"), "must be a non-blank string")
         if "critical" in passage and not isinstance(passage["critical"], bool):
             self._fail(join_path(location, "critical"), "must be true or false")
+        if "official_deadline" in passage:
+            self._check_official_deadline(passage["official_deadline"], location)
         self._check_applicability(passage, location)
+
+    def _check_official_deadline(self, value: Any, location: str) -> None:
+        if isinstance(value, str) and _STRICT_ISO_DATE.fullmatch(value):
+            try:
+                date.fromisoformat(value)
+                return
+            except ValueError:
+                pass
+        self._fail(
+            join_path(location, "official_deadline"),
+            "must be a real calendar date written YYYY-MM-DD; leave absent when unsure",
+        )
 
     def _check_slug(
         self,

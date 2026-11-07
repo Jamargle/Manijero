@@ -44,6 +44,7 @@ import time
 from typing import Any, Callable, Iterable, List, Mapping, Optional, Protocol, Sequence, Tuple
 
 from app import answer_trace, health_metrics
+from app.deadline_notices import CODE_OWNED_MARKERS
 from app.generation import (
     LEAD_IN,
     MAX_ANSWER_CHARS,
@@ -319,7 +320,11 @@ def parse_draft(text: object, offered: Iterable[int]) -> DraftAnswer:
     if status == "answered" and (not answer.strip() or len(answer) > MAX_ANSWER_CHARS):
         raise MalformedDraftError("output_answer_size")
     normalized_answer = normalize_text(answer)
-    if _NORMALIZED_NOTICE in normalized_answer or _NORMALIZED_LEAD_IN in normalized_answer:
+    if (
+        _NORMALIZED_NOTICE in normalized_answer
+        or _NORMALIZED_LEAD_IN in normalized_answer
+        or any(marker in normalized_answer for marker in CODE_OWNED_MARKERS)
+    ):
         raise MalformedDraftError("output_code_owned_text")
     allowed = frozenset(offered)
     if (
