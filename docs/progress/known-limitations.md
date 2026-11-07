@@ -155,6 +155,11 @@ Do not over-claim.
   answer-quality or legal-coverage claim. Whether the emulator app keeps its lands could not be
   observed: the emulator had no lands before the run. Physical devices are never used. See the
   [acceptance record](../validations/local_end_to_end_smoke.md).
+- The local load test (`./scripts/init.sh --local-rag-load-test`, `local_load_test`) ran once on one Mac
+  (10 clients, 3 minutes steady: 1844 answers, none failed, median 0.70 s, p95 1.18 s, 10.2 per
+  second; the first requests were much slower while the model loaded). It is host-specific evidence
+  only: no pass/fail, capacity, or pilot-readiness claim, and the pilot host is unmeasured. See the
+  [acceptance record](../validations/local_load_test.md).
 - The answer trace (`MANIJERO_ANSWER_TRACE=on`, `answer_pipeline_trace`) is off by default and tested
   locally only; no hosted trace has been observed. Old traces are purged only while the service runs,
   so a stopped service keeps files older than 7 days until its next start. Text is recorded only when
