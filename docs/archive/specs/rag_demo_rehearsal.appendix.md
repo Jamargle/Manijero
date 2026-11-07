@@ -103,7 +103,7 @@
 
 ## Handoff
 
-- Status: `passing`; validator accepted with the condition "pending owner walkthrough".
+- Status: `accepted` 2026-11-07; the owner walkthrough passed.
 - Done and uncommitted before the hold commit: the whole feature (command, tests, Spanish script, owner guide, boundary docs, validator record).
 - Live service-level rehearsal ran here and passed twice; app-only steps not watched.
 - Next: owner runs `docs/demo-script.md` and reports whether every step matched; then acceptance is an evidence-only update (no second validator).

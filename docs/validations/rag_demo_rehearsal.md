@@ -1,6 +1,7 @@
 # Validation: `rag_demo_rehearsal`
 
-Verdict: **accept** (independent validator, 2026-11-06; condition: pending owner walkthrough — the
+Verdict: **accept** (independent validator, 2026-11-06; the condition "pending owner walkthrough" was
+met 2026-11-07: the owner ran `docs/demo-script.md` and reported every step matched). At validation the
 live `--demo-rehearsal` run and the manual app steps were not run during validation). Spec:
 [rag_demo_rehearsal.md](../specs/rag_demo_rehearsal.md). Evidence: appendix "Feature evidence" and
 "Validator checklist". The orchestrator later ran the live command against `--local-rag-start`
@@ -60,3 +61,8 @@ live `--demo-rehearsal` run and the manual app steps were not run during validat
   walkthrough in `docs/owner-guide.md`.
 - `PROGRESS.md`, `docs/progress/known-limitations.md`, `docs/progress/session-log.md`, and the
   `feature_list.json` status to `accepted` are pending the owner walkthrough report.
+
+## Owner walkthrough
+- 2026-11-07: the owner went through `docs/demo-script.md`, including the app-only steps (source cards
+  with the scope caption, `Sin respuesta segura`, `Inspeccionar`); everything matched. Acceptance is an
+  evidence-only update; no second validator run.
