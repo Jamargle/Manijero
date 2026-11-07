@@ -42,6 +42,21 @@
         "id": "alcance-terrenos",
         "kind": "boundary",
         "label": "Pregunta con varios terrenos cuando el corpus no declara aplicabilidad"
+      },
+      {
+        "id": "norma-derogada",
+        "kind": "boundary",
+        "label": "Norma cuya vigencia no consta en una fuente revisada"
+      },
+      {
+        "id": "plazo-vencido",
+        "kind": "boundary",
+        "label": "Plazo oficial revisado ya vencido en la fecha de evaluación"
+      },
+      {
+        "id": "cuaderno-digital-fuera-de-alcance",
+        "kind": "boundary",
+        "label": "Cuaderno digital de explotación, tema aún no cubierto"
       }
     ],
     "omissions": [
@@ -205,6 +220,33 @@
       "land_context": {"mode": "general", "lands": []},
       "expected_status": "abstained",
       "review": {"reviewed_by": "Diego", "reviewed_on": "2026-10-27", "role": "author_only"}
+    },
+    {
+      "id": "rd-1077-2014-derogado",
+      "area": "norma-derogada",
+      "question": "¿Sigue en vigor el Real Decreto 1077/2014?",
+      "land_context": {"mode": "general", "lands": []},
+      "expected_status": "abstained",
+      "review": {"reviewed_by": "Diego", "reviewed_on": "2026-11-07", "role": "author_only"}
+    },
+    {
+      "id": "plazo-presentacion-vencido-2026",
+      "area": "plazo-vencido",
+      "question": "¿Ya terminó el plazo para presentar la solicitud única de 2026?",
+      "land_context": {"mode": "general", "lands": []},
+      "expected_status": "answered",
+      "expected_source_ids": ["dl_1_2026"],
+      "expected_passage_ids": ["pasaje-plazo-presentacion-2026-andalucia"],
+      "critical_facts": ["15 de mayo de 2026", "El plazo oficial terminó el 15 de mayo de 2026."],
+      "review": {"reviewed_by": "Diego", "reviewed_on": "2026-11-07", "role": "author_only"}
+    },
+    {
+      "id": "cuaderno-digital-obligatorio",
+      "area": "cuaderno-digital-fuera-de-alcance",
+      "question": "¿Es obligatorio el cuaderno digital de explotación?",
+      "land_context": {"mode": "general", "lands": []},
+      "expected_status": "abstained",
+      "review": {"reviewed_by": "Diego", "reviewed_on": "2026-11-07", "role": "author_only"}
     }
   ]
 }

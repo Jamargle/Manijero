@@ -21,7 +21,7 @@ terms and durable rules.
 ## Evidence boundaries
 
 The offline evaluators use synthetic fixtures, and the reviewed end-to-end answer evaluation is a
-14-case sample over three approved topics and five boundaries. Its metrics are report-only, review is
+17-case sample over three approved topics and eight boundaries. Its metrics are report-only, review is
 author-only, and four case-level gaps remain visible (three earlier citation/critical-fact misses and
 one out-of-scope reclamación answer). The Android and Desktop screenshot suite is a local
 host-rendered pixel gate; it does not establish real-device rendering, accessibility, usability, or

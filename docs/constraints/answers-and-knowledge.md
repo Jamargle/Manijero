@@ -130,6 +130,9 @@ Durable MUST/MUST NOT rules for backend answer path, retrieval, generation, eval
   enforcement is agreed separately. Reason: `land_safety_evaluation` established the reproducible
   synthetic baseline; a gate whose numbers came from synthetic fixtures, or a case whose critical
   fact nobody checked, would turn an unverified expectation into a false safety guarantee.
+- **MUST**: a validity regression case MUST rest only on reviewed catalog or passage metadata. When
+  the reviewed corpus lacks the source, the case MUST expect abstention, and a precondition test
+  MUST fail once such a source appears so the case is revisited. Reason: `validity_regression_cases`.
 
 ## Campaign scope
 

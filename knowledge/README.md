@@ -104,7 +104,7 @@ questions for that bounded slice. The `pac-answer-eval-v2` artifact declares
 three coverage topics, five boundaries, the out-of-scope omissions, and an
 `author_only` review role on every case. It reports state, citation/passage
 matching, literal critical-fact checks, clarification outcomes, per-area counts,
-and the missing expected references for every mismatch. Its 14 cases, exact
+and the missing expected references for every mismatch. Its 17 cases, exact
 matrix, case-level gaps, and author-review limitation are in
 [`pac_coverage.md`](pac_coverage.md). Its case coverage and all metrics are
 report-only: they are not a legal correctness certificate, quality guarantee, or

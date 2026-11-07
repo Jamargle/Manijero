@@ -1311,7 +1311,7 @@ enforcement is a later, separately agreed change.
 `app/answer_eval.py` validates the `pac-answer-eval-v2`
 `knowledge/pac_answer_eval.json` artifact and calculates a deterministic,
 report-only evaluation of its cases through the local `/ask` route. The artifact
-declares its reviewed coverage areas (3 topics and 5 boundaries), the out-of-scope
+declares its reviewed coverage areas (3 topics and 8 boundaries), the out-of-scope
 omissions, and an `author_only` review role on every case. The report includes
 assertion denominators (`answered_cases`, `abstention_cases`,
 `clarification_cases`), per-area counts, author-review metadata, the omissions,
@@ -1326,12 +1326,12 @@ backend/.venv/bin/python backend/scripts/evaluate_pac_answers.py \
   --active-campaign 2026 --as-of 2026-10-26 --k 5
 ```
 
-All 14 cases are synthetic, source-anchored, and reviewed only by the project
+All 17 cases are synthetic, source-anchored, and reviewed only by the project
 author (recorded as `author_only`); this is **not** independent legal review and
 does not establish answer quality or coverage beyond the listed cases. The
-current result is 13/14 expected states, 11/11 expected-answer cases answered,
-8/11 answering cases with the expected source and passage, 9/11 with the expected
-critical literal, and 2/3 expected abstentions. The report keeps known gaps
+current result is 17/17 expected states, 12/12 expected-answer cases answered,
+9/12 answering cases with the expected source and passage, 10/12 with the expected
+critical literal, and 5/5 expected abstentions. The report keeps known gaps
 visible: `canal-sga-2026`, `fecha-modificacion-2026`, and
 `distingue-fechas-2026` cite a different reviewed passage, and
 `reclamacion-fuera-de-alcance` answers an out-of-scope reclamación with the
@@ -2298,7 +2298,7 @@ path; vector fields are tagged `vector_digest_differs` instead of hidden.
 - Old releases are never garbage-collected; the root grows by one small directory per
   prepare.
 - The reviewed-baseline approval and the code revision are recorded, not verified.
-- The evaluation is the 14-case author-only sample; passing the gate is not a
+- The evaluation is the 17-case author-only sample; passing the gate is not a
   legal-coverage, answer-quality, or freshness claim.
 - POSIX only (symlink + `os.replace`); Windows release roots are out of scope.
 
