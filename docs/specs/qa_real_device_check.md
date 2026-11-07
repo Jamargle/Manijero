@@ -11,6 +11,7 @@
   3. No pilot token or QA key is read, printed, or logged by agents; tests are offline with fakes (fake tokens via `MANIJERO_PILOT_TOKEN_FILE` in temporary folders). Zero cost.
   4. Acceptance: validator accept plus the owner running the one command against live QA (owner walkthrough). The validator may return accept with the condition "pending owner walkthrough".
   5. The `feature_list.json` title no longer mentions a real Android device (updated at planning).
+  6. QA key rule (2026-11-07): the QA key stays on `:shared:runDesktopQaCheck` as built, only because it stays on the owner's Mac; anything deployed or reachable online never contains secrets, enforced by offline guard tests (image build context, git ignore, qa-check log/result, Funnel target, desktop packaging via `PilotTokenGuardTest`).
   Planner decisions (appendix "Planner decisions"): command name `--qa-check`; reuse the `local_end_to_end_smoke` offscreen Desktop driver; the QA key reaches the check only as the same build-generated classpath resource the `run` task uses; an abstention fails (the owner asked for an answer with sources); exactly one `Útil` press per run.
 
 ## Goal
@@ -89,7 +90,7 @@ Offline: no QA, Tailscale, Docker, Ollama, network, or real key; temporary QA ho
 <!-- verify:start -->
 ```sh
 bash -n scripts/init.sh
-MANIJERO_PYTHON="${MANIJERO_PYTHON:-backend/.venv/bin/python}" ./scripts/init.sh --backend-tests tests/test_qa_check.py tests/test_qa_check_commands.py tests/test_local_smoke.py -q
+MANIJERO_PYTHON="${MANIJERO_PYTHON:-backend/.venv/bin/python}" ./scripts/init.sh --backend-tests tests/test_qa_check.py tests/test_qa_check_commands.py tests/test_local_smoke.py tests/test_container_image_files.py tests/test_qa_deployment.py -q
 ./gradlew --quiet :shared:jvmTest --tests 'com.jamarglex.manijero.smoke.*' --tests 'com.jamarglex.manijero.platform.*' --tests 'com.jamarglex.manijero.chat.*'
 ./gradlew --quiet :shared:runDesktopQaCheck --dry-run
 MANIJERO_GRADLE_WIRING_TEST=1 MANIJERO_PYTHON="${MANIJERO_PYTHON:-backend/.venv/bin/python}" ./scripts/init.sh --backend-tests tests/test_qa_check_gradle_wiring.py -q

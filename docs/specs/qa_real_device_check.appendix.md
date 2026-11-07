@@ -118,10 +118,19 @@
 - [ ] Durable documentation impact followed, including known limitations for the Android scope cut.
 - [ ] `feature_list.json` and `PROGRESS.md` updated correctly; accept may be conditional on the owner walkthrough.
 
+2026-11-07 third repair (implementer; owner decision: QA key stays on `:shared:runDesktopQaCheck`, only because it stays on the owner's Mac; nothing deployed or online contains secrets). Offline guard tests, no production code change:
+
+- Image context: `Dockerfile.dockerignore` also excludes `**/*.token` and `**/pilot-clients*.json`; new `test_container_image_files.py` test (generated token folder, `build/qa-check`, credentials, `*.token` never included; no allowlist entry names them).
+- Git ignore: new `test_qa_check_commands.py` test runs `git check-ignore --no-index` on the token folder, `build/qa-check` outputs, `pilot-token.local`, `qa-address.local`, QA key.
+- Log/result: new `test_qa_check.py` test (answered, no result, garbage result paths) finds no fake key in any file the check writes or in output.
+- Funnel: new `test_qa_deployment.py` test: only `funnel --bg --https=443 http://127.0.0.1:<port>`, no path, file, folder, or credentials argument.
+- Packaging (item 5): no gap; `PilotTokenGuardTest` (folder only on `run`, never a jar/packaged/release input) and `QaCheckGuardTest` (folder only in `runDesktopQaCheck`, a Test task that packages nothing) already cover it, so nothing added.
+- Constraint line added to `docs/constraints/hosting-and-pilot.md`; spec Notes item 6 and verify block updated.
+- `./scripts/init.sh --feature qa_real_device_check`: passed. `./scripts/init.sh --fast`: 10 offline checks passed (backend-tests 2566 passed, 8 skipped).
+
 ## Handoff
 
-- Status: `passing`; two owner-walkthrough repairs, neither committed beyond 762b2ca (wiring fix committed; the `not_on_qa` feedback repair is uncommitted).
-- Next role: validator. Review both repairs: 762b2ca (`shared/build.gradle.kts` classpath wiring, `QaCheckGuardTest`, `test_qa_check_gradle_wiring.py`) and the `not_on_qa` mapping (`DesktopQaCheckRun.kt`, `QaCheckProtocol.kt`, `qa_check.py`, their tests).
-- Then the owner updates QA (`--container-build` from the up-to-date main checkout, `--qa-update` answering yes) and reruns `docs/owner-guide.md` "Owner walkthrough: QA check" steps 1-3.
+- Status: `passing`; all repairs committed except the third (guard tests, constraint line, spec/appendix edits), left uncommitted for the orchestrator.
+- Next role: validator. Review the third repair above plus 762b2ca (classpath wiring) and 4037a18 (`not_on_qa` feedback).
+- Then the owner runs `--container-build` from the up-to-date main checkout, `--qa-update` answering yes, and reruns `docs/owner-guide.md` "Owner walkthrough: QA check" steps 1-3.
 - If every step matches: orchestrator records it as evidence only, sets `accepted`, deletes this section, commits `feat: complete qa_real_device_check`.
-- Pending owner decision: QA-key generation on `:shared:runDesktopQaCheck` (rule change). Last checks: `--feature` passed; `--fast` 10/10.

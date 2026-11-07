@@ -50,3 +50,12 @@ Verdict: accept, condition: pending owner walkthrough (QA updated via `--contain
 - Checks rerun: `./scripts/init.sh --feature qa_real_device_check` passed. `--fast` not rerun (implementer report 10/10; the diff touches only test sources, `qa_check.py`, docs). `--verify` not rerun: no Android, packaging, or `desktopApp` change.
 - Only the walkthrough can show: QA (after update) accepts the `Útil` rating and `PASS  Feedback` prints.
 - Notes (non-blocking): import order in `DesktopQaCheckRun.kt` (`client.plugins` before `client.engine`) is cosmetic; the 404 detection relies on a single `/feedback` call per run, which the driver guarantees.
+
+## Third review (2026-11-07, one pass over 762b2ca, 4037a18 and the uncommitted offline key-guard tests)
+
+Verdict: accept, condition: pending owner walkthrough (QA rebuilt via `--container-build` from up-to-date main, `--qa-update` yes, then `--qa-check` steps 1-3).
+
+- Uncommitted work: `Dockerfile.dockerignore` gains `**/*.token` and `**/pilot-clients*.json`; new tests assert generated token folder, qa-check outputs, key and client files stay out of the build context (and no allowlist entry names them), `git check-ignore` covers the same paths, the log and result file never contain the fake key on answered, missing and garbage results, and the Funnel argv targets only `http://127.0.0.1:<port>`. They assert real behavior (include rules, git ignore, written files, exact argv), not constants. Desktop packaging is left to `PilotTokenGuardTest`/`QaCheckGuardTest`. One-line owner decision in `docs/constraints/hosting-and-pilot.md` matches. No source behavior changed.
+- Scope: no Android, no new dependencies; no secret file read.
+- Checks rerun: `./scripts/init.sh --feature qa_real_device_check` passed; `./scripts/init.sh --fast` 10/10 (backend-tests 2566 passed, 8 skipped). `--verify` not rerun: no Android, packaging, or `desktopApp` change.
+- Only the walkthrough can show: the real QA run answers with sources, accepts `Útil` after the QA update, and `--qa-stop` prints the service-step failure.

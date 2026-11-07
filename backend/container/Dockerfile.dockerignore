@@ -16,6 +16,8 @@
 **/.venv*
 **/*.env
 **/.env*
+**/*.token
+**/pilot-clients*.json
 **/*.example
 **/__pycache__
 **/*.pyc

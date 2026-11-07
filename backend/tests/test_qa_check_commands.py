@@ -89,3 +89,17 @@ def test_without_an_access_key_it_says_to_run_the_settings_setup(tmp_path: Path)
         "The QA access key was not found on this computer.",
         "Result: the QA check did not run. Run ./scripts/init.sh --qa-settings-setup, then run this command again.",
     ]
+
+
+def test_git_ignores_the_generated_token_folder_and_the_qa_check_outputs() -> None:
+    paths = [
+        "desktopApp/build/generated/pilotToken/pilot-token.txt",
+        "build/qa-check/desktop.log",
+        "build/qa-check/desktop-result.txt",
+        "pilot-token.local",
+        "qa-address.local",
+        "credentials/qa-test-device.token",
+        "pilot-clients-qa.json",
+    ]
+    run = subprocess.run(["git", "check-ignore", "--no-index", *paths], cwd=REPO_ROOT, capture_output=True, text=True)
+    assert run.stdout.split() == paths, run.stderr

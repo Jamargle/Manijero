@@ -374,6 +374,24 @@ def test_no_output_or_file_carries_the_key_and_the_key_stays_out_of_the_command(
     assert not any("token" in part.lower() or "key" in part.lower() for call in c.runner.calls for part in call["argv"])  # type: ignore[union-attr]
 
 
+def test_the_log_and_result_file_never_carry_the_key_on_any_path(c: Check) -> None:
+    real_run = c.runner.run
+
+    def run_and_log(argv, cwd, log_path, timeout, env=None):  # type: ignore[no-untyped-def]
+        Path(log_path).write_text("gradle log line\n", encoding="utf-8")
+        return real_run(argv, cwd, log_path, timeout, env)
+
+    c.runner.run = run_and_log  # type: ignore[method-assign]
+    for result in (OK + "\n", None, "garbage\n"):
+        c.runner.result = result
+        c.run()
+        written = sorted(path for path in c.dir.iterdir() if path.is_file())
+        assert any(path.name == check.LOG_NAME for path in written)
+        assert all(FAKE_KEY not in path.read_text(encoding="utf-8") for path in written)
+        assert FAKE_KEY not in "\n".join(c.lines)
+    assert FAKE_KEY not in str(c.dir)
+
+
 def test_parse_result_accepts_only_the_one_exact_line() -> None:
     parsed = check.parse_result(OK + "\n")
     assert parsed == check.QaCheckResult("answered", 2, "sent", "default", ADDRESS)
