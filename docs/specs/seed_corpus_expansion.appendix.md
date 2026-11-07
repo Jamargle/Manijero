@@ -156,12 +156,11 @@ All on 2026-11-06, from the seed worktree; canonical `knowledge/source_catalog.j
 
 ## Handoff
 
-- Status: proposal prepared and self-verified; `feature_list.json` = `in_progress`; nothing committed.
-- Next role: `feature-validator` may review the evidence; the owner must decide the corpus change.
-- Done: 7-document verdict table, quarantine/hashes, 3-source + 5-passage proposal, `ready_for_review` package `8c7b2e22…07b9`.
-- Not done: no human approval, no `decide`, no `merge`, no canonical write, no release/reindex, no eval-case extension.
-- Owner decision needed: approve the 3 added/4 not-added verdicts and the proposed `reviewed_by`/`reviewed_on` metadata for Diego, or request changes; then run `decide`/`merge` and update counts/coverage in a separate reviewed change.
-- Last checks: backend corpus suite 141 passed; change-impact 57 passed; catalog validator exit 0; coverage-copy guard exit 0; canonical diff exit 0; retrieval probes 5/5.
+- Status: approved and merged; `feature_list.json` = `in_progress`; canonical knowledge committed on `feature/seed_corpus_expansion`.
+- Review: package `8c7b2e22…07b9` approved by `Diego` (external validator, named human other than the author) on 2026-11-07 via `knowledge_review.py decide`; note "Veredictos revisados: 3 añadidos, 4 no añadidos."
+- Merge: `knowledge_review.py merge` exit 0; catalog after `27c7c896…b41d`, passages after `a4d026ad…a074` (match the package's after-hashes); `reindex_required: true`, `reindexed: false`, `released: false`.
+- Not done: exact-count guards still expect 4 sources/4 passages; `./scripts/init.sh --feature seed_corpus_expansion` now 137 passed / 4 failed (`test_pac_corpus::test_canonical_artifacts_are_valid_and_have_approved_coverage`, `test_source_catalog::test_canonical_catalog_contains_reviewed_sources`, `test_source_catalog::test_cli_without_as_of_still_validates`, `test_retrieval::test_canonical_source_catalog_is_unchanged_and_reviewed`); `pac_coverage.md`/README counts, eval-case extension, and reindex/release remain.
+- Next role: implementer updates guards/counts/coverage for the merged 7-source/9-passage corpus, then `feature-validator`.
 
 ## Validator checklist
 

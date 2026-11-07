@@ -66,6 +66,50 @@
       "valid_until": "2026-12-31",
       "campaign": "2026",
       "critical": true
+    },
+    {
+      "consolidated_url": "https://www.boe.es/buscar/act.php?id=BOE-A-2022-23047",
+      "content_sha256": "5b507f512acda38782acee7c29c18cffa0fccb89d0d5e71b8f698347ffbb34e8",
+      "downloaded_on": "2026-11-06",
+      "id": "rd_1047_2022",
+      "issuing_body": "BOE",
+      "lifecycle_status": "current",
+      "original_url": "https://www.boe.es/buscar/doc.php?id=BOE-A-2022-23047",
+      "published_on": "2022-12-29",
+      "review_status": "approved",
+      "reviewed_by": "Diego",
+      "reviewed_on": "2026-11-06",
+      "title": "Real Decreto 1047/2022, de 27 de diciembre, por el que se regula el sistema de gestión y control de las intervenciones del Plan Estratégico y otras ayudas de la Política Agrícola Común",
+      "verified_on": "2026-11-06"
+    },
+    {
+      "content_sha256": "8408b2c3702a9d5fee5cf12bbe821b087111943a552f0141efa8f344d690b111",
+      "downloaded_on": "2026-11-06",
+      "id": "orden_2023_03_24",
+      "issuing_body": "Junta de Andalucía",
+      "lifecycle_status": "current",
+      "original_url": "https://www.juntadeandalucia.es/boja/2023/61/4",
+      "published_on": "2023-03-30",
+      "review_status": "approved",
+      "reviewed_by": "Diego",
+      "reviewed_on": "2026-11-06",
+      "title": "Orden de 24 de marzo de 2023, por la que se establecen en la Comunidad Autónoma de Andalucía normas sobre la presentación y gestión de la solicitud única y sobre los derechos de ayuda básica a la renta para la sostenibilidad a partir del año 2023, así como disposiciones de aplicación de las intervenciones en forma de pagos directos a la agricultura y a la ganadería, y a las ayudas de desarrollo rural objeto de inclusión en la solicitud única",
+      "verified_on": "2026-11-06"
+    },
+    {
+      "consolidated_url": "https://www.boe.es/buscar/act.php?id=BOE-A-2015-10565",
+      "content_sha256": "25e65461e3bd13abb4b2821f2e2bbd317d4ea363cd915f3923cc2bedc6fea683",
+      "downloaded_on": "2026-11-06",
+      "id": "ley_39_2015",
+      "issuing_body": "BOE",
+      "lifecycle_status": "current",
+      "original_url": "https://www.boe.es/buscar/doc.php?id=BOE-A-2015-10565",
+      "published_on": "2015-10-02",
+      "review_status": "approved",
+      "reviewed_by": "Diego",
+      "reviewed_on": "2026-11-06",
+      "title": "Ley 39/2015, de 1 de octubre, del Procedimiento Administrativo Común de las Administraciones Públicas",
+      "verified_on": "2026-11-06"
     }
   ]
 }
