@@ -357,8 +357,10 @@ class OllamaTransport:
         opener: Any = None,
         clock: Optional[GenerationClock] = None,
         on_metrics: Optional[Callable[[Mapping[str, int]], None]] = None,
+        response_format: Mapping[str, Any] = DRAFT_JSON_SCHEMA,
     ) -> None:
         self._record = record
+        self._response_format = response_format
         self._opener = opener if opener is not None else loopback_opener()
         self._clock = clock or SystemClock()
         self._on_metrics = on_metrics
@@ -377,7 +379,7 @@ class OllamaTransport:
                 {"role": "user", "content": request.payload_json},
             ],
             "stream": False,
-            "format": DRAFT_JSON_SCHEMA,
+            "format": self._response_format,
             "options": {
                 **OLLAMA_OPTIONS,
                 "num_ctx": self._record.num_ctx,

@@ -203,6 +203,10 @@ Durable MUST/MUST NOT rules for backend answer path, retrieval, generation, eval
   `valid_until`, but every structural, host, date-order, and malformed-date error MUST still fail
   closed, and its proposals MUST stay review-only outside `knowledge/`
   ([spec](../specs/validity_checker.md)).
+- **MUST**: relevance suggestions for discovered candidates MUST stay a review-only list outside
+  `knowledge/`: they never drop, admit, or change a candidate, candidate text is only ever the data
+  role (never the system message), flagged or unparseable cases fail closed to `unsure`, and tests
+  need no Ollama ([spec](../specs/relevance_classifier.md)).
 - **MUST**: canonical catalog and passage changes MUST go through the controlled merge that verifies
   an explicit approval by a named requested reviewer other than the proposal author, a matching
   package/checks/case digest, all required checks passing, and current canonical bytes matching the

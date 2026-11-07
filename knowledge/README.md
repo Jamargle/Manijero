@@ -46,6 +46,7 @@ measurement, not evidence about legal coverage or real user questions.
 | `official-ingestion-document.schema.json` | The readable contract for one extracted quarantined document (`official-ingestion-document-v1`). |
 | `legal-change-impact.schema.json` | The readable contract for the derived change-impact report (`legal-change-impact-report-v1`). It is not canonical knowledge. |
 | `validity-review.schema.json` | The readable contract for the derived source-validity review (`validity-review-v1`). It is not canonical knowledge. |
+| `relevance-review.schema.json` | The readable contract for the derived, suggest-only candidate relevance review (`relevance-review-v1`). It is not canonical knowledge. |
 | `legal-markdown-document.schema.json` | The readable contract for one derived Markdown document parsed from a quarantined official PDF (`legal-markdown-document-v1`), including page line ranges and per-capability status. It is not canonical knowledge. |
 | `legal-chunk-set.schema.json` | The readable contract for one derived chunk set and its run manifest (`legal-chunk-set-v1`, `legal-chunk-manifest-v1`), including the reviewed-validity block. It is not canonical knowledge. |
 | `knowledge-update-review.schema.json` | The readable contract for one local human-review package (`knowledge-update-review-package-v1`), including the after-state evaluation-case binding and merge readiness. It is not canonical knowledge. |
