@@ -1780,6 +1780,29 @@ unstructured, `1` a document failed, `2` refused before writing with `{"error": 
 or missing root, unreadable or invalid catalog, over 1,000 manifests). `--check-contract` alone checks
 the schema and prints one line. Full rules: [feature spec](../docs/specs/legal_structure_chunker.md).
 
+## Cooperative notices to review candidates (local model, development only)
+
+`backend/scripts/process_cooperative_notices.py` reads anonymized `notice-NNN.txt` files (UTF-8, at most
+50 files, 16 KiB and 6,000 characters each) and asks the pinned local Ollama model for colloquial to
+standard term pairs and grower questions. It writes one `notice-review.json` (`notice-review-v1`,
+`review_status: "unreviewed"`) under `--output`, never inside `knowledge/` or the notices folder.
+Nothing it writes is answerable. Keep real notices outside the repository; use `build/notice-review/`.
+
+```sh
+backend/.venv/bin/python backend/scripts/process_cooperative_notices.py --notices /path/to/notices --output build/notice-review
+backend/.venv/bin/python backend/scripts/process_cooperative_notices.py --notices /path/to/notices --screen-only
+```
+
+`--screen-only` applies the input checks with no model and writes nothing. A notice that looks personal is
+refused before any model call and never echoed: `person_name`, `phone`, `national_id`, `email`, `iban`,
+`street_address`, `parcel_id` (any SIGPAC, cadastral, or polígono/parcela reference), `nominal_listing`;
+`instruction_like_text` for model-directed wording; `notice_too_large`, `notice_unreadable`,
+`notice_empty` for bounds. Invalid model output fails only that notice (`model_output_invalid`,
+`model_timeout`). Exit `0` all clean, `1` a notice refused or failed (others still processed), `2` aborted
+with `{"error": "NoticePipelineError", "code": ...}` and nothing written (unsafe folders, a non-`development`
+`MANIJERO_DEPLOYMENT_PROFILE`, an unexpected file name, an invalid model record, or Ollama unreachable, missing,
+or a different digest). Full rules: [feature spec](../docs/specs/local_notice_pipeline.md).
+
 ## Legal change-impact analysis
 
 `app/change_impact.py` compares the versions that candidate ingestion recorded
