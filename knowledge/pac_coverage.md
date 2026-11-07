@@ -14,6 +14,16 @@ La cobertura de respuestas se limita a la Solicitud Única andaluza de 2026:
 
 Las fuentes oficiales aprobadas, ubicaciones y pasajes literales están registrados en [knowledge/source_catalog.json](../knowledge/source_catalog.json) y [knowledge/passages.json](../knowledge/passages.json).
 
+## Ampliación del corpus (2026-11-07)
+
+Diego revisó y aprobó el paquete `8c7b2e22…07b9` el 2026-11-07. La fusión controlada añadió 3 fuentes oficiales y 5 pasajes literales (el corpus pasa a 7 fuentes y 9 pasajes):
+
+- Real Decreto 1047/2022 (BOE): definiciones de parcela SIGPAC (art. 2.1.g) y recinto SIGPAC (art. 2.1.h);
+- Orden de 24 de marzo de 2023 (Junta de Andalucía): alegación SIGPAC en la solicitud única (art. 4.2);
+- Ley 39/2015 (BOE): preferencia por la notificación electrónica (art. 41.1) y rectificación de errores materiales (art. 109.2).
+
+Cuatro documentos revisados no se añadieron; el motivo de cada uno consta en el apéndice de `seed_corpus_expansion`. Estos pasajes aún no tienen casos de evaluación propios y el índice no se ha regenerado: hasta la reindexación y publicación separadas, ninguna versión publicada los usa. No amplían la cobertura a elegibilidad individual, importes ni notificaciones individuales.
+
 ## Evaluación de respuestas revisada
 
 La evidencia de extremo a extremo de estos tres temas vive en

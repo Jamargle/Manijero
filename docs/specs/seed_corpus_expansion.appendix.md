@@ -159,8 +159,9 @@ All on 2026-11-06, from the seed worktree; canonical `knowledge/source_catalog.j
 - Status: approved and merged; `feature_list.json` = `in_progress`; canonical knowledge committed on `feature/seed_corpus_expansion`.
 - Review: package `8c7b2e22…07b9` approved by `Diego` (external validator, named human other than the author) on 2026-11-07 via `knowledge_review.py decide`; note "Veredictos revisados: 3 añadidos, 4 no añadidos."
 - Merge: `knowledge_review.py merge` exit 0; catalog after `27c7c896…b41d`, passages after `a4d026ad…a074` (match the package's after-hashes); `reindex_required: true`, `reindexed: false`, `released: false`.
-- Not done: exact-count guards still expect 4 sources/4 passages; `./scripts/init.sh --feature seed_corpus_expansion` now 137 passed / 4 failed (`test_pac_corpus::test_canonical_artifacts_are_valid_and_have_approved_coverage`, `test_source_catalog::test_canonical_catalog_contains_reviewed_sources`, `test_source_catalog::test_cli_without_as_of_still_validates`, `test_retrieval::test_canonical_source_catalog_is_unchanged_and_reviewed`); `pac_coverage.md`/README counts, eval-case extension, and reindex/release remain.
-- Next role: implementer updates guards/counts/coverage for the merged 7-source/9-passage corpus, then `feature-validator`.
+- Follow-up (same day): count guards updated to 7 sources/9 passages in `test_pac_corpus.py`, `test_source_catalog.py`, `test_retrieval.py`; `knowledge/pac_coverage.md` gained a dated expansion section. `./scripts/init.sh --feature seed_corpus_expansion`: 141 passed, catalog validator 7 sources exit 0, coverage-copy guard exit 0. Historical "four passages" measurements in `backend/README.md` and `docs/risks-and-open-questions.md` are dated and left unchanged.
+- Not done: eval-case extension for the new passages; reindex/release.
+- Next role: `feature-validator`.
 
 ## Validator checklist
 
