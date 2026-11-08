@@ -281,6 +281,15 @@ Durable MUST/MUST NOT rules for backend answer path, retrieval, generation, eval
   that a page may have changed; only a human can decide what that means, and the monitor must not
   become a second unreviewed knowledge path.
 
+- **MUST**: question-glossary expansion (`question_rewriting`) MUST use only owner-approved
+  colloquial -> official pairs, MUST append the official term to the retrieval query and never
+  replace the grower's words, MUST change only the retrieval query (not screening, checks, drafting
+  payload, cache-key text, trace, retention, or response), MUST fail closed to no expansion on any
+  file or setting problem, and MUST NOT log a term. A glossary change MUST pass
+  `backend/scripts/glossary_review.py check`, and release gates MUST stay glossary-free. Reason: an
+  unreviewed or model-made rewrite would put words in the grower's mouth and unmeasured wording
+  into retrieval ([spec](../specs/question_rewriting.md)).
+
 ## Procedure map
 
 - **MUST**: `knowledge/procedure_map.json` MUST remain a taxonomy index, never legal knowledge or an

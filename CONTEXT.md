@@ -26,6 +26,7 @@ Use these terms consistently across product and engineering documents. This is a
 | RAG | Retrieval-Augmented Generation: retrieve source passages, then generate a response grounded in them |
 | Abstention | A clear response that the assistant cannot answer safely from available evidence |
 | Source-anchored question | Evaluation question with a reviewed expected answer and authoritative source |
+| Question glossary (glosario de preguntas) | Owner-approved pairs of a grower's everyday word and the official term; the official term is appended to the search query only, never in place of the grower's words |
 
 ## Users and interaction
 

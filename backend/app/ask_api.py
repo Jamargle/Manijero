@@ -35,6 +35,7 @@ from app.knowledge_release import ReleaseError, load_published_corpus
 from app.answer_trace import AnswerTrace
 from app.pilot_logging import operational_log
 from app.retention import RetentionStore, retain_if_opted_in
+from app.question_glossary import QuestionGlossary
 from app.retrieval_backend import RetrievalBackend, get_retrieval_backend
 from app.retrieval import CatalogRejectedError, PassageSetError, Retriever, validate_passage_set
 from app.source_catalog import CatalogReadError, load_catalog, validate_catalog
@@ -299,6 +300,12 @@ def get_answer_cache(request: Request) -> "answer_cache.AnswerCache | None":
     return getattr(request.app.state, "answer_cache", None)
 
 
+def get_question_glossary(request: Request) -> QuestionGlossary | None:
+    """The reviewed question glossary loaded by ``create_app``; ``None`` keeps the search query as asked."""
+
+    return getattr(request.app.state, "question_glossary", None)
+
+
 def get_answer_inspection(request: Request) -> bool:
     """Whether ``create_app`` resolved the development-only inspection as on."""
 
@@ -332,6 +339,7 @@ def ask_question(
     trace: AnswerTrace | None = Depends(get_answer_trace),
     inspect: bool = Depends(get_answer_inspection),
     cache: "answer_cache.AnswerCache | None" = Depends(get_answer_cache),
+    glossary: QuestionGlossary | None = Depends(get_question_glossary),
 ) -> Dict[str, Any]:
     """Run accepted corpus and answer decisions, then the separate opt-in retention step."""
 
@@ -354,6 +362,7 @@ def ask_question(
             retrieval_backend,
             generation,
             cache,
+            glossary,
         )
     except HTTPException:
         session.finish(question=request.question, land_scope=land_scope, response=None)
@@ -436,6 +445,7 @@ def _answer(
     retrieval_backend: RetrievalBackend,
     generation: ProviderResolution | None = None,
     cache: "answer_cache.AnswerCache | None" = None,
+    glossary: QuestionGlossary | None = None,
 ) -> Tuple[Dict[str, Any], bool]:
     """The response and whether it came from the answer cache (a hit has no inspection)."""
 
@@ -456,6 +466,10 @@ def _answer(
         # BM25 unless hybrid retrieval is explicitly configured and its store is fresh
         # for this exact admitted corpus; the backend never raises.
         corpus = retrieval_backend.attach(corpus, active_campaign)
+        # Approved official terms are appended to the search query only; every other
+        # step keeps the grower's own words (``question_rewriting``).
+        if glossary is not None and glossary.approved_count:
+            corpus = corpus.with_query_expansion(glossary.expand)
         answer_trace.note_mode(
             answer_trace_mode(corpus),
             retrieval_k,
@@ -474,6 +488,7 @@ def _answer(
             request, land_context, corpus, generation, generator, cache,
             as_of=as_of, active_campaign=active_campaign, retrieval_k=retrieval_k,
             release_id=corpus_documents.release_id,
+            glossary=glossary,
         )
     result = answer_with_clarification(
         request.question,
@@ -520,6 +535,7 @@ def _answer_through_cache(
     active_campaign: str,
     retrieval_k: int,
     release_id: str | None,
+    glossary: QuestionGlossary | None = None,
 ) -> Tuple[Dict[str, Any], bool]:
     """The accepted ``answer_with_clarification`` composition with a verified cache between.
 
@@ -539,7 +555,7 @@ def _answer_through_cache(
     )
     model = answer_cache.model_identity(
         generation.model_version if generation is not None else "extractive",
-        answer_trace_mode(corpus),
+        answer_trace_mode(corpus) + (glossary.cache_suffix() if glossary is not None else ""),
         retrieval_k,
         DEFAULT_MAX_CLAIMS,
     )

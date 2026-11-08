@@ -1,0 +1,147 @@
+{
+  "notices": [
+    {
+      "file": "notice-001.txt",
+      "notice_sha256": "5b056e218d6cda77daa23a55d82a65714ec15974c2610618a8c255085f37e09f",
+      "questions": [
+        "¿Qué papeles hay que llevar a la cooperativa para la PAC?"
+      ],
+      "status": "extracted",
+      "vocabulary": [
+        {
+          "colloquial": "la PAC",
+          "standard": "solicitud única de la PAC"
+        },
+        {
+          "colloquial": "los papeles",
+          "standard": "documentación de la solicitud"
+        },
+        {
+          "colloquial": "el cuaderno",
+          "standard": "cuaderno de explotación"
+        }
+      ]
+    },
+    {
+      "file": "notice-002.txt",
+      "notice_sha256": "75ddf1430046c4319cfe749fe1dbbf3f6f7ba2b23372c7b6d296e9a1bfaaf6d5",
+      "questions": [
+        "¿Qué papeles hay que llevar a la cooperativa para la PAC?",
+        "¿Cómo se declara la cosecha de aceituna?"
+      ],
+      "status": "extracted",
+      "vocabulary": [
+        {
+          "colloquial": "los papeles",
+          "standard": "documentación de la solicitud"
+        },
+        {
+          "colloquial": "la ayuda del olivar",
+          "standard": "ayuda para el cultivo del olivar"
+        },
+        {
+          "colloquial": "los recintos",
+          "standard": "recintos del SIGPAC"
+        }
+      ]
+    },
+    {
+      "file": "notice-003.txt",
+      "notice_sha256": "d68a6c662bebb44b0413340ca5eb281109b47bb60acf39a01941469ff46d5990",
+      "questions": [
+        "¿Cómo puedo firmar la solicitud desde el móvil?"
+      ],
+      "status": "extracted",
+      "vocabulary": [
+        {
+          "colloquial": "la firma del trámite",
+          "standard": "firma electrónica de la solicitud"
+        },
+        {
+          "colloquial": "la aplicación del móvil",
+          "standard": "aplicación móvil de la administración"
+        }
+      ]
+    }
+  ],
+  "pipeline": {
+    "digest": "5a408ab55df5c1b5cf46533c368813b30bf9e4d8fc39263bf2a3338cfa3b895b",
+    "instruction_version": "notice-extract-v1",
+    "model": "mistral-small3.2:24b-instruct-2506-q4_K_M"
+  },
+  "questions": [
+    {
+      "question": "¿Cómo puedo firmar la solicitud desde el móvil?",
+      "sources": [
+        "notice-003.txt"
+      ]
+    },
+    {
+      "question": "¿Cómo se declara la cosecha de aceituna?",
+      "sources": [
+        "notice-002.txt"
+      ]
+    },
+    {
+      "question": "¿Qué papeles hay que llevar a la cooperativa para la PAC?",
+      "sources": [
+        "notice-001.txt",
+        "notice-002.txt"
+      ]
+    }
+  ],
+  "review_status": "unreviewed",
+  "schema_version": "notice-review-v1",
+  "vocabulary": [
+    {
+      "colloquial": "el cuaderno",
+      "sources": [
+        "notice-001.txt"
+      ],
+      "standard": "cuaderno de explotación"
+    },
+    {
+      "colloquial": "la aplicación del móvil",
+      "sources": [
+        "notice-003.txt"
+      ],
+      "standard": "aplicación móvil de la administración"
+    },
+    {
+      "colloquial": "la ayuda del olivar",
+      "sources": [
+        "notice-002.txt"
+      ],
+      "standard": "ayuda para el cultivo del olivar"
+    },
+    {
+      "colloquial": "la firma del trámite",
+      "sources": [
+        "notice-003.txt"
+      ],
+      "standard": "firma electrónica de la solicitud"
+    },
+    {
+      "colloquial": "la PAC",
+      "sources": [
+        "notice-001.txt"
+      ],
+      "standard": "solicitud única de la PAC"
+    },
+    {
+      "colloquial": "los papeles",
+      "sources": [
+        "notice-001.txt",
+        "notice-002.txt"
+      ],
+      "standard": "documentación de la solicitud"
+    },
+    {
+      "colloquial": "los recintos",
+      "sources": [
+        "notice-002.txt"
+      ],
+      "standard": "recintos del SIGPAC"
+    }
+  ]
+}

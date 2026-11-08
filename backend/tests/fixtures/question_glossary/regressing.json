@@ -1,0 +1,24 @@
+{
+  "schema_version": "question-glossary-v1",
+  "entries": [
+    {
+      "id": "gl-001",
+      "colloquial": "obligatorio",
+      "official": "solicitudes de las ayudas contempladas en la presente resolución",
+      "origin": {
+        "kind": "golden",
+        "ref": "golden-041"
+      },
+      "drafted": {
+        "by": "agent:test-fixture",
+        "on": "2026-11-08"
+      },
+      "review_state": "approved",
+      "decision": {
+        "decision": "approved",
+        "reviewed_by": "Test Owner",
+        "reviewed_on": "2026-11-08"
+      }
+    }
+  ]
+}
