@@ -110,10 +110,10 @@ def cmd_decide(args: argparse.Namespace) -> int:
         print(USAGE_LINE)
         return 1
     try:
-        catalog, passages, _cases, coverage = _load_reviewed(args)
+        catalog, passages, cases, coverage = _load_reviewed(args)
         recorded, waiting = gs.record_decision(
             args.golden, decision, name, refs, date.today() if args.today is None else args.today,
-            catalog, passages, coverage["omissions"],
+            catalog, passages, coverage["omissions"], cases,
         )
     except gs.DecisionError as exc:
         print(

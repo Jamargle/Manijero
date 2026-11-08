@@ -271,7 +271,23 @@ def _question_key(item_or_case: Dict[str, Any]) -> Tuple[str, str]:
     return text, lands
 
 
-def anchor_failures(item: Dict[str, Any], catalog: Any, passages: Any, omissions: Sequence[str]) -> List[str]:
+def basis_is_valid(item: Dict[str, Any], basis: str, omissions: Sequence[str], base_cases: Sequence[Dict[str, Any]]) -> bool:
+    """A declared omission, or the id of a reviewed abstained case of the item's own area."""
+
+    if basis in omissions:
+        return True
+    return any(
+        c["id"] == basis and c["area"] == item["area"] and c["expected_status"] == "abstained" for c in base_cases
+    )
+
+
+def anchor_failures(
+    item: Dict[str, Any],
+    catalog: Any,
+    passages: Any,
+    omissions: Sequence[str],
+    base_cases: Sequence[Dict[str, Any]] = (),
+) -> List[str]:
     """The proof rules of one item against the reviewed corpus (scenario 2)."""
 
     ident = item["id"]
@@ -285,8 +301,11 @@ def anchor_failures(item: Dict[str, Any], catalog: Any, passages: Any, omissions
         basis = item.get("deliberate_abstention", {}).get("basis")
         if basis is None:
             out.append(f"{ident}: abstention must declare deliberate_abstention.basis")
-        elif basis not in omissions:
-            out.append(f"{ident}: deliberate_abstention.basis is not a declared omission")
+        elif not basis_is_valid(item, basis, omissions, base_cases):
+            out.append(
+                f"{ident}: deliberate_abstention.basis is neither a declared omission "
+                "nor a reviewed abstained case of the same area"
+            )
         return out
     if "deliberate_abstention" in item:
         out.append(f"{ident}: answered item must not declare deliberate_abstention")
@@ -351,7 +370,7 @@ def validate(
         ids.add(ident)
         if item["area"] not in declared:
             failures.append(f"{ident}: area is not declared")
-        failures.extend(anchor_failures(item, catalog, passages, omissions))
+        failures.extend(anchor_failures(item, catalog, passages, omissions, base_cases))
         reason = screen_question(item["question"])
         if reason is not None:
             failures.append(f"{ident}: question is flagged by the input guardrails ({reason})")
@@ -462,7 +481,9 @@ def item_number(doc: Dict[str, Any], item: Dict[str, Any]) -> int:
     return doc["items"].index(item) + 1
 
 
-def render_item(doc: Dict[str, Any], item: Dict[str, Any], catalog: Any, passages: Any) -> str:
+def render_item(
+    doc: Dict[str, Any], item: Dict[str, Any], catalog: Any, passages: Any, base_ids: Sequence[str] = ()
+) -> str:
     sources = {s["id"]: s for s in catalog["sources"]}
     by_id = {p["id"]: p for p in passages["passages"]}
     total = len(doc["items"])
@@ -481,7 +502,9 @@ def render_item(doc: Dict[str, Any], item: Dict[str, Any], catalog: Any, passage
         lines.append(f"  Lands: {'; '.join(parts)}")
     if item["expected_status"] == "abstained":
         basis = item["deliberate_abstention"]["basis"]
-        lines.append(f"  Expected: a deliberate \"no lo sé\" (basis: {basis}); the reviewed sources do not cover it")
+        follows = basis in base_ids
+        note = "it follows the reviewed case of that name" if follows else "the reviewed sources do not cover it"
+        lines.append(f"  Expected: a deliberate \"no lo sé\" (basis: {basis}); {note}")
     else:
         anchor = item["anchor"]
         passage = by_id[anchor["passage_id"]]
@@ -499,9 +522,11 @@ def render_item(doc: Dict[str, Any], item: Dict[str, Any], catalog: Any, passage
     return "\n".join(lines)
 
 
-def render_list(doc: Dict[str, Any], catalog: Any, passages: Any, only_waiting: bool) -> str:
+def render_list(
+    doc: Dict[str, Any], catalog: Any, passages: Any, only_waiting: bool, base_ids: Sequence[str] = ()
+) -> str:
     items = [i for i in doc["items"] if i["review_state"] == "draft" or not only_waiting]
-    return "\n\n".join(render_item(doc, i, catalog, passages) for i in items) + ("\n" if items else "")
+    return "\n\n".join(render_item(doc, i, catalog, passages, base_ids) for i in items) + ("\n" if items else "")
 
 
 # --- Decisions --------------------------------------------------------------------------
@@ -537,6 +562,7 @@ def record_decision(
     catalog: Any,
     passages: Any,
     omissions: Sequence[str],
+    base_cases: Sequence[Dict[str, Any]] = (),
 ) -> Tuple[int, int]:
     """Validate everything, then rewrite the file once. Returns (recorded, still waiting)."""
 
@@ -547,7 +573,7 @@ def record_decision(
     state = "approved" if decision == "approve" else "rejected"
     if state == "approved":
         for index in indexes:
-            if anchor_failures(doc["items"][index], catalog, passages, omissions):
+            if anchor_failures(doc["items"][index], catalog, passages, omissions, base_cases):
                 raise DecisionError("anchor", str(index + 1))
     for index in indexes:
         item = doc["items"][index]

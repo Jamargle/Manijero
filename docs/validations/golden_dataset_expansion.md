@@ -8,6 +8,11 @@
 - Fresh validator re-review: **accept**, no findings. `./scripts/init.sh --feature golden_dataset_expansion` passed (`check` 46 items OK, `--golden` evaluator exit 0, approved=46); `./scripts/init.sh --fast` all 10 checks passed (backend 2556 passed, 7 skipped). `knowledge/golden_set.json` byte-identical to `15947f3`.
 - Status set to `accepted`.
 
+## Integration repair — 2026-11-08
+
+- After merging `validity_regression_cases` the area rule failed on its 3 new areas. Added drafts `golden-047` to `golden-049` and a same-area abstained case-id basis. Counts are now **46 approved, 0 rejected, 3 draft**; the 46 earlier items are byte-identical. The 3 drafts await the owner's `--golden-decide`.
+- Fresh validator review of the repair: **accept**, no findings. `--feature golden_dataset_expansion` passed (approved=46, draft=3); `--feature validity_regression_cases` passed (151); implementer's `CI=true ./scripts/init.sh --fast` all 10 checks passed. Status stays `accepted`.
+
 ## Verdict (first pass)
 
 **Accept, pending owner walkthrough** — 2026-11-08. Independent validation of the uncommitted work against `docs/specs/golden_dataset_expansion.md`. Status was `passing`; the orchestrator keeps it `passing` and persists `accepted` after the owner reports the walkthrough matched the guide.

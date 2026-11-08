@@ -11,6 +11,7 @@
   - The owner gets one plain command that lists the drafts for review in readable form, and one that records approve/reject per item (no hand-editing of JSON). Each ends with one `Result:` line. The owner guide gets a section titled `Owner walkthrough: golden set review`.
   - Tests are offline and deterministic, with no model or network.
   - Acceptance: validator accept plus the owner review walkthrough, where the owner approves or rejects the drafts. Only approved items count.
+- Notes — integration repair 2026-11-08: `validity_regression_cases` added the areas `norma-derogada`, `plazo-vencido`, and `cuaderno-digital-fuera-de-alcance`, so the unchanged distribution rule (every reviewed area used) failed. Fix: draft items `golden-047` to `golden-049` (one per area, `draft`, no decision) and the case-id abstention basis above. The 46 existing items are unchanged; the 3 drafts await the owner's `--golden-decide`.
 - Planner decisions: drafts live in a separate queue file, so no existing consumer of `knowledge/pac_answer_eval.json` (release gates, review merge, demo, load test, guard tests with fixed counts) can see them. Approved items are scored through an explicit evaluator flag. Feeding approved items into the release and review gates is left to `evaluation_metrics_report` / `ci_quality_gates`.
 
 ## Goal
@@ -48,7 +49,7 @@ Given any item · When checked · Then the check fails, nonzero and naming the i
 - Its anchor `text` is an exact substring of that passage's text.
 - `expected_passage_ids` contains the anchor passage, and `expected_source_ids` covers every expected passage's source.
 - Every `critical_facts` string is an exact substring of an expected passage.
-- An abstention item has no anchor, expected sources, or facts, and declares `deliberate_abstention.basis` equal to one of `pac_answer_eval.json` `coverage.omissions`.
+- An abstention item has no anchor, expected sources, or facts, and declares `deliberate_abstention.basis` equal to one of `pac_answer_eval.json` `coverage.omissions`, or equal to the id of a reviewed case in that file with the same `area` and `expected_status: "abstained"` (integration repair 2026-11-08). Any other basis fails.
 
 ### 3. Drafts are safe questions, not traps
 

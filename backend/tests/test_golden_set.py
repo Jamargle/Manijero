@@ -59,6 +59,11 @@ def golden_file(tmp_path, doc):
     return path
 
 
+def total():
+    """How many items the committed queue holds, whatever its size is today."""
+    return len(json.loads((KNOWLEDGE / "golden_set.json").read_text(encoding="utf-8"))["items"])
+
+
 def failures_of(corpus, doc):
     catalog, passages, cases, coverage = corpus
     return gs.validate(doc, catalog, passages, cases, coverage)
@@ -125,7 +130,56 @@ def test_each_anchor_rule_names_the_item_and_the_rule(corpus, doc):
     mutate(corpus, copy.deepcopy(doc), answered, lambda i: i.update(expected_passage_ids=[]), "must contain the anchor passage")
     mutate(corpus, copy.deepcopy(doc), answered, lambda i: i.update(expected_source_ids=["ley_39_2015"] if i["anchor"]["source_id"] != "ley_39_2015" else ["rd_537_2026"]), "must cover")
     mutate(corpus, copy.deepcopy(doc), abstained, lambda i: i.update(anchor={"source_id": "a", "passage_id": "b", "text": "c"}), "must not carry anchor")
-    mutate(corpus, copy.deepcopy(doc), abstained, lambda i: i.update(deliberate_abstention={"basis": "otra cosa"}), "not a declared omission")
+    mutate(corpus, copy.deepcopy(doc), abstained, lambda i: i.update(deliberate_abstention={"basis": "otra cosa"}), "neither a declared omission")
+
+
+def abstained_item(doc, base_id, area):
+    item = first(doc, "abstained")
+    item["area"] = area
+    item["deliberate_abstention"] = {"basis": base_id}
+    return item
+
+
+def test_abstention_basis_may_be_a_same_area_abstained_reviewed_case(corpus, doc):
+    _catalog, _passages, cases, _coverage = corpus
+    base = next(c for c in cases if c["expected_status"] == "abstained" and c["area"] == "norma-derogada")
+    abstained_item(doc, base["id"], "norma-derogada")
+    assert failures_of(corpus, doc) == []
+
+
+def test_abstention_basis_rejects_other_area_answered_and_unknown_cases(corpus, doc):
+    _catalog, _passages, cases, _coverage = corpus
+    base = next(c for c in cases if c["expected_status"] == "abstained" and c["area"] == "norma-derogada")
+    answered = next(c for c in cases if c["expected_status"] == "answered")
+    for basis, area in (
+        (base["id"], "tema-fuera-de-alcance"),
+        (answered["id"], answered["area"]),
+        ("caso-que-no-existe", "norma-derogada"),
+    ):
+        broken = copy.deepcopy(doc)
+        item = abstained_item(broken, basis, area)
+        assert any(
+            f.startswith(f"{item['id']}:") and "neither a declared omission" in f for f in failures_of(corpus, broken)
+        ), basis
+
+
+def test_approving_checks_the_case_id_basis_and_the_list_says_it_follows_the_case(corpus, golden_file):
+    catalog, passages, cases, coverage = corpus
+    base = next(c for c in cases if c["expected_status"] == "abstained" and c["area"] == "norma-derogada")
+    stored = json.loads(golden_file.read_text(encoding="utf-8"))
+    item = abstained_item(stored, base["id"], "norma-derogada")
+    golden_file.write_text(gs.dump_document(stored), encoding="utf-8")
+    ref = item["id"]
+    assert decide(golden_file, "approve", "Diego", [ref], corpus)[0] == 1
+    text = gs.render_item(stored, item, catalog, passages, [c["id"] for c in cases])
+    assert f"basis: {base['id']}); it follows the reviewed case" in text
+    item["deliberate_abstention"]["basis"] = "caso-que-no-existe"
+    item["review_state"] = "draft"
+    item.pop("decision", None)
+    golden_file.write_text(gs.dump_document(stored), encoding="utf-8")
+    with pytest.raises(gs.DecisionError) as raised:
+        decide(golden_file, "approve", "Diego", [ref], corpus)
+    assert raised.value.kind == "anchor"
 
 
 def test_source_mismatch_and_unapproved_sources_fail(corpus, doc):
@@ -215,7 +269,7 @@ def test_only_approved_items_become_cases(doc):
     assert [c["id"] for c in cases] == ["golden-001", "golden-023"]
     assert cases[0]["review"] == {"reviewed_by": "Ana", "reviewed_on": "2026-11-09", "role": "author_only"}
     assert cases[1]["expected_status"] == "abstained" and "expected_source_ids" not in cases[1]
-    assert gs.state_counts(doc) == {"approved": 2, "draft": 43, "rejected": 1}
+    assert gs.state_counts(doc) == {"approved": 2, "draft": total() - 3, "rejected": 1}
 
 
 @pytest.mark.parametrize(
@@ -258,7 +312,7 @@ def test_evaluator_without_flag_ignores_the_queue_and_zero_approved_adds_only_co
     assert with_drafts.returncode == 0, with_drafts.stderr
     plain_report, draft_report = json.loads(plain.stdout), json.loads(with_drafts.stdout)
     assert "golden" not in plain_report
-    assert draft_report.pop("golden") == {"approved": 0, "draft": 46, "rejected": 0}
+    assert draft_report.pop("golden") == {"approved": 0, "draft": total(), "rejected": 0}
     assert plain_report["case_rows"] == draft_report["case_rows"]
 
 
@@ -273,7 +327,7 @@ def test_approved_items_are_scored_deterministically(tmp_path, doc):
     rows = {row["id"]: row for row in report["case_rows"]}
     assert rows["golden-001"]["area"] == "canal-presentacion"
     assert "golden-002" not in rows and "golden-003" not in rows
-    assert report["golden"] == {"approved": 2, "draft": 43, "rejected": 1}
+    assert report["golden"] == {"approved": 2, "draft": total() - 3, "rejected": 1}
 
 
 def test_evaluator_refuses_an_id_collision_with_a_reviewed_case(tmp_path, corpus, doc):
@@ -290,13 +344,13 @@ def test_evaluator_refuses_an_id_collision_with_a_reviewed_case(tmp_path, corpus
 
 
 def decide(path, decision, name, refs, corpus):
-    catalog, passages, _cases, coverage = corpus
-    return gs.record_decision(path, decision, name, refs, TODAY, catalog, passages, coverage["omissions"])
+    catalog, passages, cases, coverage = corpus
+    return gs.record_decision(path, decision, name, refs, TODAY, catalog, passages, coverage["omissions"], cases)
 
 
 def test_approve_and_reject_write_the_decision_by_number_and_id(corpus, golden_file):
-    assert decide(golden_file, "approve", "Diego", ["1", "golden-002"], corpus) == (2, 44)
-    assert decide(golden_file, "reject", "Ana M.", ["3"], corpus) == (1, 43)
+    assert decide(golden_file, "approve", "Diego", ["1", "golden-002"], corpus) == (2, total() - 2)
+    assert decide(golden_file, "reject", "Ana M.", ["3"], corpus) == (1, total() - 3)
     stored = json.loads(golden_file.read_text(encoding="utf-8"))
     one = item_by_id(stored, "golden-001")
     assert one["review_state"] == "approved"
@@ -307,7 +361,7 @@ def test_approve_and_reject_write_the_decision_by_number_and_id(corpus, golden_f
 
 def test_a_repeated_decision_replaces_the_earlier_one(corpus, golden_file):
     decide(golden_file, "approve", "Diego", ["1"], corpus)
-    assert decide(golden_file, "reject", "Ana", ["golden-001"], corpus) == (1, 45)
+    assert decide(golden_file, "reject", "Ana", ["golden-001"], corpus) == (1, total() - 1)
     item = item_by_id(json.loads(golden_file.read_text(encoding="utf-8")), "golden-001")
     assert item["review_state"] == "rejected" and item["decision"]["reviewed_by"] == "Ana"
 
@@ -343,7 +397,7 @@ def test_an_approval_of_an_item_whose_anchor_no_longer_verifies_records_nothing(
         decide(path, "approve", "Diego", ["2", "1"], corpus)
     assert raised.value.kind == "anchor" and raised.value.detail == "1"
     assert path.read_bytes() == before
-    assert decide(path, "reject", "Diego", ["1"], corpus) == (1, 45)
+    assert decide(path, "reject", "Diego", ["1"], corpus) == (1, total() - 1)
 
 
 def test_a_failed_write_leaves_the_file_and_no_temporary_files(tmp_path, monkeypatch):
@@ -374,30 +428,30 @@ def test_list_shows_waiting_items_and_writes_the_full_file_under_build(capsys, t
     code, lines = cli(capsys, golden_file, build, "list")
     assert code == 0
     assert lines[-1] == (
-        "Result: 46 golden questions wait for your decision (0 approved, 0 rejected). "
+        f"Result: {total()} golden questions wait for your decision (0 approved, 0 rejected). "
         "The same list is in build/golden-review/drafts.txt."
     )
     text = "\n".join(lines)
-    for needle in ("[1 of 46] golden-001", "Question:", "Source:", "Location:", "Link:", "Quoted text:", "Must say:", "basis: elegibilidad individual"):
+    for needle in (f"[1 of {total()}] golden-001", "Question:", "Source:", "Location:", "Link:", "Quoted text:", "Must say:", "basis: elegibilidad individual"):
         assert needle in text
-    assert (build / "drafts.txt").read_text(encoding="utf-8").count("state: waiting") == 46
+    assert (build / "drafts.txt").read_text(encoding="utf-8").count("state: waiting") == total()
 
 
 def test_list_hides_decided_items_and_reports_when_none_wait(capsys, tmp_path, corpus, golden_file):
     build = tmp_path / "build"
-    refs = [str(n) for n in range(1, 47)]
+    refs = [str(n) for n in range(1, total() + 1)]
     decide(golden_file, "approve", "Diego", ["1"], corpus)
     decide(golden_file, "reject", "Diego", refs[1:], corpus)
     code, lines = cli(capsys, golden_file, build, "list")
     assert code == 0
-    assert lines == ["Result: no golden questions wait for your decision (1 approved, 45 rejected)."]
+    assert lines == [f"Result: no golden questions wait for your decision (1 approved, {total() - 1} rejected)."]
     assert "state: approved" in (build / "drafts.txt").read_text(encoding="utf-8")
 
 
 def test_decide_prints_the_pinned_result_lines(capsys, tmp_path, golden_file):
     build = tmp_path / "build"
     code, lines = cli(capsys, golden_file, build, "decide", "--today", "2026-11-09", "--", "approve", "Diego", "1", "2")
-    assert (code, lines) == (0, ["Result: recorded approve for 2 golden questions by Diego. 44 still wait for your decision."])
+    assert (code, lines) == (0, [f"Result: recorded approve for 2 golden questions by Diego. {total() - 2} still wait for your decision."])
     before = golden_file.read_bytes()
     code, lines = cli(capsys, golden_file, build, "decide", "--", "approve", "Diego")
     assert code == 1 and lines[0].startswith("Result: nothing was recorded. Write approve or reject, your name in quotes")

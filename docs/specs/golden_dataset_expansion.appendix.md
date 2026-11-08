@@ -108,6 +108,12 @@ Other checks:
 
 - Owner walkthrough 2026-11-08: 46 approved, 0 rejected by `Jose` (`15947f3`); fresh validator accept after the test repair.
 
+2026-11-08 (implementer, integration repair after `validity_regression_cases`):
+- Added drafts `golden-047` to `golden-049` (norma-derogada, plazo-vencido, cuaderno-digital-fuera-de-alcance); abstention basis may be a same-area abstained reviewed case id (`basis_is_valid`, threaded through `validate`, `record_decision`, `render_item`). `pac_answer_eval.json` unchanged; 46 earlier items byte-identical.
+- `test_golden_set.py` counts derived from the live file; 3 new basis tests.
+- `./scripts/init.sh --feature golden_dataset_expansion` and `--feature validity_regression_cases` — passed (state: approved=46, draft=3).
+- `CI=true ./scripts/init.sh --fast` — all 10 checks passed (backend-tests 2966 passed, 9 skipped).
+
 ## Validator checklist
 
 - [ ] The scope matches the contract: `pac_answer_eval.json`, `passages.json`, `source_catalog.json`, and the schema are byte-unchanged; no gate, release, review, demo, or load code reads `golden_set.json`.
