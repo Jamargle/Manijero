@@ -38,8 +38,18 @@ def corpus():
 
 
 @pytest.fixture()
-def doc():
+def live():
+    """The committed queue exactly as it is, in whatever review state the owner left it."""
     return json.loads((KNOWLEDGE / "golden_set.json").read_text(encoding="utf-8"))
+
+
+@pytest.fixture()
+def doc(live):
+    """A private all-draft copy of the committed queue: every decision is dropped."""
+    for item in live["items"]:
+        item["review_state"] = "draft"
+        item.pop("decision", None)
+    return live
 
 
 @pytest.fixture()
@@ -68,26 +78,31 @@ def first(doc, status, **match):
 # --- The canonical file ---------------------------------------------------------------------
 
 
-def test_schema_validates_the_canonical_file(doc):
+def test_schema_validates_the_canonical_file(live):
     schema = json.loads((KNOWLEDGE / "golden_set.schema.json").read_text(encoding="utf-8"))
     Draft202012Validator.check_schema(schema)
-    Draft202012Validator(schema, format_checker=FormatChecker()).validate(doc)
+    Draft202012Validator(schema, format_checker=FormatChecker()).validate(live)
 
 
-def test_canonical_file_is_all_draft_and_passes_every_check(corpus, doc):
-    assert failures_of(corpus, doc) == []
-    assert 40 <= len(doc["items"]) <= 60
-    assert {i["review_state"] for i in doc["items"]} == {"draft"}
-    assert all("decision" not in i for i in doc["items"])
-    assert [i["id"] for i in doc["items"]] == [f"golden-{n:03d}" for n in range(1, len(doc["items"]) + 1)]
-    summary = gs.distribution_summary(doc["items"])
+def test_canonical_file_passes_every_check_in_any_review_state(corpus, live):
+    assert failures_of(corpus, live) == []
+    assert 40 <= len(live["items"]) <= 60
+    for item in live["items"]:
+        if item["review_state"] == "draft":
+            assert "decision" not in item
+        else:
+            decision = item["decision"]
+            assert decision["decision"] == item["review_state"]
+            assert decision["reviewed_by"].strip() and date.fromisoformat(decision["reviewed_on"])
+    assert [i["id"] for i in live["items"]] == [f"golden-{n:03d}" for n in range(1, len(live["items"]) + 1)]
+    summary = gs.distribution_summary(live["items"])
     for kind, minimum in gs.MIN_PER_TYPE.items():
         assert summary["type"][kind] >= minimum
     assert all(summary["segment"][s] >= 3 for s in gs.SEGMENTS)
 
 
-def test_dump_document_is_stable_for_the_canonical_file(doc):
-    assert gs.dump_document(doc) == (KNOWLEDGE / "golden_set.json").read_text(encoding="utf-8")
+def test_dump_document_is_stable_for_the_canonical_file(live):
+    assert gs.dump_document(live) == (KNOWLEDGE / "golden_set.json").read_text(encoding="utf-8")
 
 
 # --- Anchor rules ----------------------------------------------------------------------------
@@ -406,13 +421,13 @@ def test_a_damaged_file_ends_with_one_result_line_and_logs_the_cause(capsys, tmp
     ])
 
 
-def test_check_passes_on_the_canonical_file_and_names_failures(capsys, tmp_path, doc):
+def test_check_passes_on_the_canonical_file_and_names_failures(capsys, tmp_path, live, doc):
     defaults = [
         "--catalog", str(KNOWLEDGE / "source_catalog.json"), "--passages", str(KNOWLEDGE / "passages.json"),
         "--cases", str(KNOWLEDGE / "pac_answer_eval.json"),
     ]
     assert golden_review.main(["check", *defaults, "--golden", str(KNOWLEDGE / "golden_set.json")]) == 0
-    assert capsys.readouterr().out.startswith("golden check: 46 items OK")
+    assert capsys.readouterr().out.startswith(f"golden check: {len(live['items'])} items OK")
     first(doc, "answered")["anchor"]["text"] = "no está"
     broken = tmp_path / "broken.json"
     broken.write_text(gs.dump_document(doc), encoding="utf-8")

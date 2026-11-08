@@ -1,6 +1,14 @@
 # Validation — `golden_dataset_expansion`
 
-## Verdict
+## Owner walkthrough and final acceptance — 2026-11-08
+
+- Owner reported that `Owner walkthrough: golden set review` matched the guide, including the deliberate-error steps; reviewer `Jose` approved all items. Committed in `15947f3`.
+- Counts: **46 approved, 0 rejected, 0 draft**. Final owner line: `Result: no golden questions wait for your decision (46 approved, 0 rejected).` The owner's per-step `Result:` lines were not reported individually.
+- Defect found afterwards: 9 tests in `backend/tests/test_golden_set.py` assumed the live file was all draft. Repaired: draft-behavior tests use tmp all-draft copies; live-file checks are state-independent.
+- Fresh validator re-review: **accept**, no findings. `./scripts/init.sh --feature golden_dataset_expansion` passed (`check` 46 items OK, `--golden` evaluator exit 0, approved=46); `./scripts/init.sh --fast` all 10 checks passed (backend 2556 passed, 7 skipped). `knowledge/golden_set.json` byte-identical to `15947f3`.
+- Status set to `accepted`.
+
+## Verdict (first pass)
 
 **Accept, pending owner walkthrough** — 2026-11-08. Independent validation of the uncommitted work against `docs/specs/golden_dataset_expansion.md`. Status was `passing`; the orchestrator keeps it `passing` and persists `accepted` after the owner reports the walkthrough matched the guide.
 

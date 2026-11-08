@@ -101,14 +101,12 @@ Other checks:
 - Spot-check by hand against `passages.json`: 46 anchors and facts are verbatim (enforced by `check`); no answered item goes beyond its passage. No item approved or rejected.
 - Not run: `--verify` (no Android/Desktop/Gradle surface touched).
 
-## Handoff
+2026-11-08 (implementer, repair after owner walkthrough; live file is now 46 approved, reviewer Jose, untouched):
+- `backend/tests/test_golden_set.py`: draft-behavior tests use an all-draft tmp copy (`doc` fixture resets review_state and drops decisions); live-file tests (`live` fixture) check schema, anchors, 40-60 items, distribution minimums, and the decision invariant in any state.
+- `./scripts/init.sh --feature golden_dataset_expansion` — passed (golden check on live file: 46 items OK; `--golden` evaluator on live file exits 0).
+- `./scripts/init.sh --fast` — all 10 checks passed (backend-tests 2556 passed, 7 skipped).
 
-Implementation, tests, and docs are complete and self-verified; all 46 items are `draft`. Remaining:
-1. Validator reviews against the checklist below.
-2. After acceptance, the owner follows `Owner walkthrough: golden set review` in `docs/owner-guide.md` (approve or reject every item).
-3. Commit the owner-changed `knowledge/golden_set.json` on the feature branch.
-4. Rerun `golden_review.py check ...` and the `--golden` evaluator (focused block); both must pass.
-5. Record the approved/rejected counts and each owner `Result:` line in `docs/validations/golden_dataset_expansion.md`, and replace the placeholder sentence in `knowledge/pac_coverage.md` ("Preguntas de oro en borrador") with the approved/rejected counts.
+- Owner walkthrough 2026-11-08: 46 approved, 0 rejected by `Jose` (`15947f3`); fresh validator accept after the test repair.
 
 ## Validator checklist
 
