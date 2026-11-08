@@ -604,6 +604,17 @@ def test_transport_checks_tags_once_then_posts_the_exact_chat_body() -> None:
     assert DRAFT_JSON_SCHEMA["properties"]["sources"]["items"] == {"type": "integer"}
 
 
+def test_response_format_defaults_to_the_draft_schema_and_a_passed_format_is_sent() -> None:
+    default = FakeOpener(chat=_chat("{}"))
+    OllamaTransport(_record(), opener=default, clock=FakeClock()).send(_request())
+    assert default.calls[1]["body"]["format"] == DRAFT_JSON_SCHEMA
+
+    schema = {"type": "object", "properties": {"x": {"type": "string"}}, "required": ["x"]}
+    custom = FakeOpener(chat=_chat("{}"))
+    OllamaTransport(_record(), opener=custom, clock=FakeClock(), response_format=schema).send(_request())
+    assert custom.calls[1]["body"]["format"] == schema
+
+
 def test_a_request_for_another_model_raises_without_any_call() -> None:
     opener = FakeOpener(chat=_chat("{}"))
 

@@ -93,7 +93,7 @@ Given any state · When the owner runs `./scripts/init.sh --local-rag-status` ·
 - `scripts/init.sh` — modify; early dispatch of the two modes, `usage`, and the `--check` listing.
 - `backend/tests/test_local_rag_bootstrap.py` — create; orchestration, plan, status, downloader with fakes.
 - `backend/tests/test_local_rag_commands.py` — create; `init.sh` dispatch through subprocess with a temporary local home and a missing or fake Ollama command.
-- `docs/owner-guide.md` — create; see below.
+- `docs/owner-guide/local-answer-service.md` — create; see below.
 - `backend/README.md`, `ARCHITECTURE.md`, `docs/constraints/operations.md`, `docs/risks-and-open-questions.md` — update; see below.
 - Not changed: `backend/config/*`, `knowledge/*`, `contracts/*`, `embeddings.py`, `embedding_index.py`, `vector_store.py`, `knowledge_release.py`, `local_generation.py` (public functions reused as they are), requirements files.
 
@@ -106,7 +106,7 @@ UI involved: no. No app screen or Spanish app copy changes.
 - `ARCHITECTURE.md`: update — add one bullet. `local_rag_bootstrap.py`/`pinned_download.py` are an operator-only setup layer that the service never imports. Their only network calls are the pinned upstream file URLs and loopback Ollama, and they compose the existing CLIs.
 - `docs/constraints/operations.md`: update — add one MUST. A setup command may download only artifacts named by a reviewed pin, from the pin's own upstream location, and must verify each one against the pin before use. It never edits a pin to make a mismatch pass, and the answer service itself never downloads. Reason: `local_rag_bootstrap`.
 - `AGENTS.md`: not needed — no workflow or repo-wide rule change.
-- `docs/owner-guide.md`: create (operations.md requires it) — numbered copy-paste steps for "Set up the local answer tools" and "Check the local answer tools". Each step has the expected result and what to do when it differs (Ollama missing or not running, declined, interrupted, not enough space).
+- `docs/owner-guide/local-answer-service.md`: create (operations.md requires it) — numbered copy-paste steps for "Set up the local answer tools" and "Check the local answer tools". Each step has the expected result and what to do when it differs (Ollama missing or not running, declined, interrupted, not enough space).
 - `backend/README.md`: update — a short "One-command local setup" section (local home layout, steps, exit codes, logs, test-only variables) that links the owner guide. Name the command as the supported path in the bge-m3 "Download and verify" and the Ollama pull text.
 - `docs/risks-and-open-questions.md`: update. The Ollama tag can move upstream, so a pull can fail closed on digest. The reviewed-baseline approval for the local release is an operator assertion. The real Chroma packaging path is exercised only by the owner walkthrough.
 - `CONTEXT.md`, `DESIGN.md`, `contracts/`: not needed.

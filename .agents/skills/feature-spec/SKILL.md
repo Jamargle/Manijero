@@ -101,7 +101,7 @@ Size budget (every later role rereads these files, so length is paid for several
 - Contract: at most 150 lines. Scenarios state observable results, not implementation steps; group failure cases that share one fix into one scenario.
 - Appendix before `Feature evidence`: at most 150 lines. Plan steps are one line each; tests are named with the behavior they cover, not written out.
 - Say each fact once: the contract owns behavior and verification, the appendix owns research and plan. Link instead of restating `CONSTRAINTS.md`, `ARCHITECTURE.md`, or another spec.
-- Owner-facing docs the spec asks for: at most about 60 lines of `docs/owner-guide.md` per feature (steps, expected `Result:` lines, and a table of only the messages the owner can actually reach), and at most about 30 lines per feature in `backend/README.md`. Link the spec for everything else.
+- Owner-facing docs the spec asks for: at most about 60 lines per feature in the matching topic guide under `docs/owner-guide/` (a new topic gets its own file listed in `docs/owner-guide/README.md`; steps, expected `Result:` lines, and a table of only the messages the owner can actually reach), and at most about 30 lines per feature in `backend/README.md`. Link the spec for everything else.
 - Focused verification block: the cheapest commands that touch what the feature changes, using targeted pytest files or Gradle test filters rather than whole suites, and quiet flags such as `pytest -q`.
 
 For a sense of the level of detail, look at an accepted compact pair such as `../../../docs/specs/recover_removed_lands.md` with its appendix.

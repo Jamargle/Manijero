@@ -319,6 +319,17 @@ def test_first_deploy_tags_runs_checks_turns_funnel_on_and_writes_the_address(h:
     assert h.token not in h.output
 
 
+def test_the_funnel_exposes_only_the_answer_service_port_never_a_file_or_folder(h: Harness) -> None:
+    assert h.call("deploy") == 0
+    (argv,) = h.tailscale.changes()
+    assert argv == ["funnel", "--bg", "--https=443", "http://127.0.0.1:{}".format(PORT)]
+    target = argv[-1]
+    assert target.startswith("http://127.0.0.1:") and target[len("http://127.0.0.1:"):] == str(PORT)
+    assert "/" not in target.split("//", 1)[1] and not target.startswith("/")
+    assert not any(part.startswith(("/", "~", "file:")) or "credentials" in part or "token" in part.lower() for part in argv)
+    assert "serve" not in argv and qa.funnel_target(PORT) == target
+
+
 def test_deploy_while_running_changes_nothing_and_needs_no_confirmation(h: Harness) -> None:
     h.deployed()
     h.prompter.answers = []

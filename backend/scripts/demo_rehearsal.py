@@ -2,7 +2,7 @@
 """Rehearse the demo against the running local answer service and the review gate.
 
 Owner entry point behind ``./scripts/init.sh --demo-rehearsal`` (steps in
-``docs/owner-guide.md``, live order in ``docs/demo-script.md``)::
+``docs/owner-guide/local-checks.md``, live order in ``docs/demo-script.md``)::
 
     ./scripts/init.sh --local-rag-start
     ./scripts/init.sh --demo-rehearsal

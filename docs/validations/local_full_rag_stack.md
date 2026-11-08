@@ -9,7 +9,7 @@ operations.md owner walkthrough, which the owner then ran personally on 2026-11-
 
 - Validator: focused block, `--fast`, `--verify` (with Gradle's JDK as `JAVA_HOME`), and the checklist in the
   [appendix](../specs/local_full_rag_stack.appendix.md#validator-checklist) passed, all with fakes and temporary homes.
-- Owner walkthrough steps 1–9 ([owner guide](../owner-guide.md)) on the owner's Mac: setup check all ready;
+- Owner walkthrough steps 1–9 ([owner guide](../owner-guide/local-answer-service.md)) on the owner's Mac: setup check all ready;
   start refused with Ollama closed and named the fix; start with Ollama open used hybrid search, release
   `3050d1b8b5e10f82`, and the pinned Mistral drafting model; the service survived closing Terminal and a re-run
   started nothing new; status was all OK; recovery: quitting Ollama turned only Drafting into `PROBLEM` and

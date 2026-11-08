@@ -23,7 +23,7 @@
 - `docs/risks-and-open-questions.md` — medium-risk and open-decision rows where the taxonomy risk belongs.
 - `ARCHITECTURE.md` — `knowledge/` ownership bullet and the "Knowledge artifact shape" table row.
 
-Not inspected: full `backend/README.md` (no backend operator surface planned), `docs/owner-guide.md` (no owner command), Gradle/shared sources (untouched), each schema's full JSON.
+Not inspected: full `backend/README.md` (no backend operator surface planned), `docs/owner-guide/` (no owner command), Gradle/shared sources (untouched), each schema's full JSON.
 
 ### Existing patterns to follow
 

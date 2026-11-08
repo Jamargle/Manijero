@@ -95,7 +95,7 @@ UI involved: no. There is no screen, copy, or `DESIGN.md` change. The response s
 - `docs/pilot-privacy.md`: update. One data-flow row: a key digest and the response are held in memory per process and dropped on restart; no question or land text is kept.
 - `backend/README.md`: update. An "Answer cache" section of at most 30 lines, plus a `MANIJERO_ANSWER_CACHE` row in the environment table.
 - `docs/progress/known-limitations.md`: update. One line: per process (two pilot workers mean two caches), lost on restart, no container setting, a hit has no `inspection`, `answers_total` includes hits.
-- `AGENTS.md`, `CONTEXT.md`, `docs/domain-model.md`, `docs/owner-guide.md`, `contracts/openapi.yaml`, `docs/constraints/operations.md`: not needed. There is no workflow, domain, owner operation, contract, or container-rule change.
+- `AGENTS.md`, `CONTEXT.md`, `docs/domain-model.md`, `docs/owner-guide/`, `contracts/openapi.yaml`, `docs/constraints/operations.md`: not needed. There is no workflow, domain, owner operation, contract, or container-rule change.
 
 ## Focused verification (required)
 

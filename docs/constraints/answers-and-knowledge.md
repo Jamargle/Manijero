@@ -130,6 +130,14 @@ Durable MUST/MUST NOT rules for backend answer path, retrieval, generation, eval
   enforcement is agreed separately. Reason: `land_safety_evaluation` established the reproducible
   synthetic baseline; a gate whose numbers came from synthetic fixtures, or a case whose critical
   fact nobody checked, would turn an unverified expectation into a false safety guarantee.
+- **MUST**: a golden-set item (`knowledge/golden_set.json`) MUST NOT be scored or read by any gate,
+  release, review, demo, or load command until a named reviewer's decision is recorded by the
+  decide command, and an answered item's anchor MUST quote an approved, current passage verbatim.
+  Reason: `golden_dataset_expansion` ([spec](../specs/golden_dataset_expansion.md)); agent-drafted
+  questions are unverified expectations until a person approves them.
+- **MUST**: a validity regression case MUST rest only on reviewed catalog or passage metadata. When
+  the reviewed corpus lacks the source, the case MUST expect abstention, and a precondition test
+  MUST fail once such a source appears so the case is revisited. Reason: `validity_regression_cases`.
 
 ## Campaign scope
 
@@ -203,6 +211,10 @@ Durable MUST/MUST NOT rules for backend answer path, retrieval, generation, eval
   `valid_until`, but every structural, host, date-order, and malformed-date error MUST still fail
   closed, and its proposals MUST stay review-only outside `knowledge/`
   ([spec](../specs/validity_checker.md)).
+- **MUST**: relevance suggestions for discovered candidates MUST stay a review-only list outside
+  `knowledge/`: they never drop, admit, or change a candidate, candidate text is only ever the data
+  role (never the system message), flagged or unparseable cases fail closed to `unsure`, and tests
+  need no Ollama ([spec](../specs/relevance_classifier.md)).
 - **MUST**: canonical catalog and passage changes MUST go through the controlled merge that verifies
   an explicit approval by a named requested reviewer other than the proposal author, a matching
   package/checks/case digest, all required checks passing, and current canonical bytes matching the
@@ -245,6 +257,18 @@ Durable MUST/MUST NOT rules for backend answer path, retrieval, generation, eval
   readiness, the release builder, or the review merge, and MUST NOT change a `review_status` or a
   canonical byte. Reason: `legal_structure_chunker` — a chunk is a future citation unit, not reviewed
   knowledge; a guessed boundary or an inferred validity would be cited as law.
+- **MUST**: cooperative-notice processing MUST use the local model only, refuse a personal-looking
+  notice before any model call without retaining, logging, or echoing it, treat notice text as data,
+  fail closed on invalid model output, and write only unreviewed review files outside `knowledge/` that
+  no answer, release, index, or eval path reads. Reason: `local_notice_pipeline` — notices are signals
+  from people, not knowledge, and a leaked name or an obeyed notice would reach the corpus.
+- **MUST**: the structured-chunk index is derived and lives outside `knowledge/`. It MUST be built only
+  from chunk sets joined to approved catalog entries bound to approval evidence, MUST fail closed on any
+  malformed or unreviewed input, and MUST copy validity only from the catalog. `/ask` and `/ready` MAY
+  read it only with `MANIJERO_STRUCTURED_INDEX=on` in `MANIJERO_ENVIRONMENT=local` plus
+  `MANIJERO_DEPLOYMENT_PROFILE=development`, or in `MANIJERO_ENVIRONMENT=qa`; every other or unset
+  environment MUST ignore it. Release gates and the review merge MUST NOT read it. Reason:
+  `structured_chunk_index` — chunk text is only source-level reviewed, so it must not reach pilot or prod.
 - **MUST**: retrieval changes MUST be compared with the measured BM25 baseline on the reviewed cases;
   report-only metrics MUST NOT be described as improved answer quality without sufficient reviewed
   evidence.

@@ -21,4 +21,5 @@ object ChatTestTags {
     const val FEEDBACK_USEFUL = "chat.feedbackUseful"
     const val FEEDBACK_NOT_USEFUL = "chat.feedbackNotUseful"
     const val FEEDBACK_SENT = "chat.feedbackSent"
+    const val FEEDBACK_FAILED = "chat.feedbackFailed"
 }

@@ -12,7 +12,7 @@ walkthrough evidence.
   fake probes, and fake Ollama; the implementer's `--verify` passed with Gradle's JDK as `JAVA_HOME`. Spot
   checks covered the run arguments, the Dockerfile, the allowlist, the relay, and unchanged service code
   ([appendix checklist](../specs/backend_container_image.appendix.md#validator-checklist)).
-- Owner walkthrough steps 1–10 ([owner guide](../owner-guide.md#owner-walkthrough-container)) on the owner's Mac,
+- Owner walkthrough steps 1–10 ([owner guide](../owner-guide/container.md#owner-walkthrough-container)) on the owner's Mac,
   Docker Desktop 4.97.0 (244584), from `integration/2026-11-01-batch-3` (this branch unchanged since `8f2d03c`):
   the owner confirmed every step matched the guide, including the missing-prerequisite case (Docker Desktop
   closed) and the recovery (Ollama quit, then reopened). First build about 2–3 minutes, image 5.6 GB, no NVIDIA

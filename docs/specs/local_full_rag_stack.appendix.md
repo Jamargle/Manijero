@@ -17,7 +17,7 @@
 - `backend/app/knowledge_release.py` — `RELEASES_DIR`, `CURRENT_LINK`, `VECTOR_STORE_DIR`, `current_release_id`.
 - `backend/README.md` "Hybrid retrieval … Lifecycle" step 5, "Local open-weight drafting", "Publish, serve, and roll back", "Optional hybrid artifacts", "One-command local setup" — the manual env recipe this feature automates; the hybrid backend loads its store once per process (stale after a publish until restart); first hybrid request pays 2.7–2.8 s.
 - `backend/tests/test_local_rag_commands.py` — subprocess pattern: temporary `MANIJERO_LOCAL_HOME`, empty `MANIJERO_VENV_ROOT`, skip without `backend/.venv`.
-- `docs/owner-guide.md` — existing mock and local-tools sections and table style; the mock "Port 8000 is in use by the real local answer service" row.
+- `docs/owner-guide/` — existing mock and local-tools sections and table style; the mock "Port 8000 is in use by the real local answer service" row.
 - `docs/specs/local_rag_bootstrap.md` + appendix — accepted contract shape, walkthrough record format, and the harness note that `&` jobs ignore SIGINT.
 - `ARCHITECTURE.md` (component bullets), `PROGRESS.md` "Start and verify", `feature_list.json` (dependents `backend_container_image`, `local_end_to_end_smoke`, `environment_profiles`, `local_load_test`, `monitoring_dashboard`).
 - Not inspected: `backend/app/pilot_config.py` beyond its env-key names, `serve_pilot.py`, the Kotlin app address defaults (taken from the accepted mock output and `local_service_connection`).
@@ -54,7 +54,7 @@
 6. Extend `backend/scripts/local_rag.py` choices and Ctrl+C sentences; start's Ctrl+C path terminates the child and removes the record.
 7. Wire `scripts/init.sh`: dispatch, misuse check, dev-env link rule, `usage`, `--check` listing, mock port-in-use message.
 8. Write `test_local_rag_service.py`; extend `test_local_rag_commands.py` (lists below).
-9. Update `docs/owner-guide.md` (three sections, walkthrough, mock row), `backend/README.md`, `ARCHITECTURE.md`, `operations.md`, `risks-and-open-questions.md`.
+9. Update `docs/owner-guide/` (three sections, walkthrough, mock row), `backend/README.md`, `ARCHITECTURE.md`, `operations.md`, `risks-and-open-questions.md`.
 10. Run the focused block, then `./scripts/init.sh --fast`; record one-line results below.
 11. Hand the walkthrough to the orchestrator for the owner; record results below.
 
@@ -80,7 +80,7 @@
   - a record pointing at a test-owned `sleep` process: status and stop clear it and the `sleep` process is still alive afterwards;
   - extra argument for each new mode and a bad `MANIJERO_LOCAL_RAG_PORT`: exit 2.
 - E2E: not applicable here; app-to-service checks are `local_end_to_end_smoke`. Unit and subprocess tests cover the command surface.
-- Owner walkthrough (operations.md MUST; run by the owner, guided by the orchestrator, exactly as `docs/owner-guide.md` writes it; agents do not run it). The guide's "Owner walkthrough: local answer service" section carries these steps; for each, the owner reports the `Result:` line and anything that looked different:
+- Owner walkthrough (operations.md MUST; run by the owner, guided by the orchestrator, exactly as `docs/owner-guide/local-answer-service.md` writes it; agents do not run it). The guide's "Owner walkthrough: local answer service" section carries these steps; for each, the owner reports the `Result:` line and anything that looked different:
   1. Run `./scripts/init.sh --local-rag-status`. Expect `Result: all 6 parts are ready.` (otherwise run the setup first). Report the `Result:` line.
   2. Missing prerequisite: quit Ollama (llama icon in the menu bar, **Quit Ollama**). Run `./scripts/init.sh --local-rag-start`. Expect a `PROBLEM  Drafting model: Ollama is not running. Open the Ollama app…` line and `Result: the local answer service did not start. …`. Report both lines.
   3. Open Ollama, wait 10 seconds, run `./scripts/init.sh --local-rag-start` again. Expect `Result: the local answer service started at http://127.0.0.1:8000.` Report the `Result:` line, the two app addresses, and roughly how long it took.
@@ -112,7 +112,7 @@
 - Manual: the three commands with a temporary `MANIJERO_LOCAL_HOME` print the expected `Result:` lines (start exit 1 naming `--local-rag-setup`, service status exit 1 naming `--local-rag-start`, stop exit 0 "nothing to stop") and create no home; a dummy `sleep` child spawned by `SystemProcesses` ran in a new session and verified by `ps -ww` tokens.
 - Scenario coverage in `backend/tests/test_local_rag_service.py`: 1 `test_start_when_ready_launches_the_service_in_the_background`, `test_the_launch_environment_passes_the_real_hybrid_and_local_gates`; 2 `test_a_missing_prerequisite_stops_before_any_change[8 ids]`, `test_start_before_setup_...`; 3 `test_a_port_in_use_names_the_one_step_and_starts_nothing[3]`; 4 `test_start_while_running_*`; 5 `test_a_failed_start_ends_the_process_and_removes_the_record[early-exit, health-timeout, stubborn-timeout, ready-unavailable, ctrl-c]`, `test_an_unexpected_error_after_launch_ends_the_process`; 6–7 `test_status_when_running_and_healthy`, `test_status_reports_each_problem_in_plain_words[6]`, `test_status_recovers_once_ollama_is_opened_again`; 8 `test_status_when_not_running_...`, `test_a_stale_record_is_cleared_and_never_signalled[4x2]`; 9 `test_stop_*`, `test_a_stubborn_service_...`, `test_a_process_that_stops_being_the_service_is_never_killed`; 10 `test_a_bad_port_is_misuse[8]`, `test_the_entry_point_refuses_a_bad_port_...[3]`; 11 `test_no_output_record_or_log_contains_corpus_text`, `test_the_service_never_imports_the_operator_modules`, real-probe tests. Subprocess cases in `test_local_rag_commands.py` (empty home, stale record for a live `sleep`, misuse).
 - Implementation notes: start checks the setup lock before reading settings and inspecting (all read-only, so the "setup running" sentence wins over half-built part lines while a setup runs); stop also takes `<home>/.service.lock`, so a stop during a start says to wait. The service tests reuse `Env` and the fakes from `test_local_rag_bootstrap.py` by import.
-- Owner walkthrough (steps 1–9 in `docs/owner-guide.md`): run by the owner on 2026-11-01 on the owner's Mac, from this worktree, guided step by step by the orchestrator; every step matched the guide. Reported lines:
+- Owner walkthrough (steps 1–9 in `docs/owner-guide/local-answer-service.md`): run by the owner on 2026-11-01 on the owner's Mac, from this worktree, guided step by step by the orchestrator; every step matched the guide. Reported lines:
   1. --local-rag-status: all 6 parts ready (owner report).
   2. Ollama quit -> --local-rag-start: PROBLEM Drafting model line + "did not start. Open the Ollama app..." as documented (owner report).
      Note: owner first ran step 3 from the main checkout (help text printed, no --local-rag-start there); re-ran in the worktree.

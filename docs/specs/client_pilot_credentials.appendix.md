@@ -24,7 +24,7 @@
 - `scripts/select-feature.sh`: the role comes from spec existence, so status stays `not_started` at planning.
 - `.gitignore`: ignores `local.properties` and has no token entry yet.
 - `docs/constraints/hosting-and-pilot.md` and `docs/constraints/operations.md`: the logging/no-token rules and the owner-command rules (Result line, prerequisite checks, no exported variable).
-- `docs/owner-guide.md`: section shape (numbered steps, expected `Result:`, "If the result differs").
+- `docs/owner-guide/pilot-token-and-settings.md`: section shape (numbered steps, expected `Result:`, "If the result differs").
 - `gradle/libs.versions.toml`: `ktor-client-mock` and `ktor-server-test-host` already exist. No new dependency is needed.
 
 ### Existing patterns to follow

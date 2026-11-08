@@ -388,7 +388,7 @@ cases to exercise.
 - **Client token:** Android debug and Desktop `run` (test) builds send the client's bearer
   token on `POST /ask`; release and packaged builds never carry it. They send it once the
   owner saves it with `./scripts/init.sh --pilot-token-save` (see
-  [`docs/owner-guide.md`](../docs/owner-guide.md) "Give the apps the pilot token" and
+  [`docs/owner-guide/pilot-token-and-settings.md`](../docs/owner-guide/pilot-token-and-settings.md) "Give the apps the pilot token" and
   [`client_pilot_credentials`](../docs/specs/client_pilot_credentials.md)). QA test builds
   (`-PmanijeroEnvironment=qa`, [`client_environment_builds`](../docs/specs/client_environment_builds.md))
   send the QA key instead. It is built in,
@@ -1311,7 +1311,7 @@ enforcement is a later, separately agreed change.
 `app/answer_eval.py` validates the `pac-answer-eval-v2`
 `knowledge/pac_answer_eval.json` artifact and calculates a deterministic,
 report-only evaluation of its cases through the local `/ask` route. The artifact
-declares its reviewed coverage areas (3 topics and 5 boundaries), the out-of-scope
+declares its reviewed coverage areas (3 topics and 8 boundaries), the out-of-scope
 omissions, and an `author_only` review role on every case. The report includes
 assertion denominators (`answered_cases`, `abstention_cases`,
 `clarification_cases`), per-area counts, author-review metadata, the omissions,
@@ -1326,12 +1326,12 @@ backend/.venv/bin/python backend/scripts/evaluate_pac_answers.py \
   --active-campaign 2026 --as-of 2026-10-26 --k 5
 ```
 
-All 14 cases are synthetic, source-anchored, and reviewed only by the project
+All 17 cases are synthetic, source-anchored, and reviewed only by the project
 author (recorded as `author_only`); this is **not** independent legal review and
 does not establish answer quality or coverage beyond the listed cases. The
-current result is 13/14 expected states, 11/11 expected-answer cases answered,
-8/11 answering cases with the expected source and passage, 9/11 with the expected
-critical literal, and 2/3 expected abstentions. The report keeps known gaps
+current result is 17/17 expected states, 12/12 expected-answer cases answered,
+9/12 answering cases with the expected source and passage, 10/12 with the expected
+critical literal, and 5/5 expected abstentions. The report keeps known gaps
 visible: `canal-sga-2026`, `fecha-modificacion-2026`, and
 `distingue-fechas-2026` cite a different reviewed passage, and
 `reclamacion-fuera-de-alcance` answers an out-of-scope reclamación with the
@@ -1463,6 +1463,35 @@ versions retain prior observations. Failures preserve candidates and
 last-success timestamps. Candidates remain `pending`; a human must verify
 provenance and approve any canonical change. See
 `knowledge/official-discovery-state.schema.json`.
+
+### Candidate relevance suggestions
+
+`backend/scripts/classify_candidate_relevance.py` gives discovered candidates a
+first-pass, suggest-only triage with the pinned local model (Ollama, loopback only,
+no cost). Start Ollama first, then run from the repository root:
+
+```sh
+backend/.venv/bin/python backend/scripts/classify_candidate_relevance.py \
+  --discovery-state <state.json> --procedure-map knowledge/procedure_map.json \
+  --report <review.json>
+```
+
+It reads an `official-discovery-state-v1` file (pending candidates only, at most 5,000)
+and writes a `relevance-review-v1` list (`knowledge/relevance-review.schema.json`) with
+one row per candidate, sorted by id: `label` (`relevant`, `not_relevant`, `unsure`), one
+procedure-map `topic` or `null`, a fixed `reason`, and `truncated`. Titles and issuers are
+sent as data (whitespace normalized, 500 characters at most); the instruction never
+contains candidate text. A title that `corpus_security` flags is not sent and becomes
+`unsure`; malformed or out-of-vocabulary output becomes `unsure`, and the model's text is
+never stored or printed. The file has input SHA-256 digests, the model tag and digest, and
+no timestamp, so equal answers give equal bytes.
+
+Success prints one `Result: ... review list written to <path>.` line and exits `0`. An
+unusable input, model record, or report path (inside `knowledge/` or equal to an input),
+too many candidates, or a model that is not running or not the pinned one prints one
+`Result: the relevance classification did not run: <failure>. Nothing was written.` line on
+stderr and exits `2`. Nothing is dropped or changed; a person decides. Suggestions are not
+legal relevance and their accuracy is not measured.
 
 ## Scheduled source updates (owned host, best-effort)
 
@@ -1779,6 +1808,59 @@ chunk over 8,000 characters stays whole with `chunk_over_soft_limit`. Exit `0` e
 unstructured, `1` a document failed, `2` refused before writing with `{"error": "ChunkerError"}` (unsafe
 or missing root, unreadable or invalid catalog, over 1,000 manifests). `--check-contract` alone checks
 the schema and prints one line. Full rules: [feature spec](../docs/specs/legal_structure_chunker.md).
+
+## Cooperative notices to review candidates (local model, development only)
+
+`backend/scripts/process_cooperative_notices.py` reads anonymized `notice-NNN.txt` files (UTF-8, at most
+50 files, 16 KiB and 6,000 characters each) and asks the pinned local Ollama model for colloquial to
+standard term pairs and grower questions. It writes one `notice-review.json` (`notice-review-v1`,
+`review_status: "unreviewed"`) under `--output`, never inside `knowledge/` or the notices folder.
+Nothing it writes is answerable. Keep real notices outside the repository; use `build/notice-review/`.
+
+```sh
+backend/.venv/bin/python backend/scripts/process_cooperative_notices.py --notices /path/to/notices --output build/notice-review
+backend/.venv/bin/python backend/scripts/process_cooperative_notices.py --notices /path/to/notices --screen-only
+```
+
+`--screen-only` applies the input checks with no model and writes nothing. A notice that looks personal is
+refused before any model call and never echoed: `person_name`, `phone`, `national_id`, `email`, `iban`,
+`street_address`, `parcel_id` (any SIGPAC, cadastral, or polígono/parcela reference), `nominal_listing`;
+`instruction_like_text` for model-directed wording; `notice_too_large`, `notice_unreadable`,
+`notice_empty` for bounds. Invalid model output fails only that notice (`model_output_invalid`,
+`model_timeout`). Exit `0` all clean, `1` a notice refused or failed (others still processed), `2` aborted
+with `{"error": "NoticePipelineError", "code": ...}` and nothing written (unsafe folders, a non-`development`
+`MANIJERO_DEPLOYMENT_PROFILE`, an unexpected file name, an invalid model record, or Ollama unreachable, missing,
+or a different digest). Full rules: [feature spec](../docs/specs/local_notice_pipeline.md).
+
+## Structured-chunk index (developer, local development and QA only)
+
+`manage_structured_index.py` rebuilds a derived index from reviewed chunk sets; nothing is written
+under `knowledge/`, and the last stdout line is one `Result:` line.
+
+```sh
+backend/.venv/bin/python backend/scripts/manage_structured_index.py build --chunks /path/to/legal-chunks \
+  --catalog knowledge/source_catalog.json --reviewed-baseline-revision <40-hex> \
+  --as-of 2026-11-07 --active-campaign 2026 --output /path/to/structured-index \
+  [--embedding-artifact /path/to/bge-m3 [--embedding-config CONFIG]]   # needs the hybrid venv
+backend/.venv/bin/python backend/scripts/manage_structured_index.py check --index /path/to/structured-index --catalog knowledge/source_catalog.json
+```
+
+Layout: `source_catalog.json`, `structured-passages.json` (one passage per chunk, `, pág. N` added to the
+location), `bm25-index.json`, optional `embedding-index.json` and `vector-store/`, and
+`structured-index-manifest.json` written last ([schema](../knowledge/structured-chunk-index.schema.json)).
+Review gate: each chunk set's `source_sha256` must equal an `approved`, named-reviewer catalog entry's
+`content_sha256`, and the catalog needs exactly one of `--reviewed-baseline-revision` or
+`--merge-record` plus `--passages`. Validity is copied from the catalog only. Any bad document refuses
+the whole build (exit `1`, codes `unreviewed_chunk_set`, `invalid_chunk_set`, `duplicate_chunk_id`,
+`no_reviewed_chunks`, `invalid_catalog`, `chunk_validity_mismatch`, `corpus_security`, `approval_*`);
+unsafe roots, missing inputs, bounds (1,000 sets, 20,000 chunks), and vector-step failures exit `2`.
+
+Read path: `MANIJERO_STRUCTURED_INDEX=on` plus `MANIJERO_STRUCTURED_INDEX_DIR=<index>` makes `/ask` and
+`/ready` use the index ahead of the release root, only with `MANIJERO_ENVIRONMENT=local` plus
+`MANIJERO_DEPLOYMENT_PROFILE=development`, or `MANIJERO_ENVIRONMENT=qa`; elsewhere the flag is ignored
+(logged as `structured_index_environment_refused`). A tampered or stale index (catalog hash differs from
+the served catalog) gives the generic unavailable answer. For hybrid, also set `MANIJERO_VECTOR_STORE`
+to `<index>/vector-store`. Rules: [feature spec](../docs/specs/structured_chunk_index.md).
 
 ## Legal change-impact analysis
 
@@ -2298,7 +2380,7 @@ path; vector fields are tagged `vector_digest_differs` instead of hidden.
 - Old releases are never garbage-collected; the root grows by one small directory per
   prepare.
 - The reviewed-baseline approval and the code revision are recorded, not verified.
-- The evaluation is the 14-case author-only sample; passing the gate is not a
+- The evaluation is the 17-case author-only sample; passing the gate is not a
   legal-coverage, answer-quality, or freshness claim.
 - POSIX only (symlink + `os.replace`); Windows release roots are out of scope.
 
@@ -2306,7 +2388,7 @@ path; vector fields are tagged `vector_digest_differs` instead of hidden.
 
 The owner sets up every local RAG artifact with `./scripts/init.sh --local-rag-setup` and checks
 it with `./scripts/init.sh --local-rag-status`; the copy-paste steps are in
-[`docs/owner-guide.md`](../docs/owner-guide.md). The code is `app/local_rag_bootstrap.py`
+[`docs/owner-guide/local-answer-service.md`](../docs/owner-guide/local-answer-service.md). The code is `app/local_rag_bootstrap.py`
 (orchestration), `app/pinned_download.py` (stdlib pinned-file downloader), and
 `scripts/local_rag.py` (entry point). The service never imports them. Neither command starts the
 service; that is `--local-rag-start` (see "Local answer service" below). Neither command installs
@@ -2396,7 +2478,7 @@ only.
 ### Local answer service
 
 `./scripts/init.sh --local-rag-start`, `--local-rag-service-status`, and `--local-rag-stop`
-(owner steps in [`docs/owner-guide.md`](../docs/owner-guide.md)) run `scripts/local_rag.py
+(owner steps in [`docs/owner-guide/local-answer-service.md`](../docs/owner-guide/local-answer-service.md)) run `scripts/local_rag.py
 start|service-status|stop`, implemented by `app/local_rag_service.py` (operator-only, stdlib at
 import, never imported by the service). Without a dev environment, start and status print the
 "not set up yet" pair and exit `1`; stop exits `0` with "nothing to stop".
@@ -2444,7 +2526,7 @@ stop; `1` a prerequisite or check failed, or not running (status); `2` an extra 
 ### Container image
 
 `./scripts/init.sh --container-build`, `--container-start`, `--container-status`, and
-`--container-stop` (owner steps in [`docs/owner-guide.md`](../docs/owner-guide.md)) run
+`--container-stop` (owner steps in [`docs/owner-guide/container.md`](../docs/owner-guide/container.md)) run
 `scripts/local_rag.py container-build|container-start|container-status|container-stop`,
 implemented by `app/local_container.py` (operator-only, stdlib at import, never imported by the
 service). Docker is reached only through `${MANIJERO_DOCKER_CLI:-docker}`; the override exists for
@@ -2525,7 +2607,7 @@ platform only; the image is a default-profile local runtime, not a pilot launche
 ### QA deployment
 
 `./scripts/init.sh --qa-deploy`, `--qa-update`, `--qa-rollback`, `--qa-status`, and `--qa-stop` (owner
-steps in [`docs/owner-guide.md`](../docs/owner-guide.md)) run `scripts/qa_service.py <operation>`,
+steps in [`docs/owner-guide/qa.md`](../docs/owner-guide/qa.md)) run `scripts/qa_service.py <operation>`,
 implemented by `app/qa_deployment.py` (operator-only, never imported by the service; spec
 [`qa_server_deployment`](../docs/specs/qa_server_deployment.md)). QA is container `manijero-qa` from
 tag `manijero-backend:qa-current` (update promotes `:local` and keeps `:qa-previous`; rollback swaps
@@ -2539,9 +2621,42 @@ the owner walkthrough confirms them on a real Mac. Test-only variables: `MANIJER
 `MANIJERO_DOCKER_CLI`, `MANIJERO_QA_PORT`, `MANIJERO_QA_HOME`, `MANIJERO_QA_ADDRESS_FILE`.
 Logs: `<QA home>/logs/qa-<operation>-<UTC>.log` (container output only; no tokens or question text).
 
+### QA Desktop check
+
+`./scripts/init.sh --qa-check` runs `scripts/qa_check.py`, implemented by `app/qa_check.py`
+(operator-only, stdlib-only, reuses the `local_smoke` runner and Java checks). In order, stopping at
+the first gap: lock `build/qa-check/.lock`; address from `qa-address.local` (or
+`MANIJERO_QA_ADDRESS_FILE`; not missing, not the `.invalid` placeholder, `https://`); the QA key file
+exists (existence only, never opened); Java and `gradlew`; `qa_deployment.system_public_probe`
+(`/health`); then `./gradlew --console=plain --quiet -PmanijeroEnvironment=qa :shared:runDesktopQaCheck
+-PmanijeroSmokeExpected=<address> -PmanijeroSmokeResult=<dir>/desktop-result.txt` (15 min, log
+`desktop.log`). The task asks the fixed question and presses `Útil` once, then writes
+`MANIJERO_QA_CHECK_RESULT outcome=<smoke code|not_qa_build|no_access_key> sources=<n>
+feedback=<sent|failed|not_on_qa|no_reply|not_shown|not_tried> address=<default|saved> url=<address>`. An
+abstention fails the answer step; the result names the first failing step. Spec:
+[`qa_real_device_check`](../docs/specs/qa_real_device_check.md).
+
+### QA alerts
+
+`./scripts/init.sh --qa-alerts-setup`, `--qa-alerts-start`, `--qa-alerts-stop`, `--qa-alerts-status`, and
+`--qa-alerts-test` (owner steps in [`docs/owner-guide/qa-alerts.md`](../docs/owner-guide/qa-alerts.md)) run
+`scripts/qa_alerts.py <operation>`, implemented by `app/qa_alerts.py` (operator-only, stdlib-only, never
+imported by the service; spec [`qa_service_alerts`](../docs/specs/qa_service_alerts.md)). `check` is what
+launchd runs; it is not an owner command. The job is the user agent `org.manijero.qa-alerts`
+(`~/Library/LaunchAgents/org.manijero.qa-alerts.plist`): `StartInterval` 300, `RunAtLoad`, absolute venv
+python and `scripts/qa_alerts.py check`, a fixed `PATH` that includes Docker's folder, and no secret or
+`MANIJERO_*` value; it is loaded with `launchctl bootstrap gui/<uid>` and removed with `bootout`.
+Each check classifies QA as down, not ready, erroring, or unreachable (in that order), reading the error share
+(`/ask` 5xx over `/ask` from cumulative `/metrics` counters) and its window from the dashboard's
+`monitoring/thresholds.json` Problem level. A problem must appear on 2 checks in a row; reminders come every 4
+hours, the same kind at most once per 60 minutes, and recovery after 2 OK checks. Files under
+`~/manijero/alerts/` (`0600`): `credentials/telegram.json`, `state.json` (times, kind codes, counters), and
+`logs/qa-alerts.log` (rolled at 1 MB). Test-only variables: `MANIJERO_ALERTS_HOME`, `MANIJERO_LAUNCHCTL_CLI`,
+`MANIJERO_LAUNCH_AGENTS_DIR`, `MANIJERO_TELEGRAM_API` (only `http://127.0.0.1:<port>`), plus the QA ones above.
+
 ### Local smoke test
 
-`./scripts/init.sh --local-smoke` (owner steps in [`docs/owner-guide.md`](../docs/owner-guide.md))
+`./scripts/init.sh --local-smoke` (owner steps in [`docs/owner-guide/local-checks.md`](../docs/owner-guide/local-checks.md))
 runs `scripts/local_rag.py smoke`, implemented by `app/local_smoke.py` (operator-only,
 stdlib-only, never imported by the service). The dispatch runs before the `local.properties`
 write and exports `ANDROID_HOME`/`ANDROID_SDK_ROOT` (default `~/Library/Android/sdk`) for AGP.
@@ -2614,7 +2729,7 @@ a dev-only dependency used to read the YAML contract.
 
 ### Local load test
 
-`./scripts/init.sh --local-rag-load-test` (owner steps in [`docs/owner-guide.md`](../docs/owner-guide.md))
+`./scripts/init.sh --local-rag-load-test` (owner steps in [`docs/owner-guide/local-checks.md`](../docs/owner-guide/local-checks.md))
 runs `scripts/measure_local_load.py` (operator-only, stdlib-only, no k6/Locust or new dependency,
 never imported by the service). With the service started by `--local-rag-start`, it sends each
 reviewed case question with the empty `general` land context from 10 clients, closed loop with no
@@ -2636,9 +2751,26 @@ candidate reference (8 s) is context only, and the numbers are one Mac's evidenc
 capacity or a pass/fail result; the service can silently switch to extractive answers at its 10 s
 draft timeout or 30 requests/minute limit, so a low p95 can hide drafting.
 
+### Golden question queue
+
+`knowledge/golden_set.json` (`golden-set-v1`, loader `app/golden_set.py`) holds 40-60 agent-drafted
+questions beside `pac_answer_eval.json`; no gate, release, review, demo, or load code reads it.
+Owner steps are in [`docs/owner-guide/golden-set-review.md`](../docs/owner-guide/golden-set-review.md): `./scripts/init.sh --golden-review`
+lists the waiting items and `--golden-decide approve|reject "<name>" <number-or-id>...` records a
+decision (atomic rewrite; bad input records nothing; one `Result:` line each; raw errors in
+`build/golden-review/last-error.log`).
+
+- Developer check (exit 0/1, one line per failure): `python backend/scripts/golden_review.py check
+  --catalog knowledge/source_catalog.json --passages knowledge/passages.json --cases
+  knowledge/pac_answer_eval.json --golden knowledge/golden_set.json`. It proves every anchor and
+  fact is an exact quote of an approved, current passage and enforces the distribution minimums.
+- Scoring: `evaluate_pac_answers.py ... --golden knowledge/golden_set.json` adds only `approved`
+  items to the cases (`review.role = author_only`) and `additional_areas` to the coverage, and adds
+  `golden: {approved, draft, rejected}`. Without the flag the output is unchanged.
+
 ### Demo rehearsal
 
-`./scripts/init.sh --demo-rehearsal` (owner steps in [`docs/owner-guide.md`](../docs/owner-guide.md),
+`./scripts/init.sh --demo-rehearsal` (owner steps in [`docs/owner-guide/local-checks.md`](../docs/owner-guide/local-checks.md),
 live order in [`docs/demo-script.md`](../docs/demo-script.md)) runs
 `backend/scripts/demo_rehearsal.py` (operator-only, stdlib-only plus `app.review_package` and
 `app.abstention`, never imported by the service). The dispatch runs before the `local.properties`
@@ -2671,3 +2803,24 @@ Output is one `PASS`/`FAIL`/`SKIP` line per step and exactly one `Result:` line,
 tracebacks, question, answer, passage, land, or token text: only fixed labels, reason codes, source
 counts, and the address. **Exit codes**: `0` all four passed; `1` any failed or skipped step (the
 `Result:` line names them and, for skips, the `--local-rag-start` fix); `2` an extra argument.
+
+### Usability results
+
+`./scripts/init.sh --usability-record` (steps in [`docs/owner-guide/usability-session.md`](../docs/owner-guide/usability-session.md), kit in
+[`docs/usability-session/`](../docs/usability-session/)) runs `backend/scripts/usability_record.py`
+(operator-only; logic in `app/usability_results.py`; never imported by the service). The dispatch matches
+`--demo-rehearsal`: one argument only (else exit `2`), the shared dev environment linked if `backend/.venv` is absent.
+
+- **File.** `~/manijero/usability/usability-results.json` (folder `0700`, file `0600`, temp file + rename). Schema
+  `usability-results-v1`: `participants` sorted by code, each with `code`, four `tasks` (`first_use`, `add_two_lands`,
+  `land_question`, `sources`; each `outcome` `completed|needed_help|gave_up`, whole `minutes` 0-60, `note`), `land_choice_shown`
+  on `land_question`, and `debrief_note`. No dates, names, or contact fields. A file with any other shape is left untouched.
+- **Prompts.** Code `P1`-`P99`; per task a result `1|2|3`, minutes, an optional note; yes/no for whether the app asked to choose
+  a land; an optional debrief note; `yes` at the recap. Replacing a saved code needs `yes`. Notes are at most 200 characters
+  (debrief 400). Three invalid answers in a row to one prompt, end of input, Ctrl+C, or no `yes` save nothing (exit `1`).
+- **Screening (lexical, not a guarantee).** A note is refused for a capitalised word outside the app-word list in
+  `usability_results.APP_WORDS`, a name or address cue (`se llama`, `don`, `señora`, `calle`...), five or more digits in a row,
+  or `app.input_guardrails.screen_question` returning `personal_data` (phone, email, DNI, NIE, NIF, IBAN). It cannot recognise
+  every name or address, so the kit also tells the facilitator not to write them. Refused text is never printed or stored.
+- **Test-only.** `MANIJERO_USABILITY_HOME` replaces the folder and is refused inside the checkout. Tests in
+  `tests/test_usability_session.py` use temporary folders and scripted answers.

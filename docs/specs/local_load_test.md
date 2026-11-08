@@ -5,7 +5,7 @@
 - `id`: local_load_test · `area`: testing · `depends_on`: local_full_rag_stack (accepted) · `status` at planning: not_started
 - User-visible behavior: the owner runs `./scripts/init.sh --local-rag-load-test` against the running local answer service; it asks the 14 reviewed PAC questions from up to 10 simulated clients for a few minutes, prints median, p95, slowest time and achieved throughput, saves an aggregate-only report, and makes no pass/fail, capacity, or pilot-readiness claim.
 - Verification: offline tests with fake service facts and a fake client, plus an `init.sh` subprocess case (commands in Focused verification); the real measurement is run by the owner and recorded by the orchestrator.
-- Notes: owner decisions 2026-11-06 — standard-library-only Python measurement, no k6/Locust/dependency/download; 10 concurrent clients with a short ramp and a steady phase against the service started by `--local-rag-start`; the owner runs the real measurement on the owner's Mac from numbered steps in `docs/owner-guide.md`; median/p95/max and throughput only, the 8 s p95 as the plan's candidate reference with no gate and no capacity claim; no question, passage, answer, land, or token text anywhere. Planner decisions (command name, plan constants, report format, exit codes) are in the appendix.
+- Notes: owner decisions 2026-11-06 — standard-library-only Python measurement, no k6/Locust/dependency/download; 10 concurrent clients with a short ramp and a steady phase against the service started by `--local-rag-start`; the owner runs the real measurement on the owner's Mac from numbered steps in `docs/owner-guide/local-checks.md`; median/p95/max and throughput only, the 8 s p95 as the plan's candidate reference with no gate and no capacity claim; no question, passage, answer, land, or token text anywhere. Planner decisions (command name, plan constants, report format, exit codes) are in the appendix.
 
 ## Goal
 
@@ -79,7 +79,7 @@ Given any run · Then the only network calls are loopback to the recorded servic
 - `scripts/init.sh` — modify; early dispatch, misuse, dev-env link, usage and `--check` listing.
 - `backend/tests/test_local_load.py` — create; pure helpers, fake-service gate, runner, report, privacy.
 - `backend/tests/test_local_rag_commands.py` — modify; two subprocess cases (`init.sh` refused with an empty home, extra argument) that never contact a service.
-- `docs/owner-guide.md`, `backend/README.md`, `ARCHITECTURE.md`, `docs/constraints/operations.md`, `docs/risks-and-open-questions.md` — update; see below.
+- `docs/owner-guide/local-checks.md`, `backend/README.md`, `ARCHITECTURE.md`, `docs/constraints/operations.md`, `docs/risks-and-open-questions.md` — update; see below.
 - Not changed: `backend/app/*` (including `local_rag_service.py`, `local_smoke.py`, `ask_api.py`, `local_generation.py`), `backend/scripts/local_rag.py`, `backend/scripts/measure_local_generation.py`, `knowledge/*`, `contracts/*`, `backend/config/*`, requirements, Kotlin/Gradle, `feature_list.json` status.
 
 ## Visual design impact
@@ -91,7 +91,7 @@ UI involved: no. No app screen, Spanish copy, or `DESIGN.md` change.
 - `ARCHITECTURE.md`: update — add one local-RAG-layer line: `backend/scripts/measure_local_load.py` (behind `./scripts/init.sh --local-rag-load-test`) is operator-only and stdlib-only, measures the unchanged local service over loopback `/ask` with aggregate reports under the local home, and is never imported by the service.
 - `docs/constraints/operations.md`: update — one MUST under Owner operability: a measurement command is read-only over loopback, takes no arguments from the owner, prints only aggregate counts and timings (never question, answer, passage, land, or token text), and its numbers are host-specific evidence that MUST NOT be described as pilot capacity, a service promise, or a pass/fail result. Reason: `local_load_test`.
 - `AGENTS.md`: not needed — no workflow, startup, or repo-wide rule change.
-- `docs/owner-guide.md`: update (about 50 lines) — "Measure answer speed under pilot load" with numbered copy-paste steps, the expected summary and `Result:` lines, an "if you see something else" table (not running, `PROBLEM` check line, failures, interrupted, another load test), and "Owner walkthrough: load test" with the steps in the appendix.
+- `docs/owner-guide/local-checks.md`: update (about 50 lines) — "Measure answer speed under pilot load" with numbered copy-paste steps, the expected summary and `Result:` lines, an "if you see something else" table (not running, `PROBLEM` check line, failures, interrupted, another load test), and "Owner walkthrough: load test" with the steps in the appendix.
 - `backend/README.md`: update (under `## One-command local setup`, after the local smoke test) — command, plan constants, report path/schema, exit codes, prerequisite gate, the drafting-limit/timeout caveat, and "no dependency" note. At most 30 lines.
 - `docs/risks-and-open-questions.md`: update — one Medium-risk row: numbers come from one Mac, the pilot host is unmeasured, the service hides its drafting/extractive mix and its 30 requests/minute drafting limit, so load numbers are not capacity evidence and a low p95 may hide fallbacks.
 - `PROGRESS.md` "Current state" and `docs/progress/known-limitations.md`: one line each at acceptance.

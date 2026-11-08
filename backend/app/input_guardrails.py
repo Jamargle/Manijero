@@ -56,18 +56,36 @@ _IBAN = re.compile(
 _MIN_IBAN_DIGITS = 10
 
 
-def _has_personal_data(question: str) -> bool:
-    if _PHONE.search(question):
-        return True
-    masked = _CADASTRAL.sub(" ", _SIGPAC.sub(" ", question))
+def personal_identifier_kinds(text: str) -> Tuple[str, ...]:
+    """The sorted kinds of personal identifier in ``text``: email, iban, national_id, phone.
+
+    Fixed codes only, never the matched value. SIGPAC and cadastral references are masked
+    first so their digits are not read as another identifier.
+    """
+
+    kinds = set()
+    if _PHONE.search(text):
+        kinds.add("phone")
+    masked = _CADASTRAL.sub(" ", _SIGPAC.sub(" ", text))
     if _EMAIL.search(masked):
-        return True
+        kinds.add("email")
     if _DNI.search(masked) or _NIE.search(masked) or _NIF.search(masked):
-        return True
+        kinds.add("national_id")
     for match in _IBAN.finditer(masked):
         if sum(character.isdigit() for character in match.group()[4:]) >= _MIN_IBAN_DIGITS:
-            return True
-    return False
+            kinds.add("iban")
+            break
+    return tuple(sorted(kinds))
+
+
+def contains_personal_identifier(text: str) -> bool:
+    """Whether ``text`` holds a phone, DNI/NIE/NIF, email, or IBAN."""
+
+    return bool(personal_identifier_kinds(text))
+
+
+def _has_personal_data(question: str) -> bool:
+    return contains_personal_identifier(question)
 
 
 # -- prompt injection (normalized text) ---------------------------------------------------

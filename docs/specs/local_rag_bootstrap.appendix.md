@@ -30,7 +30,7 @@
 
 ### Current gaps
 
-- No owner guide exists. This feature creates `docs/owner-guide.md`.
+- No owner guide exists. This feature creates `docs/owner-guide/local-answer-service.md`.
 - No pinned-file downloader exists. The README documents a manual `curl` loop.
 - `manage_embeddings.py build` takes a fixed `--as-of`. The local release uses today in UTC, so the index is rebuilt together with every new release.
 - The Chroma packaging path (`prepare --with-vector-store`) has only `importorskip` tests. Its first real run happens in the owner walkthrough.
@@ -48,7 +48,7 @@
 4. Add `backend/scripts/local_rag.py` (`setup`, `status`). It catches every exception, writes the traceback to `logs/<command>-<UTC timestamp>.log`, and prints one sentence plus the log path.
 5. Wire `scripts/init.sh`: early dispatch, the shell-side Ollama command check for setup, dev env build or link, `usage`, and the `--check` text.
 6. Write `test_local_rag_bootstrap.py` and `test_local_rag_commands.py` (list below).
-7. Write `docs/owner-guide.md`, then update the `backend/README.md` section, `ARCHITECTURE.md`, `operations.md`, and `risks-and-open-questions.md`.
+7. Write `docs/owner-guide/local-answer-service.md`, then update the `backend/README.md` section, `ARCHITECTURE.md`, `operations.md`, and `risks-and-open-questions.md`.
 8. Run the focused block, then `./scripts/init.sh --fast`. Record the results below.
 9. Owner walkthrough on the owner's Mac (manual list below). Record a one-line result for each step.
 
@@ -122,7 +122,7 @@
   - The drafting download is labelled with the pinned tag, because the record holds no display name.
 - Owner walkthrough (a)–(e): **not run** by the implementer; run by the orchestrator below.
 
-2026-11-01, orchestrator, owner walkthrough (owner decision 2026-11-01). Run on this Mac exactly as `docs/owner-guide.md` writes it, from a temporary detached worktree holding the branch state (removed afterwards), with the real `~/manijero/local` (empty at start) and real Ollama (Mistral already pulled):
+2026-11-01, orchestrator, owner walkthrough (owner decision 2026-11-01). Run on this Mac exactly as `docs/owner-guide/local-answer-service.md` writes it, from a temporary detached worktree holding the branch state (removed afterwards), with the real `~/manijero/local` (empty at start) and real Ollama (Mistral already pulled):
 
 - (a) Missing prerequisite, simulated by running setup with `/usr/local/bin` left off `PATH` (Ollama not quit or uninstalled): `Ollama is not installed…`, `Result: setup stopped before changing anything.`, exit 1, local home still empty. Before setup, `--local-rag-status` showed 5 MISSING and drafting OK, `Result: setup has not run yet…`, exit 1, nothing written.
 - (b) Setup listed the hybrid environment (about 1.2 GB) and bge-m3 (2.3 GB), total about 3.5 GB. Answered `yes`. It ran `Step 1 of 5`…`Step 5 of 5`, printed six OK lines and `Result: everything is set up…`, exit 0, and published release `3050d1b8b5e10f82`. The first Ctrl-C attempt did not interrupt: a non-interactive `&` job ignores SIGINT, so the harness, not the product, failed.

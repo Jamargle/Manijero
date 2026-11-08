@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-# Owner command (docs/owner-guide.md "Give the apps the pilot token"): save the pilot bearer token
+# Owner command (docs/owner-guide/pilot-token-and-settings.md "Give the apps the pilot token"): save the pilot bearer token
 # from the clipboard into the git-ignored pilot-token.local, which the next Android and Desktop builds
 # read. It needs no Python, Java, or Android SDK, and never prints the token or its length.
 # MANIJERO_CLIPBOARD_CLI and MANIJERO_PILOT_TOKEN_FILE are for tests only (fake tokens).
@@ -63,7 +63,7 @@ fi
 # shellcheck source=scripts/java-env.sh
 source "$(dirname -- "${BASH_SOURCE[0]}")/java-env.sh"
 
-# Owner commands for the local answer tools (docs/owner-guide.md). Like --backend, they
+# Owner commands for the local answer tools (docs/owner-guide/local-answer-service.md). Like --backend, they
 # need no Android SDK, Java, or local.properties. MANIJERO_OLLAMA_CLI is for tests only.
 if [[ "${1:-}" == "--local-rag-setup" || "${1:-}" == "--local-rag-status" ]]; then
   REPO_ROOT="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")/.." && pwd)"
@@ -96,7 +96,7 @@ if [[ "${1:-}" == "--local-rag-setup" || "${1:-}" == "--local-rag-status" ]]; th
   exec "$LOCAL_RAG_PYTHON" "$REPO_ROOT/backend/scripts/local_rag.py" status
 fi
 
-# Owner commands for the three environments (docs/owner-guide.md "Your environments"): a read-only
+# Owner commands for the three environments (docs/owner-guide/pilot-token-and-settings.md "Your environments"): a read-only
 # status of local, QA, and prod, and QA settings plus access keys prepared on this computer. Nothing
 # is deployed and no server is contacted. MANIJERO_LOCAL_HOME and MANIJERO_QA_HOME are for tests only.
 if [[ "${1:-}" == "--environments-status" || "${1:-}" == "--qa-settings-setup" ]]; then
@@ -117,7 +117,7 @@ if [[ "${1:-}" == "--environments-status" || "${1:-}" == "--qa-settings-setup" ]
   exec "$LOCAL_RAG_PYTHON" "$REPO_ROOT/backend/scripts/environments.py" qa-setup
 fi
 
-# Owner commands for the local answer service over those tools (docs/owner-guide.md). The service
+# Owner commands for the local answer service over those tools (docs/owner-guide/local-answer-service.md). The service
 # runs from backend/.venv-hybrid on 127.0.0.1 only; MANIJERO_LOCAL_RAG_PORT is for tests and
 # developers only.
 if [[ "${1:-}" == "--local-rag-start" || "${1:-}" == "--local-rag-stop" || "${1:-}" == "--local-rag-service-status" ]]; then
@@ -150,7 +150,7 @@ if [[ "${1:-}" == "--local-rag-start" || "${1:-}" == "--local-rag-stop" || "${1:
 fi
 
 # Owner command: measure answer latency and throughput at pilot concurrency against the running
-# local answer service (docs/owner-guide.md "Measure answer speed under pilot load"). Like the
+# local answer service (docs/owner-guide/local-checks.md "Measure answer speed under pilot load"). Like the
 # other --local-rag-* commands it runs before the local.properties write and needs no Android SDK
 # or Java. It reads no port from the environment; backend/scripts/measure_local_load.py checks the
 # verified run record and its three checks, then runs the plan.
@@ -169,7 +169,7 @@ if [[ "${1:-}" == "--local-rag-load-test" ]]; then
   exec "$LOCAL_RAG_PYTHON" "$REPO_ROOT/backend/scripts/measure_local_load.py"
 fi
 
-# Owner commands for the answer service as a container in Docker Desktop (docs/owner-guide.md).
+# Owner commands for the answer service as a container in Docker Desktop (docs/owner-guide/container.md).
 # The image packages the local knowledge release and search model; Ollama stays on this Mac.
 # MANIJERO_DOCKER_CLI is for tests only; MANIJERO_LOCAL_RAG_PORT for tests and developers only.
 if [[ "${1:-}" == "--container-build" || "${1:-}" == "--container-start" || "${1:-}" == "--container-status" || "${1:-}" == "--container-stop" ]]; then
@@ -196,7 +196,7 @@ if [[ "${1:-}" == "--container-build" || "${1:-}" == "--container-start" || "${1
   exec "$LOCAL_RAG_PYTHON" "$REPO_ROOT/backend/scripts/local_rag.py" "${1#--}"
 fi
 
-# Owner commands for the health dashboard (Prometheus and Grafana in Docker Desktop, docs/owner-guide.md).
+# Owner commands for the health dashboard (Prometheus and Grafana in Docker Desktop, docs/owner-guide/monitoring.md).
 # It reads /metrics of the local (and, once set up, QA) answer service. MANIJERO_DOCKER_CLI is for tests
 # only; MANIJERO_MONITORING_PORT and MANIJERO_LOCAL_RAG_PORT for tests and developers only.
 if [[ "${1:-}" == "--monitoring-start" || "${1:-}" == "--monitoring-status" || "${1:-}" == "--monitoring-stop" ]]; then
@@ -225,7 +225,7 @@ if [[ "${1:-}" == "--monitoring-start" || "${1:-}" == "--monitoring-status" || "
 fi
 
 # Owner commands for the QA answer service on this Mac, reachable over HTTPS through Tailscale Funnel
-# (docs/owner-guide.md "Owner walkthrough: QA"). QA is for made-up test questions only. Test-only
+# (docs/owner-guide/qa.md "Owner walkthrough: QA"). QA is for made-up test questions only. Test-only
 # variables: MANIJERO_QA_HOME, MANIJERO_LOCAL_HOME, MANIJERO_DOCKER_CLI, MANIJERO_TAILSCALE_CLI,
 # MANIJERO_QA_PORT, and MANIJERO_QA_ADDRESS_FILE.
 if [[ "${1:-}" == "--qa-deploy" || "${1:-}" == "--qa-update" || "${1:-}" == "--qa-rollback" || "${1:-}" == "--qa-status" || "${1:-}" == "--qa-stop" ]]; then
@@ -247,8 +247,35 @@ if [[ "${1:-}" == "--qa-deploy" || "${1:-}" == "--qa-update" || "${1:-}" == "--q
   exec "$LOCAL_RAG_PYTHON" "$REPO_ROOT/backend/scripts/qa_service.py" "${1#--qa-}"
 fi
 
+# Owner commands for the QA Telegram alerts (a launchd check every 5 minutes on this Mac,
+# docs/owner-guide/qa-alerts.md "Set up Telegram alerts"). Test-only variables: MANIJERO_ALERTS_HOME,
+# MANIJERO_QA_HOME, MANIJERO_LAUNCHCTL_CLI, MANIJERO_LAUNCH_AGENTS_DIR, MANIJERO_DOCKER_CLI,
+# MANIJERO_TAILSCALE_CLI, MANIJERO_QA_PORT, and MANIJERO_TELEGRAM_API (loopback only).
+if [[ "${1:-}" == "--qa-alerts-setup" || "${1:-}" == "--qa-alerts-start" || "${1:-}" == "--qa-alerts-stop" || "${1:-}" == "--qa-alerts-status" || "${1:-}" == "--qa-alerts-test" ]]; then
+  REPO_ROOT="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")/.." && pwd)"
+  if (( $# > 1 )); then
+    printf 'Run %s on its own, with nothing after it.\n' "$1" >&2
+    exit 2
+  fi
+  LOCAL_RAG_PYTHON="$REPO_ROOT/backend/.venv/bin/python"
+  if [[ ! -x "$LOCAL_RAG_PYTHON" ]] && ! "$REPO_ROOT/scripts/python-env.sh" dev --if-present >/dev/null 2>&1; then
+    if [[ "$1" == "--qa-alerts-stop" ]]; then
+      printf 'Result: QA alerts were not on, so there was nothing to stop.\n'
+      exit 0
+    fi
+    if [[ "$1" == "--qa-alerts-status" ]]; then
+      printf 'Result: QA alerts are off. Turn them on with ./scripts/init.sh --qa-alerts-start.\n'
+      exit 1
+    fi
+    printf 'The local answer tools are not set up yet. Run ./scripts/init.sh --local-rag-setup to set them up.\n'
+    printf 'Result: setup has not run yet.\n'
+    exit 1
+  fi
+  exec "$LOCAL_RAG_PYTHON" "$REPO_ROOT/backend/scripts/qa_alerts.py" "${1#--qa-alerts-}"
+fi
+
 # Owner command: smoke-test the Desktop and Android emulator apps against the running local answer
-# service (docs/owner-guide.md). Like --local-rag-*, it runs before the local.properties write; AGP
+# service (docs/owner-guide/local-checks.md). Like --local-rag-*, it runs before the local.properties write; AGP
 # reads ANDROID_HOME instead. backend/app/local_smoke.py checks the service, Java, and the emulator.
 if [[ "${1:-}" == "--local-smoke" ]]; then
   REPO_ROOT="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")/.." && pwd)"
@@ -275,7 +302,26 @@ if [[ "${1:-}" == "--local-smoke" ]]; then
   exec "$LOCAL_RAG_PYTHON" "$REPO_ROOT/backend/scripts/local_rag.py" smoke
 fi
 
-# Owner command: rehearse the demo (docs/owner-guide.md, docs/demo-script.md). It checks the
+# Owner command: check the QA Desktop app against the live QA service end to end (docs/owner-guide/qa.md
+# "Check the QA Desktop app"). Like --local-smoke it resolves Java here and lets qa_check.py report a
+# missing one. Test-only variables: MANIJERO_QA_HOME and MANIJERO_QA_ADDRESS_FILE.
+if [[ "${1:-}" == "--qa-check" ]]; then
+  REPO_ROOT="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")/.." && pwd)"
+  if (( $# > 1 )); then
+    printf 'Run %s on its own, with nothing after it.\n' "$1" >&2
+    exit 2
+  fi
+  LOCAL_RAG_PYTHON="$REPO_ROOT/backend/.venv/bin/python"
+  if [[ ! -x "$LOCAL_RAG_PYTHON" ]] && ! "$REPO_ROOT/scripts/python-env.sh" dev --if-present >/dev/null 2>&1; then
+    printf 'The local answer tools are not set up yet. Run ./scripts/init.sh --local-rag-setup to set them up.\n'
+    printf 'Result: the QA check did not run. Run ./scripts/init.sh --local-rag-setup.\n'
+    exit 1
+  fi
+  manijero_resolve_java || true
+  exec "$LOCAL_RAG_PYTHON" "$REPO_ROOT/backend/scripts/qa_check.py"
+fi
+
+# Owner command: rehearse the demo (docs/owner-guide/local-checks.md, docs/demo-script.md). It checks the
 # running local answer service and the reviewed-update gate, changes nothing, and runs before the
 # local.properties write like the other answer-service commands.
 if [[ "${1:-}" == "--demo-rehearsal" ]]; then
@@ -291,6 +337,43 @@ if [[ "${1:-}" == "--demo-rehearsal" ]]; then
     exit 1
   fi
   exec "$LOCAL_RAG_PYTHON" "$REPO_ROOT/backend/scripts/demo_rehearsal.py"
+fi
+
+# Owner commands: review the golden questions (docs/owner-guide/golden-set-review.md). --golden-review lists the
+# waiting drafts; --golden-decide approve|reject "<name>" <number-or-id>... records a named
+# reviewer's decision. Both end with one Result: line and run before the local.properties write.
+if [[ "${1:-}" == "--golden-review" || "${1:-}" == "--golden-decide" ]]; then
+  REPO_ROOT="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")/.." && pwd)"
+  GOLDEN_COMMAND="${1#--golden-}"
+  shift
+  LOCAL_RAG_PYTHON="$REPO_ROOT/backend/.venv/bin/python"
+  if [[ ! -x "$LOCAL_RAG_PYTHON" ]] && ! "$REPO_ROOT/scripts/python-env.sh" dev --if-present >/dev/null 2>&1; then
+    printf 'The local answer tools are not set up yet. Run ./scripts/init.sh --local-rag-setup to set them up.\n'
+    printf 'Result: the golden review did not run. Run ./scripts/init.sh --local-rag-setup.\n'
+    exit 1
+  fi
+  if [[ "$GOLDEN_COMMAND" == "review" ]]; then
+    exec "$LOCAL_RAG_PYTHON" "$REPO_ROOT/backend/scripts/golden_review.py" list "$@"
+  fi
+  exec "$LOCAL_RAG_PYTHON" "$REPO_ROOT/backend/scripts/golden_review.py" decide -- "$@"
+fi
+
+# Owner command: save one usability-session participant's results under an anonymous code
+# (docs/owner-guide/usability-session.md, docs/usability-session/). It never reads or writes the apps or the
+# service; the results file lives outside the checkout.
+if [[ "${1:-}" == "--usability-record" ]]; then
+  REPO_ROOT="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")/.." && pwd)"
+  if (( $# > 1 )); then
+    printf 'Run %s on its own, with nothing after it.\n' "$1" >&2
+    exit 2
+  fi
+  LOCAL_RAG_PYTHON="$REPO_ROOT/backend/.venv/bin/python"
+  if [[ ! -x "$LOCAL_RAG_PYTHON" ]] && ! "$REPO_ROOT/scripts/python-env.sh" dev --if-present >/dev/null 2>&1; then
+    printf 'The local answer tools are not set up yet. Run ./scripts/init.sh --local-rag-setup to set them up.\n'
+    printf 'Result: the usability results were not recorded. Run ./scripts/init.sh --local-rag-setup.\n'
+    exit 1
+  fi
+  exec "$LOCAL_RAG_PYTHON" "$REPO_ROOT/backend/scripts/usability_record.py"
 fi
 
 if [[ "${1:-}" == "--backend" ]]; then
@@ -343,7 +426,7 @@ AS_OF="${MANIJERO_AS_OF:-2026-10-13}"
 
 usage() {
   cat <<'EOF'
-Usage: ./scripts/init.sh [--check|--fast|--verify|--feature <id>|--backend-tests [targets]|--setup-python [dev|hybrid|docparse]|--backend|--mock|--mock-status|--mock-stop|--local-rag-setup|--local-rag-status|--local-rag-start|--local-rag-service-status|--local-rag-load-test|--local-rag-stop|--container-build|--container-start|--container-status|--container-stop|--monitoring-start|--monitoring-status|--monitoring-stop|--pilot-token-save|--demo-rehearsal|--local-smoke|--environments-status|--qa-settings-setup|--qa-deploy|--qa-update|--qa-rollback|--qa-status|--qa-stop|--android|--android-run|--desktop|--android-qa|--desktop-qa|--help]
+Usage: ./scripts/init.sh [--check|--fast|--verify|--feature <id>|--backend-tests [targets]|--setup-python [dev|hybrid|docparse]|--backend|--mock|--mock-status|--mock-stop|--local-rag-setup|--local-rag-status|--local-rag-start|--local-rag-service-status|--local-rag-load-test|--local-rag-stop|--container-build|--container-start|--container-status|--container-stop|--monitoring-start|--monitoring-status|--monitoring-stop|--pilot-token-save|--demo-rehearsal|--golden-review|--golden-decide|--usability-record|--local-smoke|--qa-check|--environments-status|--qa-settings-setup|--qa-deploy|--qa-update|--qa-rollback|--qa-status|--qa-stop|--qa-alerts-setup|--qa-alerts-start|--qa-alerts-stop|--qa-alerts-status|--qa-alerts-test|--android|--android-run|--desktop|--android-qa|--desktop-qa|--help]
 
   --check                   Check Java and the Gradle wrapper, then print standard commands (default)
   --fast                    Shared host tests, contract examples, backend unit tests, and the five
@@ -386,9 +469,19 @@ Usage: ./scripts/init.sh [--check|--fast|--verify|--feature <id>|--backend-tests
                             (Android debug, --desktop); it never prints the token
   --demo-rehearsal          With the local answer service running, rehearse the demo: service steps
                             plus a temporary, synthetic reviewed update (see docs/demo-script.md)
+  --golden-review           List the golden questions that wait for your decision, with their
+                            official source text; the full list goes to build/golden-review/drafts.txt
+  --golden-decide approve|reject "<name>" <number-or-id>...
+                            Record your decision for the listed golden questions (nothing is
+                            recorded if anything is wrong)
+  --usability-record        Save one usability-session participant's results under an anonymous
+                            code (P1, P2...) and print a plain summary (see docs/owner-guide/usability-session.md)
   --local-smoke             With the local answer service running, ask it one fixed question through
                             the Desktop app and the app on the running Android emulator; one PASS or
                             FAIL line each (installs the debug app over the existing one, data kept)
+  --qa-check                With QA deployed, check end to end that the QA Desktop app reaches QA,
+                            shows a sourced answer to a made-up question, and gets its Útil rating
+                            accepted; one PASS or FAIL line per step (needs the QA access key)
   --environments-status     Read-only: say in plain words what the local, QA, and prod
                             environments each have (nothing is deployed or contacted)
   --qa-settings-setup       Prepare the QA settings file and access keys on this computer
@@ -399,6 +492,12 @@ Usage: ./scripts/init.sh [--check|--fast|--verify|--feature <id>|--backend-tests
   --qa-status               Say whether QA runs, answers, and is reachable
   --qa-stop                 Take QA off the internet and stop it
                             (placeholder server address; nothing is deployed)
+  --qa-alerts-setup         One time: store the Telegram bot token and find your chat
+  --qa-alerts-start         Turn on the check that runs every 5 minutes and messages you on
+                            Telegram when QA is down, not ready, erroring, or unreachable
+  --qa-alerts-stop          Turn the QA alert check off (Telegram details are kept)
+  --qa-alerts-status        Say whether the alert check is on and what its last run found
+  --qa-alerts-test          Send one test alert to Telegram
   --android                 Build the Android debug APK
   --android-run             Build, start an emulator if needed, install, and launch the app
   --desktop                 Launch the Desktop app
@@ -954,14 +1053,16 @@ Build and run:
   ./scripts/init.sh --setup-python # build or reuse the shared backend virtualenv (once per requirements change)
   ./scripts/init.sh --backend    # start the local API (Ctrl+C to stop)
   ./scripts/init.sh --mock       # start the mock answer service: fixed example answers, no Python (--mock-status, --mock-stop)
-  ./scripts/init.sh --local-rag-setup  # set up the local answer tools once (see docs/owner-guide.md)
+  ./scripts/init.sh --local-rag-setup  # set up the local answer tools once (see docs/owner-guide/local-answer-service.md)
   ./scripts/init.sh --local-rag-status # check the local answer tools in plain words
   ./scripts/init.sh --local-rag-start  # start the real local answer service in the background (--local-rag-service-status, --local-rag-stop)
   ./scripts/init.sh --local-rag-load-test  # with it running: answer times and throughput from 10 clients for about five minutes
-  ./scripts/init.sh --container-build  # build the answer service image in Docker Desktop (see docs/owner-guide.md)
+  ./scripts/init.sh --container-build  # build the answer service image in Docker Desktop (see docs/owner-guide/container.md)
   ./scripts/init.sh --container-start  # run it in the background (--container-status, --container-stop)
   ./scripts/init.sh --local-smoke      # with it running: ask it once through the Desktop and Android emulator apps
+  ./scripts/init.sh --qa-check         # with QA deployed: reachable, sourced answer, feedback accepted (Desktop, no clicking)
   ./scripts/init.sh --demo-rehearsal   # with it running: rehearse the demo (docs/demo-script.md)
+  ./scripts/init.sh --usability-record # save one usability-session participant (docs/usability-session/)
   ./scripts/init.sh --environments-status # what the local, QA, and prod environments each have
   ./scripts/init.sh --qa-settings-setup   # prepare QA settings and access keys on this computer (deploys nothing)
   ./scripts/init.sh --qa-deploy           # run QA over HTTPS for test data only (--qa-update, --qa-rollback, --qa-status, --qa-stop)

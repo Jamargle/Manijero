@@ -17,7 +17,7 @@
 - `backend/scripts/local_rag.py` — entry-point pattern (choices, exception -> sentence + log path).
 - `scripts/init.sh` — early `--local-rag-*`/`--container-*` dispatch, misuse exit `2`, `python-env.sh dev --if-present`, `usage`.
 - `.gitignore` — only `/pilot-token.local` covers credentials today.
-- `backend/README.md` "Configuration", "Access and rotation"; `docs/owner-guide.md` "Your settings file", "Where things are kept".
+- `backend/README.md` "Configuration", "Access and rotation"; `docs/owner-guide/pilot-token-and-settings.md` "Your settings file", "Where things are kept".
 - `docs/risks-and-open-questions.md` rows on the pilot token and hosted deployment (pointers to this feature).
 - `feature_list.json` — dependents `monitoring_dashboard`, `client_environment_builds`, `qa_server_deployment`; sibling `answer_pipeline_trace` (not started, no spec on this branch).
 - Not inspected: `serve_pilot.py` body, `backend/tests/test_local_rag_commands.py` internals (pattern taken from the `local_full_rag_stack` appendix), Kotlin build config.

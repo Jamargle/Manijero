@@ -9,7 +9,7 @@
   1. Scope is the full parser, but heavyweight dependencies MUST NOT enter the default runtime: follow the `backend/requirements-embeddings.txt` / `requirements-hybrid.txt` pattern of optional, exactly pinned requirement files with separate venvs, explicit graceful degradation, and recorded limits. The base backend (fastapi/uvicorn/httpx) and the default test suite stay free of torch/Docling/Tesseract.
   2. Verification must be deterministic in-process. A real Docling/Tesseract measurement on the owner's Mac is optional; if the runtime is absent, cover tables/OCR with small deterministic fixtures and declare the honest limit instead of claiming measured accuracy.
   3. Integration is a standalone backend command plus written per-document Markdown artifacts with provenance (source hash, parser version, page mapping). Do not change the accepted candidate-ingestion record contract, the `/ask` wire contract, or make parsed output answerable knowledge automatically; `legal_structure_chunker` consumes these artifacts later.
-- Planning decisions: not owner-facing, so no `docs/owner-guide.md` step and no new `init.sh` mode; the optional runtime is installed with the existing named command `./scripts/init.sh --setup-python docparse` (profile `docparse` → `backend/.venv-docparse`). Only PDFs are parsed; HTML candidates are reported `skipped / not_a_pdf`.
+- Planning decisions: not owner-facing, so no `docs/owner-guide/` step and no new `init.sh` mode; the optional runtime is installed with the existing named command `./scripts/init.sh --setup-python docparse` (profile `docparse` → `backend/.venv-docparse`). Only PDFs are parsed; HTML candidates are reported `skipped / not_a_pdf`.
 
 ## Goal
 
@@ -93,7 +93,7 @@ UI involved: no.
 - `backend/README.md`: update — new section of at most 30 lines: command, artifact layout, manifest fields, `--setup-python docparse`, degradation, bounds, exit codes.
 - `knowledge/README.md`: update — one Files row for the new schema and one sentence in "Adding a document" pointing at the parser.
 - `docs/progress/known-limitations.md` + `PROGRESS.md` digest: update — one line: Markdown is derived, tables/OCR verified with fakes and fixtures unless a real run is measured, no accuracy claim.
-- `docs/owner-guide.md`, `contracts/openapi.yaml`, `DESIGN.md`, `CONTEXT.md`: not needed — no owner operation, wire contract, UI, or domain term.
+- `docs/owner-guide/`, `contracts/openapi.yaml`, `DESIGN.md`, `CONTEXT.md`: not needed — no owner operation, wire contract, UI, or domain term.
 
 ## Focused verification (required)
 

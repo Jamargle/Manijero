@@ -16,7 +16,7 @@
 - `contracts/openapi.yaml` — `AskRequest` requires `question` and `land_context`; `retain_for_improvement` defaults false; `AskResponse.status` and the dev-only `inspection`.
 - `knowledge/pac_answer_eval.json` — 14 reviewed PAC cases, `pac-answer-eval-v2`, every case `{"mode": "general", "lands": []}`.
 - `docs/archive/MasterPlanV3.md` §9.2 and its testing-strategy table — p95 8 s is a candidate starting point, not proven performance or a release promise; the table lists `Locust / k6` as the load tool, superseded here by the owner decision.
-- `docs/owner-guide.md` — local service start/check sections, `Result:` + "if you see something else" table style, "Owner walkthrough" sections.
+- `docs/owner-guide/local-checks.md` — local service start/check sections, `Result:` + "if you see something else" table style, "Owner walkthrough" sections.
 - `backend/README.md` — `## One-command local setup` → `### Local answer service`, `### Local smoke test` (placement for the new subsection).
 - `docs/constraints/operations.md` — owner operability MUSTs (one command, prerequisites before change, one `Result:` line, owner guide, walkthrough with a missing-prerequisite case and a recovery).
 - `docs/risks-and-open-questions.md` — Medium-risk row style; existing "status reports configuration, not what each answer used" row.
@@ -34,7 +34,7 @@
 
 1. Tooling: standard-library-only Python measurement inside this repo behind a named `./scripts/init.sh` command, following `backend/scripts/measure_local_generation.py`; no k6, no Locust, no new dependency, no download.
 2. Load profile: pilot is 8–10 people, so up to 10 concurrent clients against the real service started by `./scripts/init.sh --local-rag-start`, short ramp (for example 1 → 10), steady phase of a few minutes, reviewed corpus questions; no invented traffic claims.
-3. Execution: the owner runs the real measurement on the owner's Mac from numbered copy-paste steps in `docs/owner-guide.md`; the orchestrator records the reported numbers as evidence. Automated verification uses fakes only (no real service/Ollama, no `torch`/`chromadb`, no writes outside temporary directories, loopback fake ports at most).
+3. Execution: the owner runs the real measurement on the owner's Mac from numbered copy-paste steps in `docs/owner-guide/local-checks.md`; the orchestrator records the reported numbers as evidence. Automated verification uses fakes only (no real service/Ollama, no `torch`/`chromadb`, no writes outside temporary directories, loopback fake ports at most).
 4. Thresholds: report median/p95/max and achieved throughput; show the 8 s p95 as the plan's candidate reference only, no pass/fail gate and no capacity claim; report an outcome/fallback mix only if the service exposes it without new product surface, otherwise say so and leave it out.
 5. Privacy: no question, passage, answer, land, or token text in output, logs, or records; only aggregate timing/counts and a corpus case count.
 
@@ -65,7 +65,7 @@
 6. Wire `scripts/init.sh`: `--local-rag-load-test` block, misuse exit `2`, dev-env link, `usage`, `--check` listing.
 7. Write `backend/tests/test_local_load.py` (pure helpers, gate, runner, report, privacy) with fake service facts, fake clock, and fake connections.
 8. Add the two `init.sh` subprocess cases to `backend/tests/test_local_rag_commands.py` (temporary home, never contacts a service).
-9. Update `docs/owner-guide.md`, `backend/README.md`, `ARCHITECTURE.md`, `docs/constraints/operations.md`, `docs/risks-and-open-questions.md`.
+9. Update `docs/owner-guide/local-checks.md`, `backend/README.md`, `ARCHITECTURE.md`, `docs/constraints/operations.md`, `docs/risks-and-open-questions.md`.
 10. Run the focused block and `./scripts/init.sh --fast`; record one-line results below.
 11. Hand the walkthrough to the orchestrator for the owner; record the reported numbers below.
 
@@ -82,7 +82,7 @@
 - `test_local_rag_commands.py` additions: `--local-rag-load-test` with an empty temporary home (no settings) → exit `1` with the existing "not set up yet" sentence and `Result: the load test did not run. Do the first step shown above.` (scenario 4), no `reports/` created; settings with no run record → scenario 3's `--local-rag-start` result; an extra argument → exit `2`.
 - E2E: not applicable; this changes no app flow. Unit/subprocess coverage plus the owner run covers the command.
 - `bash -n scripts/init.sh`; then `./scripts/init.sh --fast` for no regression.
-- Owner walkthrough (run by the owner, guided by the orchestrator, exactly as `docs/owner-guide.md` writes it):
+- Owner walkthrough (run by the owner, guided by the orchestrator, exactly as `docs/owner-guide/local-checks.md` writes it):
   1. `./scripts/init.sh --local-rag-service-status` → three `OK` lines and the running result (if not, `--local-rag-start`). Report it.
   2. **Missing prerequisite:** `./scripts/init.sh --local-rag-stop`, then `./scripts/init.sh --local-rag-load-test` → `Result: the load test did not run. Start the local answer service with ./scripts/init.sh --local-rag-start, then run this command again.` Report it.
   3. `./scripts/init.sh --local-rag-start`; quit Ollama; `./scripts/init.sh --local-rag-load-test` → a `PROBLEM  Drafting:` line and `Result: the load test did not run. Do the first step shown above.` Report both lines.

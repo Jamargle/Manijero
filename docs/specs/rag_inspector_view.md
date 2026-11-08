@@ -125,7 +125,7 @@ There is one new text link and one new detail screen built from existing compone
 - `backend/README.md`: update, 15 lines or fewer. Explain where inspection appears, and that `--local-rag-start` states `development` while `--backend` needs `MANIJERO_DEPLOYMENT_PROFILE=development`.
 - `docs/pilot-privacy.md`: update. Add one row: development-only response data, not stored.
 - `PROGRESS.md` and `docs/progress/known-limitations.md`: one line each at acceptance (a real device on a LAN address never shows the inspector; no GUI run).
-- `AGENTS.md`, `CONTEXT.md`, `docs/owner-guide.md`: not needed, because nothing changes in workflow, domain terms, or owner steps.
+- `AGENTS.md`, `CONTEXT.md`, `docs/owner-guide/`: not needed, because nothing changes in workflow, domain terms, or owner steps.
 
 ## Focused verification
 

@@ -108,6 +108,14 @@ def test_personal_data_kinds_are_screened(value: str) -> None:
 # --- scenario 2 ---------------------------------------------------------------------------
 
 
+def test_personal_identifier_kinds_are_fixed_codes_and_match_the_screen() -> None:
+    text = "Llama al 612 345 678 o escribe a ana@ejemplo.test"
+    assert input_guardrails.personal_identifier_kinds(text) == ("email", "phone")
+    assert input_guardrails.contains_personal_identifier(text)
+    assert input_guardrails.personal_identifier_kinds("Plazo el 15-05-2026 a las 10:30") == ()
+    assert not input_guardrails.contains_personal_identifier("Parcela 23:055:0:0:12:45:1")
+
+
 def test_personal_data_is_not_retained_traced_logged_or_echoed(tmp_path: Path) -> None:
     owner = tmp_path / "retention"
     owner.mkdir(mode=0o700)

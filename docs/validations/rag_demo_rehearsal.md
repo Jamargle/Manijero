@@ -58,7 +58,7 @@ live `--demo-rehearsal` run and the manual app steps were not run during validat
   `--demo-rehearsal` runs against `--local-rag-start` printed the four `PASS` lines and the passing
   `Result:` (exit 0), and `knowledge/` stayed clean. The source cards with the pinned scope caption,
   `Sin respuesta segura`, and the `Inspeccionar` walkthrough remain unwatched and are the owner
-  walkthrough in `docs/owner-guide.md`.
+  walkthrough in `docs/owner-guide/local-checks.md`.
 - `PROGRESS.md`, `docs/progress/known-limitations.md`, `docs/progress/session-log.md`, and the
   `feature_list.json` status to `accepted` are pending the owner walkthrough report.
 

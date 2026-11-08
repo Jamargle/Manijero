@@ -720,7 +720,7 @@ def test_no_output_record_or_log_contains_corpus_text(running: Harness) -> None:
 def test_the_service_never_imports_the_operator_modules() -> None:
     operator = (
         "local_rag_service", "local_rag_bootstrap", "pinned_download", "local_container", "local_smoke",
-        "environment_profiles", "local_monitoring", "qa_deployment",
+        "environment_profiles", "local_monitoring", "qa_deployment", "qa_check", "qa_alerts",
     )
     pattern = re.compile(r"^\s*(from app(\.| import )|import app\.)({})".format("|".join(operator)), re.MULTILINE)
     for path in (REPO_ROOT / "backend" / "app").glob("*.py"):

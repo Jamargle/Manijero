@@ -31,7 +31,7 @@ Spec: [../specs/validity_checker.md](../specs/validity_checker.md) · Evidence:
 - Input integrity is digest-bound: the report's `catalog_sha256`/`passages_sha256` must match the supplied bytes, and the report version and consumed signal/source shape are required; malformed or extra shapes abort `invalid_impact_report`.
 - Fixed failures only (`invalid_as_of`, `invalid_catalog`, `invalid_passage_set`, `invalid_impact_report`, `impact_inputs_mismatch`, `candidate_count_exceeded`, `proposal_count_exceeded`, `unsafe_report_path`, `internal_error`); no paths, exception text, or document values reach stderr. Proposal lines print a catalog or hex candidate id and a whitespace-collapsed title, so no input can forge a second line.
 - Security checklist: no secrets, no new dependency, synthetic fixtures, no network/auth surface, bounded counts (1,000 candidates, 5,000 proposals), and output only outside `knowledge/`.
-- Docs: `ARCHITECTURE.md`, `docs/constraints/answers-and-knowledge.md`, `backend/README.md`, `knowledge/README.md`, and `docs/risks-and-open-questions.md` are accurate, updated once each, within budget; `AGENTS.md`, `DESIGN.md`, `CONTEXT.md`, and `docs/owner-guide.md` correctly unchanged.
+- Docs: `ARCHITECTURE.md`, `docs/constraints/answers-and-knowledge.md`, `backend/README.md`, `knowledge/README.md`, and `docs/risks-and-open-questions.md` are accurate, updated once each, within budget; `AGENTS.md`, `DESIGN.md`, `CONTEXT.md`, and `docs/owner-guide/` correctly unchanged.
 
 ## Remaining limits
 

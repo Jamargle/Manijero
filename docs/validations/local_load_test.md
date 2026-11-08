@@ -4,7 +4,7 @@
 
 **Accepted by the independent validator on 2026-11-06; the condition `pending owner walkthrough` was met on 2026-11-07.**
 Everything the automated tiers can reach is verified, and the owner ran the walkthrough in the
-[owner guide](../owner-guide.md#owner-walkthrough-load-test) on 2026-11-07 (evidence below).
+[owner guide](../owner-guide/local-checks.md#owner-walkthrough-load-test) on 2026-11-07 (evidence below).
 
 ## Independent verification
 

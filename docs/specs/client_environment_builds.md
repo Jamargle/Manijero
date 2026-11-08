@@ -97,7 +97,7 @@ UI involved: no in-app change. Only the Android launcher label and the Desktop w
 - `ARCHITECTURE.md`: update "Answer service boundary". Add one paragraph: `manijeroEnvironment` selects local or QA at build time; QA uses the `.qa` id suffix, its own Desktop data folder, the git-ignored address file or placeholder, and the QA key in test builds only.
 - `docs/constraints/hosting-and-pilot.md`: update the token rule. A QA test build MUST take its token only from the QA access key (or the test override) and MUST NOT read `pilot-token.local`; a local build MUST NOT read the QA key. Reason: this spec.
 - `docs/constraints/operations.md`: add one MUST NOT. A real QA host or any credential MUST NOT be committed; the QA address lives only in the git-ignored `qa-address.local` until `qa_server_deployment`. Reason: this spec, decision 3.
-- `docs/owner-guide.md`: add "Build the QA test apps", about 25 lines: the two commands, the `Result:` line, the placeholder notice, and the two build-failure messages with their fixes.
+- `docs/owner-guide/qa.md`: add "Build the QA test apps", about 25 lines: the two commands, the `Result:` line, the placeholder notice, and the two build-failure messages with their fixes.
 - `AGENTS.md` "Operating rules": extend the pilot-token clause to say agents also never read environment access keys under `~/manijero/*/credentials/`.
 - `backend/README.md`: update the "Client token" bullet with one line saying QA test builds send the QA key.
 - `docs/progress/known-limitations.md`, `docs/risks-and-open-questions.md`: QA builds point at a placeholder until `qa_server_deployment`, and no QA build has run on a device.

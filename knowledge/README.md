@@ -3,7 +3,8 @@
 This directory holds the admission gate for the Manijero MVP knowledge corpus.
 A document may only become eligible for ingestion when a human has approved it
 and its catalog metadata is complete, and only reviewed passages of such a
-document are ever searchable. Both artifacts are Git-tracked text files, so
+document are ever searchable (the one exception is the flag-only structured
+index, local development and QA only, built from reviewed chunk sets). Both artifacts are Git-tracked text files, so
 every addition and change is reviewable, diffable, and revertible.
 
 ## What this does and does not do
@@ -40,13 +41,17 @@ measurement, not evidence about legal coverage or real user questions.
 | `passages.schema.json` | The readable versioned passage contract (`passage-set-v1`). |
 | `land_safety_eval.schema.json` | The readable versioned safety-evaluation case contract (`land-safety-eval-v1`). |
 | `pac_answer_eval.schema.json` | The readable versioned reviewed PAC answer-evaluation case contract (`pac-answer-eval-v2`), including declared coverage areas, omissions, and the author-only review role. |
+| `golden_set.json` | The Git-tracked queue of agent-drafted golden questions (`golden-set-v1`). Every item starts `draft`; it is excluded from `pac_answer_eval.json`, every gate, and every score until a named reviewer approves it with `./scripts/init.sh --golden-decide`. An answered item quotes one approved passage verbatim; an abstention names a `coverage.omissions` entry or a same-area abstained reviewed case id. |
+| `golden_set.schema.json` | The readable versioned golden-queue contract (`golden-set-v1`). |
 | `official-discovery-config.schema.json` | The readable versioned discovery configuration contract. |
 | `official-discovery-state.schema.json` | The readable versioned pending discovery-candidate state contract. |
 | `official-ingestion-state.schema.json` | The readable versioned document-ingestion quarantine state contract (`official-ingestion-state-v1`), including the optional content-free `security` scan (`scan_version`, fixed `flags`, bounded `{flag, page, block_index}` findings). |
 | `official-ingestion-document.schema.json` | The readable contract for one extracted quarantined document (`official-ingestion-document-v1`). |
 | `legal-change-impact.schema.json` | The readable contract for the derived change-impact report (`legal-change-impact-report-v1`). It is not canonical knowledge. |
 | `validity-review.schema.json` | The readable contract for the derived source-validity review (`validity-review-v1`). It is not canonical knowledge. |
+| `relevance-review.schema.json` | The readable contract for the derived, suggest-only candidate relevance review (`relevance-review-v1`). It is not canonical knowledge. |
 | `legal-markdown-document.schema.json` | The readable contract for one derived Markdown document parsed from a quarantined official PDF (`legal-markdown-document-v1`), including page line ranges and per-capability status. It is not canonical knowledge. |
+| `structured-chunk-index.schema.json` | The readable contract for the derived structured-chunk index manifest (`structured-chunk-index-v1`). It holds no data and is not canonical knowledge. |
 | `legal-chunk-set.schema.json` | The readable contract for one derived chunk set and its run manifest (`legal-chunk-set-v1`, `legal-chunk-manifest-v1`), including the reviewed-validity block. It is not canonical knowledge. |
 | `knowledge-update-review.schema.json` | The readable contract for one local human-review package (`knowledge-update-review-package-v1`), including the after-state evaluation-case binding and merge readiness. It is not canonical knowledge. |
 | `knowledge-update-review-decisions.schema.json` | The readable contract for the review decision history (`knowledge-update-review-decisions-v1`) that the controlled merge verifies. It is not canonical knowledge. |
@@ -104,7 +109,7 @@ questions for that bounded slice. The `pac-answer-eval-v2` artifact declares
 three coverage topics, five boundaries, the out-of-scope omissions, and an
 `author_only` review role on every case. It reports state, citation/passage
 matching, literal critical-fact checks, clarification outcomes, per-area counts,
-and the missing expected references for every mismatch. Its 14 cases, exact
+and the missing expected references for every mismatch. Its 17 cases, exact
 matrix, case-level gaps, and author-review limitation are in
 [`pac_coverage.md`](pac_coverage.md). Its case coverage and all metrics are
 report-only: they are not a legal correctness certificate, quality guarantee, or

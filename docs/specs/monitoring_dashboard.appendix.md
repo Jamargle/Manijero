@@ -14,7 +14,7 @@
 - `backend/app/environment_profiles.py` — `qa_home()`, `read_profile_settings("qa")`, `ProfileSettings.placeholder_url` (`.invalid` host), `credential_paths(home, "qa-test-device")`, `check_credentials` (reads only; never read the token content in planning).
 - `backend/tests/test_local_container_commands.py` — fake Docker shell script recording calls, `run_init` with temp `MANIJERO_LOCAL_HOME`; reuse for command tests.
 - `backend/requirements-dev.txt` — only `pytest` and `jsonschema` beyond runtime deps; no YAML parser, hence JSON-as-YAML config.
-- `ARCHITECTURE.md`, `docs/owner-guide.md` headings, `PROGRESS.md` Current state — where docs land; owner copy is English.
+- `ARCHITECTURE.md`, `docs/owner-guide/monitoring.md` headings, `PROGRESS.md` Current state — where docs land; owner copy is English.
 
 Not inspected: Grafana/Prometheus upstream docs and registries (no network in planning); `local_rag_service.py` internals.
 

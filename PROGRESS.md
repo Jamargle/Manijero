@@ -7,7 +7,7 @@ Routine entry point. Exact feature status lives in [`feature_list.json`](feature
 contracts, raw evidence, and acceptance records remain in their owning files. Last updated:
 2026-11-07.
 
-**Feature status** — 100 of 121 features are accepted, including `question_scope_guard` (deliberate pre-retrieval abstention for questions matching a declared coverage omission), `seed_corpus_expansion` (6 sources / 7 passages after a reviewed hold-back), `rag_demo_rehearsal` (one
+**Feature status** — 108 of 121 features are accepted, including `usability_session` (Spanish session kit plus --usability-record for anonymous results; owner ran the session on the Desktop QA app; findings not yet reported), `validity_regression_cases` (three reviewed `/ask` regression cases: repealed RD 1077/2014 and the digital notebook abstain because no reviewed source covers them, gaps recorded; the 2026 deadline is flagged expired at an injected as-of date), `local_notice_pipeline` (one offline developer command screens invented/anonymized cooperative notices for personal data and instruction-like text before any call to the local model, then writes a vocabulary list and candidate questions to `build/notice-review/` for human review; nothing reaches `knowledge/`, releases, indexes, evals, or `/ask`; validator accept final, no owner walkthrough), `relevance_classifier` (developer-only offline command that labels discovered candidates relevant / not relevant / unsure plus one procedure-map topic with the local model, treating candidate text as data and failing closed to unsure; writes a deterministic review list outside `knowledge/`, nothing auto-dropped or sent to the corpus, releases, indexes, or `/ask`; validator accept final, no owner walkthrough), `qa_real_device_check` (one --qa-check command verifies the live QA service and the QA Desktop app end to end: reachable, an answer with sources, and an Útil rating; Android out of scope; QA key stays on the Mac; owner walkthrough passed), `qa_service_alerts` (Telegram alerts from a 5-minute launchd job on the owner's Mac when QA is down, not ready, erroring, or unreachable, with one back-to-normal message; a sleeping or off Mac is not detected; owner walkthrough passed), `question_scope_guard` (deliberate pre-retrieval abstention for questions matching a declared coverage omission), `seed_corpus_expansion` (6 sources / 7 passages after a reviewed hold-back), `rag_demo_rehearsal` (one
 `./scripts/init.sh --demo-rehearsal` command for the service-level demo steps plus the Spanish
 `docs/demo-script.md`; owner walkthrough passed 2026-11-07, land clarification not demoable on the
 approved corpus), `qa_server_deployment` (QA on the owner's Mac from the container image over Tailscale Funnel, one named command each for deploy/update/rollback/status/stop, QA-only test-data privacy gate; owner walkthrough passed, update/rollback not exercised live), `answer_cache` (per-process in-memory cache of verified answers and abstentions keyed by normalized question, land context, knowledge identity and as-of day, and model identity; every hit re-verified, at most 24 hours, `MANIJERO_ANSWER_CACHE=off` disables it; validator accept final), `answer_deadline_notices` (code-owned cooperative and expired-deadline notices from reviewed deadline metadata; validator accept final), `monitoring_dashboard` (free Grafana health dashboard on Docker Desktop with plain-language OK/warning/problem boxes; owner walkthrough passed, QA row not exercised), `input_guardrails` (`/ask` screens each question before retrieval with deterministic rules: personal data, prompt injection, and out-of-domain topics get one fixed code-owned Spanish abstention; personal data is never retained, traced, logged, or put in metrics; SIGPAC and land data pass; validator accept final, no owner walkthrough), `validity_checker` (offline, digest-bound check of the reviewed catalog and accepted change-impact signals: explicit expiry versus an injected UTC as-of date, machine-evident repeal/expiry only as a review-required retirement proposal, publication additions as review leads, ambiguous/negated signals never retire; writes one derived `validity-review-v1` artifact outside `knowledge/` and leaves the corpus, releases, indexes, and `/ask` untouched; validator accept final, no owner walkthrough), `official_page_change_monitor`
@@ -27,7 +27,11 @@ official PDFs → deterministic Markdown plus a provenance manifest, outside `kn
 answerable; tables and Spanish OCR only through an optional pinned runtime, fake/fixture-verified),
 `legal_structure_chunker` (offline developer command that splits that Markdown into
 article/chapter/annex chunks with contextual prefixes and catalog-only validity, outside `knowledge/`
-and never answerable; validator accept, no owner walkthrough by owner decision), `corpus_security_rules` (offline scan
+and never answerable; validator accept, no owner walkthrough by owner decision), `structured_chunk_index`
+(developer command indexing only reviewed chunk sets for BM25/vectors,
+read by `/ask` only with a flag in local development or QA; source-level review, no quality claim;
+validator accept, no owner walkthrough),
+`corpus_security_rules` (offline scan
 that rejects prompt-injection or nominal-listing documents at ingestion without keeping their bytes
 or text, plus a canonical release gate that refuses a single identifier shape; heuristic, precision
 unmeasured), `rag_inspector_view` (developer
@@ -55,7 +59,7 @@ default; measured on the owner's Mac, host decision pending), `knowledge_reindex
 (rehearsed locally only; no host step executed), `local_rag_bootstrap` (one guided setup
 command and a status check, walked through on the owner's Mac), `mock_answer_server` (Desktop and
 emulator walkthroughs not yet run), and `local_service_connection` (test builds only);
-`private_pilot_distribution` is `on_hold` by owner decision (2026-11-01). `local_load_test` and `rag_demo_rehearsal` are `passing` pending owner walkthroughs, and `seed_corpus_expansion` is `in_progress` pending owner approval. The 20 `not_started` features are the remaining MasterPlanV3 work, ordered
+`private_pilot_distribution` is `on_hold` by owner decision (2026-11-01). `local_load_test` and `rag_demo_rehearsal` are `passing` pending owner walkthroughs, and `seed_corpus_expansion` is `in_progress` pending owner approval. The 12 `not_started` features are the remaining MasterPlanV3 work, ordered
 local environment first, then the QA environment for remote real-device testing; prod is not planned yet. `feature_list.json` and the selector remain the status authority;
 this page does not duplicate the feature-id list.
 
@@ -106,13 +110,14 @@ before making any claim in its area.
 
 - Answers need the local service and an explicit campaign; legal scope is only the narrow reviewed
   corpus in [`knowledge/pac_coverage.md`](knowledge/pac_coverage.md).
-- All answer metrics are report-only: synthetic fixtures plus a 14-case author-reviewed sample with
-  visible gaps (14/14 states, 8/11 expected source and passage); no general-accuracy or legal-review claim.
+- All answer metrics are report-only: synthetic fixtures plus a 17-case author-reviewed sample with
+  visible gaps (17/17 states, 9/12 expected source and passage); no general-accuracy or legal-review claim.
 - The question-scope guard is lexical: questions on declared omissions (aid amounts, individual cases,
   reclamaciones) abstain before retrieval, but an unlisted paraphrase can still reach retrieval.
 - The 72 screenshot baselines are host-rendered pixel checks, not device, accessibility, usability, or iOS
   evidence; known 2× text wrapping on compact layouts.
 - Land-field, search, and summary decisions have no target-user or real-device upgrade evidence.
+- Usability: the session kit and `--usability-record` are ready (`usability_session`, `passing`); no real session has run, and the recorder's personal-data screen is lexical.
 - Land data is device-local: removal is recoverable, up to three same-device automatic copies, and one plaintext
   export file; losing the device without an export still loses records. Android backup exclusion is
   verified by inspection only; picker, file dialog, and screen-reader flows have no device evidence.
@@ -129,6 +134,8 @@ before making any claim in its area.
 - Legal chunk sets are derived review input outside `knowledge/`, split only on explicit
   article/chapter/annex lines (títulos, secciones, and disposiciones stay inside their chunk), with
   validity only from the reviewed catalog; never answerable, no accuracy claimed.
+- The cooperative-notice screen (`local_notice_pipeline`) is a lexical Spanish heuristic tested only on
+  invented notices; output is unreviewed and no extraction quality is measured.
 - Corpus security exclusion (nominal listings, personal identifiers, model-directed text) is a
   conservative Spanish-first heuristic with no override; it can miss a reworded listing or instruction,
   and a false positive removes that document from automation.
@@ -138,7 +145,7 @@ before making any claim in its area.
 - The local smoke test (`--local-smoke`) passed once on the owner's Mac (offscreen Desktop, API 37 emulator); it proves reach and rendering, not answer quality, and lands kept could not be observed (no lands existed on the emulator).
 - Environment profiles: QA has only a placeholder template and empty release folder, prod is unconfigured, and the local service does not enforce local access keys; tested in temporary homes only.
 - Hosted operations are prepared but not deployed; no host, domain, tunnel, or release artifacts exist.
-- QA test builds exist (`--android-qa`, `--desktop-qa`) but point at a placeholder address until `qa_server_deployment`; no QA build has run on a device.
+- QA test builds exist (`--android-qa`, `--desktop-qa`) but point at a placeholder address until `qa_server_deployment`; no QA build has run on a device. `./scripts/init.sh --qa-check` (`qa_real_device_check`) checks the QA Desktop app offscreen against live QA; no Android device or emulator check is planned (owner has no device, 2026-11-07; see known limitations).
 - The health dashboard runs only on the owner's Mac, is not alerting, shows QA as "Not set up yet", uses initial thresholds, and its image pins have no digests yet; the local row was checked in the owner walkthrough, the QA scrape is unverified.
 - Only test builds carry the pilot token (release and packaged apps cannot reach a pilot service); it is extractable from a test build; token auth is tested against an in-process fake only, with no live pilot-profile answer observed.
 - The mock answer service serves fixed contract examples only (not real or legal answers), on loopback for Desktop and the Android emulator.
@@ -172,8 +179,8 @@ Tiers, cheapest first; `./scripts/init.sh` holds the exact commands.
 - Full gate: `./scripts/init.sh --verify` (`--full`) — `--fast` plus `:shared:testAndroidHostTest`, `:androidApp:assembleDebug`, and `:desktopApp:build`.
 - Backend unit tests alone: `./scripts/init.sh --backend-tests [targets]` — needs pytest; with none available, `--fast` prints the virtualenv recipe, skips the suite locally, and fails under `CI`.
 - Backend Python (3.10+): `./scripts/init.sh --setup-python` builds the shared environment once per requirements change and links it as `backend/.venv` in every checkout and worktree. Start the local API: `./scripts/init.sh --backend` (links that environment if needed and launches Uvicorn). Android build: `./scripts/init.sh --android`; build, boot an emulator if needed, install, and launch: `./scripts/init.sh --android-run` (uses the first configured AVD when none is running). Launch Desktop: `./scripts/init.sh --desktop`.
-- Local smoke test (owner, needs `--local-rag-start` and a booted emulator): `./scripts/init.sh --local-smoke` prints one `PASS`/`FAIL` line for Desktop and the Android emulator, then a `Result:` line; steps in [`docs/owner-guide.md`](docs/owner-guide.md).
-- Mock answer service (no Python): `./scripts/init.sh --mock` starts it in the background on the apps' default address and prints it, `--mock-status` reports it, `--mock-stop` stops it; owner steps in [`docs/owner-guide.md`](docs/owner-guide.md).
+- Local smoke test (owner, needs `--local-rag-start` and a booted emulator): `./scripts/init.sh --local-smoke` prints one `PASS`/`FAIL` line for Desktop and the Android emulator, then a `Result:` line; steps in [`docs/owner-guide/local-checks.md`](docs/owner-guide/local-checks.md).
+- Mock answer service (no Python): `./scripts/init.sh --mock` starts it in the background on the apps' default address and prints it, `--mock-status` reports it, `--mock-stop` stops it; owner steps in [`docs/owner-guide/mock-service.md`](docs/owner-guide/mock-service.md).
 - Output is compact: one line per passing check and the tail of a failing log; full logs stay in `build/verify-logs/` (`MANIJERO_VERBOSE=1` prints them inline, `MANIJERO_FAIL_TAIL=<n>` sets the tail length).
 - The offline checks pin `--as-of 2026-10-13` so runs are deterministic; override with `MANIJERO_AS_OF=YYYY-MM-DD`.
 

@@ -7,7 +7,7 @@
 ## Independent verification
 
 - Validators: focused block (9 command lines), `CI=true ./scripts/init.sh --fast`, and `--verify` passed offline with fakes and temporary homes, and the [appendix](../specs/local_end_to_end_smoke.appendix.md#validator-checklist) checklist was reviewed. Two owner-walkthrough defects were repaired and revalidated. Repair 2: Java resolution, which no longer accepts Apple's `/usr/bin/java` stub. Repair 3: `espresso-core` 3.5.0 → 3.7.0 for API 34+, with an offline version guard.
-- Owner walkthrough ([owner guide](../owner-guide.md#owner-walkthrough-local-smoke-test)) on the owner's Mac, emulator `Medium_Phone_API_37.0`, Java from the scripts' own resolution:
+- Owner walkthrough ([owner guide](../owner-guide/local-checks.md#owner-walkthrough-local-smoke-test)) on the owner's Mac, emulator `Medium_Phone_API_37.0`, Java from the scripts' own resolution:
   - Step 3 printed `PASS` for Desktop and the Android emulator, then the passed `Result:` line.
   - Step 4, with the service stopped, printed the "did not run … `--local-rag-start`" result.
   - Step 5 passed again.

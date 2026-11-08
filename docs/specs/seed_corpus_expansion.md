@@ -91,7 +91,7 @@ No new screen, control, or layout. The only possible UI effect is the pinned cov
 - `docs/constraints/answers-and-knowledge.md`: not needed — the existing Campaign scope, Coverage disclosure, and Knowledge updates rules already require current/unexpired sources, the human merge gate, and same-change disclosure updates. Add a rule only if implementation establishes a new durable invariant.
 - `AGENTS.md`: not needed — startup path, workflow, and repo-wide rules do not change.
 - `knowledge/pac_coverage.md`, `knowledge/README.md`, `docs/risks-and-open-questions.md`, `PROGRESS.md`, `docs/progress/known-limitations.md`: update with the exact corpus boundary, verdicts, and limits.
-- `docs/owner-guide.md`: not needed — no owner-run command changes; rebuilding a local release after a corpus change remains the existing setup procedure.
+- `docs/owner-guide/`: not needed — no owner-run command changes; rebuilding a local release after a corpus change remains the existing setup procedure.
 
 ## Focused verification
 

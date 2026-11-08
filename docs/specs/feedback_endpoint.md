@@ -93,7 +93,7 @@ UI involved: no. The shared chat control, Spanish labels, and accessibility beha
 - `backend/README.md`: update — an "Answer feedback" section of at most 30 lines: request shape, `204`, profile gate, metric, and limits.
 - `docs/progress/known-limitations.md`: update — one line: anonymous unlinked rating, per-process counts, no durable feedback store or export, no idempotency (a retry counts again), and the pending review does not yet name feedback.
 - `docs/risks-and-open-questions.md`: update — the existing "Feedback and non-content operational trace retention" line notes the fixed-rating implementation and that durable feedback retention remains undecided.
-- `docs/owner-guide.md`, `docs/domain-model.md`, `docs/constraints/client-chat.md`: not needed — no owner command, domain record, or client behavior in this feature.
+- `docs/owner-guide/`, `docs/domain-model.md`, `docs/constraints/client-chat.md`: not needed — no owner command, domain record, or client behavior in this feature.
 
 ## Focused verification (required)
 

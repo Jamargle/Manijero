@@ -90,7 +90,7 @@ Given a rated answer · When the app is restarted, the transcript is replayed in
 - `shared/src/jvmTest/.../screenshots/ChatHomeScreenshotsTest.kt`, `shared/src/androidHostTest/.../ChatHomeAndroidScreenshotsTest.kt` — modify; one new `chat_feedback_sent_dark` capture per host.
 - `shared/src/jvmTest/screenshots/`, `shared/src/androidHostTest/screenshots/` — replace the answered/abstained chat goldens the new row changes; add `chat_feedback_sent_dark.png` on both hosts.
 - Docs: `DESIGN.md`, `ARCHITECTURE.md`, `docs/constraints/client-chat.md`, `docs/screenshot-regression.md`, `docs/progress/known-limitations.md` — see below.
-- Not changed: `App.kt`, platform entry points, `backend/`, `contracts/`, `knowledge/`, `shared/src/jvmTest/.../mock/`, `design/` and `theme/` tokens, `docs/owner-guide.md`, `backend/README.md`.
+- Not changed: `App.kt`, platform entry points, `backend/`, `contracts/`, `knowledge/`, `shared/src/jvmTest/.../mock/`, `design/` and `theme/` tokens, `docs/owner-guide/`, `backend/README.md`.
 
 ## Visual design impact
 
@@ -103,7 +103,7 @@ UI involved: yes — the assistant surface (`DESIGN.md` "Assistant surface (adop
 - `DESIGN.md`: update — the assistant-surface feedback row: placement, the two plain labels, the confirmation and retry copy, no checkmark/colour-only marking.
 - `docs/screenshot-regression.md`: update — the chat row and the host totals after recording, and the note that the answered/abstained chat goldens changed by intent.
 - `docs/progress/known-limitations.md`: update — one line: anonymous unlinked in-memory rating, per-process counts, no persistence across restarts, mock service has no `/feedback`.
-- `AGENTS.md`, `docs/owner-guide.md`, `backend/README.md`, `docs/pilot-privacy.md`, `docs/risks-and-open-questions.md`: not needed — no workflow change, no owner command or walkthrough (owner decision), the endpoint is already documented and the privacy row already names the rating.
+- `AGENTS.md`, `docs/owner-guide/`, `backend/README.md`, `docs/pilot-privacy.md`, `docs/risks-and-open-questions.md`: not needed — no workflow change, no owner command or walkthrough (owner decision), the endpoint is already documented and the privacy row already names the rating.
 
 ## Focused verification (required)
 
