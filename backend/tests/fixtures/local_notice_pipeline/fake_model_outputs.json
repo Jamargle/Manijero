@@ -1,0 +1,28 @@
+{
+  "notice-001.txt": {
+    "vocabulary": [
+      {"colloquial": "la PAC", "standard": "solicitud única de la PAC"},
+      {"colloquial": "los papeles", "standard": "documentación de la solicitud"},
+      {"colloquial": "el cuaderno", "standard": "cuaderno de explotación"}
+    ],
+    "questions": ["¿Qué papeles hay que llevar a la cooperativa para la PAC?"]
+  },
+  "notice-002.txt": {
+    "vocabulary": [
+      {"colloquial": "los papeles", "standard": "documentación de la solicitud"},
+      {"colloquial": "la ayuda del olivar", "standard": "ayuda para el cultivo del olivar"},
+      {"colloquial": "los recintos", "standard": "recintos del SIGPAC"}
+    ],
+    "questions": [
+      "¿Qué papeles hay que llevar a la cooperativa para la PAC?",
+      "¿Cómo se declara la cosecha de aceituna?"
+    ]
+  },
+  "notice-003.txt": {
+    "vocabulary": [
+      {"colloquial": "la firma del trámite", "standard": "firma electrónica de la solicitud"},
+      {"colloquial": "la aplicación del móvil", "standard": "aplicación móvil de la administración"}
+    ],
+    "questions": ["¿Cómo puedo firmar la solicitud desde el móvil?"]
+  }
+}
