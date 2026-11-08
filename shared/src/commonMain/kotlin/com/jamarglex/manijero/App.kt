@@ -267,23 +267,26 @@ fun App(
         privacyReturn = privacyReturn,
         coverageReturn = coverageReturn,
     )
-    if (systemBackTarget != null) {
-        BackHandler {
-            if (systemBackTarget == AppDestination.LandList) {
-                addLandState = AddLandState()
-                editLandState = null
-                removeLandState = null
-                permanentlyDeleteLandState = null
-            }
-            if (systemBackTarget == AppDestination.RemovedLands) {
-                permanentlyDeleteLandState = null
-            }
-            destination = systemBackTarget
-            // Back to a top-level tab also makes it the remembered section, so a later `Ayuda`
-            // return, and the selected tab, agree with the screen the person is actually on.
-            previousSection = rememberedSectionAfterBack(systemBackTarget, previousSection)
+    // System back and the top bar's up arrow share one route step.
+    val goBack: (AppDestination) -> Unit = { target ->
+        if (target == AppDestination.LandList) {
+            addLandState = AddLandState()
+            editLandState = null
+            removeLandState = null
+            permanentlyDeleteLandState = null
         }
+        if (target == AppDestination.RemovedLands) {
+            permanentlyDeleteLandState = null
+        }
+        destination = target
+        // Back to a top-level tab also makes it the remembered section, so a later `Ajustes`
+        // return, and the selected tab, agree with the screen the person is actually on.
+        previousSection = rememberedSectionAfterBack(target, previousSection)
     }
+    if (systemBackTarget != null) {
+        BackHandler { goBack(systemBackTarget) }
+    }
+    val upTarget = systemBackTarget?.takeIf { showsUpNavigation(destination) }
 
     // One shared theme and one shell for every destination; the platform entry points stay
     // theme-free. The shell owns the bars, the section callbacks and the window insets.
@@ -293,6 +296,7 @@ fun App(
             landsAvailable = landRepository != null,
             navigationVisible = navigationVisible(destination),
             onSectionSelect = openSection,
+            onBack = upTarget?.let { target -> { goBack(target) } },
         ) {
             when (destination) {
                 AppDestination.Chat -> ChatHomeScreen(

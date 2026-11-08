@@ -182,7 +182,7 @@ contract.
 
 ### Icon set
 
-- Sixteen outline glyphs. A screen needing another glyph extends the inventory in its own feature
+- Seventeen outline glyphs (`ic_settings`, a gear for the `Ajustes` tab, added 2026-11-08). A screen needing another glyph extends the inventory in its own feature
   instead of drawing a path inline.
 - Geometry: 24 dp on a 24×24 viewport, 2 dp stroke, round caps and joins, no fill, content inside the
   2–22 dp safe area. Sizes: 24 dp default, 20 dp inline (`ManijeroIconSize.Default` / `Inline`); never
@@ -265,11 +265,14 @@ them; feature specs own screen-specific behavior.
   must not add another `Volver` or `Mis terrenos` route. The bars are hidden on add/edit/remove forms
   and the `Borrar para siempre` confirmation, which keep their own `Cancelar`; privacy,
   `Terrenos eliminados`, `Ayuda` and `Copia en un archivo` stay detail routes with their own
-  `Volver`, so their bars remain visible. `Ajustes` opens with the `Ayúdanos a mejorar` section (an
+  `Volver`, so their bars remain visible. Every route except the three tab screens also shows an up
+  arrow (`ic_back`, named `Volver`, 48 dp) at the start of the top bar, like other phone apps; it
+  goes exactly where system back goes. `Ajustes` (tab icon `ic_settings`) opens with the
+  `Ayúdanos a mejorar` section (an
   outlined card with a real heading, one labelled switch row announced as a switch, and four plain
   lines: starts off, what is and is never kept, stays on until turned off, 30-day deletion), followed
-  by whole-card buttons: `Ayuda` (always) and `Copia en un archivo` (only with a local store and a file picker; it is no longer offered on
-  `Mis terrenos`). `Ayuda` and `Copia en un archivo` sit under the `Ajustes` tab; `Ayuda` can also be
+  by whole-card buttons: `Copia en un archivo` (only with a local store and a file picker; it is no longer offered on
+  `Mis terrenos`), then `Ayuda` (always). `Ayuda` and `Copia en un archivo` sit under the `Ajustes` tab; `Ayuda` can also be
   opened from the chat footer and the privacy notice. `Conexión` is a test-build-only detail route
   from `Ayuda`, has its own `Volver`, and back returns to `Ayuda`.
   Android system back returns lands → assistant, a form → lands, `Terrenos eliminados` → lands,
@@ -326,12 +329,13 @@ component layer. These rules are durable:
   `Preguntar`, disabled while blank, over the limit or submitting. It is the one icon-only primary
   action in the app; its name is still the plain verb.
 - **Retention (`Ayúdanos a mejorar`, owner decision 2026-11-08).** Below the field, inside the
-  pinned bar, sits one short row: a checkbox (its own 48 dp control, named `Ayúdanos a mejorar:
-  guardar tus preguntas y respuestas`) and the underlined label `Ayúdanos a mejorar`, a separate
-  link that opens `Ajustes`. The full explanation lives only there. It is the same standing,
-  off-by-default value as the `Ajustes` switch; ticking it never sends and sending keeps it. The row
-  shows only while the choice is off: once ticked it disappears from the chat, and the choice can
-  only be turned off with the `Ajustes` switch.
+  pinned bar, sits one short row: the underlined label `Ayúdanos a mejorar` on the left, a separate
+  link that opens `Ajustes`, and a switch on the right (its own 48 dp control, named `Ayúdanos a
+  mejorar: guardar tus preguntas y respuestas`). The full explanation lives only in `Ajustes`. It is
+  the same standing, off-by-default value as the `Ajustes` switch; turning it on never sends and
+  sending keeps it. The row shows only while the choice is off: once on it is replaced by one
+  centred `labelSmall`/`onSurfaceVariant` line, `Tus preguntas se guardan temporalmente` (plain
+  text, not interactive), and the choice can only be turned off with the `Ajustes` switch.
 - **Footer.** The privacy summary is always present at the end of the scrolling content; the two
   icon + label footer actions appear only when their callbacks are wired.
 - **Land chooser.** The clarification chooser is an outlined card with the accepted title,
@@ -343,7 +347,7 @@ component layer. These rules are durable:
   `titleMedium` title without heading semantics, four `bodyLarge` lines, and one `OutlinedButton`
   `Entendido`. It blocks nothing and pushes the hero down on compact screens.
 - **Compact layout.** At 360×800 dp with both shell bars, the pinned field, send button and
-  `Ayúdanos a mejorar` row (while off) are always on screen; the privacy summary needs a scroll below the
+  `Ayúdanos a mejorar` row (or, while on, its one-line reminder) are always on screen; the privacy summary needs a scroll below the
   suggestions. At 2× text the pinned bar may reach its half-screen cap and scroll on its own.
 - **Answer feedback row.** Every finished answer (`answered` or `abstained`) carries one quiet row
   directly below the card and its source cards and above `Inspeccionar`: two neutral outlined

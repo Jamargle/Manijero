@@ -1,6 +1,7 @@
 package com.jamarglex.manijero.chat
 
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.layout.Column
@@ -15,7 +16,7 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.relocation.BringIntoViewRequester
 import androidx.compose.foundation.relocation.bringIntoViewRequester
 import androidx.compose.material3.AssistChip
-import androidx.compose.material3.Checkbox
+import androidx.compose.material3.Switch
 import androidx.compose.material3.FilledIconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
@@ -31,6 +32,7 @@ import androidx.compose.ui.semantics.LiveRegionMode
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.heading
 import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.platform.testTag
@@ -56,7 +58,8 @@ import manijero.shared.generated.resources.chat_home_privacy_summary
 import manijero.shared.generated.resources.chat_home_question_hint
 import manijero.shared.generated.resources.chat_home_question_label
 import manijero.shared.generated.resources.chat_home_question_too_long
-import manijero.shared.generated.resources.chat_home_retention_checkbox
+import manijero.shared.generated.resources.chat_home_retention_active
+import manijero.shared.generated.resources.chat_home_retention_switch
 import manijero.shared.generated.resources.chat_home_retention_label
 import manijero.shared.generated.resources.chat_home_retention_link
 import manijero.shared.generated.resources.chat_home_suggestion_condicionalidad
@@ -336,7 +339,9 @@ private fun ChatComposer(
     }
     // Once `Ayúdanos a mejorar` is on, the chat no longer offers it: it can only be turned off in
     // `Ajustes` (owner decision 2026-11-08).
-    if (!state.retainQuestions) {
+    if (state.retainQuestions) {
+        RetentionActiveNotice()
+    } else {
         RetentionChoice(
             onCheckedChange = { onAction(ChatHomeAction.RetentionChoiceChanged(it)) },
             onInfoClick = onRetentionInfoClick,
@@ -351,51 +356,72 @@ private val ComposerSendButtonSize = 56.dp
 private val ComposerErrorLineHeight = 20.dp
 
 /**
- * The short `Ayúdanos a mejorar` choice, shown only while it is off: ticking it turns on the same
- * standing permission as the switch in `Ajustes`, after which the row is hidden and the choice can
- * only be turned off there.
- * The checkbox is its own 48 dp control, announced as a checkbox with its state and a name that
- * says what it saves. The visible label is a separate link to the `Ajustes` section that explains
- * the full purpose (what is kept, what is never kept, and the 30-day deletion); without
- * [onInfoClick] (previews, the iOS scaffold) the label is plain text. Ticking it never sends.
+ * The short `Ayúdanos a mejorar` choice, shown only while it is off: turning the switch on enables
+ * the same standing permission as the switch in `Ajustes`, after which this row is replaced by
+ * [RetentionActiveNotice] and the choice can only be turned off there.
+ *
+ * The visible label sits on the left as a separate link to the `Ajustes` section that explains the
+ * full purpose (what is kept, what is never kept, and the 30-day deletion); without [onInfoClick]
+ * (previews, the iOS scaffold) it is plain text. The switch sits on the right as its own 48 dp
+ * control, announced as a switch with its state and a name that says what it saves. Turning it on
+ * never sends.
  */
 @Composable
 private fun RetentionChoice(
     onCheckedChange: (Boolean) -> Unit,
     onInfoClick: (() -> Unit)?,
 ) {
-    val checkboxName = stringResource(Res.string.chat_home_retention_checkbox)
+    val switchName = stringResource(Res.string.chat_home_retention_switch)
+    val label = stringResource(Res.string.chat_home_retention_label)
     Row(
         modifier = Modifier.fillMaxWidth(),
         verticalAlignment = Alignment.CenterVertically,
     ) {
-        Checkbox(
-            // Shown only while off: ticking it turns the choice on and the row disappears.
-            checked = false,
-            onCheckedChange = onCheckedChange,
-            modifier = Modifier.semantics { contentDescription = checkboxName },
-        )
-        val label = stringResource(Res.string.chat_home_retention_label)
-        if (onInfoClick != null) {
-            val linkName = stringResource(Res.string.chat_home_retention_link)
-            TextButton(
-                onClick = onInfoClick,
-                modifier = Modifier.semantics { contentDescription = linkName },
-            ) {
+        // The label takes the free width (start-aligned) so the switch always sits at the end.
+        Box(modifier = Modifier.weight(1f), contentAlignment = Alignment.CenterStart) {
+            if (onInfoClick != null) {
+                val linkName = stringResource(Res.string.chat_home_retention_link)
+                TextButton(
+                    onClick = onInfoClick,
+                    modifier = Modifier.semantics { contentDescription = linkName },
+                ) {
+                    Text(
+                        text = label,
+                        style = MaterialTheme.typography.bodyMedium,
+                        textDecoration = TextDecoration.Underline,
+                    )
+                }
+            } else {
                 Text(
                     text = label,
                     style = MaterialTheme.typography.bodyMedium,
-                    textDecoration = TextDecoration.Underline,
+                    modifier = Modifier.padding(start = ManijeroSpacing.Compact),
                 )
             }
-        } else {
-            Text(
-                text = label,
-                style = MaterialTheme.typography.bodyMedium,
-                modifier = Modifier.padding(start = ManijeroSpacing.Compact),
-            )
         }
+        Switch(
+            // Shown only while off: turning it on enables the choice and the row disappears.
+            checked = false,
+            onCheckedChange = onCheckedChange,
+            modifier = Modifier.semantics { contentDescription = switchName },
+        )
     }
+}
+
+/**
+ * The one small line shown while `Ayúdanos a mejorar` is on, so the person always knows their
+ * questions are being kept. Plain `labelSmall` text, centred, no icon or colour cue, and not
+ * interactive: the choice is changed in `Ajustes`.
+ */
+@Composable
+private fun RetentionActiveNotice() {
+    Text(
+        text = stringResource(Res.string.chat_home_retention_active),
+        style = MaterialTheme.typography.labelSmall,
+        color = MaterialTheme.colorScheme.onSurfaceVariant,
+        textAlign = TextAlign.Center,
+        modifier = Modifier.fillMaxWidth(),
+    )
 }
 
 /**

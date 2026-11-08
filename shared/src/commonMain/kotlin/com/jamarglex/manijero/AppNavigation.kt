@@ -118,6 +118,19 @@ internal fun navigationVisible(destination: AppDestination): Boolean = when (des
 }
 
 /**
+ * Whether the top bar shows the up arrow. The three top-level tab screens do not (the tabs are
+ * their navigation); every other route does, and the arrow goes where system back goes.
+ */
+internal fun showsUpNavigation(destination: AppDestination): Boolean = when (destination) {
+    AppDestination.Chat,
+    AppDestination.LandList,
+    AppDestination.Settings,
+    -> false
+
+    else -> true
+}
+
+/**
  * The route Android system back goes to, or `null` to let the host close the app.
  *
  * [previousSection] is the last section other than `Ajustes`; [privacyReturn] and [coverageReturn]

@@ -4,8 +4,9 @@
     <string name="nav_lands">Mis terrenos</string>
     <string name="nav_help">Ayuda</string>
     <string name="nav_settings">Ajustes</string>
+    <string name="nav_back">Volver</string>
     <string name="settings_title">Ajustes</string>
-    <string name="settings_intro">Aquí decides si nos ayudas a mejorar, y tienes la ayuda de la app y la copia de tus terrenos.</string>
+    <string name="settings_intro">Aquí decides si nos ayudas a mejorar, y tienes la copia de tus terrenos y la ayuda de la app.</string>
     <string name="settings_help_description">Qué puedes preguntar, lo que no responde y cómo se usan tus datos.</string>
     <string name="settings_improvement_title">Ayúdanos a mejorar</string>
     <string name="settings_improvement_switch">Guardar mis preguntas y respuestas para mejorar Manijero</string>
@@ -188,7 +189,8 @@
     <string name="chat_home_question_hint">Por ejemplo: ¿Qué necesito preparar para la solicitud única?</string>
     <string name="chat_home_ask">Preguntar</string>
     <string name="chat_home_retention_label">Ayúdanos a mejorar</string>
-    <string name="chat_home_retention_checkbox">Ayúdanos a mejorar: guardar tus preguntas y respuestas</string>
+    <string name="chat_home_retention_switch">Ayúdanos a mejorar: guardar tus preguntas y respuestas</string>
+    <string name="chat_home_retention_active">Tus preguntas se guardan temporalmente</string>
     <string name="chat_home_retention_link">Qué se guarda con «Ayúdanos a mejorar»</string>
     <string name="chat_home_lands">Mis terrenos</string>
     <string name="chat_speaker_you">Tú</string>

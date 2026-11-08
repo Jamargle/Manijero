@@ -163,7 +163,7 @@ class ChatHomeInteractionTest {
         }
 
     @Test
-    fun retentionChoiceIsUncheckedSeparateAndLinksToSettings() =
+    fun retentionSwitchIsOffSeparateLinksToSettingsAndLeavesAReminder() =
         runDesktopComposeUiTest(width = 900, height = 1200) {
             val actions = mutableListOf<ChatHomeAction>()
             var state by mutableStateOf(ChatHomeState(question = "¿Puedo regar hoy?"))
@@ -183,13 +183,16 @@ class ChatHomeInteractionTest {
                 }
             }
 
-            val checkbox = "Ayúdanos a mejorar: guardar tus preguntas y respuestas"
-            onNode(hasContentDescription(checkbox) and isToggleable()).assertIsOff().performClick()
+            val switch = "Ayúdanos a mejorar: guardar tus preguntas y respuestas"
+            onNodeWithText("Tus preguntas se guardan temporalmente").assertDoesNotExist()
+            onNode(hasContentDescription(switch) and isToggleable()).assertIsOff().performClick()
 
             assertEquals(listOf<ChatHomeAction>(ChatHomeAction.RetentionChoiceChanged(true)), actions)
-            // Once on, the chat no longer offers it; it is turned off only in Ajustes.
-            onNode(hasContentDescription(checkbox)).assertDoesNotExist()
+            // Once on, the chat no longer offers it (it is turned off only in Ajustes) and shows the
+            // one small reminder line instead.
+            onNode(hasContentDescription(switch)).assertDoesNotExist()
             onNodeWithText("Ayúdanos a mejorar").assertDoesNotExist()
+            onNodeWithText("Tus preguntas se guardan temporalmente").assertExists()
             onNodeWithContentDescription("Preguntar").assertIsEnabled()
 
             // While off, the short label is a separate link to Ajustes; it never toggles.

@@ -27,9 +27,10 @@ import com.jamarglex.manijero.theme.ManijeroTheme
 import manijero.shared.generated.resources.Res
 import manijero.shared.generated.resources.app_title
 import manijero.shared.generated.resources.ic_chat
-import manijero.shared.generated.resources.ic_help
+import manijero.shared.generated.resources.ic_settings
 import manijero.shared.generated.resources.ic_lands
 import manijero.shared.generated.resources.nav_assistant
+import manijero.shared.generated.resources.nav_back
 import manijero.shared.generated.resources.nav_settings
 import manijero.shared.generated.resources.nav_lands
 import org.jetbrains.compose.resources.stringResource
@@ -43,6 +44,9 @@ import org.jetbrains.compose.resources.stringResource
  * remaining scaffold padding to [content]. It owns the navigation copy and section callbacks; the
  * screens it hosts keep their own state, copy, padding and scroll.
  *
+ * [onBack], when given, shows the up arrow at the start of the top bar; the composition root passes
+ * it on every detail route and the forms, and omits it on the three top-level tabs.
+ *
  * When [navigationVisible] is false (a land form holds unsaved input) only the top app bar remains.
  * The top app bar deliberately exposes no right-side action: privacy stays reachable from the chat
  * footer and the help screen under `Ajustes`.
@@ -54,6 +58,7 @@ internal fun AppShell(
     navigationVisible: Boolean,
     onSectionSelect: (AppSection) -> Unit,
     modifier: Modifier = Modifier,
+    onBack: (() -> Unit)? = null,
     content: @Composable () -> Unit,
 ) {
     val sections = availableSections(landsAvailable)
@@ -76,7 +81,11 @@ internal fun AppShell(
             topBar = {
                 Surface(color = MaterialTheme.colorScheme.surfaceContainerLowest) {
                     Column(modifier = Modifier.statusBarsPadding()) {
-                        ManijeroTopAppBar(title = stringResource(Res.string.app_title))
+                        ManijeroTopAppBar(
+                            title = stringResource(Res.string.app_title),
+                            onBack = onBack,
+                            backDescription = stringResource(Res.string.nav_back),
+                        )
                     }
                 }
             },
@@ -127,8 +136,7 @@ private fun AppSection.labelResource() = when (this) {
 private fun AppSection.iconResource() = when (this) {
     AppSection.Assistant -> Res.drawable.ic_chat
     AppSection.Lands -> Res.drawable.ic_lands
-    // Placeholder glyph until the settings icon is chosen with the owner.
-    AppSection.Settings -> Res.drawable.ic_help
+    AppSection.Settings -> Res.drawable.ic_settings
 }
 
 // Preview sample only, never shipped copy.

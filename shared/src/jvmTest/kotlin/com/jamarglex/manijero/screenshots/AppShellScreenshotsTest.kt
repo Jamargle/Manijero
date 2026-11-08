@@ -5,6 +5,7 @@ import com.jamarglex.manijero.AppSection
 import com.jamarglex.manijero.AppShell
 import com.jamarglex.manijero.chat.ChatHomeScreen
 import com.jamarglex.manijero.settings.SettingsScreen
+import com.jamarglex.manijero.coverage.CoverageScreen
 import com.jamarglex.manijero.lands.LandListScreen
 import com.jamarglex.manijero.theme.ManijeroTheme
 import kotlin.test.Test
@@ -39,6 +40,16 @@ class AppShellScreenshotsTest : ScreenshotTestSupport() {
     fun appShellHelpRailLight() =
         capture(name = "app_shell_settings_rail_light", width = 900, height = LAND_HEIGHT) {
             ManijeroTheme(darkTheme = false) { SettingsShell() }
+        }
+
+    @Test
+    fun appShellHelpCompactWithUpArrow() =
+        capture(
+            name = "app_shell_help_compact_up_light",
+            width = PHONE_WIDTH,
+            height = PHONE_HEIGHT,
+        ) {
+            ManijeroTheme(darkTheme = false) { HelpDetailShell() }
         }
 
     @Test
@@ -82,12 +93,24 @@ private fun SettingsShell() {
 }
 
 @Composable
-private fun ShellFrame(section: AppSection, content: @Composable () -> Unit) {
+private fun HelpDetailShell() {
+    ShellFrame(AppSection.Settings, onBack = {}) {
+        CoverageScreen(onPrivacyClick = {}, onBack = {})
+    }
+}
+
+@Composable
+private fun ShellFrame(
+    section: AppSection,
+    onBack: (() -> Unit)? = null,
+    content: @Composable () -> Unit,
+) {
     AppShell(
         selectedSection = section,
         landsAvailable = true,
         navigationVisible = true,
         onSectionSelect = {},
+        onBack = onBack,
         content = content,
     )
 }

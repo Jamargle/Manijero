@@ -281,6 +281,14 @@ class AppNavigationTest {
     }
 
     @Test
+    fun `the up arrow shows on every route except the three tab screens`() {
+        val tabs = setOf(AppDestination.Chat, AppDestination.LandList, AppDestination.Settings)
+        AppDestination.entries.forEach { destination ->
+            assertEquals(destination !in tabs, showsUpNavigation(destination), destination.name)
+        }
+    }
+
+    @Test
     fun `no back route points at the screen it leaves`() {
         AppDestination.entries.forEach { destination ->
             AppSection.entries.forEach { previousSection ->

@@ -8,6 +8,7 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.IconButton
@@ -25,6 +26,7 @@ import com.jamarglex.manijero.theme.ManijeroLayout
 import com.jamarglex.manijero.theme.ManijeroSpacing
 import com.jamarglex.manijero.theme.ManijeroTheme
 import manijero.shared.generated.resources.Res
+import manijero.shared.generated.resources.ic_back
 import manijero.shared.generated.resources.ic_info
 
 /**
@@ -38,6 +40,10 @@ import manijero.shared.generated.resources.ic_info
  * indication. The action is omitted when [onPrivacyClick] is null or when the caller supplies no
  * name at all, because an unnamed interactive control is not acceptable.
  *
+ * When [onBack] and its accessible name [backDescription] are given, an up arrow (`ic_back` in a
+ * 48 dp `IconButton`) leads the bar, like the back arrow of other phone apps. It is omitted without
+ * a name, because an unnamed interactive control is not acceptable.
+ *
  * The bar owns no window insets; the shell's `Scaffold` will own them.
  */
 @Composable
@@ -47,6 +53,8 @@ internal fun ManijeroTopAppBar(
     onPrivacyClick: (() -> Unit)? = null,
     privacyLabel: String? = null,
     privacyDescription: String? = null,
+    onBack: (() -> Unit)? = null,
+    backDescription: String? = null,
 ) {
     val actionName = privacyDescription ?: privacyLabel
     Surface(
@@ -68,6 +76,17 @@ internal fun ManijeroTopAppBar(
                     verticalAlignment = Alignment.CenterVertically,
                     horizontalArrangement = Arrangement.spacedBy(ManijeroSpacing.Small),
                 ) {
+                    if (onBack != null && backDescription != null) {
+                        IconButton(
+                            onClick = onBack,
+                            modifier = Modifier.size(ManijeroLayout.MinTouchTarget),
+                        ) {
+                            ManijeroIcon(
+                                resource = Res.drawable.ic_back,
+                                contentDescription = backDescription,
+                            )
+                        }
+                    }
                     ManijeroBrandMark()
                     Text(
                         text = title,
@@ -123,6 +142,7 @@ private fun ManijeroTopAppBarPreviewFrame(dark: Boolean) {
                     privacyDescription = "Privacidad",
                 )
                 ManijeroTopAppBar(title = "Manijero")
+                ManijeroTopAppBar(title = "Manijero", onBack = {}, backDescription = "Volver")
             }
         }
     }

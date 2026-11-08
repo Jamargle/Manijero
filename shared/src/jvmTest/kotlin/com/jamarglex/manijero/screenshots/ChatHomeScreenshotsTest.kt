@@ -35,6 +35,22 @@ class ChatHomeScreenshotsTest : ScreenshotTestSupport() {
                     onAction = {},
                     onPrivacyClick = {},
                     onCoverageClick = {},
+                    onRetentionInfoClick = {},
+                )
+            }
+        }
+
+    /** `Ayúdanos a mejorar` on: the switch row is replaced by the one small reminder line. */
+    @Test
+    fun chatHomeSavingOnLightPhone() =
+        capture(name = "chat_home_saving_on_light_phone", width = PHONE_WIDTH, height = PHONE_HEIGHT) {
+            ManijeroTheme(darkTheme = false) {
+                ChatHomeScreen(
+                    state = ScreenshotFixtures.idleChat.copy(retainQuestions = true),
+                    onAction = {},
+                    onPrivacyClick = {},
+                    onCoverageClick = {},
+                    onRetentionInfoClick = {},
                 )
             }
         }
