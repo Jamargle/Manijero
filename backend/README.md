@@ -2636,6 +2636,23 @@ candidate reference (8 s) is context only, and the numbers are one Mac's evidenc
 capacity or a pass/fail result; the service can silently switch to extractive answers at its 10 s
 draft timeout or 30 requests/minute limit, so a low p95 can hide drafting.
 
+### Golden question queue
+
+`knowledge/golden_set.json` (`golden-set-v1`, loader `app/golden_set.py`) holds 40-60 agent-drafted
+questions beside `pac_answer_eval.json`; no gate, release, review, demo, or load code reads it.
+Owner steps are in [`docs/owner-guide.md`](../docs/owner-guide.md): `./scripts/init.sh --golden-review`
+lists the waiting items and `--golden-decide approve|reject "<name>" <number-or-id>...` records a
+decision (atomic rewrite; bad input records nothing; one `Result:` line each; raw errors in
+`build/golden-review/last-error.log`).
+
+- Developer check (exit 0/1, one line per failure): `python backend/scripts/golden_review.py check
+  --catalog knowledge/source_catalog.json --passages knowledge/passages.json --cases
+  knowledge/pac_answer_eval.json --golden knowledge/golden_set.json`. It proves every anchor and
+  fact is an exact quote of an approved, current passage and enforces the distribution minimums.
+- Scoring: `evaluate_pac_answers.py ... --golden knowledge/golden_set.json` adds only `approved`
+  items to the cases (`review.role = author_only`) and `additional_areas` to the coverage, and adds
+  `golden: {approved, draft, rejected}`. Without the flag the output is unchanged.
+
 ### Demo rehearsal
 
 `./scripts/init.sh --demo-rehearsal` (owner steps in [`docs/owner-guide.md`](../docs/owner-guide.md),

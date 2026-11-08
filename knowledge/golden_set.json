@@ -1,0 +1,1762 @@
+{
+  "schema_version": "golden-set-v1",
+  "additional_areas": [
+    {
+      "id": "definicion-recinto-sigpac",
+      "kind": "topic",
+      "label": "Definición de recinto SIGPAC"
+    },
+    {
+      "id": "notificacion-electronica",
+      "kind": "topic",
+      "label": "Notificaciones preferentemente por medios electrónicos"
+    },
+    {
+      "id": "rectificacion-errores",
+      "kind": "topic",
+      "label": "Rectificación de errores materiales de la Administración"
+    }
+  ],
+  "items": [
+    {
+      "id": "golden-001",
+      "question_type": "procedure",
+      "segment": "transversal",
+      "area": "canal-presentacion",
+      "question": "¿Con qué herramienta se presentan las solicitudes de las ayudas de 2026 en Andalucía?",
+      "land_context": {
+        "mode": "general",
+        "lands": []
+      },
+      "expected_status": "answered",
+      "expected_source_ids": [
+        "res_20260121"
+      ],
+      "expected_passage_ids": [
+        "pasaje-canal-presentacion-andalucia"
+      ],
+      "critical_facts": [
+        "Sistema de Gestión de Ayudas (SGA)"
+      ],
+      "anchor": {
+        "source_id": "res_20260121",
+        "passage_id": "pasaje-canal-presentacion-andalucia",
+        "text": "mediante la herramienta informática Sistema de Gestión de Ayudas (SGA)"
+      },
+      "drafted": {
+        "by": "agent:golden_dataset_expansion",
+        "on": "2026-11-08"
+      },
+      "review_state": "approved",
+      "decision": {
+        "decision": "approved",
+        "reviewed_by": "Jose",
+        "reviewed_on": "2026-11-08"
+      }
+    },
+    {
+      "id": "golden-002",
+      "question_type": "procedure",
+      "segment": "transversal",
+      "area": "canal-presentacion",
+      "question": "¿Dónde puedo conseguir la herramienta para presentar la solicitud?",
+      "land_context": {
+        "mode": "general",
+        "lands": []
+      },
+      "expected_status": "answered",
+      "expected_source_ids": [
+        "res_20260121"
+      ],
+      "expected_passage_ids": [
+        "pasaje-canal-presentacion-andalucia"
+      ],
+      "critical_facts": [
+        "entidades reconocidas"
+      ],
+      "anchor": {
+        "source_id": "res_20260121",
+        "passage_id": "pasaje-canal-presentacion-andalucia",
+        "text": "disponible a través de las entidades reconocidas por la Consejería de Agricultura, Pesca, Agua y Desarrollo Rural"
+      },
+      "drafted": {
+        "by": "agent:golden_dataset_expansion",
+        "on": "2026-11-08"
+      },
+      "review_state": "approved",
+      "decision": {
+        "decision": "approved",
+        "reviewed_by": "Jose",
+        "reviewed_on": "2026-11-08"
+      }
+    },
+    {
+      "id": "golden-003",
+      "question_type": "procedure",
+      "segment": "secano-convencional",
+      "area": "canal-presentacion",
+      "question": "Tengo olivar de secano, ¿cómo presento la solicitud única?",
+      "land_context": {
+        "mode": "selected",
+        "lands": [
+          {
+            "id": "terreno-secano-1",
+            "water_regime": "dryland",
+            "production_method": "conventional"
+          }
+        ]
+      },
+      "expected_status": "answered",
+      "expected_source_ids": [
+        "res_20260121"
+      ],
+      "expected_passage_ids": [
+        "pasaje-canal-presentacion-andalucia"
+      ],
+      "critical_facts": [
+        "Sistema de Gestión de Ayudas (SGA)"
+      ],
+      "anchor": {
+        "source_id": "res_20260121",
+        "passage_id": "pasaje-canal-presentacion-andalucia",
+        "text": "Las solicitudes de las ayudas contempladas en la presente resolución se presentarán mediante la herramienta informática Sistema de Gestión de Ayudas (SGA), disponible a través de las entidades reconocidas por la Consejería de Agricultura, Pesca, Agua y Desarrollo Rural."
+      },
+      "drafted": {
+        "by": "agent:golden_dataset_expansion",
+        "on": "2026-11-08"
+      },
+      "review_state": "approved",
+      "decision": {
+        "decision": "approved",
+        "reviewed_by": "Jose",
+        "reviewed_on": "2026-11-08"
+      }
+    },
+    {
+      "id": "golden-004",
+      "question_type": "procedure",
+      "segment": "transversal",
+      "area": "notificacion-electronica",
+      "question": "¿Cómo se practican las notificaciones de la Administración?",
+      "land_context": {
+        "mode": "general",
+        "lands": []
+      },
+      "expected_status": "answered",
+      "expected_source_ids": [
+        "ley_39_2015"
+      ],
+      "expected_passage_ids": [
+        "pasaje-notificacion-preferencia-electronica"
+      ],
+      "critical_facts": [
+        "preferentemente por medios electrónicos"
+      ],
+      "anchor": {
+        "source_id": "ley_39_2015",
+        "passage_id": "pasaje-notificacion-preferencia-electronica",
+        "text": "Las notificaciones se practicarán preferentemente por medios electrónicos"
+      },
+      "drafted": {
+        "by": "agent:golden_dataset_expansion",
+        "on": "2026-11-08"
+      },
+      "review_state": "approved",
+      "decision": {
+        "decision": "approved",
+        "reviewed_by": "Jose",
+        "reviewed_on": "2026-11-08"
+      }
+    },
+    {
+      "id": "golden-005",
+      "question_type": "procedure",
+      "segment": "transversal",
+      "area": "notificacion-electronica",
+      "question": "¿Por qué medio me notifican si estoy obligado a recibir las notificaciones electrónicas?",
+      "land_context": {
+        "mode": "general",
+        "lands": []
+      },
+      "expected_status": "answered",
+      "expected_source_ids": [
+        "ley_39_2015"
+      ],
+      "expected_passage_ids": [
+        "pasaje-notificacion-preferencia-electronica"
+      ],
+      "critical_facts": [
+        "obligado a recibirlas por esta vía"
+      ],
+      "anchor": {
+        "source_id": "ley_39_2015",
+        "passage_id": "pasaje-notificacion-preferencia-electronica",
+        "text": "y, en todo caso, cuando el interesado resulte obligado a recibirlas por esta vía"
+      },
+      "drafted": {
+        "by": "agent:golden_dataset_expansion",
+        "on": "2026-11-08"
+      },
+      "review_state": "approved",
+      "decision": {
+        "decision": "approved",
+        "reviewed_by": "Jose",
+        "reviewed_on": "2026-11-08"
+      }
+    },
+    {
+      "id": "golden-006",
+      "question_type": "procedure",
+      "segment": "transversal",
+      "area": "rectificacion-errores",
+      "question": "¿Puede la Administración corregir un error material en un acto suyo?",
+      "land_context": {
+        "mode": "general",
+        "lands": []
+      },
+      "expected_status": "answered",
+      "expected_source_ids": [
+        "ley_39_2015"
+      ],
+      "expected_passage_ids": [
+        "pasaje-rectificacion-errores-materiales"
+      ],
+      "critical_facts": [
+        "errores materiales, de hecho o aritméticos"
+      ],
+      "anchor": {
+        "source_id": "ley_39_2015",
+        "passage_id": "pasaje-rectificacion-errores-materiales",
+        "text": "rectificar en cualquier momento, de oficio o a instancia de los interesados, los errores materiales, de hecho o aritméticos"
+      },
+      "drafted": {
+        "by": "agent:golden_dataset_expansion",
+        "on": "2026-11-08"
+      },
+      "review_state": "approved",
+      "decision": {
+        "decision": "approved",
+        "reviewed_by": "Jose",
+        "reviewed_on": "2026-11-08"
+      }
+    },
+    {
+      "id": "golden-007",
+      "question_type": "procedure",
+      "segment": "ecologico",
+      "area": "rectificacion-errores",
+      "question": "Si hay un error de cálculo en un acto de la Administración, ¿se puede corregir a petición del interesado?",
+      "land_context": {
+        "mode": "selected",
+        "lands": [
+          {
+            "id": "terreno-eco-1",
+            "water_regime": "dryland",
+            "production_method": "organic"
+          }
+        ]
+      },
+      "expected_status": "answered",
+      "expected_source_ids": [
+        "ley_39_2015"
+      ],
+      "expected_passage_ids": [
+        "pasaje-rectificacion-errores-materiales"
+      ],
+      "critical_facts": [
+        "a instancia de los interesados"
+      ],
+      "anchor": {
+        "source_id": "ley_39_2015",
+        "passage_id": "pasaje-rectificacion-errores-materiales",
+        "text": "a instancia de los interesados"
+      },
+      "drafted": {
+        "by": "agent:golden_dataset_expansion",
+        "on": "2026-11-08"
+      },
+      "review_state": "approved",
+      "decision": {
+        "decision": "approved",
+        "reviewed_by": "Jose",
+        "reviewed_on": "2026-11-08"
+      }
+    },
+    {
+      "id": "golden-008",
+      "question_type": "procedure",
+      "segment": "regadio-convencional",
+      "area": "definicion-recinto-sigpac",
+      "question": "¿Qué es un recinto SIGPAC?",
+      "land_context": {
+        "mode": "selected",
+        "lands": [
+          {
+            "id": "terreno-riego-1",
+            "water_regime": "irrigated",
+            "production_method": "conventional"
+          }
+        ]
+      },
+      "expected_status": "answered",
+      "expected_source_ids": [
+        "rd_1047_2022"
+      ],
+      "expected_passage_ids": [
+        "pasaje-definicion-recinto-sigpac"
+      ],
+      "critical_facts": [
+        "superficie continua de terreno"
+      ],
+      "anchor": {
+        "source_id": "rd_1047_2022",
+        "passage_id": "pasaje-definicion-recinto-sigpac",
+        "text": "Se define como una superficie continua de terreno, delimitada geográficamente, estable en el tiempo, medible, dentro de una parcela SIGPAC"
+      },
+      "drafted": {
+        "by": "agent:golden_dataset_expansion",
+        "on": "2026-11-08"
+      },
+      "review_state": "approved",
+      "decision": {
+        "decision": "approved",
+        "reviewed_by": "Jose",
+        "reviewed_on": "2026-11-08"
+      }
+    },
+    {
+      "id": "golden-009",
+      "question_type": "procedure",
+      "segment": "transversal",
+      "area": "definicion-recinto-sigpac",
+      "question": "¿Qué referencia tiene cada recinto SIGPAC?",
+      "land_context": {
+        "mode": "general",
+        "lands": []
+      },
+      "expected_status": "answered",
+      "expected_source_ids": [
+        "rd_1047_2022"
+      ],
+      "expected_passage_ids": [
+        "pasaje-definicion-recinto-sigpac"
+      ],
+      "critical_facts": [
+        "referencia alfanumérica única e inequívoca"
+      ],
+      "anchor": {
+        "source_id": "rd_1047_2022",
+        "passage_id": "pasaje-definicion-recinto-sigpac",
+        "text": "con una referencia alfanumérica única e inequívoca"
+      },
+      "drafted": {
+        "by": "agent:golden_dataset_expansion",
+        "on": "2026-11-08"
+      },
+      "review_state": "approved",
+      "decision": {
+        "decision": "approved",
+        "reviewed_by": "Jose",
+        "reviewed_on": "2026-11-08"
+      }
+    },
+    {
+      "id": "golden-010",
+      "question_type": "deadline",
+      "segment": "transversal",
+      "area": "plazo-presentacion",
+      "question": "¿Hasta qué día se puede presentar la solicitud única en Andalucía en 2026?",
+      "land_context": {
+        "mode": "general",
+        "lands": []
+      },
+      "expected_status": "answered",
+      "expected_source_ids": [
+        "dl_1_2026"
+      ],
+      "expected_passage_ids": [
+        "pasaje-plazo-presentacion-2026-andalucia"
+      ],
+      "critical_facts": [
+        "15 de mayo de 2026"
+      ],
+      "anchor": {
+        "source_id": "dl_1_2026",
+        "passage_id": "pasaje-plazo-presentacion-2026-andalucia",
+        "text": "se amplía el plazo de presentación de la solicitud única de ayudas hasta el 15 de mayo de 2026"
+      },
+      "drafted": {
+        "by": "agent:golden_dataset_expansion",
+        "on": "2026-11-08"
+      },
+      "review_state": "approved",
+      "decision": {
+        "decision": "approved",
+        "reviewed_by": "Jose",
+        "reviewed_on": "2026-11-08"
+      }
+    },
+    {
+      "id": "golden-011",
+      "question_type": "deadline",
+      "segment": "regadio-convencional",
+      "area": "plazo-presentacion",
+      "question": "Con una parcela de regadío, ¿cuál es la fecha límite para presentar la solicitud única?",
+      "land_context": {
+        "mode": "selected",
+        "lands": [
+          {
+            "id": "terreno-riego-1",
+            "water_regime": "irrigated",
+            "production_method": "conventional"
+          }
+        ]
+      },
+      "expected_status": "answered",
+      "expected_source_ids": [
+        "dl_1_2026"
+      ],
+      "expected_passage_ids": [
+        "pasaje-plazo-presentacion-2026-andalucia"
+      ],
+      "critical_facts": [
+        "15 de mayo de 2026"
+      ],
+      "anchor": {
+        "source_id": "dl_1_2026",
+        "passage_id": "pasaje-plazo-presentacion-2026-andalucia",
+        "text": "hasta el 15 de mayo de 2026"
+      },
+      "drafted": {
+        "by": "agent:golden_dataset_expansion",
+        "on": "2026-11-08"
+      },
+      "review_state": "approved",
+      "decision": {
+        "decision": "approved",
+        "reviewed_by": "Jose",
+        "reviewed_on": "2026-11-08"
+      }
+    },
+    {
+      "id": "golden-012",
+      "question_type": "deadline",
+      "segment": "transversal",
+      "area": "plazo-presentacion",
+      "question": "¿Por qué se amplió el plazo de presentación de la solicitud única de 2026?",
+      "land_context": {
+        "mode": "general",
+        "lands": []
+      },
+      "expected_status": "answered",
+      "expected_source_ids": [
+        "dl_1_2026"
+      ],
+      "expected_passage_ids": [
+        "pasaje-plazo-presentacion-2026-andalucia"
+      ],
+      "critical_facts": [
+        "temporal acaecido en el mes de febrero de 2026"
+      ],
+      "anchor": {
+        "source_id": "dl_1_2026",
+        "passage_id": "pasaje-plazo-presentacion-2026-andalucia",
+        "text": "teniendo en cuenta la situación producida en el sector agrario andaluz derivada del temporal acaecido en el mes de febrero de 2026"
+      },
+      "drafted": {
+        "by": "agent:golden_dataset_expansion",
+        "on": "2026-11-08"
+      },
+      "review_state": "approved",
+      "decision": {
+        "decision": "approved",
+        "reviewed_by": "Jose",
+        "reviewed_on": "2026-11-08"
+      }
+    },
+    {
+      "id": "golden-013",
+      "question_type": "deadline",
+      "segment": "transversal",
+      "area": "plazo-presentacion",
+      "question": "¿En qué comunidad autónoma se amplió el plazo de presentación de la solicitud única?",
+      "land_context": {
+        "mode": "general",
+        "lands": []
+      },
+      "expected_status": "answered",
+      "expected_source_ids": [
+        "dl_1_2026"
+      ],
+      "expected_passage_ids": [
+        "pasaje-plazo-presentacion-2026-andalucia"
+      ],
+      "critical_facts": [
+        "Comunidad Autónoma de Andalucía"
+      ],
+      "anchor": {
+        "source_id": "dl_1_2026",
+        "passage_id": "pasaje-plazo-presentacion-2026-andalucia",
+        "text": "En el ámbito de la Comunidad Autónoma de Andalucía"
+      },
+      "drafted": {
+        "by": "agent:golden_dataset_expansion",
+        "on": "2026-11-08"
+      },
+      "review_state": "approved",
+      "decision": {
+        "decision": "approved",
+        "reviewed_by": "Jose",
+        "reviewed_on": "2026-11-08"
+      }
+    },
+    {
+      "id": "golden-014",
+      "question_type": "deadline",
+      "segment": "transversal",
+      "area": "plazo-modificacion",
+      "question": "¿Hasta qué día puedo incluir nuevas intervenciones en mi solicitud de 2026?",
+      "land_context": {
+        "mode": "general",
+        "lands": []
+      },
+      "expected_status": "answered",
+      "expected_source_ids": [
+        "rd_537_2026"
+      ],
+      "expected_passage_ids": [
+        "pasaje-plazo-modificacion-2026-andalucia"
+      ],
+      "critical_facts": [
+        "15 de junio"
+      ],
+      "anchor": {
+        "source_id": "rd_537_2026",
+        "passage_id": "pasaje-plazo-modificacion-2026-andalucia",
+        "text": "Para la campaña 2026 y exclusivamente en el ámbito territorial de la Comunidad Autónoma de Andalucía, el plazo para modificar o incluir nuevas intervenciones en forma de pagos directos o de desarrollo rural a los que se refiere el artículo 112.1, o para cambiar el uso o la categoría de las parcelas declaradas, en su caso de que se trate, finalizará el 15 de junio, inclusive."
+      },
+      "drafted": {
+        "by": "agent:golden_dataset_expansion",
+        "on": "2026-11-08"
+      },
+      "review_state": "approved",
+      "decision": {
+        "decision": "approved",
+        "reviewed_by": "Jose",
+        "reviewed_on": "2026-11-08"
+      }
+    },
+    {
+      "id": "golden-015",
+      "question_type": "deadline",
+      "segment": "secano-convencional",
+      "area": "plazo-modificacion",
+      "question": "Quiero cambiar el uso de una parcela de secano ya declarada, ¿hasta cuándo puedo hacerlo?",
+      "land_context": {
+        "mode": "selected",
+        "lands": [
+          {
+            "id": "terreno-secano-1",
+            "water_regime": "dryland",
+            "production_method": "conventional"
+          }
+        ]
+      },
+      "expected_status": "answered",
+      "expected_source_ids": [
+        "rd_537_2026"
+      ],
+      "expected_passage_ids": [
+        "pasaje-plazo-modificacion-2026-andalucia"
+      ],
+      "critical_facts": [
+        "15 de junio"
+      ],
+      "anchor": {
+        "source_id": "rd_537_2026",
+        "passage_id": "pasaje-plazo-modificacion-2026-andalucia",
+        "text": "para cambiar el uso o la categoría de las parcelas declaradas, en su caso de que se trate, finalizará el 15 de junio, inclusive"
+      },
+      "drafted": {
+        "by": "agent:golden_dataset_expansion",
+        "on": "2026-11-08"
+      },
+      "review_state": "approved",
+      "decision": {
+        "decision": "approved",
+        "reviewed_by": "Jose",
+        "reviewed_on": "2026-11-08"
+      }
+    },
+    {
+      "id": "golden-016",
+      "question_type": "deadline",
+      "segment": "transversal",
+      "area": "plazo-modificacion",
+      "question": "¿Para qué campaña vale el plazo de modificación que termina el 15 de junio?",
+      "land_context": {
+        "mode": "general",
+        "lands": []
+      },
+      "expected_status": "answered",
+      "expected_source_ids": [
+        "rd_537_2026"
+      ],
+      "expected_passage_ids": [
+        "pasaje-plazo-modificacion-2026-andalucia"
+      ],
+      "critical_facts": [
+        "campaña 2026"
+      ],
+      "anchor": {
+        "source_id": "rd_537_2026",
+        "passage_id": "pasaje-plazo-modificacion-2026-andalucia",
+        "text": "Para la campaña 2026 y exclusivamente en el ámbito territorial de la Comunidad Autónoma de Andalucía"
+      },
+      "drafted": {
+        "by": "agent:golden_dataset_expansion",
+        "on": "2026-11-08"
+      },
+      "review_state": "approved",
+      "decision": {
+        "decision": "approved",
+        "reviewed_by": "Jose",
+        "reviewed_on": "2026-11-08"
+      }
+    },
+    {
+      "id": "golden-017",
+      "question_type": "deadline",
+      "segment": "ecologico",
+      "area": "distincion-fechas",
+      "question": "Mi finca es ecológica: ¿la fecha de presentación y la de modificación de la solicitud son la misma?",
+      "land_context": {
+        "mode": "selected",
+        "lands": [
+          {
+            "id": "terreno-eco-1",
+            "water_regime": "dryland",
+            "production_method": "organic"
+          }
+        ]
+      },
+      "expected_status": "answered",
+      "expected_source_ids": [
+        "dl_1_2026",
+        "rd_537_2026"
+      ],
+      "expected_passage_ids": [
+        "pasaje-plazo-presentacion-2026-andalucia",
+        "pasaje-plazo-modificacion-2026-andalucia"
+      ],
+      "critical_facts": [
+        "15 de mayo de 2026",
+        "15 de junio"
+      ],
+      "anchor": {
+        "source_id": "dl_1_2026",
+        "passage_id": "pasaje-plazo-presentacion-2026-andalucia",
+        "text": "hasta el 15 de mayo de 2026"
+      },
+      "drafted": {
+        "by": "agent:golden_dataset_expansion",
+        "on": "2026-11-08"
+      },
+      "review_state": "approved",
+      "decision": {
+        "decision": "approved",
+        "reviewed_by": "Jose",
+        "reviewed_on": "2026-11-08"
+      }
+    },
+    {
+      "id": "golden-018",
+      "question_type": "deadline",
+      "segment": "transversal",
+      "area": "distincion-fechas",
+      "question": "¿Cuáles son las dos fechas de 2026 que debo tener en cuenta, la de presentar y la de modificar la solicitud?",
+      "land_context": {
+        "mode": "general",
+        "lands": []
+      },
+      "expected_status": "answered",
+      "expected_source_ids": [
+        "dl_1_2026",
+        "rd_537_2026"
+      ],
+      "expected_passage_ids": [
+        "pasaje-plazo-modificacion-2026-andalucia",
+        "pasaje-plazo-presentacion-2026-andalucia"
+      ],
+      "critical_facts": [
+        "15 de mayo de 2026",
+        "15 de junio"
+      ],
+      "anchor": {
+        "source_id": "rd_537_2026",
+        "passage_id": "pasaje-plazo-modificacion-2026-andalucia",
+        "text": "finalizará el 15 de junio, inclusive"
+      },
+      "drafted": {
+        "by": "agent:golden_dataset_expansion",
+        "on": "2026-11-08"
+      },
+      "review_state": "approved",
+      "decision": {
+        "decision": "approved",
+        "reviewed_by": "Jose",
+        "reviewed_on": "2026-11-08"
+      }
+    },
+    {
+      "id": "golden-019",
+      "question_type": "deadline",
+      "segment": "regadio-convencional",
+      "area": "plazo-modificacion",
+      "question": "¿El 15 de junio todavía puedo modificar mi solicitud de regadío?",
+      "land_context": {
+        "mode": "selected",
+        "lands": [
+          {
+            "id": "terreno-riego-1",
+            "water_regime": "irrigated",
+            "production_method": "conventional"
+          }
+        ]
+      },
+      "expected_status": "answered",
+      "expected_source_ids": [
+        "rd_537_2026"
+      ],
+      "expected_passage_ids": [
+        "pasaje-plazo-modificacion-2026-andalucia"
+      ],
+      "critical_facts": [
+        "15 de junio, inclusive"
+      ],
+      "anchor": {
+        "source_id": "rd_537_2026",
+        "passage_id": "pasaje-plazo-modificacion-2026-andalucia",
+        "text": "finalizará el 15 de junio, inclusive"
+      },
+      "drafted": {
+        "by": "agent:golden_dataset_expansion",
+        "on": "2026-11-08"
+      },
+      "review_state": "approved",
+      "decision": {
+        "decision": "approved",
+        "reviewed_by": "Jose",
+        "reviewed_on": "2026-11-08"
+      }
+    },
+    {
+      "id": "golden-020",
+      "question_type": "eligibility_caveat",
+      "segment": "transversal",
+      "area": "canal-presentacion",
+      "question": "Soy persona física y no tengo ordenador ni internet, ¿tengo que presentar la solicitud por medios electrónicos?",
+      "land_context": {
+        "mode": "general",
+        "lands": []
+      },
+      "expected_status": "answered",
+      "expected_source_ids": [
+        "rd_1048_2022"
+      ],
+      "expected_passage_ids": [
+        "pasaje-canal-presentacion-excepcion-nacional"
+      ],
+      "critical_facts": [
+        "persona física",
+        "medios electrónicos"
+      ],
+      "anchor": {
+        "source_id": "rd_1048_2022",
+        "passage_id": "pasaje-canal-presentacion-excepcion-nacional",
+        "text": "excepto en casos excepcionales que podrá establecer la autoridad competente cuando el beneficiario sea una persona física"
+      },
+      "drafted": {
+        "by": "agent:golden_dataset_expansion",
+        "on": "2026-11-08"
+      },
+      "review_state": "approved",
+      "decision": {
+        "decision": "approved",
+        "reviewed_by": "Jose",
+        "reviewed_on": "2026-11-08"
+      }
+    },
+    {
+      "id": "golden-021",
+      "question_type": "eligibility_caveat",
+      "segment": "ecologico",
+      "area": "canal-presentacion",
+      "question": "¿Quién puede establecer los casos excepcionales en que no hace falta presentar por medios electrónicos?",
+      "land_context": {
+        "mode": "selected",
+        "lands": [
+          {
+            "id": "terreno-eco-1",
+            "water_regime": "dryland",
+            "production_method": "organic"
+          }
+        ]
+      },
+      "expected_status": "answered",
+      "expected_source_ids": [
+        "rd_1048_2022"
+      ],
+      "expected_passage_ids": [
+        "pasaje-canal-presentacion-excepcion-nacional"
+      ],
+      "critical_facts": [
+        "autoridad competente"
+      ],
+      "anchor": {
+        "source_id": "rd_1048_2022",
+        "passage_id": "pasaje-canal-presentacion-excepcion-nacional",
+        "text": "excepto en casos excepcionales que podrá establecer la autoridad competente"
+      },
+      "drafted": {
+        "by": "agent:golden_dataset_expansion",
+        "on": "2026-11-08"
+      },
+      "review_state": "approved",
+      "decision": {
+        "decision": "approved",
+        "reviewed_by": "Jose",
+        "reviewed_on": "2026-11-08"
+      }
+    },
+    {
+      "id": "golden-022",
+      "question_type": "eligibility_caveat",
+      "segment": "secano-convencional",
+      "area": "canal-presentacion",
+      "question": "¿En qué caso puede la autoridad exceptuar a una persona física de los medios electrónicos?",
+      "land_context": {
+        "mode": "selected",
+        "lands": [
+          {
+            "id": "terreno-secano-1",
+            "water_regime": "dryland",
+            "production_method": "conventional"
+          }
+        ]
+      },
+      "expected_status": "answered",
+      "expected_source_ids": [
+        "rd_1048_2022"
+      ],
+      "expected_passage_ids": [
+        "pasaje-canal-presentacion-excepcion-nacional"
+      ],
+      "critical_facts": [
+        "acceso y disponibilidad de los medios electrónicos necesarios"
+      ],
+      "anchor": {
+        "source_id": "rd_1048_2022",
+        "passage_id": "pasaje-canal-presentacion-excepcion-nacional",
+        "text": "respecto de los que la autoridad no tenga acreditado fehacientemente que tienen acceso y disponibilidad de los medios electrónicos necesarios"
+      },
+      "drafted": {
+        "by": "agent:golden_dataset_expansion",
+        "on": "2026-11-08"
+      },
+      "review_state": "approved",
+      "decision": {
+        "decision": "approved",
+        "reviewed_by": "Jose",
+        "reviewed_on": "2026-11-08"
+      }
+    },
+    {
+      "id": "golden-023",
+      "question_type": "eligibility_caveat",
+      "segment": "transversal",
+      "area": "tema-fuera-de-alcance",
+      "question": "¿Cumplo los requisitos para cobrar la ayuda de la PAC con mi olivar?",
+      "land_context": {
+        "mode": "general",
+        "lands": []
+      },
+      "expected_status": "abstained",
+      "deliberate_abstention": {
+        "basis": "elegibilidad individual"
+      },
+      "drafted": {
+        "by": "agent:golden_dataset_expansion",
+        "on": "2026-11-08"
+      },
+      "review_state": "approved",
+      "decision": {
+        "decision": "approved",
+        "reviewed_by": "Jose",
+        "reviewed_on": "2026-11-08"
+      }
+    },
+    {
+      "id": "golden-024",
+      "question_type": "eligibility_caveat",
+      "segment": "regadio-convencional",
+      "area": "tema-fuera-de-alcance",
+      "question": "¿Mi finca de regadío tiene derecho a la ayuda?",
+      "land_context": {
+        "mode": "selected",
+        "lands": [
+          {
+            "id": "terreno-riego-1",
+            "water_regime": "irrigated",
+            "production_method": "conventional"
+          }
+        ]
+      },
+      "expected_status": "abstained",
+      "deliberate_abstention": {
+        "basis": "elegibilidad individual"
+      },
+      "drafted": {
+        "by": "agent:golden_dataset_expansion",
+        "on": "2026-11-08"
+      },
+      "review_state": "approved",
+      "decision": {
+        "decision": "approved",
+        "reviewed_by": "Jose",
+        "reviewed_on": "2026-11-08"
+      }
+    },
+    {
+      "id": "golden-025",
+      "question_type": "eligibility_caveat",
+      "segment": "ecologico",
+      "area": "tema-fuera-de-alcance",
+      "question": "Soy agricultor activo y mi finca es ecológica, ¿me corresponde la ayuda?",
+      "land_context": {
+        "mode": "selected",
+        "lands": [
+          {
+            "id": "terreno-eco-1",
+            "water_regime": "dryland",
+            "production_method": "organic"
+          }
+        ]
+      },
+      "expected_status": "abstained",
+      "deliberate_abstention": {
+        "basis": "elegibilidad individual"
+      },
+      "drafted": {
+        "by": "agent:golden_dataset_expansion",
+        "on": "2026-11-08"
+      },
+      "review_state": "approved",
+      "decision": {
+        "decision": "approved",
+        "reviewed_by": "Jose",
+        "reviewed_on": "2026-11-08"
+      }
+    },
+    {
+      "id": "golden-026",
+      "question_type": "land_dependent",
+      "segment": "transversal",
+      "area": "alcance-terrenos",
+      "question": "Tengo varios terrenos, ¿hasta cuándo puedo presentar la solicitud única de 2026?",
+      "land_context": {
+        "mode": "all_active",
+        "lands": [
+          {
+            "id": "terreno-secano-2",
+            "water_regime": "dryland",
+            "production_method": "conventional"
+          },
+          {
+            "id": "terreno-riego-2",
+            "water_regime": "irrigated",
+            "production_method": "conventional"
+          }
+        ]
+      },
+      "expected_status": "answered",
+      "expected_source_ids": [
+        "dl_1_2026"
+      ],
+      "expected_passage_ids": [
+        "pasaje-plazo-presentacion-2026-andalucia"
+      ],
+      "critical_facts": [
+        "15 de mayo de 2026"
+      ],
+      "anchor": {
+        "source_id": "dl_1_2026",
+        "passage_id": "pasaje-plazo-presentacion-2026-andalucia",
+        "text": "hasta el 15 de mayo de 2026"
+      },
+      "drafted": {
+        "by": "agent:golden_dataset_expansion",
+        "on": "2026-11-08"
+      },
+      "review_state": "approved",
+      "decision": {
+        "decision": "approved",
+        "reviewed_by": "Jose",
+        "reviewed_on": "2026-11-08"
+      }
+    },
+    {
+      "id": "golden-027",
+      "question_type": "land_dependent",
+      "segment": "regadio-convencional",
+      "area": "alcance-terrenos",
+      "question": "¿Hasta cuándo puedo modificar la solicitud de todos mis terrenos de riego?",
+      "land_context": {
+        "mode": "all_active",
+        "lands": [
+          {
+            "id": "terreno-riego-2",
+            "water_regime": "irrigated",
+            "production_method": "conventional"
+          },
+          {
+            "id": "terreno-riego-3",
+            "water_regime": "irrigated",
+            "production_method": "conventional"
+          }
+        ]
+      },
+      "expected_status": "answered",
+      "expected_source_ids": [
+        "rd_537_2026"
+      ],
+      "expected_passage_ids": [
+        "pasaje-plazo-modificacion-2026-andalucia"
+      ],
+      "critical_facts": [
+        "15 de junio"
+      ],
+      "anchor": {
+        "source_id": "rd_537_2026",
+        "passage_id": "pasaje-plazo-modificacion-2026-andalucia",
+        "text": "finalizará el 15 de junio, inclusive"
+      },
+      "drafted": {
+        "by": "agent:golden_dataset_expansion",
+        "on": "2026-11-08"
+      },
+      "review_state": "approved",
+      "decision": {
+        "decision": "approved",
+        "reviewed_by": "Jose",
+        "reviewed_on": "2026-11-08"
+      }
+    },
+    {
+      "id": "golden-028",
+      "question_type": "land_dependent",
+      "segment": "ecologico",
+      "area": "alcance-terrenos",
+      "question": "Tengo un terreno ecológico y otro convencional, ¿cuál es la fecha final para presentar la solicitud única?",
+      "land_context": {
+        "mode": "all_active",
+        "lands": [
+          {
+            "id": "terreno-eco-2",
+            "water_regime": "dryland",
+            "production_method": "organic"
+          },
+          {
+            "id": "terreno-conv-2",
+            "water_regime": "dryland",
+            "production_method": "conventional"
+          }
+        ]
+      },
+      "expected_status": "answered",
+      "expected_source_ids": [
+        "dl_1_2026"
+      ],
+      "expected_passage_ids": [
+        "pasaje-plazo-presentacion-2026-andalucia"
+      ],
+      "critical_facts": [
+        "15 de mayo de 2026"
+      ],
+      "anchor": {
+        "source_id": "dl_1_2026",
+        "passage_id": "pasaje-plazo-presentacion-2026-andalucia",
+        "text": "hasta el 15 de mayo de 2026"
+      },
+      "drafted": {
+        "by": "agent:golden_dataset_expansion",
+        "on": "2026-11-08"
+      },
+      "review_state": "approved",
+      "decision": {
+        "decision": "approved",
+        "reviewed_by": "Jose",
+        "reviewed_on": "2026-11-08"
+      }
+    },
+    {
+      "id": "golden-029",
+      "question_type": "land_dependent",
+      "segment": "secano-convencional",
+      "area": "alcance-terrenos",
+      "question": "Para mi terreno de secano, ¿cuál es el plazo para cambiar el uso de la parcela?",
+      "land_context": {
+        "mode": "selected",
+        "lands": [
+          {
+            "id": "terreno-secano-1",
+            "water_regime": "dryland",
+            "production_method": "conventional"
+          }
+        ]
+      },
+      "expected_status": "answered",
+      "expected_source_ids": [
+        "rd_537_2026"
+      ],
+      "expected_passage_ids": [
+        "pasaje-plazo-modificacion-2026-andalucia"
+      ],
+      "critical_facts": [
+        "15 de junio"
+      ],
+      "anchor": {
+        "source_id": "rd_537_2026",
+        "passage_id": "pasaje-plazo-modificacion-2026-andalucia",
+        "text": "para cambiar el uso o la categoría de las parcelas declaradas, en su caso de que se trate, finalizará el 15 de junio, inclusive"
+      },
+      "drafted": {
+        "by": "agent:golden_dataset_expansion",
+        "on": "2026-11-08"
+      },
+      "review_state": "approved",
+      "decision": {
+        "decision": "approved",
+        "reviewed_by": "Jose",
+        "reviewed_on": "2026-11-08"
+      }
+    },
+    {
+      "id": "golden-030",
+      "question_type": "land_dependent",
+      "segment": "transversal",
+      "area": "alcance-terrenos",
+      "question": "¿Cómo presento la solicitud única para todos mis terrenos?",
+      "land_context": {
+        "mode": "all_active",
+        "lands": [
+          {
+            "id": "terreno-a",
+            "water_regime": "dryland",
+            "production_method": "conventional"
+          },
+          {
+            "id": "terreno-b",
+            "water_regime": "irrigated",
+            "production_method": "conventional"
+          },
+          {
+            "id": "terreno-c",
+            "water_regime": "dryland",
+            "production_method": "organic"
+          }
+        ]
+      },
+      "expected_status": "answered",
+      "expected_source_ids": [
+        "res_20260121"
+      ],
+      "expected_passage_ids": [
+        "pasaje-canal-presentacion-andalucia"
+      ],
+      "critical_facts": [
+        "Sistema de Gestión de Ayudas (SGA)"
+      ],
+      "anchor": {
+        "source_id": "res_20260121",
+        "passage_id": "pasaje-canal-presentacion-andalucia",
+        "text": "Las solicitudes de las ayudas contempladas en la presente resolución se presentarán mediante la herramienta informática Sistema de Gestión de Ayudas (SGA)"
+      },
+      "drafted": {
+        "by": "agent:golden_dataset_expansion",
+        "on": "2026-11-08"
+      },
+      "review_state": "approved",
+      "decision": {
+        "decision": "approved",
+        "reviewed_by": "Jose",
+        "reviewed_on": "2026-11-08"
+      }
+    },
+    {
+      "id": "golden-031",
+      "question_type": "land_dependent",
+      "segment": "regadio-convencional",
+      "area": "definicion-recinto-sigpac",
+      "question": "¿Qué es el recinto SIGPAC de cada uno de mis terrenos?",
+      "land_context": {
+        "mode": "all_active",
+        "lands": [
+          {
+            "id": "terreno-riego-4",
+            "water_regime": "irrigated",
+            "production_method": "conventional"
+          },
+          {
+            "id": "terreno-riego-5",
+            "water_regime": "irrigated",
+            "production_method": "conventional"
+          }
+        ]
+      },
+      "expected_status": "answered",
+      "expected_source_ids": [
+        "rd_1047_2022"
+      ],
+      "expected_passage_ids": [
+        "pasaje-definicion-recinto-sigpac"
+      ],
+      "critical_facts": [
+        "parcela de referencia"
+      ],
+      "anchor": {
+        "source_id": "rd_1047_2022",
+        "passage_id": "pasaje-definicion-recinto-sigpac",
+        "text": "«Recinto SIGPAC»: es la parcela de referencia"
+      },
+      "drafted": {
+        "by": "agent:golden_dataset_expansion",
+        "on": "2026-11-08"
+      },
+      "review_state": "approved",
+      "decision": {
+        "decision": "approved",
+        "reviewed_by": "Jose",
+        "reviewed_on": "2026-11-08"
+      }
+    },
+    {
+      "id": "golden-032",
+      "question_type": "out_of_scope",
+      "segment": "secano-convencional",
+      "area": "tema-fuera-de-alcance",
+      "question": "¿Cuál es la cuantía de la ayuda para una hectárea de olivar de secano?",
+      "land_context": {
+        "mode": "selected",
+        "lands": [
+          {
+            "id": "terreno-secano-1",
+            "water_regime": "dryland",
+            "production_method": "conventional"
+          }
+        ]
+      },
+      "expected_status": "abstained",
+      "deliberate_abstention": {
+        "basis": "importes de ayudas"
+      },
+      "drafted": {
+        "by": "agent:golden_dataset_expansion",
+        "on": "2026-11-08"
+      },
+      "review_state": "approved",
+      "decision": {
+        "decision": "approved",
+        "reviewed_by": "Jose",
+        "reviewed_on": "2026-11-08"
+      }
+    },
+    {
+      "id": "golden-033",
+      "question_type": "out_of_scope",
+      "segment": "regadio-convencional",
+      "area": "tema-fuera-de-alcance",
+      "question": "¿Qué recargo hay si presento la solicitud fuera de plazo?",
+      "land_context": {
+        "mode": "selected",
+        "lands": [
+          {
+            "id": "terreno-riego-1",
+            "water_regime": "irrigated",
+            "production_method": "conventional"
+          }
+        ]
+      },
+      "expected_status": "abstained",
+      "deliberate_abstention": {
+        "basis": "penalizaciones por mora"
+      },
+      "drafted": {
+        "by": "agent:golden_dataset_expansion",
+        "on": "2026-11-08"
+      },
+      "review_state": "approved",
+      "decision": {
+        "decision": "approved",
+        "reviewed_by": "Jose",
+        "reviewed_on": "2026-11-08"
+      }
+    },
+    {
+      "id": "golden-034",
+      "question_type": "out_of_scope",
+      "segment": "transversal",
+      "area": "reclamacion-fuera-de-alcance",
+      "question": "¿Cómo se interpone un recurso contra la resolución de la ayuda?",
+      "land_context": {
+        "mode": "general",
+        "lands": []
+      },
+      "expected_status": "abstained",
+      "deliberate_abstention": {
+        "basis": "reclamaciones y recursos"
+      },
+      "drafted": {
+        "by": "agent:golden_dataset_expansion",
+        "on": "2026-11-08"
+      },
+      "review_state": "approved",
+      "decision": {
+        "decision": "approved",
+        "reviewed_by": "Jose",
+        "reviewed_on": "2026-11-08"
+      }
+    },
+    {
+      "id": "golden-035",
+      "question_type": "out_of_scope",
+      "segment": "ecologico",
+      "area": "tema-fuera-de-alcance",
+      "question": "¿Qué pasa si no puedo presentar la solicitud por fuerza mayor?",
+      "land_context": {
+        "mode": "selected",
+        "lands": [
+          {
+            "id": "terreno-eco-1",
+            "water_regime": "dryland",
+            "production_method": "organic"
+          }
+        ]
+      },
+      "expected_status": "abstained",
+      "deliberate_abstention": {
+        "basis": "fuerza mayor"
+      },
+      "drafted": {
+        "by": "agent:golden_dataset_expansion",
+        "on": "2026-11-08"
+      },
+      "review_state": "approved",
+      "decision": {
+        "decision": "approved",
+        "reviewed_by": "Jose",
+        "reviewed_on": "2026-11-08"
+      }
+    },
+    {
+      "id": "golden-036",
+      "question_type": "out_of_scope",
+      "segment": "transversal",
+      "area": "campana-fuera-de-alcance",
+      "question": "¿Cuál es la fecha de presentación de la campaña que viene?",
+      "land_context": {
+        "mode": "general",
+        "lands": []
+      },
+      "expected_status": "abstained",
+      "deliberate_abstention": {
+        "basis": "otras campañas"
+      },
+      "drafted": {
+        "by": "agent:golden_dataset_expansion",
+        "on": "2026-11-08"
+      },
+      "review_state": "approved",
+      "decision": {
+        "decision": "approved",
+        "reviewed_by": "Jose",
+        "reviewed_on": "2026-11-08"
+      }
+    },
+    {
+      "id": "golden-037",
+      "question_type": "out_of_scope",
+      "segment": "regadio-convencional",
+      "area": "tema-fuera-de-alcance",
+      "question": "¿Cómo me afecta el control por satélite de mi parcela?",
+      "land_context": {
+        "mode": "selected",
+        "lands": [
+          {
+            "id": "terreno-riego-1",
+            "water_regime": "irrigated",
+            "production_method": "conventional"
+          }
+        ]
+      },
+      "expected_status": "abstained",
+      "deliberate_abstention": {
+        "basis": "adaptaciones por controles de monitorización"
+      },
+      "drafted": {
+        "by": "agent:golden_dataset_expansion",
+        "on": "2026-11-08"
+      },
+      "review_state": "approved",
+      "decision": {
+        "decision": "approved",
+        "reviewed_by": "Jose",
+        "reviewed_on": "2026-11-08"
+      }
+    },
+    {
+      "id": "golden-038",
+      "question_type": "out_of_scope",
+      "segment": "secano-convencional",
+      "area": "tema-fuera-de-alcance",
+      "question": "¿Ya me han notificado la resolución de mi expediente?",
+      "land_context": {
+        "mode": "selected",
+        "lands": [
+          {
+            "id": "terreno-secano-1",
+            "water_regime": "dryland",
+            "production_method": "conventional"
+          }
+        ]
+      },
+      "expected_status": "abstained",
+      "deliberate_abstention": {
+        "basis": "notificaciones individuales"
+      },
+      "drafted": {
+        "by": "agent:golden_dataset_expansion",
+        "on": "2026-11-08"
+      },
+      "review_state": "approved",
+      "decision": {
+        "decision": "approved",
+        "reviewed_by": "Jose",
+        "reviewed_on": "2026-11-08"
+      }
+    },
+    {
+      "id": "golden-039",
+      "question_type": "colloquial",
+      "segment": "transversal",
+      "area": "plazo-presentacion",
+      "question": "¿Hasta cuándo tengo para mandar la solicitud única de este año?",
+      "land_context": {
+        "mode": "general",
+        "lands": []
+      },
+      "expected_status": "answered",
+      "expected_source_ids": [
+        "dl_1_2026"
+      ],
+      "expected_passage_ids": [
+        "pasaje-plazo-presentacion-2026-andalucia"
+      ],
+      "critical_facts": [
+        "15 de mayo de 2026"
+      ],
+      "anchor": {
+        "source_id": "dl_1_2026",
+        "passage_id": "pasaje-plazo-presentacion-2026-andalucia",
+        "text": "hasta el 15 de mayo de 2026"
+      },
+      "drafted": {
+        "by": "agent:golden_dataset_expansion",
+        "on": "2026-11-08"
+      },
+      "review_state": "approved",
+      "decision": {
+        "decision": "approved",
+        "reviewed_by": "Jose",
+        "reviewed_on": "2026-11-08"
+      }
+    },
+    {
+      "id": "golden-040",
+      "question_type": "colloquial",
+      "segment": "secano-convencional",
+      "area": "plazo-modificacion",
+      "question": "¿Hasta qué día puedo tocar la solicitud que ya he mandado?",
+      "land_context": {
+        "mode": "selected",
+        "lands": [
+          {
+            "id": "terreno-secano-1",
+            "water_regime": "dryland",
+            "production_method": "conventional"
+          }
+        ]
+      },
+      "expected_status": "answered",
+      "expected_source_ids": [
+        "rd_537_2026"
+      ],
+      "expected_passage_ids": [
+        "pasaje-plazo-modificacion-2026-andalucia"
+      ],
+      "critical_facts": [
+        "15 de junio"
+      ],
+      "anchor": {
+        "source_id": "rd_537_2026",
+        "passage_id": "pasaje-plazo-modificacion-2026-andalucia",
+        "text": "finalizará el 15 de junio, inclusive"
+      },
+      "drafted": {
+        "by": "agent:golden_dataset_expansion",
+        "on": "2026-11-08"
+      },
+      "review_state": "approved",
+      "decision": {
+        "decision": "approved",
+        "reviewed_by": "Jose",
+        "reviewed_on": "2026-11-08"
+      }
+    },
+    {
+      "id": "golden-041",
+      "question_type": "colloquial",
+      "segment": "transversal",
+      "area": "canal-presentacion",
+      "question": "¿Cómo se manda el papeleo de la PAC en Andalucía?",
+      "land_context": {
+        "mode": "general",
+        "lands": []
+      },
+      "expected_status": "answered",
+      "expected_source_ids": [
+        "res_20260121"
+      ],
+      "expected_passage_ids": [
+        "pasaje-canal-presentacion-andalucia"
+      ],
+      "critical_facts": [
+        "Sistema de Gestión de Ayudas (SGA)"
+      ],
+      "anchor": {
+        "source_id": "res_20260121",
+        "passage_id": "pasaje-canal-presentacion-andalucia",
+        "text": "mediante la herramienta informática Sistema de Gestión de Ayudas (SGA)"
+      },
+      "drafted": {
+        "by": "agent:golden_dataset_expansion",
+        "on": "2026-11-08"
+      },
+      "review_state": "approved",
+      "decision": {
+        "decision": "approved",
+        "reviewed_by": "Jose",
+        "reviewed_on": "2026-11-08"
+      }
+    },
+    {
+      "id": "golden-042",
+      "question_type": "colloquial",
+      "segment": "regadio-convencional",
+      "area": "canal-presentacion",
+      "question": "¿A quién tengo que ir para que me hagan la solicitud?",
+      "land_context": {
+        "mode": "selected",
+        "lands": [
+          {
+            "id": "terreno-riego-1",
+            "water_regime": "irrigated",
+            "production_method": "conventional"
+          }
+        ]
+      },
+      "expected_status": "answered",
+      "expected_source_ids": [
+        "res_20260121"
+      ],
+      "expected_passage_ids": [
+        "pasaje-canal-presentacion-andalucia"
+      ],
+      "critical_facts": [
+        "entidades reconocidas"
+      ],
+      "anchor": {
+        "source_id": "res_20260121",
+        "passage_id": "pasaje-canal-presentacion-andalucia",
+        "text": "disponible a través de las entidades reconocidas por la Consejería de Agricultura, Pesca, Agua y Desarrollo Rural"
+      },
+      "drafted": {
+        "by": "agent:golden_dataset_expansion",
+        "on": "2026-11-08"
+      },
+      "review_state": "approved",
+      "decision": {
+        "decision": "approved",
+        "reviewed_by": "Jose",
+        "reviewed_on": "2026-11-08"
+      }
+    },
+    {
+      "id": "golden-043",
+      "question_type": "colloquial",
+      "segment": "ecologico",
+      "area": "definicion-recinto-sigpac",
+      "question": "¿Qué es eso del recinto SIGPAC que sale en mis papeles?",
+      "land_context": {
+        "mode": "selected",
+        "lands": [
+          {
+            "id": "terreno-eco-1",
+            "water_regime": "dryland",
+            "production_method": "organic"
+          }
+        ]
+      },
+      "expected_status": "answered",
+      "expected_source_ids": [
+        "rd_1047_2022"
+      ],
+      "expected_passage_ids": [
+        "pasaje-definicion-recinto-sigpac"
+      ],
+      "critical_facts": [
+        "referencia alfanumérica única e inequívoca"
+      ],
+      "anchor": {
+        "source_id": "rd_1047_2022",
+        "passage_id": "pasaje-definicion-recinto-sigpac",
+        "text": "con una referencia alfanumérica única e inequívoca"
+      },
+      "drafted": {
+        "by": "agent:golden_dataset_expansion",
+        "on": "2026-11-08"
+      },
+      "review_state": "approved",
+      "decision": {
+        "decision": "approved",
+        "reviewed_by": "Jose",
+        "reviewed_on": "2026-11-08"
+      }
+    },
+    {
+      "id": "golden-044",
+      "question_type": "colloquial",
+      "segment": "transversal",
+      "area": "notificacion-electronica",
+      "question": "¿Me tienen que avisar por internet de lo que me manden?",
+      "land_context": {
+        "mode": "general",
+        "lands": []
+      },
+      "expected_status": "answered",
+      "expected_source_ids": [
+        "ley_39_2015"
+      ],
+      "expected_passage_ids": [
+        "pasaje-notificacion-preferencia-electronica"
+      ],
+      "critical_facts": [
+        "preferentemente por medios electrónicos"
+      ],
+      "anchor": {
+        "source_id": "ley_39_2015",
+        "passage_id": "pasaje-notificacion-preferencia-electronica",
+        "text": "Las notificaciones se practicarán preferentemente por medios electrónicos"
+      },
+      "drafted": {
+        "by": "agent:golden_dataset_expansion",
+        "on": "2026-11-08"
+      },
+      "review_state": "approved",
+      "decision": {
+        "decision": "approved",
+        "reviewed_by": "Jose",
+        "reviewed_on": "2026-11-08"
+      }
+    },
+    {
+      "id": "golden-045",
+      "question_type": "colloquial",
+      "segment": "secano-convencional",
+      "area": "rectificacion-errores",
+      "question": "Se han equivocado en un papel de la Administración, ¿lo pueden arreglar?",
+      "land_context": {
+        "mode": "selected",
+        "lands": [
+          {
+            "id": "terreno-secano-1",
+            "water_regime": "dryland",
+            "production_method": "conventional"
+          }
+        ]
+      },
+      "expected_status": "answered",
+      "expected_source_ids": [
+        "ley_39_2015"
+      ],
+      "expected_passage_ids": [
+        "pasaje-rectificacion-errores-materiales"
+      ],
+      "critical_facts": [
+        "errores materiales, de hecho o aritméticos"
+      ],
+      "anchor": {
+        "source_id": "ley_39_2015",
+        "passage_id": "pasaje-rectificacion-errores-materiales",
+        "text": "rectificar en cualquier momento, de oficio o a instancia de los interesados, los errores materiales, de hecho o aritméticos"
+      },
+      "drafted": {
+        "by": "agent:golden_dataset_expansion",
+        "on": "2026-11-08"
+      },
+      "review_state": "approved",
+      "decision": {
+        "decision": "approved",
+        "reviewed_by": "Jose",
+        "reviewed_on": "2026-11-08"
+      }
+    },
+    {
+      "id": "golden-046",
+      "question_type": "colloquial",
+      "segment": "transversal",
+      "area": "canal-presentacion",
+      "question": "Soy mayor y no uso ordenador, ¿puedo hacer la solicitud sin internet?",
+      "land_context": {
+        "mode": "general",
+        "lands": []
+      },
+      "expected_status": "answered",
+      "expected_source_ids": [
+        "rd_1048_2022"
+      ],
+      "expected_passage_ids": [
+        "pasaje-canal-presentacion-excepcion-nacional"
+      ],
+      "critical_facts": [
+        "persona física",
+        "medios electrónicos"
+      ],
+      "anchor": {
+        "source_id": "rd_1048_2022",
+        "passage_id": "pasaje-canal-presentacion-excepcion-nacional",
+        "text": "excepto en casos excepcionales que podrá establecer la autoridad competente cuando el beneficiario sea una persona física"
+      },
+      "drafted": {
+        "by": "agent:golden_dataset_expansion",
+        "on": "2026-11-08"
+      },
+      "review_state": "approved",
+      "decision": {
+        "decision": "approved",
+        "reviewed_by": "Jose",
+        "reviewed_on": "2026-11-08"
+      }
+    }
+  ]
+}

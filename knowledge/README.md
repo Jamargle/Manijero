@@ -40,6 +40,8 @@ measurement, not evidence about legal coverage or real user questions.
 | `passages.schema.json` | The readable versioned passage contract (`passage-set-v1`). |
 | `land_safety_eval.schema.json` | The readable versioned safety-evaluation case contract (`land-safety-eval-v1`). |
 | `pac_answer_eval.schema.json` | The readable versioned reviewed PAC answer-evaluation case contract (`pac-answer-eval-v2`), including declared coverage areas, omissions, and the author-only review role. |
+| `golden_set.json` | The Git-tracked queue of agent-drafted golden questions (`golden-set-v1`). Every item starts `draft`; it is excluded from `pac_answer_eval.json`, every gate, and every score until a named reviewer approves it with `./scripts/init.sh --golden-decide`. An answered item quotes one approved passage verbatim; an abstention names a `coverage.omissions` entry. |
+| `golden_set.schema.json` | The readable versioned golden-queue contract (`golden-set-v1`). |
 | `official-discovery-config.schema.json` | The readable versioned discovery configuration contract. |
 | `official-discovery-state.schema.json` | The readable versioned pending discovery-candidate state contract. |
 | `official-ingestion-state.schema.json` | The readable versioned document-ingestion quarantine state contract (`official-ingestion-state-v1`), including the optional content-free `security` scan (`scan_version`, fixed `flags`, bounded `{flag, page, block_index}` findings). |
