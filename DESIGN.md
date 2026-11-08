@@ -58,7 +58,7 @@ The ten accepted token names keep their roles. Seven take the Stitch value; `pri
 | `caution-surface` | `#FFF2D4` | `#4B350D` | no role; semantic |
 | `danger` | `#BA1A1A` | `#FFB4AB` | `error` |
 
-`outlineVariant` is a separate gated boundary token rather than one of those ten: light `#757C71`, dark `#868E86` — the corrected values. The shared theme is the only place in the repository allowed to declare a hex colour; screens read Material 3 roles or the `LocalManijeroSemanticColors` values instead. The launcher artwork is still the stock Android Studio template, so no token was changed on that basis.
+`outlineVariant` is a separate gated boundary token rather than one of those ten: light `#757C71`, dark `#868E86` — the corrected values. The shared theme is the only place in the repository allowed to declare a hex colour; screens read Material 3 roles or the `LocalManijeroSemanticColors` values instead. The launcher artwork (owner decision 2026-11-08) is the brand mark's olive branch in `#4E5A1E` on Stitch V2's `#F9D332`→`#9DB21E` gradient. Those three hex values live only in the launcher resources (`androidApp/src/main/res/drawable*/ic_launcher_*.xml` and the Desktop `app_icon.xml`); they are identity artwork, not palette tokens, and no screen may use them.
 
 ### Material role map
 
@@ -198,7 +198,8 @@ contract.
 
 ### Brand mark and empty-state illustration
 
-- `ManijeroBrandMark(modifier, size)`: open olive ring with a leaf, `primary`, 32 dp default (28 and
+- `ManijeroBrandMark(modifier, size)`: line olive branch with two leaves and three olives (after the
+  Stitch V2 line logo, owner decision 2026-11-08), `primary`, 32 dp default (28 and
   48 dp valid), no blur, no description or colour parameter. Identity only — never a check, seal,
   badge, or "verified" cue, and never applied to an answer, source, or land.
 - `ManijeroOliveBranch(modifier, size)`: olive sprig on a circular `primaryContainer` halo painted in
