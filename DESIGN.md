@@ -182,7 +182,8 @@ contract.
 
 ### Icon set
 
-- Seventeen outline glyphs (`ic_settings`, a gear for the `Ajustes` tab, added 2026-11-08). A screen needing another glyph extends the inventory in its own feature
+- Eighteen outline glyphs (`ic_settings`, a gear for the `Ajustes` tab, and `ic_more`, three dots
+  for the top bar menu, both added 2026-11-08). A screen needing another glyph extends the inventory in its own feature
   instead of drawing a path inline.
 - Geometry: 24 dp on a 24×24 viewport, 2 dp stroke, round caps and joins, no fill, content inside the
   2–22 dp safe area. Sizes: 24 dp default, 20 dp inline (`ManijeroIconSize.Default` / `Inline`); never
@@ -254,8 +255,10 @@ them; feature specs own screen-specific behavior.
   mark the selection with Material's indicator plus a heavier label (never colour alone), keep 48 dp
   targets, omit window insets, and resolve an out-of-range index to "nothing selected".
 - **App shell (adopted 2026-10-25).** `AppShell` is the one frame around every destination: a
-  `ManijeroTopAppBar` with the brand mark and the visible `Manijero` title and **no right-side
-  action**, the selected screen, and `ManijeroBottomNavigation` below 840 dp or
+  `ManijeroTopAppBar` with the brand mark and the visible `Manijero` title; its only right-side
+  control is a `⋮` menu button (`ic_more`, 48 dp, named `Más opciones`) shown on the `Asistente`
+  screen only, whose menu holds `Privacidad y ayuda` and `Qué cubre la app` (owner decision
+  2026-11-08; they are no longer chat footer links), the selected screen, and `ManijeroBottomNavigation` below 840 dp or
   `ManijeroNavigationRail` from 840 dp. With a local store injected the app opens on
   `Mis terrenos`; without one it opens on `Asistente`, so no tab can be dead. Tabs run left to right
   as `Mis terrenos`, `Asistente` and `Ajustes` (top to bottom on the rail; `Ajustes` replaced the
@@ -281,7 +284,7 @@ them; feature specs own screen-specific behavior.
   privacy), and privacy → the section it was opened from; it is not installed on the assistant tab, so the
   platform default applies. The shell is the **single** owner of the status bar, navigation bar,
   horizontal system-bar and ime insets; the bars and screens add none.
-  Privacy remains reachable from the chat footer and the help screen.
+  Privacy remains reachable from the assistant's `⋮` menu and the help screen.
 - **Evidence.** The review-only `commonTest` gallery is captured at 1200×3000 dp and at 360 dp with
   2× text on both hosts; see `docs/screenshot-regression.md`.
 
@@ -336,8 +339,9 @@ component layer. These rules are durable:
   sending keeps it. The row shows only while the choice is off: once on it is replaced by one
   centred `labelSmall`/`onSurfaceVariant` line, `Tus preguntas se guardan temporalmente` (plain
   text, not interactive), and the choice can only be turned off with the `Ajustes` switch.
-- **Footer.** The privacy summary is always present at the end of the scrolling content; the two
-  icon + label footer actions appear only when their callbacks are wired.
+- **Footer.** The privacy summary is always present at the end of the scrolling content. The
+  `Privacidad y ayuda` and `Qué cubre la app` actions live in the top bar's `⋮` menu on this
+  screen.
 - **Land chooser.** The clarification chooser is an outlined card with the accepted title,
   explanation, one checkbox row per offered land (the box aligned with the land name inside a 48 dp
   target, the unchanged plain `LandDetails` below), and `Continuar`, enabled only after a selection.

@@ -23,8 +23,6 @@ class ChatHomeAndroidScreenshotsTest : AndroidScreenshotTestSupport() {
                 ChatHomeScreen(
                     state = ScreenshotFixtures.idleChat,
                     onAction = {},
-                    onPrivacyClick = {},
-                    onCoverageClick = {},
                 )
             }
         }
@@ -40,8 +38,6 @@ class ChatHomeAndroidScreenshotsTest : AndroidScreenshotTestSupport() {
                 ChatHomeScreen(
                     state = ScreenshotFixtures.answeredChat,
                     onAction = {},
-                    onPrivacyClick = {},
-                    onCoverageClick = {},
                 )
             }
         }
@@ -54,8 +50,6 @@ class ChatHomeAndroidScreenshotsTest : AndroidScreenshotTestSupport() {
                 ChatHomeScreen(
                     state = ScreenshotFixtures.answeredFeedbackSent,
                     onAction = {},
-                    onPrivacyClick = {},
-                    onCoverageClick = {},
                 )
             }
         }
@@ -68,8 +62,6 @@ class ChatHomeAndroidScreenshotsTest : AndroidScreenshotTestSupport() {
                 ChatHomeScreen(
                     state = ScreenshotFixtures.abstainedResponse,
                     onAction = {},
-                    onPrivacyClick = {},
-                    onCoverageClick = {},
                 )
             }
         }
@@ -82,8 +74,6 @@ class ChatHomeAndroidScreenshotsTest : AndroidScreenshotTestSupport() {
                 ChatHomeScreen(
                     state = ScreenshotFixtures.answeredInspectedChat,
                     onAction = {},
-                    onPrivacyClick = {},
-                    onCoverageClick = {},
                     onInspect = {},
                 )
             }
@@ -97,8 +87,6 @@ class ChatHomeAndroidScreenshotsTest : AndroidScreenshotTestSupport() {
                 ChatHomeScreen(
                     state = ScreenshotFixtures.abstainedInspectedChat,
                     onAction = {},
-                    onPrivacyClick = {},
-                    onCoverageClick = {},
                     onInspect = {},
                 )
             }
@@ -134,8 +122,6 @@ class ChatHomeAndroidScreenshotsTest : AndroidScreenshotTestSupport() {
                 ChatHomeScreen(
                     state = ScreenshotFixtures.idleChat,
                     onAction = {},
-                    onPrivacyClick = {},
-                    onCoverageClick = {},
                     showWelcome = true,
                 )
             }

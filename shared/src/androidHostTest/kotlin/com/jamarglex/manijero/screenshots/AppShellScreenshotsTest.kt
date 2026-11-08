@@ -6,6 +6,7 @@ import com.jamarglex.manijero.AppShell
 import com.jamarglex.manijero.chat.ChatHomeScreen
 import com.jamarglex.manijero.settings.SettingsScreen
 import com.jamarglex.manijero.coverage.CoverageScreen
+import com.jamarglex.manijero.design.ManijeroTopBarMenuItem
 import com.jamarglex.manijero.lands.LandListScreen
 import com.jamarglex.manijero.theme.ManijeroTheme
 import kotlin.test.Test
@@ -59,7 +60,10 @@ class AppShellScreenshotsTest : AndroidScreenshotTestSupport() {
 
 @Composable
 private fun AssistantShell() {
-    ShellFrame(AppSection.Assistant) {
+    ShellFrame(
+        AppSection.Assistant,
+        menuItems = listOf(ManijeroTopBarMenuItem("Privacidad y ayuda", onClick = {})),
+    ) {
         ChatHomeScreen(state = ScreenshotFixtures.idleChat, onAction = {})
     }
 }
@@ -96,6 +100,7 @@ private fun HelpDetailShell() {
 private fun ShellFrame(
     section: AppSection,
     onBack: (() -> Unit)? = null,
+    menuItems: List<ManijeroTopBarMenuItem> = emptyList(),
     content: @Composable () -> Unit,
 ) {
     AppShell(
@@ -104,6 +109,7 @@ private fun ShellFrame(
         navigationVisible = true,
         onSectionSelect = {},
         onBack = onBack,
+        menuItems = menuItems,
         content = content,
     )
 }

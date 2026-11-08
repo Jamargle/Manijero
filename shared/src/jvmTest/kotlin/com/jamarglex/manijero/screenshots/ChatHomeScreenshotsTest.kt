@@ -19,8 +19,6 @@ class ChatHomeScreenshotsTest : ScreenshotTestSupport() {
                 ChatHomeScreen(
                     state = ScreenshotFixtures.idleChat,
                     onAction = {},
-                    onPrivacyClick = {},
-                    onCoverageClick = {},
                 )
             }
         }
@@ -33,8 +31,6 @@ class ChatHomeScreenshotsTest : ScreenshotTestSupport() {
                 ChatHomeScreen(
                     state = ScreenshotFixtures.idleChat,
                     onAction = {},
-                    onPrivacyClick = {},
-                    onCoverageClick = {},
                     onRetentionInfoClick = {},
                 )
             }
@@ -48,8 +44,6 @@ class ChatHomeScreenshotsTest : ScreenshotTestSupport() {
                 ChatHomeScreen(
                     state = ScreenshotFixtures.idleChat.copy(retainQuestions = true),
                     onAction = {},
-                    onPrivacyClick = {},
-                    onCoverageClick = {},
                     onRetentionInfoClick = {},
                 )
             }
@@ -63,8 +57,6 @@ class ChatHomeScreenshotsTest : ScreenshotTestSupport() {
                 ChatHomeScreen(
                     state = ScreenshotFixtures.answeredChat,
                     onAction = {},
-                    onPrivacyClick = {},
-                    onCoverageClick = {},
                 )
             }
         }
@@ -85,8 +77,6 @@ class ChatHomeScreenshotsTest : ScreenshotTestSupport() {
                 ChatHomeScreen(
                     state = ScreenshotFixtures.answeredChat,
                     onAction = {},
-                    onPrivacyClick = {},
-                    onCoverageClick = {},
                 )
             }
         }
@@ -99,8 +89,6 @@ class ChatHomeScreenshotsTest : ScreenshotTestSupport() {
                 ChatHomeScreen(
                     state = ScreenshotFixtures.answeredFeedbackSent,
                     onAction = {},
-                    onPrivacyClick = {},
-                    onCoverageClick = {},
                 )
             }
         }
@@ -113,8 +101,6 @@ class ChatHomeScreenshotsTest : ScreenshotTestSupport() {
                 ChatHomeScreen(
                     state = ScreenshotFixtures.abstainedResponse,
                     onAction = {},
-                    onPrivacyClick = {},
-                    onCoverageClick = {},
                 )
             }
         }
@@ -127,8 +113,6 @@ class ChatHomeScreenshotsTest : ScreenshotTestSupport() {
                 ChatHomeScreen(
                     state = ScreenshotFixtures.answeredInspectedChat,
                     onAction = {},
-                    onPrivacyClick = {},
-                    onCoverageClick = {},
                     onInspect = {},
                 )
             }
@@ -142,8 +126,6 @@ class ChatHomeScreenshotsTest : ScreenshotTestSupport() {
                 ChatHomeScreen(
                     state = ScreenshotFixtures.abstainedInspectedChat,
                     onAction = {},
-                    onPrivacyClick = {},
-                    onCoverageClick = {},
                     onInspect = {},
                 )
             }
@@ -193,8 +175,6 @@ class ChatHomeScreenshotsTest : ScreenshotTestSupport() {
                 ChatHomeScreen(
                     state = ScreenshotFixtures.idleChat,
                     onAction = {},
-                    onPrivacyClick = {},
-                    onCoverageClick = {},
                     showWelcome = true,
                 )
             }
@@ -213,8 +193,6 @@ class ChatHomeScreenshotsTest : ScreenshotTestSupport() {
                 ChatHomeScreen(
                     state = ScreenshotFixtures.idleChat,
                     onAction = {},
-                    onPrivacyClick = {},
-                    onCoverageClick = {},
                     showWelcome = true,
                 )
             }

@@ -1,5 +1,12 @@
 package com.jamarglex.manijero
 
+import com.jamarglex.manijero.design.ManijeroTopBarMenuItem
+import manijero.shared.generated.resources.Res
+import manijero.shared.generated.resources.chat_home_privacy
+import manijero.shared.generated.resources.coverage_open
+import manijero.shared.generated.resources.ic_help
+import manijero.shared.generated.resources.ic_info
+import org.jetbrains.compose.resources.stringResource
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
@@ -287,6 +294,24 @@ fun App(
         BackHandler { goBack(systemBackTarget) }
     }
     val upTarget = systemBackTarget?.takeIf { showsUpNavigation(destination) }
+    val chatMenuItems = listOf(
+        ManijeroTopBarMenuItem(
+            label = stringResource(Res.string.chat_home_privacy),
+            icon = Res.drawable.ic_info,
+            onClick = {
+                privacyReturn = AppDestination.Chat
+                destination = AppDestination.Privacy
+            },
+        ),
+        ManijeroTopBarMenuItem(
+            label = stringResource(Res.string.coverage_open),
+            icon = Res.drawable.ic_help,
+            onClick = {
+                coverageReturn = AppDestination.Chat
+                destination = AppDestination.Coverage
+            },
+        ),
+    )
 
     // One shared theme and one shell for every destination; the platform entry points stay
     // theme-free. The shell owns the bars, the section callbacks and the window insets.
@@ -297,6 +322,8 @@ fun App(
             navigationVisible = navigationVisible(destination),
             onSectionSelect = openSection,
             onBack = upTarget?.let { target -> { goBack(target) } },
+            // The assistant's `⋮` menu: the privacy notice and what the app covers.
+            menuItems = if (destination == AppDestination.Chat) chatMenuItems else emptyList(),
         ) {
             when (destination) {
                 AppDestination.Chat -> ChatHomeScreen(
@@ -312,14 +339,6 @@ fun App(
                     clarificationLands = clarificationLands,
                     showWelcome = welcome?.visible == true,
                     onDismissWelcome = { welcome?.dismiss() },
-                    onPrivacyClick = {
-                        privacyReturn = AppDestination.Chat
-                        destination = AppDestination.Privacy
-                    },
-                    onCoverageClick = {
-                        coverageReturn = AppDestination.Chat
-                        destination = AppDestination.Coverage
-                    },
                     // `Inspeccionar` exists only for an entry that kept an inspection, which the
                     // answer service allows only for a test build's loopback address.
                     onInspect = { message ->

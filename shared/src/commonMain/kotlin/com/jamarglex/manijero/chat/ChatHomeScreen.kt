@@ -12,7 +12,6 @@ import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.relocation.BringIntoViewRequester
 import androidx.compose.foundation.relocation.bringIntoViewRequester
 import androidx.compose.material3.AssistChip
@@ -53,7 +52,6 @@ import com.jamarglex.manijero.transcriptScrollKey
 import manijero.shared.generated.resources.Res
 import manijero.shared.generated.resources.chat_home_ask
 import manijero.shared.generated.resources.chat_home_description
-import manijero.shared.generated.resources.chat_home_privacy
 import manijero.shared.generated.resources.chat_home_privacy_summary
 import manijero.shared.generated.resources.chat_home_question_hint
 import manijero.shared.generated.resources.chat_home_question_label
@@ -68,10 +66,7 @@ import manijero.shared.generated.resources.chat_home_suggestion_solicitud_unica
 import manijero.shared.generated.resources.chat_home_suggestions_title
 import manijero.shared.generated.resources.chat_home_title
 import manijero.shared.generated.resources.chat_home_working
-import manijero.shared.generated.resources.coverage_open
 import manijero.shared.generated.resources.ic_chat
-import manijero.shared.generated.resources.ic_help
-import manijero.shared.generated.resources.ic_info
 import manijero.shared.generated.resources.ic_send
 import manijero.shared.generated.resources.welcome_can
 import manijero.shared.generated.resources.welcome_dismiss
@@ -97,8 +92,6 @@ import org.jetbrains.compose.resources.stringResource
 internal fun ChatHomeScreen(
     state: ChatHomeState,
     onAction: (ChatHomeAction) -> Unit,
-    onPrivacyClick: (() -> Unit)? = null,
-    onCoverageClick: (() -> Unit)? = null,
     clarificationLands: List<Land>? = null,
     modifier: Modifier = Modifier,
     showWelcome: Boolean = false,
@@ -182,10 +175,7 @@ internal fun ChatHomeScreen(
         }
 
         SuggestedQuestions(onAction = onAction)
-        ChatFooter(
-            onPrivacyClick = onPrivacyClick,
-            onCoverageClick = onCoverageClick,
-        )
+        ChatFooter()
     }
 }
 
@@ -426,44 +416,16 @@ private fun RetentionActiveNotice() {
 
 /**
  * The essential facts are always visible on the chat home — before a question is asked — as plain
- * text, never colour-only. The labelled controls open the fuller notice; with no wiring (the iOS
- * scaffold and previews) only the summary line shows. The copy is the accepted copy, unchanged.
+ * text, never colour-only. `Privacidad y ayuda` and `Qué cubre la app`, which open the fuller
+ * notices, live in the top bar's menu on this screen (owner decision 2026-11-08). The copy is the
+ * accepted copy, unchanged.
  */
 @Composable
-private fun ChatFooter(
-    onPrivacyClick: (() -> Unit)?,
-    onCoverageClick: (() -> Unit)?,
-) {
-    Column(
+private fun ChatFooter() {
+    Text(
+        text = stringResource(Res.string.chat_home_privacy_summary),
+        style = MaterialTheme.typography.bodyMedium,
+        color = MaterialTheme.colorScheme.onSurfaceVariant,
         modifier = Modifier.fillMaxWidth(),
-        verticalArrangement = Arrangement.spacedBy(ManijeroSpacing.Compact),
-    ) {
-        Text(
-            text = stringResource(Res.string.chat_home_privacy_summary),
-            style = MaterialTheme.typography.bodyMedium,
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
-        )
-        if (onPrivacyClick != null) {
-            TextButton(onClick = onPrivacyClick, modifier = Modifier.fillMaxWidth()) {
-                ManijeroIcon(
-                    resource = Res.drawable.ic_info,
-                    contentDescription = null,
-                    size = ManijeroIconSize.Inline,
-                )
-                Spacer(modifier = Modifier.width(ManijeroSpacing.Compact))
-                Text(stringResource(Res.string.chat_home_privacy))
-            }
-        }
-        if (onCoverageClick != null) {
-            TextButton(onClick = onCoverageClick, modifier = Modifier.fillMaxWidth()) {
-                ManijeroIcon(
-                    resource = Res.drawable.ic_help,
-                    contentDescription = null,
-                    size = ManijeroIconSize.Inline,
-                )
-                Spacer(modifier = Modifier.width(ManijeroSpacing.Compact))
-                Text(stringResource(Res.string.coverage_open))
-            }
-        }
-    }
+    )
 }

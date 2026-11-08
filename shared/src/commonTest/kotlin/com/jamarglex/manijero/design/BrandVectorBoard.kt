@@ -30,6 +30,7 @@ import manijero.shared.generated.resources.ic_edit
 import manijero.shared.generated.resources.ic_external_link
 import manijero.shared.generated.resources.ic_help
 import manijero.shared.generated.resources.ic_info
+import manijero.shared.generated.resources.ic_more
 import manijero.shared.generated.resources.ic_lands
 import manijero.shared.generated.resources.ic_retry
 import manijero.shared.generated.resources.ic_search
@@ -41,7 +42,7 @@ import org.jetbrains.compose.resources.DrawableResource
 /** One glyph and the review identifier printed under it. The label is not shipped copy. */
 private data class BoardGlyph(val label: String, val resource: DrawableResource)
 
-/** The seventeen icons in spec order, each labelled with its resource name for the reviewer. */
+/** The eighteen icons in spec order, each labelled with its resource name for the reviewer. */
 private val boardGlyphs = listOf(
     BoardGlyph("ic_chat", Res.drawable.ic_chat),
     BoardGlyph("ic_lands", Res.drawable.ic_lands),
@@ -60,6 +61,7 @@ private val boardGlyphs = listOf(
     BoardGlyph("ic_chevron_down", Res.drawable.ic_chevron_down),
     BoardGlyph("ic_clear", Res.drawable.ic_clear),
     BoardGlyph("ic_settings", Res.drawable.ic_settings),
+    BoardGlyph("ic_more", Res.drawable.ic_more),
 )
 
 /**

@@ -1,6 +1,7 @@
 package com.jamarglex.manijero.design
 
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -10,6 +11,8 @@ import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -17,6 +20,10 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.style.TextOverflow
@@ -28,6 +35,15 @@ import com.jamarglex.manijero.theme.ManijeroTheme
 import manijero.shared.generated.resources.Res
 import manijero.shared.generated.resources.ic_back
 import manijero.shared.generated.resources.ic_info
+import manijero.shared.generated.resources.ic_more
+import org.jetbrains.compose.resources.DrawableResource
+
+/** One entry of the top bar menu: its visible [label], an optional decorative [icon], the action. */
+internal data class ManijeroTopBarMenuItem(
+    val label: String,
+    val icon: DrawableResource? = null,
+    val onClick: () -> Unit,
+)
 
 /**
  * The flat brand bar: the 32 dp [ManijeroBrandMark] (identity, never a status), the caller's
@@ -44,6 +60,10 @@ import manijero.shared.generated.resources.ic_info
  * 48 dp `IconButton`) leads the bar, like the back arrow of other phone apps. It is omitted without
  * a name, because an unnamed interactive control is not acceptable.
  *
+ * When [menuItems] and the menu button's accessible name [menuDescription] are given, a `⋮`
+ * button (`ic_more`, 48 dp) at the end of the bar opens a menu with one labelled row per item, each
+ * with an optional decorative glyph. The menu is omitted without a name.
+ *
  * The bar owns no window insets; the shell's `Scaffold` will own them.
  */
 @Composable
@@ -55,7 +75,10 @@ internal fun ManijeroTopAppBar(
     privacyDescription: String? = null,
     onBack: (() -> Unit)? = null,
     backDescription: String? = null,
+    menuItems: List<ManijeroTopBarMenuItem> = emptyList(),
+    menuDescription: String? = null,
 ) {
+    var menuOpen by remember { mutableStateOf(false) }
     val actionName = privacyDescription ?: privacyLabel
     Surface(
         modifier = modifier.fillMaxWidth(),
@@ -95,6 +118,42 @@ internal fun ManijeroTopAppBar(
                         maxLines = 2,
                         overflow = TextOverflow.Ellipsis,
                     )
+                    if (menuItems.isNotEmpty() && menuDescription != null) {
+                        Box {
+                            IconButton(
+                                onClick = { menuOpen = true },
+                                modifier = Modifier.size(ManijeroLayout.MinTouchTarget),
+                            ) {
+                                ManijeroIcon(
+                                    resource = Res.drawable.ic_more,
+                                    contentDescription = menuDescription,
+                                )
+                            }
+                            DropdownMenu(
+                                expanded = menuOpen,
+                                onDismissRequest = { menuOpen = false },
+                            ) {
+                                menuItems.forEach { item ->
+                                    DropdownMenuItem(
+                                        text = { Text(text = item.label) },
+                                        leadingIcon = item.icon?.let { icon ->
+                                            {
+                                                ManijeroIcon(
+                                                    resource = icon,
+                                                    contentDescription = null,
+                                                )
+                                            }
+                                        },
+                                        onClick = {
+                                            menuOpen = false
+                                            item.onClick()
+                                        },
+                                        modifier = Modifier.heightIn(min = ManijeroLayout.MinTouchTarget),
+                                    )
+                                }
+                            }
+                        }
+                    }
                     if (onPrivacyClick != null && actionName != null) {
                         if (wide && privacyLabel != null) {
                             TextButton(onClick = onPrivacyClick) {
@@ -143,6 +202,11 @@ private fun ManijeroTopAppBarPreviewFrame(dark: Boolean) {
                 )
                 ManijeroTopAppBar(title = "Manijero")
                 ManijeroTopAppBar(title = "Manijero", onBack = {}, backDescription = "Volver")
+                ManijeroTopAppBar(
+                    title = "Manijero",
+                    menuItems = listOf(ManijeroTopBarMenuItem("Opción", onClick = {})),
+                    menuDescription = "Más opciones",
+                )
             }
         }
     }
