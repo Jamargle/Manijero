@@ -113,6 +113,7 @@ before making any claim in its area.
 - The 72 screenshot baselines are host-rendered pixel checks, not device, accessibility, usability, or iOS
   evidence; known 2× text wrapping on compact layouts.
 - Land-field, search, and summary decisions have no target-user or real-device upgrade evidence.
+- Usability: the session kit and `--usability-record` are ready (`usability_session`, `passing`); no real session has run, and the recorder's personal-data screen is lexical.
 - Land data is device-local: removal is recoverable, up to three same-device automatic copies, and one plaintext
   export file; losing the device without an export still loses records. Android backup exclusion is
   verified by inspection only; picker, file dialog, and screen-reader flows have no device evidence.
