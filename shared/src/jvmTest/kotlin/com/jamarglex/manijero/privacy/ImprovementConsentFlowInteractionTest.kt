@@ -16,7 +16,8 @@ import kotlin.test.assertEquals
 
 /**
  * `Ayúdanos a mejorar` end to end in the app: the chat label opens `Ajustes`, the switch there and
- * the chat checkbox are one saved value, and a new app on the same store keeps it.
+ * the chat checkbox are one saved value, the chat hides the checkbox while it is on, and a new app
+ * on the same store keeps it.
  */
 @OptIn(ExperimentalTestApi::class)
 class ImprovementConsentFlowInteractionTest {
@@ -47,17 +48,27 @@ class ImprovementConsentFlowInteractionTest {
             onNode(switch).assertIsOn()
             assertEquals(listOf(true), store.writes)
 
+            // On: the chat hides the choice, so it can only be turned off in Ajustes.
             onNodeWithText("Asistente").performClick()
-            onNode(checkbox).assertIsOn().performClick()
-            onNode(checkbox).assertIsOff()
+            onNode(checkbox).assertDoesNotExist()
+
+            onNodeWithText("Ajustes").performClick()
+            onNode(switch).performScrollTo().assertIsOn().performClick()
             assertEquals(listOf(true, false), store.writes)
+
+            onNodeWithText("Asistente").performClick()
+            onNode(checkbox).assertIsOff().performClick()
+            onNode(checkbox).assertDoesNotExist()
+            assertEquals(listOf(true, false, true), store.writes)
         }
 
     @Test
-    fun aSavedChoiceIsShownOnLaunch() =
+    fun aSavedOnChoiceHidesTheChatCheckboxAndShowsInAjustes() =
         runDesktopComposeUiTest(width = 900, height = 2400) {
             val store = FakeStore().apply { value = true }
             setContent { App(improvementConsent = store) }
-            onNode(checkbox).assertIsOn()
+            onNode(checkbox).assertDoesNotExist()
+            onNodeWithText("Ajustes").performClick()
+            onNode(switch).performScrollTo().assertIsOn()
         }
 }

@@ -158,7 +158,8 @@ Durable MUST/MUST NOT rules for land editing, fields, storage, automatic copies,
   live outside the repository in an owner-only directory, and every read or export MUST exclude a
   record whose `expires_on` (creation + 29 days) has arrived. The client MUST send
   `retain_for_improvement: true` only while the person's off-by-default `Ayúdanos a mejorar` choice
-  is on (the chat checkbox and the `Ajustes` switch are one device-local value; an unreadable store
+  is on (the chat checkbox, shown only while off, and the `Ajustes` switch, the only way to turn it
+  off, are one device-local value; an unreadable store
   reads as off; it is excluded from Android backup and device transfer), and MUST drop it when the
   wording contains a saved land's name, zone,
   municipality, custom variety, or notes. `backend/config/pilot_privacy_review.json` MUST only be

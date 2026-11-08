@@ -329,7 +329,9 @@ component layer. These rules are durable:
   pinned bar, sits one short row: a checkbox (its own 48 dp control, named `Ayúdanos a mejorar:
   guardar tus preguntas y respuestas`) and the underlined label `Ayúdanos a mejorar`, a separate
   link that opens `Ajustes`. The full explanation lives only there. It is the same standing,
-  off-by-default value as the `Ajustes` switch; ticking it never sends and sending keeps it.
+  off-by-default value as the `Ajustes` switch; ticking it never sends and sending keeps it. The row
+  shows only while the choice is off: once ticked it disappears from the chat, and the choice can
+  only be turned off with the `Ajustes` switch.
 - **Footer.** The privacy summary is always present at the end of the scrolling content; the two
   icon + label footer actions appear only when their callbacks are wired.
 - **Land chooser.** The clarification chooser is an outlined card with the accepted title,
@@ -341,7 +343,7 @@ component layer. These rules are durable:
   `titleMedium` title without heading semantics, four `bodyLarge` lines, and one `OutlinedButton`
   `Entendido`. It blocks nothing and pushes the hero down on compact screens.
 - **Compact layout.** At 360×800 dp with both shell bars, the pinned field, send button and
-  `Ayúdanos a mejorar` row are always on screen; the privacy summary needs a scroll below the
+  `Ayúdanos a mejorar` row (while off) are always on screen; the privacy summary needs a scroll below the
   suggestions. At 2× text the pinned bar may reach its half-screen cap and scroll on its own.
 - **Answer feedback row.** Every finished answer (`answered` or `abstained`) carries one quiet row
   directly below the card and its source cards and above `Inspeccionar`: two neutral outlined

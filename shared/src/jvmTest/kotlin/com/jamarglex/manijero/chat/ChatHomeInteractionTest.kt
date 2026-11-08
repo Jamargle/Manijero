@@ -187,10 +187,13 @@ class ChatHomeInteractionTest {
             onNode(hasContentDescription(checkbox) and isToggleable()).assertIsOff().performClick()
 
             assertEquals(listOf<ChatHomeAction>(ChatHomeAction.RetentionChoiceChanged(true)), actions)
-            onNode(hasContentDescription(checkbox) and isToggleable()).assertIsOn()
+            // Once on, the chat no longer offers it; it is turned off only in Ajustes.
+            onNode(hasContentDescription(checkbox)).assertDoesNotExist()
+            onNodeWithText("Ayúdanos a mejorar").assertDoesNotExist()
             onNodeWithContentDescription("Preguntar").assertIsEnabled()
 
-            // The short label is a separate link to the full explanation in Ajustes; it never toggles.
+            // While off, the short label is a separate link to Ajustes; it never toggles.
+            state = state.copy(retainQuestions = false)
             onNodeWithText("Ayúdanos a mejorar").assertHasClickAction().performClick()
             assertEquals(1, infoOpened)
             assertEquals(1, actions.size)

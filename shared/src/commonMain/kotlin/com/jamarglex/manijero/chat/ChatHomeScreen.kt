@@ -334,11 +334,14 @@ private fun ChatComposer(
             )
         }
     }
-    RetentionChoice(
-        checked = state.retainQuestions,
-        onCheckedChange = { onAction(ChatHomeAction.RetentionChoiceChanged(it)) },
-        onInfoClick = onRetentionInfoClick,
-    )
+    // Once `Ayúdanos a mejorar` is on, the chat no longer offers it: it can only be turned off in
+    // `Ajustes` (owner decision 2026-11-08).
+    if (!state.retainQuestions) {
+        RetentionChoice(
+            onCheckedChange = { onAction(ChatHomeAction.RetentionChoiceChanged(it)) },
+            onInfoClick = onRetentionInfoClick,
+        )
+    }
 }
 
 /** The round send button: as tall as a one-line outlined field, well above the 48 dp target. */
@@ -348,7 +351,9 @@ private val ComposerSendButtonSize = 56.dp
 private val ComposerErrorLineHeight = 20.dp
 
 /**
- * The short `Ayúdanos a mejorar` choice: the same standing permission as the switch in `Ajustes`.
+ * The short `Ayúdanos a mejorar` choice, shown only while it is off: ticking it turns on the same
+ * standing permission as the switch in `Ajustes`, after which the row is hidden and the choice can
+ * only be turned off there.
  * The checkbox is its own 48 dp control, announced as a checkbox with its state and a name that
  * says what it saves. The visible label is a separate link to the `Ajustes` section that explains
  * the full purpose (what is kept, what is never kept, and the 30-day deletion); without
@@ -356,7 +361,6 @@ private val ComposerErrorLineHeight = 20.dp
  */
 @Composable
 private fun RetentionChoice(
-    checked: Boolean,
     onCheckedChange: (Boolean) -> Unit,
     onInfoClick: (() -> Unit)?,
 ) {
@@ -366,7 +370,8 @@ private fun RetentionChoice(
         verticalAlignment = Alignment.CenterVertically,
     ) {
         Checkbox(
-            checked = checked,
+            // Shown only while off: ticking it turns the choice on and the row disappears.
+            checked = false,
             onCheckedChange = onCheckedChange,
             modifier = Modifier.semantics { contentDescription = checkboxName },
         )

@@ -10,7 +10,7 @@
     <string name="settings_improvement_title">Ayúdanos a mejorar</string>
     <string name="settings_improvement_switch">Guardar mis preguntas y respuestas para mejorar Manijero</string>
     <string name="settings_improvement_detail_1">Empieza desactivado. Mientras esté desactivado, Manijero no guarda tus preguntas ni las respuestas.</string>
-    <string name="settings_improvement_detail_2">Si lo activas, se guardan las preguntas que envíes y sus respuestas, sin los datos de tus terrenos ni nada que identifique tu dispositivo. Sigue activado hasta que lo desactives aquí o en el chat.</string>
+    <string name="settings_improvement_detail_2">Si lo activas, se guardan las preguntas que envíes y sus respuestas, sin los datos de tus terrenos ni nada que identifique tu dispositivo. Sigue activado hasta que lo desactives aquí.</string>
     <string name="settings_improvement_detail_3">Si una pregunta lleva el nombre, la zona, el municipio o las notas de uno de tus terrenos, esa pregunta no se guarda. Es mejor no escribir datos personales en la pregunta.</string>
     <string name="settings_improvement_detail_4">Lo guardado se borra solo en 30 días como máximo.</string>
     <string name="settings_backup_title">Copia en un archivo</string>
@@ -236,7 +236,7 @@
     <string name="privacy_sent_unknown">Si un dato no lo sabes, se envía como «no lo sé».</string>
     <string name="privacy_sent_not_sent">El nombre, la zona o paraje, la variedad, la superficie, el número de olivos y tus notas no se envían: se quedan solo en este dispositivo.</string>
     <string name="privacy_retention_title">Si activas «Ayúdanos a mejorar»</string>
-    <string name="privacy_retention_body_1">«Ayúdanos a mejorar» está en Ajustes y debajo de la pregunta, y empieza desactivado. Mientras esté desactivado, Manijero no guarda tus preguntas ni las respuestas.</string>
+    <string name="privacy_retention_body_1">«Ayúdanos a mejorar» empieza desactivado. Puedes activarlo debajo de la pregunta o en Ajustes, y desactivarlo en Ajustes. Mientras esté desactivado, Manijero no guarda tus preguntas ni las respuestas.</string>
     <string name="privacy_retention_body_2">Si lo activas, sigue activado hasta que lo desactives. Se guardan las preguntas que envíes y sus respuestas para mejorar Manijero, sin los datos de tus terrenos ni nada que identifique tu dispositivo.</string>
     <string name="privacy_retention_body_3">Antes de guardarlas se quitan los datos personales que se pueden reconocer, como teléfonos, correos o números de documento. Alguno podría no reconocerse, así que es mejor no escribir datos personales en la pregunta.</string>
     <string name="privacy_retention_body_4">Si la pregunta lleva el nombre, la zona, el municipio o las notas de uno de tus terrenos, no se guarda aunque esté activado.</string>

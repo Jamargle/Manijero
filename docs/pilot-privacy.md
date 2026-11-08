@@ -34,7 +34,8 @@ privacy gate").
   `Ayúdanos a mejorar` opt-in, nothing is written even when a store exists.
 - **Standing choice, separate from sending (owner decision 2026-11-08).** `Ayúdanos a mejorar`
   starts off. It is one device-local value shown as a checkbox under the chat field (its short
-  label links to `Ajustes`) and as a switch in `Ajustes`, where the full explanation lives.
+  label links to `Ajustes`, and the checkbox is shown only while the choice is off) and as a switch
+  in `Ajustes`, where the full explanation lives and the only place to turn it off.
   Ticking it never sends. While it is on, every send (ask, retry, land choice) asks to retain;
   it stays on until the person turns it off. An unreadable store reads as off, and Android
   backup and device transfer exclude it. A clarification response is never retained.
