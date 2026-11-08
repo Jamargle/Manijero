@@ -182,8 +182,8 @@ contract.
 
 ### Icon set
 
-- Eighteen outline glyphs (`ic_settings`, a gear for the `Ajustes` tab, and `ic_more`, three dots
-  for the top bar menu, both added 2026-11-08). A screen needing another glyph extends the inventory in its own feature
+- Fifteen outline glyphs (`ic_settings`, a gear for the `Ajustes` tab, and `ic_more`, three dots
+  for the top bar menu, both added 2026-11-08). `ic_edit`, `ic_delete` and `ic_chevron_down` were removed as unused (no screen draws them; add one back with the feature that needs it). A screen needing another glyph extends the inventory in its own feature
   instead of drawing a path inline.
 - Geometry: 24 dp on a 24×24 viewport, 2 dp stroke, round caps and joins, no fill, content inside the
   2–22 dp safe area. Sizes: 24 dp default, 20 dp inline (`ManijeroIconSize.Default` / `Inline`); never

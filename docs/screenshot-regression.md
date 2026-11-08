@@ -34,7 +34,7 @@ clarification chooser over two lands (light), land list with two lands (light), 
 wide viewport is used because a phone frame would push the no-results panel below the fold, and because
 the filtered frame must show the scope caption, the three `x de y` captions and the single matching row
 together. A fifth subject is the review-only `BrandVectorBoard`, a `commonTest`
-composable owned by `brand_vectors` and captured light/dark so all eighteen vectors are rendered by the
+composable owned by `brand_vectors` and captured light/dark so all seventeen vectors are rendered by the
 theme; it is not a product screen. A sixth subject is the review-only `ComponentGallery`, a
 `commonTest` composable owned by `ui_component_library` that renders every shared component and tone:
 light/dark at 1200×3000 dp (font scale 1) and light/dark at 360×5400 dp with font scale 2. The

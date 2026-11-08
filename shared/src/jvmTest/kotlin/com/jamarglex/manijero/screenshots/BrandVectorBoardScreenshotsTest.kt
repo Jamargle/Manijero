@@ -8,13 +8,13 @@ import kotlin.test.Test
  * Pixel regression captures for the review-only brand-vector board: every vector in the set at the
  * sizes the contract publishes, once per appearance.
  *
- * The board is not a screen. These captures prove the eighteen vectors decode and take their colour
+ * The board is not a screen. These captures prove the seventeen vectors decode and take their colour
  * from the shared theme on the Compose Desktop renderer; they say nothing about device rendering,
  * accessibility, or legibility in a real screen.
  */
 class BrandVectorBoardScreenshotsTest : ScreenshotTestSupport() {
 
-    /** The mark, the illustration, and the sixteen icons, light appearance. */
+    /** The mark, the illustration, and the fifteen icons, light appearance. */
     @Test
     fun brandVectorBoardLight() =
         capture(name = "brand_vector_board_light", width = BOARD_WIDTH, height = BOARD_HEIGHT) {

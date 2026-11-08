@@ -4,7 +4,7 @@ Durable MUST/MUST NOT rules for brand vectors, the shared component layer, and a
 
 ## Brand vectors
 
-- **MUST**: shipped brand vectors (the mark, sixteen `ic_*` glyphs, the olive-branch illustration)
+- **MUST**: shipped brand vectors (the mark, fifteen `ic_*` glyphs, the olive-branch illustration)
   stay single-colour Android-XML masks under
   `shared/src/commonMain/composeResources/drawable/` with only `#000000` / `#00000000` literals — no
   `android:tint`, gradient, `aapt:attr`, clip path, or `@android:` — and take every rendered colour
