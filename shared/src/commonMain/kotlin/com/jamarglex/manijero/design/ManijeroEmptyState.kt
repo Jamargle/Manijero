@@ -21,7 +21,7 @@ import com.jamarglex.manijero.theme.ManijeroTheme
 
 /**
  * The shared empty state: the decorative [ManijeroOliveBranch], a real heading, a plain explanation,
- * and exactly one [action] slot.
+ * and at most one [action] slot (a screen with its own floating action passes none).
  *
  * The illustration carries no semantics node, so a screen reader hears the heading and the body;
  * the caller supplies the single button (or other control) and its Spanish label, and the component
@@ -31,8 +31,8 @@ import com.jamarglex.manijero.theme.ManijeroTheme
 internal fun ManijeroEmptyState(
     title: String,
     body: String,
-    action: @Composable () -> Unit,
     modifier: Modifier = Modifier,
+    action: (@Composable () -> Unit)? = null,
 ) {
     Surface(
         modifier = modifier.fillMaxWidth(),
@@ -58,7 +58,7 @@ internal fun ManijeroEmptyState(
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                 textAlign = TextAlign.Center,
             )
-            action()
+            action?.invoke()
         }
     }
 }

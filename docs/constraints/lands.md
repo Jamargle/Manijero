@@ -81,11 +81,12 @@ Durable MUST/MUST NOT rules for land editing, fields, storage, automatic copies,
   ids, notes or timestamps, rank, reorder, or drop a duplicate row. A query with no letters or digits
   MUST behave like a blank one. Reason: `land_search_and_summary`; matching a measure or note would
   reveal a value the search hint does not promise, and reordering would hide the stored order.
-- **MUST**: an empty store MUST show the shared olive-branch empty state with exactly one primary
-  `Añadir terreno` action and no summary cards and no search field, and a query with no match MUST
-  show one plain sentence with a named clear action while the `Añadir terreno` action stays
-  reachable. Reason: `land_search_and_summary`; a second Add action, or cards over zero shown lands,
-  would offer an action twice or state a total nobody can see.
+- **MUST**: an empty store MUST show the shared olive-branch empty state with no summary cards and no
+  search field, and a query with no match MUST show one plain sentence with a named clear action.
+  Exactly one `Añadir terreno` action MUST exist in both states and while lands are listed, as the
+  floating action in the bottom end corner (owner decision 2026-11-08; it is absent only after a
+  failed read, which offers `Reintentar`). Reason: `land_search_and_summary`; a second Add action,
+  or cards over zero shown lands, would offer an action twice or state a total nobody can see.
 
 ## Land removal
 

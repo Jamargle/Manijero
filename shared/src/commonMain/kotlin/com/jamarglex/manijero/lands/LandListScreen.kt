@@ -5,6 +5,12 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.height
+import androidx.compose.material3.ExtendedFloatingActionButton
+import com.jamarglex.manijero.design.ManijeroIcon
+import com.jamarglex.manijero.design.screenHorizontalPadding
+import manijero.shared.generated.resources.ic_add
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Button
 import androidx.compose.material3.MaterialTheme
@@ -101,8 +107,9 @@ enum class LandListConfirmation { ADDED, UPDATED, REMOVED }
  * reading, persistence and the search text itself live in the caller. Top-level navigation is the
  * app shell's job, so this screen offers no `Volver`; the tabs are the way back.
  *
- * A successful read that found no land shows the shared empty state with one `Añadir terreno`
- * action and no summary or search. Otherwise the screen summarizes the annotated surface and olive
+ * A successful read that found no land shows the shared empty state with no summary or search. The
+ * one primary action, `Añadir terreno`, is a floating action in the bottom end corner in every state
+ * except a failed read (which offers `Reintentar`). Otherwise the screen summarizes the annotated surface and olive
  * count of exactly the lands it is showing, filters them as the person types, and keeps the rows
  * non-clickable with the exact saved name plus the few known details. Each row has its own visible
  * `Editar` control, and its own `Quitar` control whose accessible description names the exact
@@ -136,6 +143,9 @@ fun LandListScreen(
 ) {
     androidx.compose.foundation.layout.BoxWithConstraints(modifier = modifier) {
             val wideWindow = maxWidth >= WideWindowBreakpoint
+            // The one primary action floats in the bottom end corner whenever the list was read
+            // (empty or populated); a failed read offers `Reintentar` instead.
+            val showAddAction = !state.loadFailed
             ManijeroScreen {
                     Text(
                         text = stringResource(Res.string.chat_home_lands),
@@ -208,29 +218,51 @@ fun LandListScreen(
                         state.isEmpty -> ManijeroEmptyState(
                             title = stringResource(Res.string.land_list_empty_title),
                             body = stringResource(Res.string.land_list_empty_body),
-                            action = {
-                                Button(onClick = onAddLand) {
-                                    Text(stringResource(Res.string.land_list_add))
-                                }
-                            },
                         )
 
                         else -> LandListContent(
                             state = state,
                             wideWindow = wideWindow,
-                            onAddLand = onAddLand,
                             onEditLand = onEditLand,
                             onRemoveLand = onRemoveLand,
                             onQueryChange = onQueryChange,
                         )
                     }
+
+                    // Keeps the last row clear of the floating action.
+                    if (showAddAction) Spacer(modifier = Modifier.height(AddActionClearance))
+            }
+            if (showAddAction) {
+                val addLabel = stringResource(Res.string.land_list_add)
+                ExtendedFloatingActionButton(
+                    onClick = onAddLand,
+                    modifier = Modifier
+                        .align(Alignment.BottomEnd)
+                        .padding(
+                            end = screenHorizontalPadding(maxWidth),
+                            bottom = ManijeroSpacing.Comfortable,
+                        )
+                        // Material clears the label's semantics inside the button, so the accessible
+                        // name is stated here, identical to the visible text.
+                        .semantics { contentDescription = addLabel },
+                    icon = {
+                        ManijeroIcon(
+                            resource = Res.drawable.ic_add,
+                            contentDescription = null,
+                        )
+                    },
+                    text = { Text(addLabel) },
+                )
             }
     }
 }
 
+/** Space reserved at the end of the list so the floating action never covers the last row. */
+private val AddActionClearance = 72.dp
+
 /**
- * The populated list: the summary of the shown set, the search field, the single full-width Add
- * action, then the matching rows or the no-results panel.
+ * The populated list: the summary of the shown set, the search field, then the matching rows or the
+ * no-results panel. The Add action is the screen's floating action, not part of this column.
  *
  * The summary describes exactly the set the person is looking at: every saved land for a blank
  * query, only the matches otherwise. When nothing matches there is no summary, because a total for
@@ -240,7 +272,6 @@ fun LandListScreen(
 private fun LandListContent(
     state: LandListState,
     wideWindow: Boolean,
-    onAddLand: () -> Unit,
     onEditLand: (Land) -> Unit,
     onRemoveLand: (Land) -> Unit,
     onQueryChange: (String) -> Unit,
@@ -269,13 +300,6 @@ private fun LandListContent(
         clearDescription = stringResource(Res.string.land_search_clear),
         placeholder = stringResource(Res.string.land_search_hint),
     )
-
-    Button(
-        onClick = onAddLand,
-        modifier = Modifier.fillMaxWidth(),
-    ) {
-        Text(stringResource(Res.string.land_list_add))
-    }
 
     if (matches.isEmpty()) {
         LandNoResults(onClearQuery = { onQueryChange("") })

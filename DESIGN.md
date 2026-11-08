@@ -296,6 +296,9 @@ them; feature specs own screen-specific behavior.
 ## Layout and interaction
 
 - Give each screen one primary action, with plain labels such as “Añadir terreno” and “Preguntar”.
+  On `Mis terrenos` it is an extended floating action (`ic_add` plus the visible label, named
+  `Añadir terreno`) in the bottom end corner above the tab bar, with clearance after the last row so
+  it never covers a land; the empty state carries no second button.
 - Use a clear heading, short explanation, and predictable back/home navigation and action placement.
 - Provide large mobile touch targets, comfortable Desktop pointer targets, keyboard operation, and
   visible focus. Essential instructions must not depend on hover.
