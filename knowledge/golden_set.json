@@ -47,7 +47,12 @@
         "by": "agent:golden_dataset_expansion",
         "on": "2026-11-08"
       },
-      "review_state": "draft"
+      "review_state": "approved",
+      "decision": {
+        "decision": "approved",
+        "reviewed_by": "Jose",
+        "reviewed_on": "2026-11-08"
+      }
     },
     {
       "id": "golden-002",
@@ -78,7 +83,12 @@
         "by": "agent:golden_dataset_expansion",
         "on": "2026-11-08"
       },
-      "review_state": "draft"
+      "review_state": "approved",
+      "decision": {
+        "decision": "approved",
+        "reviewed_by": "Jose",
+        "reviewed_on": "2026-11-08"
+      }
     },
     {
       "id": "golden-003",
@@ -115,7 +125,12 @@
         "by": "agent:golden_dataset_expansion",
         "on": "2026-11-08"
       },
-      "review_state": "draft"
+      "review_state": "approved",
+      "decision": {
+        "decision": "approved",
+        "reviewed_by": "Jose",
+        "reviewed_on": "2026-11-08"
+      }
     },
     {
       "id": "golden-004",
@@ -146,7 +161,12 @@
         "by": "agent:golden_dataset_expansion",
         "on": "2026-11-08"
       },
-      "review_state": "draft"
+      "review_state": "approved",
+      "decision": {
+        "decision": "approved",
+        "reviewed_by": "Jose",
+        "reviewed_on": "2026-11-08"
+      }
     },
     {
       "id": "golden-005",
@@ -177,7 +197,12 @@
         "by": "agent:golden_dataset_expansion",
         "on": "2026-11-08"
       },
-      "review_state": "draft"
+      "review_state": "approved",
+      "decision": {
+        "decision": "approved",
+        "reviewed_by": "Jose",
+        "reviewed_on": "2026-11-08"
+      }
     },
     {
       "id": "golden-006",
@@ -208,7 +233,12 @@
         "by": "agent:golden_dataset_expansion",
         "on": "2026-11-08"
       },
-      "review_state": "draft"
+      "review_state": "approved",
+      "decision": {
+        "decision": "approved",
+        "reviewed_by": "Jose",
+        "reviewed_on": "2026-11-08"
+      }
     },
     {
       "id": "golden-007",
@@ -245,7 +275,12 @@
         "by": "agent:golden_dataset_expansion",
         "on": "2026-11-08"
       },
-      "review_state": "draft"
+      "review_state": "approved",
+      "decision": {
+        "decision": "approved",
+        "reviewed_by": "Jose",
+        "reviewed_on": "2026-11-08"
+      }
     },
     {
       "id": "golden-008",
@@ -282,7 +317,12 @@
         "by": "agent:golden_dataset_expansion",
         "on": "2026-11-08"
       },
-      "review_state": "draft"
+      "review_state": "approved",
+      "decision": {
+        "decision": "approved",
+        "reviewed_by": "Jose",
+        "reviewed_on": "2026-11-08"
+      }
     },
     {
       "id": "golden-009",
@@ -313,7 +353,12 @@
         "by": "agent:golden_dataset_expansion",
         "on": "2026-11-08"
       },
-      "review_state": "draft"
+      "review_state": "approved",
+      "decision": {
+        "decision": "approved",
+        "reviewed_by": "Jose",
+        "reviewed_on": "2026-11-08"
+      }
     },
     {
       "id": "golden-010",
@@ -344,7 +389,12 @@
         "by": "agent:golden_dataset_expansion",
         "on": "2026-11-08"
       },
-      "review_state": "draft"
+      "review_state": "approved",
+      "decision": {
+        "decision": "approved",
+        "reviewed_by": "Jose",
+        "reviewed_on": "2026-11-08"
+      }
     },
     {
       "id": "golden-011",
@@ -381,7 +431,12 @@
         "by": "agent:golden_dataset_expansion",
         "on": "2026-11-08"
       },
-      "review_state": "draft"
+      "review_state": "approved",
+      "decision": {
+        "decision": "approved",
+        "reviewed_by": "Jose",
+        "reviewed_on": "2026-11-08"
+      }
     },
     {
       "id": "golden-012",
@@ -412,7 +467,12 @@
         "by": "agent:golden_dataset_expansion",
         "on": "2026-11-08"
       },
-      "review_state": "draft"
+      "review_state": "approved",
+      "decision": {
+        "decision": "approved",
+        "reviewed_by": "Jose",
+        "reviewed_on": "2026-11-08"
+      }
     },
     {
       "id": "golden-013",
@@ -443,7 +503,12 @@
         "by": "agent:golden_dataset_expansion",
         "on": "2026-11-08"
       },
-      "review_state": "draft"
+      "review_state": "approved",
+      "decision": {
+        "decision": "approved",
+        "reviewed_by": "Jose",
+        "reviewed_on": "2026-11-08"
+      }
     },
     {
       "id": "golden-014",
@@ -474,7 +539,12 @@
         "by": "agent:golden_dataset_expansion",
         "on": "2026-11-08"
       },
-      "review_state": "draft"
+      "review_state": "approved",
+      "decision": {
+        "decision": "approved",
+        "reviewed_by": "Jose",
+        "reviewed_on": "2026-11-08"
+      }
     },
     {
       "id": "golden-015",
@@ -511,7 +581,12 @@
         "by": "agent:golden_dataset_expansion",
         "on": "2026-11-08"
       },
-      "review_state": "draft"
+      "review_state": "approved",
+      "decision": {
+        "decision": "approved",
+        "reviewed_by": "Jose",
+        "reviewed_on": "2026-11-08"
+      }
     },
     {
       "id": "golden-016",
@@ -542,7 +617,12 @@
         "by": "agent:golden_dataset_expansion",
         "on": "2026-11-08"
       },
-      "review_state": "draft"
+      "review_state": "approved",
+      "decision": {
+        "decision": "approved",
+        "reviewed_by": "Jose",
+        "reviewed_on": "2026-11-08"
+      }
     },
     {
       "id": "golden-017",
@@ -582,7 +662,12 @@
         "by": "agent:golden_dataset_expansion",
         "on": "2026-11-08"
       },
-      "review_state": "draft"
+      "review_state": "approved",
+      "decision": {
+        "decision": "approved",
+        "reviewed_by": "Jose",
+        "reviewed_on": "2026-11-08"
+      }
     },
     {
       "id": "golden-018",
@@ -616,7 +701,12 @@
         "by": "agent:golden_dataset_expansion",
         "on": "2026-11-08"
       },
-      "review_state": "draft"
+      "review_state": "approved",
+      "decision": {
+        "decision": "approved",
+        "reviewed_by": "Jose",
+        "reviewed_on": "2026-11-08"
+      }
     },
     {
       "id": "golden-019",
@@ -653,7 +743,12 @@
         "by": "agent:golden_dataset_expansion",
         "on": "2026-11-08"
       },
-      "review_state": "draft"
+      "review_state": "approved",
+      "decision": {
+        "decision": "approved",
+        "reviewed_by": "Jose",
+        "reviewed_on": "2026-11-08"
+      }
     },
     {
       "id": "golden-020",
@@ -685,7 +780,12 @@
         "by": "agent:golden_dataset_expansion",
         "on": "2026-11-08"
       },
-      "review_state": "draft"
+      "review_state": "approved",
+      "decision": {
+        "decision": "approved",
+        "reviewed_by": "Jose",
+        "reviewed_on": "2026-11-08"
+      }
     },
     {
       "id": "golden-021",
@@ -722,7 +822,12 @@
         "by": "agent:golden_dataset_expansion",
         "on": "2026-11-08"
       },
-      "review_state": "draft"
+      "review_state": "approved",
+      "decision": {
+        "decision": "approved",
+        "reviewed_by": "Jose",
+        "reviewed_on": "2026-11-08"
+      }
     },
     {
       "id": "golden-022",
@@ -759,7 +864,12 @@
         "by": "agent:golden_dataset_expansion",
         "on": "2026-11-08"
       },
-      "review_state": "draft"
+      "review_state": "approved",
+      "decision": {
+        "decision": "approved",
+        "reviewed_by": "Jose",
+        "reviewed_on": "2026-11-08"
+      }
     },
     {
       "id": "golden-023",
@@ -779,7 +889,12 @@
         "by": "agent:golden_dataset_expansion",
         "on": "2026-11-08"
       },
-      "review_state": "draft"
+      "review_state": "approved",
+      "decision": {
+        "decision": "approved",
+        "reviewed_by": "Jose",
+        "reviewed_on": "2026-11-08"
+      }
     },
     {
       "id": "golden-024",
@@ -805,7 +920,12 @@
         "by": "agent:golden_dataset_expansion",
         "on": "2026-11-08"
       },
-      "review_state": "draft"
+      "review_state": "approved",
+      "decision": {
+        "decision": "approved",
+        "reviewed_by": "Jose",
+        "reviewed_on": "2026-11-08"
+      }
     },
     {
       "id": "golden-025",
@@ -831,7 +951,12 @@
         "by": "agent:golden_dataset_expansion",
         "on": "2026-11-08"
       },
-      "review_state": "draft"
+      "review_state": "approved",
+      "decision": {
+        "decision": "approved",
+        "reviewed_by": "Jose",
+        "reviewed_on": "2026-11-08"
+      }
     },
     {
       "id": "golden-026",
@@ -873,7 +998,12 @@
         "by": "agent:golden_dataset_expansion",
         "on": "2026-11-08"
       },
-      "review_state": "draft"
+      "review_state": "approved",
+      "decision": {
+        "decision": "approved",
+        "reviewed_by": "Jose",
+        "reviewed_on": "2026-11-08"
+      }
     },
     {
       "id": "golden-027",
@@ -915,7 +1045,12 @@
         "by": "agent:golden_dataset_expansion",
         "on": "2026-11-08"
       },
-      "review_state": "draft"
+      "review_state": "approved",
+      "decision": {
+        "decision": "approved",
+        "reviewed_by": "Jose",
+        "reviewed_on": "2026-11-08"
+      }
     },
     {
       "id": "golden-028",
@@ -957,7 +1092,12 @@
         "by": "agent:golden_dataset_expansion",
         "on": "2026-11-08"
       },
-      "review_state": "draft"
+      "review_state": "approved",
+      "decision": {
+        "decision": "approved",
+        "reviewed_by": "Jose",
+        "reviewed_on": "2026-11-08"
+      }
     },
     {
       "id": "golden-029",
@@ -994,7 +1134,12 @@
         "by": "agent:golden_dataset_expansion",
         "on": "2026-11-08"
       },
-      "review_state": "draft"
+      "review_state": "approved",
+      "decision": {
+        "decision": "approved",
+        "reviewed_by": "Jose",
+        "reviewed_on": "2026-11-08"
+      }
     },
     {
       "id": "golden-030",
@@ -1041,7 +1186,12 @@
         "by": "agent:golden_dataset_expansion",
         "on": "2026-11-08"
       },
-      "review_state": "draft"
+      "review_state": "approved",
+      "decision": {
+        "decision": "approved",
+        "reviewed_by": "Jose",
+        "reviewed_on": "2026-11-08"
+      }
     },
     {
       "id": "golden-031",
@@ -1083,7 +1233,12 @@
         "by": "agent:golden_dataset_expansion",
         "on": "2026-11-08"
       },
-      "review_state": "draft"
+      "review_state": "approved",
+      "decision": {
+        "decision": "approved",
+        "reviewed_by": "Jose",
+        "reviewed_on": "2026-11-08"
+      }
     },
     {
       "id": "golden-032",
@@ -1109,7 +1264,12 @@
         "by": "agent:golden_dataset_expansion",
         "on": "2026-11-08"
       },
-      "review_state": "draft"
+      "review_state": "approved",
+      "decision": {
+        "decision": "approved",
+        "reviewed_by": "Jose",
+        "reviewed_on": "2026-11-08"
+      }
     },
     {
       "id": "golden-033",
@@ -1135,7 +1295,12 @@
         "by": "agent:golden_dataset_expansion",
         "on": "2026-11-08"
       },
-      "review_state": "draft"
+      "review_state": "approved",
+      "decision": {
+        "decision": "approved",
+        "reviewed_by": "Jose",
+        "reviewed_on": "2026-11-08"
+      }
     },
     {
       "id": "golden-034",
@@ -1155,7 +1320,12 @@
         "by": "agent:golden_dataset_expansion",
         "on": "2026-11-08"
       },
-      "review_state": "draft"
+      "review_state": "approved",
+      "decision": {
+        "decision": "approved",
+        "reviewed_by": "Jose",
+        "reviewed_on": "2026-11-08"
+      }
     },
     {
       "id": "golden-035",
@@ -1181,7 +1351,12 @@
         "by": "agent:golden_dataset_expansion",
         "on": "2026-11-08"
       },
-      "review_state": "draft"
+      "review_state": "approved",
+      "decision": {
+        "decision": "approved",
+        "reviewed_by": "Jose",
+        "reviewed_on": "2026-11-08"
+      }
     },
     {
       "id": "golden-036",
@@ -1201,7 +1376,12 @@
         "by": "agent:golden_dataset_expansion",
         "on": "2026-11-08"
       },
-      "review_state": "draft"
+      "review_state": "approved",
+      "decision": {
+        "decision": "approved",
+        "reviewed_by": "Jose",
+        "reviewed_on": "2026-11-08"
+      }
     },
     {
       "id": "golden-037",
@@ -1227,7 +1407,12 @@
         "by": "agent:golden_dataset_expansion",
         "on": "2026-11-08"
       },
-      "review_state": "draft"
+      "review_state": "approved",
+      "decision": {
+        "decision": "approved",
+        "reviewed_by": "Jose",
+        "reviewed_on": "2026-11-08"
+      }
     },
     {
       "id": "golden-038",
@@ -1253,7 +1438,12 @@
         "by": "agent:golden_dataset_expansion",
         "on": "2026-11-08"
       },
-      "review_state": "draft"
+      "review_state": "approved",
+      "decision": {
+        "decision": "approved",
+        "reviewed_by": "Jose",
+        "reviewed_on": "2026-11-08"
+      }
     },
     {
       "id": "golden-039",
@@ -1284,7 +1474,12 @@
         "by": "agent:golden_dataset_expansion",
         "on": "2026-11-08"
       },
-      "review_state": "draft"
+      "review_state": "approved",
+      "decision": {
+        "decision": "approved",
+        "reviewed_by": "Jose",
+        "reviewed_on": "2026-11-08"
+      }
     },
     {
       "id": "golden-040",
@@ -1321,7 +1516,12 @@
         "by": "agent:golden_dataset_expansion",
         "on": "2026-11-08"
       },
-      "review_state": "draft"
+      "review_state": "approved",
+      "decision": {
+        "decision": "approved",
+        "reviewed_by": "Jose",
+        "reviewed_on": "2026-11-08"
+      }
     },
     {
       "id": "golden-041",
@@ -1352,7 +1552,12 @@
         "by": "agent:golden_dataset_expansion",
         "on": "2026-11-08"
       },
-      "review_state": "draft"
+      "review_state": "approved",
+      "decision": {
+        "decision": "approved",
+        "reviewed_by": "Jose",
+        "reviewed_on": "2026-11-08"
+      }
     },
     {
       "id": "golden-042",
@@ -1389,7 +1594,12 @@
         "by": "agent:golden_dataset_expansion",
         "on": "2026-11-08"
       },
-      "review_state": "draft"
+      "review_state": "approved",
+      "decision": {
+        "decision": "approved",
+        "reviewed_by": "Jose",
+        "reviewed_on": "2026-11-08"
+      }
     },
     {
       "id": "golden-043",
@@ -1426,7 +1636,12 @@
         "by": "agent:golden_dataset_expansion",
         "on": "2026-11-08"
       },
-      "review_state": "draft"
+      "review_state": "approved",
+      "decision": {
+        "decision": "approved",
+        "reviewed_by": "Jose",
+        "reviewed_on": "2026-11-08"
+      }
     },
     {
       "id": "golden-044",
@@ -1457,7 +1672,12 @@
         "by": "agent:golden_dataset_expansion",
         "on": "2026-11-08"
       },
-      "review_state": "draft"
+      "review_state": "approved",
+      "decision": {
+        "decision": "approved",
+        "reviewed_by": "Jose",
+        "reviewed_on": "2026-11-08"
+      }
     },
     {
       "id": "golden-045",
@@ -1494,7 +1714,12 @@
         "by": "agent:golden_dataset_expansion",
         "on": "2026-11-08"
       },
-      "review_state": "draft"
+      "review_state": "approved",
+      "decision": {
+        "decision": "approved",
+        "reviewed_by": "Jose",
+        "reviewed_on": "2026-11-08"
+      }
     },
     {
       "id": "golden-046",
@@ -1526,7 +1751,12 @@
         "by": "agent:golden_dataset_expansion",
         "on": "2026-11-08"
       },
-      "review_state": "draft"
+      "review_state": "approved",
+      "decision": {
+        "decision": "approved",
+        "reviewed_by": "Jose",
+        "reviewed_on": "2026-11-08"
+      }
     }
   ]
 }
