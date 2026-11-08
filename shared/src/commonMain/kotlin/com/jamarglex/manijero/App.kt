@@ -54,6 +54,8 @@ import com.jamarglex.manijero.lands.toDraftOrNull
 import com.jamarglex.manijero.lands.toEditLandState
 import com.jamarglex.manijero.lands.toPermanentlyDeleteLandState
 import com.jamarglex.manijero.lands.toRemoveLandState
+import com.jamarglex.manijero.privacy.ImprovementConsent
+import com.jamarglex.manijero.privacy.ImprovementConsentStore
 import com.jamarglex.manijero.privacy.PrivacyScreen
 import com.jamarglex.manijero.settings.SettingsScreen
 import com.jamarglex.manijero.theme.ManijeroTheme
@@ -97,6 +99,7 @@ fun App(
     landBackupFiles: LandBackupFiles? = null,
     connectionTools: ConnectionTools? = null,
     welcomeNotice: WelcomeNoticeStore? = null,
+    improvementConsent: ImprovementConsentStore? = null,
 ) {
     val scope = rememberCoroutineScope()
     // The first-use card exists only when a host injects its dismissed-flag store.
@@ -110,6 +113,20 @@ fun App(
             scope = scope,
             landsProvider = { landRepository?.list().orEmpty() },
         )
+    }
+    // The standing `Ayúdanos a mejorar` choice, read once from the device (off when unreadable or
+    // absent) and carried into the conversation so every send uses the current value.
+    val improvement = remember(improvementConsent) { ImprovementConsent(improvementConsent) }
+    LaunchedEffect(conversation, improvement) {
+        if (improvement.enabled != conversation.state.retainQuestions) {
+            conversation.onAction(ChatHomeAction.RetentionChoiceChanged(improvement.enabled))
+        }
+    }
+    // The one way to change it, from the chat checkbox or the `Ajustes` switch: the device value and
+    // the conversation always move together.
+    val setImprovement: (Boolean) -> Unit = { enabled ->
+        improvement.update(enabled)
+        conversation.onAction(ChatHomeAction.RetentionChoiceChanged(enabled))
     }
     val landsAvailable = landRepository != null
     // `Mis terrenos` is the launch tab when there is a local store; without one it would be a dead
@@ -280,7 +297,14 @@ fun App(
             when (destination) {
                 AppDestination.Chat -> ChatHomeScreen(
                     state = conversation.state,
-                    onAction = { action -> conversation.onAction(action) },
+                    onAction = { action ->
+                        if (action is ChatHomeAction.RetentionChoiceChanged) {
+                            setImprovement(action.allowed)
+                        } else {
+                            conversation.onAction(action)
+                        }
+                    },
+                    onRetentionInfoClick = { openSection(AppSection.Settings) },
                     clarificationLands = clarificationLands,
                     showWelcome = welcome?.visible == true,
                     onDismissWelcome = { welcome?.dismiss() },
@@ -318,6 +342,8 @@ fun App(
                     },
                 )
                 AppDestination.Settings -> SettingsScreen(
+                    improvementEnabled = improvement.enabled,
+                    onImprovementChange = setImprovement,
                     onOpenHelp = {
                         coverageReturn = AppDestination.Settings
                         destination = AppDestination.Coverage

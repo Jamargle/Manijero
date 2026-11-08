@@ -28,7 +28,7 @@ class AnswerFeedbackStateTest {
         phase = SubmissionPhase.IDLE,
         lastResponseStatus = AnswerStatus.answered,
         landIdsToChoose = emptyList(),
-        retainNextQuestion = true,
+        retainQuestions = true,
     )
 
     private fun withFeedback(message: ChatMessage, feedback: AnswerFeedback) =
@@ -67,7 +67,7 @@ class AnswerFeedbackStateTest {
         // The question, composer, retention choice, failure and clarification are untouched.
         assertEquals(state.question, reduced.question)
         assertEquals(state.phase, reduced.phase)
-        assertEquals(state.retainNextQuestion, reduced.retainNextQuestion)
+        assertEquals(state.retainQuestions, reduced.retainQuestions)
         assertEquals(state.failure, reduced.failure)
         assertEquals(state.failedQuestion, reduced.failedQuestion)
         assertEquals(state.clarificationQuestion, reduced.clarificationQuestion)
@@ -158,7 +158,7 @@ class AnswerFeedbackStateTest {
 
     @Test
     fun `asking, retention and the question request are unchanged by the feedback effect`() {
-        val asking = ChatHomeState(question = "¿Puedo regar hoy?", retainNextQuestion = true)
+        val asking = ChatHomeState(question = "¿Puedo regar hoy?", retainQuestions = true)
         val submit = asking.reduce(ChatHomeAction.AskClicked).effect as ChatEffect.Submit
 
         assertEquals("¿Puedo regar hoy?", submit.request(emptyList()).question)

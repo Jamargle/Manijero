@@ -265,8 +265,10 @@ them; feature specs own screen-specific behavior.
   must not add another `Volver` or `Mis terrenos` route. The bars are hidden on add/edit/remove forms
   and the `Borrar para siempre` confirmation, which keep their own `Cancelar`; privacy,
   `Terrenos eliminados`, `Ayuda` and `Copia en un archivo` stay detail routes with their own
-  `Volver`, so their bars remain visible. `Ajustes` is a list of whole-card buttons: `Ayuda` (always)
-  and `Copia en un archivo` (only with a local store and a file picker; it is no longer offered on
+  `Volver`, so their bars remain visible. `Ajustes` opens with the `Ayúdanos a mejorar` section (an
+  outlined card with a real heading, one labelled switch row announced as a switch, and four plain
+  lines: starts off, what is and is never kept, stays on until turned off, 30-day deletion), followed
+  by whole-card buttons: `Ayuda` (always) and `Copia en un archivo` (only with a local store and a file picker; it is no longer offered on
   `Mis terrenos`). `Ayuda` and `Copia en un archivo` sit under the `Ajustes` tab; `Ayuda` can also be
   opened from the chat footer and the privacy notice. `Conexión` is a test-build-only detail route
   from `Ayuda`, has its own `Volver`, and back returns to `Ayuda`.
@@ -323,10 +325,11 @@ component layer. These rules are durable:
   send button (messaging-app style, owner decision 2026-11-08): `ic_send` with the accessible name
   `Preguntar`, disabled while blank, over the limit or submitting. It is the one icon-only primary
   action in the app; its name is still the plain verb.
-- **Retention.** Below the field, inside the pinned bar, sits the separate retention checkbox row
-  (`Permitir guardar esta pregunta…`, unchecked by default, the whole labelled row one checkbox
-  target) with its plain `bodySmall` detail line stating "only the next question", no land data, and
-  30-day deletion; ticking it never sends and every send unticks it.
+- **Retention (`Ayúdanos a mejorar`, owner decision 2026-11-08).** Below the field, inside the
+  pinned bar, sits one short row: a checkbox (its own 48 dp control, named `Ayúdanos a mejorar:
+  guardar tus preguntas y respuestas`) and the underlined label `Ayúdanos a mejorar`, a separate
+  link that opens `Ajustes`. The full explanation lives only there. It is the same standing,
+  off-by-default value as the `Ajustes` switch; ticking it never sends and sending keeps it.
 - **Footer.** The privacy summary is always present at the end of the scrolling content; the two
   icon + label footer actions appear only when their callbacks are wired.
 - **Land chooser.** The clarification chooser is an outlined card with the accepted title,
@@ -338,8 +341,8 @@ component layer. These rules are durable:
   `titleMedium` title without heading semantics, four `bodyLarge` lines, and one `OutlinedButton`
   `Entendido`. It blocks nothing and pushes the hero down on compact screens.
 - **Compact layout.** At 360×800 dp with both shell bars, the pinned field, send button and
-  retention choice are always on screen; the privacy summary needs a scroll below the suggestions.
-  At 2× text the pinned bar reaches its half-screen cap and scrolls on its own.
+  `Ayúdanos a mejorar` row are always on screen; the privacy summary needs a scroll below the
+  suggestions. At 2× text the pinned bar may reach its half-screen cap and scroll on its own.
 - **Answer feedback row.** Every finished answer (`answered` or `abstained`) carries one quiet row
   directly below the card and its source cards and above `Inspeccionar`: two neutral outlined
   buttons, `Útil` and `No útil` (never filled, never the screen's primary action), each with its own

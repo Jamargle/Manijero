@@ -74,7 +74,7 @@ private fun LandsShell() {
 @Composable
 private fun SettingsShell() {
     ShellFrame(AppSection.Settings) {
-        SettingsScreen(onOpenHelp = {}, onOpenBackup = {})
+        SettingsScreen(onOpenHelp = {}, improvementEnabled = false, onImprovementChange = {}, onOpenBackup = {})
     }
 }
 

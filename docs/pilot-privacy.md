@@ -16,7 +16,7 @@ privacy gate").
 |---|---|---|---|
 | Land records | Android/Desktop app, device-local store | Every saved land field (name, zone, municipality, variety, surface, trees, notes, timestamps) | On the device, plus up to three same-device automatic copies; never sent. Android excludes them from OS backup/transfer. |
 | Question | App → managed tunnel (TLS edge) → loopback API | The question as written; for a land-aware answer, each active land's opaque id and only the needed `municipality`/`water_regime`/`production_method` (unknown as `unknown`) | The app keeps the transcript in memory for the session. The API keeps nothing unless retention applies (below). The tunnel provider terminates TLS and therefore processes the request; its handling is governed by its own terms, which are part of the pending review. |
-| Retention choice | App → API, field `retain_for_improvement` | A boolean, sent only as `true` when the person ticked the box for that one send; otherwise absent | Not stored by itself. |
+| Retention choice | App → API, field `retain_for_improvement` | A boolean, sent only as `true` while the person's `Ayúdanos a mejorar` choice is on; otherwise absent | Not stored by itself. |
 | Answer | API → app | Answer text, cited official sources, scope | Not stored by the API unless retention applies. |
 | Answer feedback | App → API, `POST /feedback` | A single closed value, `rating` = `useful` or `not_useful`; never the answer, a question, a land, an identifier, or free text | Nothing is stored: the API keeps only an in-memory, per-process count by rating (`feedback_total{rating}` on `/metrics`), reset on restart, with no link to an answer, question, or person. |
 | Request metadata log | API stdout → systemd journal (pilot profile only) | Method, path, status, duration, gate, time; plus fixed retention/error codes | Journal retention is set by the host (no value configured in this repository). Never contains question, answer, land values, client id, or token. |
@@ -31,11 +31,13 @@ privacy gate").
 ## Retention rules as implemented
 
 - **Default off.** No store is opened unless `MANIJERO_RETENTION_DB` is set. Without the
-  per-question opt-in, nothing is written even when a store exists.
-- **Per question, separate from sending.** The chat composer shows an unchecked checkbox.
-  Ticking it never sends. Every send (ask, retry, land choice) uses the current choice and
-  then resets it, so each retained question needs a fresh tick. A clarification response is
-  never retained.
+  `Ayúdanos a mejorar` opt-in, nothing is written even when a store exists.
+- **Standing choice, separate from sending (owner decision 2026-11-08).** `Ayúdanos a mejorar`
+  starts off. It is one device-local value shown as a checkbox under the chat field (its short
+  label links to `Ajustes`) and as a switch in `Ajustes`, where the full explanation lives.
+  Ticking it never sends. While it is on, every send (ask, retry, land choice) asks to retain;
+  it stays on until the person turns it off. An unreadable store reads as off, and Android
+  backup and device transfer exclude it. A clarification response is never retained.
 - **Device-side exclusion.** If the wording contains a saved land's name, zone, municipality,
   custom variety, or notes, the app sends the question without the opt-in.
 - **Server-side redaction** (`backend/app/redaction.py`): e-mail, web address, phone, DNI/NIE,

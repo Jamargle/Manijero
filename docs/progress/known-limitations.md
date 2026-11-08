@@ -66,7 +66,7 @@ Do not over-claim.
   injected. A qualified privacy/legal review is also required before the private pilot.
 - Pilot privacy gates are implemented but **closed**: `backend/config/pilot_privacy_review.json` is
   `pending`, so `pilot_ops.py privacy-gate` and the pilot preflight block and Gemini stays disabled.
-  Per-question, default-off redacted Q/A retention (deleted within 30 days) is tested locally only; redaction
+  Default-off, opt-in (`Ayúdanos a mejorar`, a standing choice since 2026-11-08) redacted Q/A retention (deleted within 30 days) is tested locally only; redaction
   is pattern-based on synthetic text. No qualified review, participant privacy/incident contact, or
   per-person early deletion exists yet. See [`docs/pilot-privacy.md`](../pilot-privacy.md) and the
   [acceptance record](../validations/pilot_privacy_readiness.md).

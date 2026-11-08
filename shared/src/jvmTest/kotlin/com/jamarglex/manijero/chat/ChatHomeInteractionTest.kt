@@ -20,6 +20,7 @@ import androidx.compose.ui.test.assertIsOff
 import androidx.compose.ui.test.assertIsOn
 import androidx.compose.ui.test.hasText
 import androidx.compose.ui.test.isToggleable
+import androidx.compose.ui.test.hasContentDescription
 import androidx.compose.ui.test.onNodeWithContentDescription
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
@@ -162,10 +163,11 @@ class ChatHomeInteractionTest {
         }
 
     @Test
-    fun retentionChoiceIsUncheckedSeparateAndNeverSubmits() =
+    fun retentionChoiceIsUncheckedSeparateAndLinksToSettings() =
         runDesktopComposeUiTest(width = 900, height = 1200) {
             val actions = mutableListOf<ChatHomeAction>()
             var state by mutableStateOf(ChatHomeState(question = "¿Puedo regar hoy?"))
+            var infoOpened = 0
             setContent {
                 ManijeroTheme(darkTheme = false) {
                     ChatHomeScreen(
@@ -173,20 +175,26 @@ class ChatHomeInteractionTest {
                         onAction = { action ->
                             actions += action
                             if (action is ChatHomeAction.RetentionChoiceChanged) {
-                                state = state.copy(retainNextQuestion = action.allowed)
+                                state = state.copy(retainQuestions = action.allowed)
                             }
                         },
+                        onRetentionInfoClick = { infoOpened += 1 },
                     )
                 }
             }
 
-            val label = "Permitir guardar esta pregunta y su respuesta para mejorar Manijero"
-            onNode(hasText(label) and isToggleable()).performScrollTo().assertIsOff().performClick()
+            val checkbox = "Ayúdanos a mejorar: guardar tus preguntas y respuestas"
+            onNode(hasContentDescription(checkbox) and isToggleable()).assertIsOff().performClick()
 
             assertEquals(listOf<ChatHomeAction>(ChatHomeAction.RetentionChoiceChanged(true)), actions)
-            onNode(hasText(label) and isToggleable()).assertIsOn()
-            onNodeWithText("se borra sola en 30 días como máximo", substring = true).assertExists()
+            onNode(hasContentDescription(checkbox) and isToggleable()).assertIsOn()
             onNodeWithContentDescription("Preguntar").assertIsEnabled()
+
+            // The short label is a separate link to the full explanation in Ajustes; it never toggles.
+            onNodeWithText("Ayúdanos a mejorar").assertHasClickAction().performClick()
+            assertEquals(1, infoOpened)
+            assertEquals(1, actions.size)
+            onNodeWithText("30 días", substring = true).assertDoesNotExist()
         }
 
     @Test

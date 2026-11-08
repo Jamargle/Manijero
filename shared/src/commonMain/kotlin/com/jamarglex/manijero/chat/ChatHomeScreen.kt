@@ -6,7 +6,6 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.selection.toggleable
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Spacer
@@ -28,10 +27,11 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.LiveRegionMode
+import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.heading
 import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.platform.testTag
 import com.jamarglex.manijero.ChatHomeAction
@@ -56,8 +56,9 @@ import manijero.shared.generated.resources.chat_home_privacy_summary
 import manijero.shared.generated.resources.chat_home_question_hint
 import manijero.shared.generated.resources.chat_home_question_label
 import manijero.shared.generated.resources.chat_home_question_too_long
-import manijero.shared.generated.resources.chat_home_retention_detail
+import manijero.shared.generated.resources.chat_home_retention_checkbox
 import manijero.shared.generated.resources.chat_home_retention_label
+import manijero.shared.generated.resources.chat_home_retention_link
 import manijero.shared.generated.resources.chat_home_suggestion_condicionalidad
 import manijero.shared.generated.resources.chat_home_suggestion_sigpac
 import manijero.shared.generated.resources.chat_home_suggestion_solicitud_unica
@@ -100,6 +101,7 @@ internal fun ChatHomeScreen(
     showWelcome: Boolean = false,
     onDismissWelcome: () -> Unit = {},
     onInspect: ((ChatMessage) -> Unit)? = null,
+    onRetentionInfoClick: (() -> Unit)? = null,
 ) {
     val transcriptEndRequester = remember { BringIntoViewRequester() }
     val scrollKey = transcriptScrollKey(state)
@@ -111,7 +113,13 @@ internal fun ChatHomeScreen(
     ManijeroScreen(
         modifier = modifier,
         // The composer stays attached to the bottom of the screen; the transcript scrolls above it.
-        bottomBar = { ChatComposer(state = state, onAction = onAction) },
+        bottomBar = {
+            ChatComposer(
+                state = state,
+                onAction = onAction,
+                onRetentionInfoClick = onRetentionInfoClick,
+            )
+        },
     ) {
         if (showWelcome) WelcomeCard(onDismiss = onDismissWelcome)
         ChatHero()
@@ -277,12 +285,16 @@ private fun SuggestedQuestions(onAction: (ChatHomeAction) -> Unit) {
 
 /**
  * The pinned composer: the question field with a round send button beside it (messaging-app
- * style), and the separate retention choice below them. The button is icon-only on purpose; its
+ * style), and the short `Ayúdanos a mejorar` choice below them. The button is icon-only on purpose; its
  * accessible name is the visible-action word `Preguntar`, so screen readers and keyboard users still
- * hear the action. The choice is its own control: ticking it never sends, and sending resets it.
+ * hear the action. The choice is its own control: ticking it never sends, and sending keeps it.
  */
 @Composable
-private fun ChatComposer(state: ChatHomeState, onAction: (ChatHomeAction) -> Unit) {
+private fun ChatComposer(
+    state: ChatHomeState,
+    onAction: (ChatHomeAction) -> Unit,
+    onRetentionInfoClick: (() -> Unit)?,
+) {
     val askLabel = stringResource(Res.string.chat_home_ask)
     Row(
         modifier = Modifier.fillMaxWidth(),
@@ -323,8 +335,9 @@ private fun ChatComposer(state: ChatHomeState, onAction: (ChatHomeAction) -> Uni
         }
     }
     RetentionChoice(
-        checked = state.retainNextQuestion,
+        checked = state.retainQuestions,
         onCheckedChange = { onAction(ChatHomeAction.RetentionChoiceChanged(it)) },
+        onInfoClick = onRetentionInfoClick,
     )
 }
 
@@ -335,39 +348,48 @@ private val ComposerSendButtonSize = 56.dp
 private val ComposerErrorLineHeight = 20.dp
 
 /**
- * The per-question permission to keep the redacted question and answer. It is unchecked by
- * default, the whole labelled row is one 48 dp checkbox target (box plus visible text, announced
- * as a checkbox with its state), and the plain detail below states the scope, the exclusion of land
- * data, and the 30-day deletion. Nothing here is colour-only.
+ * The short `Ayúdanos a mejorar` choice: the same standing permission as the switch in `Ajustes`.
+ * The checkbox is its own 48 dp control, announced as a checkbox with its state and a name that
+ * says what it saves. The visible label is a separate link to the `Ajustes` section that explains
+ * the full purpose (what is kept, what is never kept, and the 30-day deletion); without
+ * [onInfoClick] (previews, the iOS scaffold) the label is plain text. Ticking it never sends.
  */
 @Composable
-private fun RetentionChoice(checked: Boolean, onCheckedChange: (Boolean) -> Unit) {
-    Column(
+private fun RetentionChoice(
+    checked: Boolean,
+    onCheckedChange: (Boolean) -> Unit,
+    onInfoClick: (() -> Unit)?,
+) {
+    val checkboxName = stringResource(Res.string.chat_home_retention_checkbox)
+    Row(
         modifier = Modifier.fillMaxWidth(),
-        verticalArrangement = Arrangement.spacedBy(ManijeroSpacing.Micro),
+        verticalAlignment = Alignment.CenterVertically,
     ) {
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .toggleable(
-                    value = checked,
-                    role = Role.Checkbox,
-                    onValueChange = onCheckedChange,
-                ),
-            verticalAlignment = Alignment.CenterVertically,
-        ) {
-            Checkbox(checked = checked, onCheckedChange = null)
+        Checkbox(
+            checked = checked,
+            onCheckedChange = onCheckedChange,
+            modifier = Modifier.semantics { contentDescription = checkboxName },
+        )
+        val label = stringResource(Res.string.chat_home_retention_label)
+        if (onInfoClick != null) {
+            val linkName = stringResource(Res.string.chat_home_retention_link)
+            TextButton(
+                onClick = onInfoClick,
+                modifier = Modifier.semantics { contentDescription = linkName },
+            ) {
+                Text(
+                    text = label,
+                    style = MaterialTheme.typography.bodyMedium,
+                    textDecoration = TextDecoration.Underline,
+                )
+            }
+        } else {
             Text(
-                text = stringResource(Res.string.chat_home_retention_label),
+                text = label,
                 style = MaterialTheme.typography.bodyMedium,
-                modifier = Modifier.padding(start = ManijeroSpacing.Small),
+                modifier = Modifier.padding(start = ManijeroSpacing.Compact),
             )
         }
-        Text(
-            text = stringResource(Res.string.chat_home_retention_detail),
-            style = MaterialTheme.typography.bodySmall,
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
-        )
     }
 }
 

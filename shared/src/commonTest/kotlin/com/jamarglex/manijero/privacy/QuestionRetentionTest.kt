@@ -19,8 +19,9 @@ import kotlin.test.assertFalse
 import kotlin.test.assertTrue
 
 /**
- * The per-question retention permission: off by default, explicit, separate from sending, reset by
- * every send, encoded only when given, and dropped when the wording carries a saved land's label.
+ * The standing `Ayúdanos a mejorar` permission: off by default, explicit, separate from sending,
+ * kept across sends until turned off, encoded only while on, and dropped when the wording carries a
+ * saved land's label.
  */
 class QuestionRetentionTest {
     private val question = "¿Cuándo se presenta la solicitud única?"
@@ -39,7 +40,7 @@ class QuestionRetentionTest {
     @Test
     fun `retention is off by default and the request carries no retention key`() {
         val state = ChatHomeState(question = question)
-        assertFalse(state.retainNextQuestion)
+        assertFalse(state.retainQuestions)
 
         val effect = state.reduce(ChatHomeAction.AskClicked).effect as ChatEffect.Submit
         assertFalse(effect.retainForImprovement)
@@ -53,19 +54,19 @@ class QuestionRetentionTest {
         val reduction = state.reduce(ChatHomeAction.RetentionChoiceChanged(true))
 
         assertEquals(null, reduction.effect)
-        assertEquals(state.copy(retainNextQuestion = true), reduction.state)
-        assertFalse(reduction.state.reduce(ChatHomeAction.RetentionChoiceChanged(false)).state.retainNextQuestion)
+        assertEquals(state.copy(retainQuestions = true), reduction.state)
+        assertFalse(reduction.state.reduce(ChatHomeAction.RetentionChoiceChanged(false)).state.retainQuestions)
     }
 
     @Test
-    fun `an explicit choice applies to one question and is then reset`() {
+    fun `the choice stays on across questions until it is turned off`() {
         val opted = ChatHomeState(question = question)
             .reduce(ChatHomeAction.RetentionChoiceChanged(true)).state
         val sent = opted.reduce(ChatHomeAction.AskClicked)
 
         val effect = sent.effect as ChatEffect.Submit
         assertTrue(effect.retainForImprovement)
-        assertFalse(sent.state.retainNextQuestion, "the next question needs a fresh choice")
+        assertTrue(sent.state.retainQuestions, "the choice is standing, not per question")
         assertTrue(encode(effect.request(emptyList())).contains("\"retain_for_improvement\":true"))
 
         val next = sent.state
@@ -77,31 +78,42 @@ class QuestionRetentionTest {
             .reduce(ChatHomeAction.QuestionChanged("Otra pregunta"))
             .state
             .reduce(ChatHomeAction.AskClicked)
-        assertFalse((next.effect as ChatEffect.Submit).retainForImprovement)
+        assertTrue((next.effect as ChatEffect.Submit).retainForImprovement)
+
+        val off = next.state
+            .reduce(
+                ChatHomeAction.ResponseReceived(
+                    AskResponse(AnswerStatus.answered, "Respuesta.", emptyList(), LandContextMode.general, emptyList()),
+                ),
+            ).state
+            .reduce(ChatHomeAction.RetentionChoiceChanged(false)).state
+            .reduce(ChatHomeAction.QuestionChanged("Tercera pregunta")).state
+            .reduce(ChatHomeAction.AskClicked)
+        assertFalse((off.effect as ChatEffect.Submit).retainForImprovement)
     }
 
     @Test
-    fun `a retry or a land choice uses only a fresh choice`() {
+    fun `a retry or a land choice uses the current choice and keeps it`() {
         val failed = ChatHomeState(
             failure = RequestFailure.SERVICE_ERROR,
             failedQuestion = question,
             phase = SubmissionPhase.IDLE,
         )
         assertFalse((failed.reduce(ChatHomeAction.RetryClicked).effect as ChatEffect.Submit).retainForImprovement)
-        val retried = failed.copy(retainNextQuestion = true).reduce(ChatHomeAction.RetryClicked)
+        val retried = failed.copy(retainQuestions = true).reduce(ChatHomeAction.RetryClicked)
         assertTrue((retried.effect as ChatEffect.Submit).retainForImprovement)
-        assertFalse(retried.state.retainNextQuestion)
+        assertTrue(retried.state.retainQuestions)
 
         val clarifying = ChatHomeState(
             lastResponseStatus = AnswerStatus.needs_land_clarification,
             clarificationQuestion = question,
             landIdsToChoose = listOf("land-1"),
-            retainNextQuestion = true,
+            retainQuestions = true,
         )
         val chosen = clarifying.reduce(ChatHomeAction.LandChoiceSubmitted(listOf("land-1")))
         val effect = chosen.effect as ChatEffect.SubmitSelected
         assertTrue(effect.retainForImprovement)
-        assertFalse(chosen.state.retainNextQuestion)
+        assertTrue(chosen.state.retainQuestions)
         assertTrue(effect.request(listOf(land)).retain_for_improvement)
     }
 

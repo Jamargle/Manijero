@@ -109,8 +109,9 @@ Durable MUST/MUST NOT rules for land editing, fields, storage, automatic copies,
 
 - **MUST**: the portable land backup MUST stay one plaintext JSON schema (`manijero-land-backup`, `version` integer) separate from the private store codec; a schema change MUST bump `version` and keep reading every earlier version or refuse it as unsupported, never misread it. Import MUST validate the whole file before any preview or repository call, and an invalid file MUST NOT call the repository at all. Restore MUST replace both lists (no merge) only through `LandRepository.replaceAll`, which MUST keep a same-device automatic copy of the current aggregate before rewriting it and MUST NOT overwrite a store it cannot read. The exporter MUST NOT produce a file the importer would refuse (same value rules, same size limit), and the file MUST contain only land data. Copy MUST say the file is unencrypted and that the app cannot delete exported copies. Reason: `portable_land_backup`; a file the person keeps outside the app must stay readable on both platforms and a bad file must never cost them their current lands.
 
-- **MUST**: product-improvement question/answer retention MUST be default-off and opt-in before each
-  retained question, redact text, exclude land context and stable user/device identifiers, and delete
+- **MUST**: product-improvement question/answer retention MUST be default-off and need the person's
+  explicit opt-in through the standing `Ayúdanos a mejorar` choice (owner decision 2026-11-08,
+  replacing the earlier per-question opt-in), redact text, exclude land context and stable user/device identifiers, and delete
   records no later than 30 days. Pilot readiness MUST remain blocked until a qualified privacy/legal
   review of the data flow, notice, retention behavior, and provider terms is recorded. Gemini is in
   pilot scope but MUST remain disabled until the exact current model/tier, terms, data flow, and review
@@ -156,8 +157,10 @@ Durable MUST/MUST NOT rules for land editing, fields, storage, automatic copies,
   `answer_redacted` (dates, no time; no client, device, land, or network identifier), the store MUST
   live outside the repository in an owner-only directory, and every read or export MUST exclude a
   record whose `expires_on` (creation + 29 days) has arrived. The client MUST send
-  `retain_for_improvement: true` only from the unchecked-by-default checkbox for that one send, MUST
-  reset it on every send, and MUST drop it when the wording contains a saved land's name, zone,
+  `retain_for_improvement: true` only while the person's off-by-default `Ayúdanos a mejorar` choice
+  is on (the chat checkbox and the `Ajustes` switch are one device-local value; an unreadable store
+  reads as off; it is excluded from Android backup and device transfer), and MUST drop it when the
+  wording contains a saved land's name, zone,
   municipality, custom variety, or notes. `backend/config/pilot_privacy_review.json` MUST only be
   changed to an approved state by a reviewed change carrying a real dated qualified review; tests use
   the labelled synthetic fixture. Reason: `pilot_privacy_readiness`; the server never sees land
