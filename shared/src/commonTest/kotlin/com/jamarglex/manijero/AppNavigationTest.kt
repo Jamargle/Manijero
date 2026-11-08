@@ -17,11 +17,11 @@ class AppNavigationTest {
     @Test
     fun `lands tab exists only with a local repository`() {
         assertEquals(
-            listOf(AppSection.Lands, AppSection.Assistant, AppSection.Help),
+            listOf(AppSection.Lands, AppSection.Assistant, AppSection.Settings),
             availableSections(landsAvailable = true),
         )
         assertEquals(
-            listOf(AppSection.Assistant, AppSection.Help),
+            listOf(AppSection.Assistant, AppSection.Settings),
             availableSections(landsAvailable = false),
         )
     }
@@ -32,7 +32,7 @@ class AppNavigationTest {
 
         assertEquals(0, sections.indexOf(AppSection.Lands))
         assertEquals(1, sections.indexOf(AppSection.Assistant))
-        assertEquals(2, sections.indexOf(AppSection.Help))
+        assertEquals(2, sections.indexOf(AppSection.Settings))
     }
 
     @Test
@@ -95,13 +95,13 @@ class AppNavigationTest {
     fun `each tab opens its own top-level screen`() {
         assertEquals(AppDestination.Chat, sectionDestination(AppSection.Assistant))
         assertEquals(AppDestination.LandList, sectionDestination(AppSection.Lands))
-        assertEquals(AppDestination.Coverage, sectionDestination(AppSection.Help))
+        assertEquals(AppDestination.Settings, sectionDestination(AppSection.Settings))
     }
 
     @Test
     fun `top-level screens round-trip through their tab`() {
         availableSections(landsAvailable = true).forEach { section ->
-            assertEquals(section, tabForDestination(sectionDestination(section), AppSection.Help))
+            assertEquals(section, tabForDestination(sectionDestination(section), AppSection.Settings))
         }
     }
 
@@ -128,11 +128,11 @@ class AppNavigationTest {
             tabForDestination(AppDestination.PermanentlyDeleteLand, AppSection.Assistant),
         )
         assertEquals(
-            AppSection.Lands,
+            AppSection.Settings,
             tabForDestination(AppDestination.LandBackup, AppSection.Assistant),
         )
         assertEquals(
-            AppSection.Help,
+            AppSection.Settings,
             tabForDestination(AppDestination.Coverage, AppSection.Assistant),
         )
     }
@@ -202,9 +202,9 @@ class AppNavigationTest {
     }
 
     @Test
-    fun `the backup screen is a lands detail route that keeps the bars and returns to the list`() {
+    fun `the backup screen is a settings detail route that keeps the bars and returns to settings`() {
         assertEquals(
-            AppDestination.LandList,
+            AppDestination.Settings,
             backTarget(AppDestination.LandBackup, AppSection.Lands, AppDestination.Chat),
         )
         assertTrue(navigationVisible(AppDestination.LandBackup))
@@ -224,9 +224,9 @@ class AppNavigationTest {
     }
 
     @Test
-    fun `the test-build connection route sits under help, keeps the bars and returns to help`() {
+    fun `the test-build connection route sits under settings, keeps the bars and returns to help`() {
         AppSection.entries.forEach { fallback ->
-            assertEquals(AppSection.Help, tabForDestination(AppDestination.Connection, fallback))
+            assertEquals(AppSection.Settings, tabForDestination(AppDestination.Connection, fallback))
             assertEquals(
                 AppDestination.Coverage,
                 backTarget(AppDestination.Connection, fallback, AppDestination.Chat),
@@ -237,23 +237,35 @@ class AppNavigationTest {
     }
 
     @Test
-    fun `help returns to the tab it was entered from`() {
+    fun `settings returns to the tab it was entered from`() {
         assertEquals(
             AppDestination.Chat,
-            backTarget(AppDestination.Coverage, AppSection.Assistant, AppDestination.Chat),
+            backTarget(AppDestination.Settings, AppSection.Assistant, AppDestination.Chat),
         )
         assertEquals(
             AppDestination.LandList,
-            backTarget(AppDestination.Coverage, AppSection.Lands, AppDestination.Chat),
+            backTarget(AppDestination.Settings, AppSection.Lands, AppDestination.Chat),
         )
     }
 
     @Test
-    fun `help never returns to itself`() {
+    fun `settings never returns to itself`() {
         assertEquals(
             AppDestination.Chat,
-            backTarget(AppDestination.Coverage, AppSection.Help, AppDestination.Chat),
+            backTarget(AppDestination.Settings, AppSection.Settings, AppDestination.Chat),
         )
+    }
+
+    @Test
+    fun `help returns to where it was opened from`() {
+        listOf(AppDestination.Settings, AppDestination.Chat, AppDestination.Privacy).forEach { origin ->
+            assertEquals(
+                origin,
+                backTarget(AppDestination.Coverage, AppSection.Assistant, AppDestination.Chat, origin),
+            )
+        }
+        assertEquals(AppSection.Settings, tabForDestination(AppDestination.Settings, AppSection.Lands))
+        assertTrue(navigationVisible(AppDestination.Settings))
     }
 
     @Test
@@ -264,7 +276,7 @@ class AppNavigationTest {
         )
         assertEquals(
             AppDestination.Coverage,
-            backTarget(AppDestination.Privacy, AppSection.Help, AppDestination.Coverage),
+            backTarget(AppDestination.Privacy, AppSection.Settings, AppDestination.Coverage),
         )
     }
 

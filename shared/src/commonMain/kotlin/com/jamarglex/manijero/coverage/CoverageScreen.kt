@@ -26,7 +26,8 @@ import manijero.shared.generated.resources.Res
 import manijero.shared.generated.resources.*
 
 /**
- * The `Ayuda` screen. [onOpenTestTools] is non-null only in test builds that inject the connection
+ * The `Ayuda` screen, a detail route under `Ajustes` with its own `Volver` ([onBack]) when the
+ * shell wires it. [onOpenTestTools] is non-null only in test builds that inject the connection
  * tools; then a `Herramientas de prueba` card ends the screen. Without it the screen is unchanged.
  */
 @Composable
@@ -35,6 +36,7 @@ fun CoverageScreen(
     modifier: Modifier = Modifier,
     onOpenTestTools: (() -> Unit)? = null,
     onShowWelcome: (() -> Unit)? = null,
+    onBack: (() -> Unit)? = null,
 ) {
     ManijeroScreen(modifier) {
         Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
@@ -64,6 +66,9 @@ fun CoverageScreen(
                 Text(stringResource(Res.string.connection_tools_note), style = MaterialTheme.typography.bodyLarge, color = MaterialTheme.colorScheme.onSurfaceVariant)
                 OutlinedButton(onClick = onOpenTestTools, modifier = Modifier.fillMaxWidth()) { Text(stringResource(Res.string.connection_tools_open)) }
             }
+        }
+        if (onBack != null) {
+            TextButton(onClick = onBack, modifier = Modifier.fillMaxWidth()) { Text(stringResource(Res.string.coverage_back)) }
         }
     }
 }

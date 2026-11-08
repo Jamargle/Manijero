@@ -258,16 +258,22 @@ them; feature specs own screen-specific behavior.
   action**, the selected screen, and `ManijeroBottomNavigation` below 840 dp or
   `ManijeroNavigationRail` from 840 dp. With a local store injected the app opens on
   `Mis terrenos`; without one it opens on `Asistente`, so no tab can be dead. Tabs run left to right
-  as `Mis terrenos`, `Asistente` and `Ayuda` (top to bottom on the rail); the lands tab is omitted
+  as `Mis terrenos`, `Asistente` and `Ajustes` (top to bottom on the rail; `Ajustes` replaced the
+  `Ayuda` tab on 2026-11-08 and borrows `ic_help` until its own icon is chosen with the owner); the
+  lands tab is omitted
   when no local repository is injected. Tabs are the only top-level navigation: top-level screens
   must not add another `Volver` or `Mis terrenos` route. The bars are hidden on add/edit/remove forms
   and the `Borrar para siempre` confirmation, which keep their own `Cancelar`; privacy,
-  `Terrenos eliminados`, and `Copia en un archivo` stay detail routes with their own `Volver`, so
-  their bars remain visible. `Conexión` is a test-build-only detail route from `Ayuda`, has its own
-  `Volver`, and back returns to `Ayuda`.
-  Android system back returns lands → assistant, a form → lands, `Terrenos eliminados` → lands, `Copia en un archivo` → lands, the
-  `Borrar para siempre` confirmation → `Terrenos eliminados`, `Ayuda` → the tab it was opened from,
-  and privacy → the section it was opened from; it is not installed on the assistant tab, so the
+  `Terrenos eliminados`, `Ayuda` and `Copia en un archivo` stay detail routes with their own
+  `Volver`, so their bars remain visible. `Ajustes` is a list of whole-card buttons: `Ayuda` (always)
+  and `Copia en un archivo` (only with a local store and a file picker; it is no longer offered on
+  `Mis terrenos`). `Ayuda` and `Copia en un archivo` sit under the `Ajustes` tab; `Ayuda` can also be
+  opened from the chat footer and the privacy notice. `Conexión` is a test-build-only detail route
+  from `Ayuda`, has its own `Volver`, and back returns to `Ayuda`.
+  Android system back returns lands → assistant, a form → lands, `Terrenos eliminados` → lands,
+  `Copia en un archivo` → `Ajustes`, the `Borrar para siempre` confirmation → `Terrenos eliminados`,
+  `Ajustes` → the tab it was opened from, `Ayuda` → where it was opened from (`Ajustes`, the chat or
+  privacy), and privacy → the section it was opened from; it is not installed on the assistant tab, so the
   platform default applies. The shell is the **single** owner of the status bar, navigation bar,
   horizontal system-bar and ime insets; the bars and screens add none.
   Privacy remains reachable from the chat footer and the help screen.
@@ -313,15 +319,15 @@ component layer. These rules are durable:
   through `ManijeroScreen`'s `bottomBar` slot: a 1 dp `outlineVariant` divider, the same centred
   column, and at most half the screen height with its own scroll, so 2× text never hides the
   transcript. The field keeps `Escribe tu pregunta`, the example placeholder, 1–5 lines, the 24 dp
-  rounded shape and the over-limit message. The filled pill `Preguntar` button with a decorative
-  `ic_send` sits beside the field from 560 dp at normal text size and spans the width below it
-  otherwise; its label is always visible and it is disabled while blank, over the limit or
-  submitting.
-- **Retention and footer.** The separate retention checkbox row (`Permitir guardar esta pregunta…`,
-  unchecked by default, the whole labelled row one checkbox target) with its plain detail line
-  stating "only the next question", no land data, and 30-day deletion is the last block of the
-  scrolling content, after the suggestions and directly above the pinned composer; ticking it never
-  sends and every send unticks it. The privacy summary is always present below it; the two
+  rounded shape and the over-limit message. Beside it on every width sits a round 56 dp filled
+  send button (messaging-app style, owner decision 2026-11-08): `ic_send` with the accessible name
+  `Preguntar`, disabled while blank, over the limit or submitting. It is the one icon-only primary
+  action in the app; its name is still the plain verb.
+- **Retention.** Below the field, inside the pinned bar, sits the separate retention checkbox row
+  (`Permitir guardar esta pregunta…`, unchecked by default, the whole labelled row one checkbox
+  target) with its plain `bodySmall` detail line stating "only the next question", no land data, and
+  30-day deletion; ticking it never sends and every send unticks it.
+- **Footer.** The privacy summary is always present at the end of the scrolling content; the two
   icon + label footer actions appear only when their callbacks are wired.
 - **Land chooser.** The clarification chooser is an outlined card with the accepted title,
   explanation, one checkbox row per offered land (the box aligned with the land name inside a 48 dp
@@ -331,9 +337,9 @@ component layer. These rules are durable:
 - **Welcome card.** Until dismissed, an outlined `ManijeroCard` sits above the hero: a
   `titleMedium` title without heading semantics, four `bodyLarge` lines, and one `OutlinedButton`
   `Entendido`. It blocks nothing and pushes the hero down on compact screens.
-- **Compact layout.** At 360×800 dp with both shell bars, the pinned field and `Preguntar` button
-  are always on screen; the retention choice and privacy summary need a scroll below the
-  suggestions. Neither control is ever icon-only or off the page.
+- **Compact layout.** At 360×800 dp with both shell bars, the pinned field, send button and
+  retention choice are always on screen; the privacy summary needs a scroll below the suggestions.
+  At 2× text the pinned bar reaches its half-screen cap and scrolls on its own.
 - **Answer feedback row.** Every finished answer (`answered` or `abstained`) carries one quiet row
   directly below the card and its source cards and above `Inspeccionar`: two neutral outlined
   buttons, `Útil` and `No útil` (never filled, never the screen's primary action), each with its own
@@ -361,7 +367,7 @@ callbacks unchanged; the privacy shared-attribute list remains derived from its 
 The visual grouping must not alter the distinction between device-local land records and attributes
 that may accompany a question. See [the feature contract](docs/specs/help_privacy_refresh.md).
 `Ayuda` also offers one full-width `TextButton` `Ver bienvenida` after the help card, which shows
-the chat welcome card again.
+the chat welcome card again, and ends with a `Volver` that returns to where it was opened from.
 
 ## MVP surface intent
 

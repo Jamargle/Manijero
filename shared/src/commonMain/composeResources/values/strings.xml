@@ -3,6 +3,13 @@
     <string name="nav_assistant">Asistente</string>
     <string name="nav_lands">Mis terrenos</string>
     <string name="nav_help">Ayuda</string>
+    <string name="nav_settings">Ajustes</string>
+    <string name="settings_title">Ajustes</string>
+    <string name="settings_intro">Aquí tienes la ayuda de la app y la copia de tus terrenos.</string>
+    <string name="settings_help_description">Qué puedes preguntar, lo que no responde y cómo se usan tus datos.</string>
+    <string name="settings_backup_title">Copia en un archivo</string>
+    <string name="settings_backup_description">Guarda tus terrenos en un archivo o recupéralos desde uno.</string>
+    <string name="coverage_back">Volver</string>
     <string name="add_land_title">Añadir terreno</string>
     <string name="add_land_description">El nombre y la zona o paraje son obligatorios. Lo demás puedes dejarlo en blanco o elegir «No lo sé» si no lo sabes.</string>
     <string name="add_land_name_label">Nombre del terreno</string>
@@ -106,7 +113,6 @@
     <string name="land_list_remove">Quitar</string>
     <string name="land_list_remove_description">Quitar el terreno «%1$s»</string>
     <string name="land_list_removed_link">Terrenos eliminados</string>
-    <string name="land_list_backup_link">Copia en un archivo</string>
     <string name="land_backup_title">Copia en un archivo</string>
     <string name="land_backup_description">Guarda todos tus terrenos, también los eliminados, en un archivo. Con ese archivo puedes recuperarlos en otro móvil o en un ordenador Mac, sin cuenta y sin internet.</string>
     <string name="land_backup_warning_title">El archivo no está protegido</string>

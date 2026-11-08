@@ -42,7 +42,7 @@ Do not over-claim.
   upgrade/downgrade evidence; details stay in the [field validation](../validations/land_measurement_fields.md)
   and [search validation](../validations/land_search_and_summary.md).
 - Device-local land records can be exported to, and restored from, one plaintext portable file
-  (`Mis terrenos` → `Copia en un archivo`, replace-all after a preview); see the
+  (`Ajustes` → `Copia en un archivo`, replace-all after a preview); see the
   [acceptance record](../validations/portable_land_backup.md). Removing a
   land is recoverable on the device until the user confirms `Borrar para siempre`; the app also keeps up to
   three bounded same-device automatic copies of the whole aggregate and recovers a damaged primary from the

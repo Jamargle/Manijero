@@ -20,6 +20,7 @@ import androidx.compose.ui.test.assertIsOff
 import androidx.compose.ui.test.assertIsOn
 import androidx.compose.ui.test.hasText
 import androidx.compose.ui.test.isToggleable
+import androidx.compose.ui.test.onNodeWithContentDescription
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.performScrollTo
@@ -60,7 +61,7 @@ class ChatHomeInteractionTest {
                 }
             }
 
-            onNodeWithText("Preguntar").performScrollTo().assertIsNotEnabled()
+            onNodeWithContentDescription("Preguntar").performScrollTo().assertIsNotEnabled()
         }
 
     @Test
@@ -185,7 +186,7 @@ class ChatHomeInteractionTest {
             assertEquals(listOf<ChatHomeAction>(ChatHomeAction.RetentionChoiceChanged(true)), actions)
             onNode(hasText(label) and isToggleable()).assertIsOn()
             onNodeWithText("se borra sola en 30 días como máximo", substring = true).assertExists()
-            onNodeWithText("Preguntar").assertIsEnabled()
+            onNodeWithContentDescription("Preguntar").assertIsEnabled()
         }
 
     @Test
@@ -245,7 +246,7 @@ class ChatHomeInteractionTest {
                 ChatHomeAction.FeedbackClicked(3, AnswerRating.NOT_USEFUL),
                 actions.last(),
             )
-            onNodeWithText("Preguntar").assertExists()
+            onNodeWithContentDescription("Preguntar").assertExists()
         }
 
     @Test
@@ -280,7 +281,7 @@ class ChatHomeInteractionTest {
             onAllNodesWithText("Útil").assertCountEquals(0)
             onAllNodesWithText("No útil").assertCountEquals(0)
             // The composer is untouched: it is still there with its own state.
-            onNodeWithText("Preguntar").assertExists()
+            onNodeWithContentDescription("Preguntar").assertExists()
         }
 
     @Test

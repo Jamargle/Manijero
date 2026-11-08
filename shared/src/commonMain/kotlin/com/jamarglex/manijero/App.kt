@@ -55,6 +55,7 @@ import com.jamarglex.manijero.lands.toEditLandState
 import com.jamarglex.manijero.lands.toPermanentlyDeleteLandState
 import com.jamarglex.manijero.lands.toRemoveLandState
 import com.jamarglex.manijero.privacy.PrivacyScreen
+import com.jamarglex.manijero.settings.SettingsScreen
 import com.jamarglex.manijero.theme.ManijeroTheme
 
 // The one-time launch hydration of the default lands list. It runs inside `remember` so repeated
@@ -114,11 +115,13 @@ fun App(
     // `Mis terrenos` is the launch tab when there is a local store; without one it would be a dead
     // tab, so the assistant opens instead.
     var destination by remember { mutableStateOf(initialDestination(landsAvailable)) }
-    // The last top-level section that is not Help, so back from Ayuda returns to the tab it was
+    // The last top-level section that is not Ajustes, so back from Ajustes returns to the tab it was
     // entered from instead of to itself. Detail routes (privacy, forms) keep their owning section.
     var previousSection by remember { mutableStateOf(initialSection(landsAvailable)) }
     // Where the privacy notice's own `Volver` returns to. Privacy is a detail route, not a tab.
     var privacyReturn by remember { mutableStateOf(initialDestination(landsAvailable)) }
+    // Where `Ayuda`'s own `Volver` returns to: `Ajustes`, the chat footer, or the privacy notice.
+    var coverageReturn by remember { mutableStateOf(AppDestination.Settings) }
     // The transcript entry whose `Inspeccionar` link was tapped. In memory only; never persisted.
     var inspected by remember { mutableStateOf<ChatMessage?>(null) }
     var addLandState by remember { mutableStateOf(AddLandState()) }
@@ -235,7 +238,7 @@ fun App(
             }
             destination = target
         }
-        if (section != AppSection.Help) previousSection = section
+        if (section != AppSection.Settings) previousSection = section
     }
 
     // System back applies the same route table as the visible controls. It is installed only when
@@ -245,6 +248,7 @@ fun App(
         destination = destination,
         previousSection = previousSection,
         privacyReturn = privacyReturn,
+        coverageReturn = coverageReturn,
     )
     if (systemBackTarget != null) {
         BackHandler {
@@ -285,7 +289,7 @@ fun App(
                         destination = AppDestination.Privacy
                     },
                     onCoverageClick = {
-                        previousSection = selectedSection
+                        coverageReturn = AppDestination.Chat
                         destination = AppDestination.Coverage
                     },
                     // `Inspeccionar` exists only for an entry that kept an inspection, which the
@@ -308,11 +312,25 @@ fun App(
                 AppDestination.Privacy -> PrivacyScreen(
                     onBack = { destination = privacyReturn },
                     onCoverageClick = {
-                        previousSection = selectedSection
+                        // Opened from `Ayuda`: go back to it rather than stacking a loop.
+                        if (privacyReturn != AppDestination.Coverage) coverageReturn = AppDestination.Privacy
                         destination = AppDestination.Coverage
                     },
                 )
+                AppDestination.Settings -> SettingsScreen(
+                    onOpenHelp = {
+                        coverageReturn = AppDestination.Settings
+                        destination = AppDestination.Coverage
+                    },
+                    onOpenBackup = landBackup?.let { controller ->
+                        {
+                            controller.reset()
+                            destination = AppDestination.LandBackup
+                        }
+                    },
+                )
                 AppDestination.Coverage -> CoverageScreen(
+                    onBack = { destination = coverageReturn },
                     onPrivacyClick = {
                         privacyReturn = AppDestination.Coverage
                         destination = AppDestination.Privacy
@@ -374,13 +392,6 @@ fun App(
                         readRemovedLands()
                         destination = AppDestination.RemovedLands
                     },
-                    onOpenBackup = landBackup?.let { controller ->
-                        {
-                            landConfirmation = null
-                            controller.reset()
-                            destination = AppDestination.LandBackup
-                        }
-                    },
                 )
 
                 // Export and restore through the platform picker. Choosing a file only previews it;
@@ -392,7 +403,7 @@ fun App(
                         onChooseFile = controller::chooseFile,
                         onConfirmRestore = controller::confirmRestore,
                         onCancelPreview = controller::dismissPreview,
-                        onBack = { destination = AppDestination.LandList },
+                        onBack = { destination = AppDestination.Settings },
                     )
                 }
 

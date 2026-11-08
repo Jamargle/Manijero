@@ -4,7 +4,7 @@ import androidx.compose.runtime.Composable
 import com.jamarglex.manijero.AppSection
 import com.jamarglex.manijero.AppShell
 import com.jamarglex.manijero.chat.ChatHomeScreen
-import com.jamarglex.manijero.coverage.CoverageScreen
+import com.jamarglex.manijero.settings.SettingsScreen
 import com.jamarglex.manijero.lands.LandListScreen
 import com.jamarglex.manijero.theme.ManijeroTheme
 import kotlin.test.Test
@@ -37,8 +37,8 @@ class AppShellScreenshotsTest : ScreenshotTestSupport() {
 
     @Test
     fun appShellHelpRailLight() =
-        capture(name = "app_shell_help_rail_light", width = 900, height = LAND_HEIGHT) {
-            ManijeroTheme(darkTheme = false) { HelpShell() }
+        capture(name = "app_shell_settings_rail_light", width = 900, height = LAND_HEIGHT) {
+            ManijeroTheme(darkTheme = false) { SettingsShell() }
         }
 
     @Test
@@ -75,9 +75,9 @@ private fun LandsShell() {
 }
 
 @Composable
-private fun HelpShell() {
-    ShellFrame(AppSection.Help) {
-        CoverageScreen(onPrivacyClick = {})
+private fun SettingsShell() {
+    ShellFrame(AppSection.Settings) {
+        SettingsScreen(onOpenHelp = {}, onOpenBackup = {})
     }
 }
 

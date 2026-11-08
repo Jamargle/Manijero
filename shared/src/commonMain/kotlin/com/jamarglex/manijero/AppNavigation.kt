@@ -2,12 +2,12 @@ package com.jamarglex.manijero
 
 /**
  * The three top-level places the shell exposes as tabs, first tab first: `Mis terrenos`,
- * `Asistente`, `Ayuda`.
+ * `Asistente`, `Ajustes`.
  *
  * `Lands` is absent from [availableSections] when no local land repository is injected, so the
  * shell can never show a destination that cannot do anything.
  */
-internal enum class AppSection { Lands, Assistant, Help }
+internal enum class AppSection { Lands, Assistant, Settings }
 
 /**
  * Every screen the composition root can show. `Privacy`, `Terrenos eliminados`, and the land form
@@ -23,6 +23,11 @@ internal enum class AppDestination {
     PermanentlyDeleteLand,
     LandBackup,
     Privacy,
+
+    /** The `Ajustes` tab: links to `Ayuda` and to `Copia en un archivo`. */
+    Settings,
+
+    /** The `Ayuda` detail route, opened from `Ajustes` or from the chat footer. */
     Coverage,
 
     /** The test-build `Conexión` route under `Ayuda`; it exists only when a host injects the tools. */
@@ -56,7 +61,7 @@ internal fun initialSection(landsAvailable: Boolean): AppSection =
 internal fun sectionDestination(section: AppSection): AppDestination = when (section) {
     AppSection.Assistant -> AppDestination.Chat
     AppSection.Lands -> AppDestination.LandList
-    AppSection.Help -> AppDestination.Coverage
+    AppSection.Settings -> AppDestination.Settings
 }
 
 /**
@@ -74,18 +79,19 @@ internal fun tabForDestination(destination: AppDestination, fallback: AppSection
         AppDestination.RemoveLand,
         AppDestination.RemovedLands,
         AppDestination.PermanentlyDeleteLand,
-        AppDestination.LandBackup,
         -> AppSection.Lands
 
+        AppDestination.Settings,
+        AppDestination.LandBackup,
         AppDestination.Coverage,
         AppDestination.Connection,
-        -> AppSection.Help
+        -> AppSection.Settings
         AppDestination.Privacy -> fallback
     }
 
 /**
  * The remembered section after a back press. Landing on a top-level tab makes it the tab a later
- * `Ayuda` returns to; every other route keeps the section it was already under.
+ * `Ajustes` returns to; every other route keeps the section it was already under.
  */
 internal fun rememberedSectionAfterBack(
     destination: AppDestination,
@@ -114,13 +120,15 @@ internal fun navigationVisible(destination: AppDestination): Boolean = when (des
 /**
  * The route Android system back goes to, or `null` to let the host close the app.
  *
- * [previousSection] is the last non-help section; [privacyReturn] is the destination privacy was
- * opened from. Help always returns to the tab it was entered from, never to itself.
+ * [previousSection] is the last section other than `Ajustes`; [privacyReturn] and [coverageReturn]
+ * are the destinations privacy and `Ayuda` were opened from. `Ajustes` always returns to the tab it
+ * was entered from, never to itself.
  */
 internal fun backTarget(
     destination: AppDestination,
     previousSection: AppSection,
     privacyReturn: AppDestination,
+    coverageReturn: AppDestination = AppDestination.Settings,
 ): AppDestination? = when (destination) {
     AppDestination.Chat -> null
     AppDestination.LandList -> AppDestination.Chat
@@ -130,13 +138,15 @@ internal fun backTarget(
     -> AppDestination.LandList
 
     AppDestination.RemovedLands -> AppDestination.LandList
-    AppDestination.LandBackup -> AppDestination.LandList
+    AppDestination.LandBackup -> AppDestination.Settings
     AppDestination.PermanentlyDeleteLand -> AppDestination.RemovedLands
 
-    AppDestination.Coverage -> {
+    AppDestination.Settings -> {
         val previous = sectionDestination(previousSection)
-        if (previous == AppDestination.Coverage) AppDestination.Chat else previous
+        if (previous == AppDestination.Settings) AppDestination.Chat else previous
     }
+
+    AppDestination.Coverage -> coverageReturn
 
     AppDestination.Privacy -> privacyReturn
     AppDestination.Connection -> AppDestination.Coverage

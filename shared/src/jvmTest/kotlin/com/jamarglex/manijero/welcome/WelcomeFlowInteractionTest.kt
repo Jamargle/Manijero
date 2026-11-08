@@ -3,6 +3,7 @@ package com.jamarglex.manijero.welcome
 import androidx.compose.ui.semantics.SemanticsProperties
 import androidx.compose.ui.test.ExperimentalTestApi
 import androidx.compose.ui.test.SemanticsMatcher
+import androidx.compose.ui.test.onNodeWithContentDescription
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.performScrollTo
@@ -32,7 +33,7 @@ class WelcomeFlowInteractionTest {
             setContent { App(welcomeNotice = store) }
 
             onNodeWithText(title).assertExists()
-            onNodeWithText("Preguntar").assertExists()
+            onNodeWithContentDescription("Preguntar").assertExists()
             val headings = onAllNodes(SemanticsMatcher.keyIsDefined(SemanticsProperties.Heading))
             assertEquals(1, headings.fetchSemanticsNodes().size)
 
@@ -55,6 +56,7 @@ class WelcomeFlowInteractionTest {
             val store = FakeStore().apply { dismissed = true }
             setContent { App(welcomeNotice = store) }
 
+            onNodeWithText("Ajustes").performClick()
             onNodeWithText("Ayuda").performClick()
             onNodeWithText("Ver bienvenida").performScrollTo().performClick()
             onNodeWithText(title).assertExists()
@@ -69,6 +71,7 @@ class WelcomeFlowInteractionTest {
         runDesktopComposeUiTest(width = 900, height = 2400) {
             setContent { App() }
             onNodeWithText(title).assertDoesNotExist()
+            onNodeWithText("Ajustes").performClick()
             onNodeWithText("Ayuda").performClick()
             onNodeWithText("Ver bienvenida").assertDoesNotExist()
         }

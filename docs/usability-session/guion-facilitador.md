@@ -44,7 +44,7 @@ Se hace a mano en la aplicación **Manijero QA**:
 
 1. En **Mis terrenos**, pulsa **Quitar** en cada terreno inventado.
 2. Entra en **Terrenos eliminados** y pulsa **Borrar para siempre** en cada uno.
-3. Pulsa **Ayuda** y luego **Ver bienvenida**, para que **Antes de empezar** vuelva a verse.
+3. Pulsa **Ajustes**, luego **Ayuda** y luego **Ver bienvenida**, para que **Antes de empezar** vuelva a verse.
 
 ## Al terminar con cada persona
 

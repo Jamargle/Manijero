@@ -17,7 +17,7 @@ land data only. Never write names or phone numbers anywhere.
 4. **Record.** Run `./scripts/init.sh --usability-record` and answer the prompts from the sheet. Expect a recap, then
    `Result: P1 was saved; the results file holds 1 participant: ~/manijero/usability/usability-results.json.`
 5. **Reset.** Before the next person, in the QA app: `Quitar` each land, `Borrar para siempre` in `Terrenos eliminados`, then
-   `Ayuda` and `Ver bienvenida`. Then repeat steps 3 to 5 with `P2` and `P3`.
+   `Ajustes`, `Ayuda` and `Ver bienvenida`. Then repeat steps 3 to 5 with `P2` and `P3`.
 6. **Send the summary.** The summary printed after the last person covers everyone saved. Send it with the results file
    path to the developer, including whether the app ever asked to choose a land.
 

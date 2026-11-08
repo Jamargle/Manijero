@@ -30,7 +30,7 @@ import manijero.shared.generated.resources.ic_chat
 import manijero.shared.generated.resources.ic_help
 import manijero.shared.generated.resources.ic_lands
 import manijero.shared.generated.resources.nav_assistant
-import manijero.shared.generated.resources.nav_help
+import manijero.shared.generated.resources.nav_settings
 import manijero.shared.generated.resources.nav_lands
 import org.jetbrains.compose.resources.stringResource
 
@@ -45,7 +45,7 @@ import org.jetbrains.compose.resources.stringResource
  *
  * When [navigationVisible] is false (a land form holds unsaved input) only the top app bar remains.
  * The top app bar deliberately exposes no right-side action: privacy stays reachable from the chat
- * footer and the help screen.
+ * footer and the help screen under `Ajustes`.
  */
 @Composable
 internal fun AppShell(
@@ -121,13 +121,14 @@ internal fun AppShell(
 private fun AppSection.labelResource() = when (this) {
     AppSection.Assistant -> Res.string.nav_assistant
     AppSection.Lands -> Res.string.nav_lands
-    AppSection.Help -> Res.string.nav_help
+    AppSection.Settings -> Res.string.nav_settings
 }
 
 private fun AppSection.iconResource() = when (this) {
     AppSection.Assistant -> Res.drawable.ic_chat
     AppSection.Lands -> Res.drawable.ic_lands
-    AppSection.Help -> Res.drawable.ic_help
+    // Placeholder glyph until the settings icon is chosen with the owner.
+    AppSection.Settings -> Res.drawable.ic_help
 }
 
 // Preview sample only, never shipped copy.
@@ -161,7 +162,7 @@ private fun AppShellCompactLightPreview() =
 @Preview(name = "AppShell compact — oscuro", widthDp = 400, heightDp = 640)
 @Composable
 private fun AppShellCompactDarkPreview() =
-    AppShellPreviewFrame(AppSection.Help, dark = true)
+    AppShellPreviewFrame(AppSection.Settings, dark = true)
 
 @Preview(name = "AppShell ancho — claro", widthDp = 1000, heightDp = 700)
 @Composable
