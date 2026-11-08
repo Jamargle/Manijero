@@ -82,7 +82,7 @@ Durable MUST/MUST NOT rules for land editing, fields, storage, automatic copies,
   MUST behave like a blank one. Reason: `land_search_and_summary`; matching a measure or note would
   reveal a value the search hint does not promise, and reordering would hide the stored order.
 - **MUST**: an empty store MUST show the shared olive-branch empty state with no summary cards and no
-  search field, and a query with no match MUST show one plain sentence with a named clear action.
+  search magnifier (the search field lives in the top bar and opens only while lands are listed), and a query with no match MUST show one plain sentence with a named clear action.
   Exactly one `Añadir terreno` action MUST exist in both states and while lands are listed, as the
   floating action in the bottom end corner (owner decision 2026-11-08; it is absent only after a
   failed read, which offers `Reintentar`). Reason: `land_search_and_summary`; a second Add action,

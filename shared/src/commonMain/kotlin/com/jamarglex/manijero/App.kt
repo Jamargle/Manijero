@@ -1,11 +1,16 @@
 package com.jamarglex.manijero
 
 import com.jamarglex.manijero.design.ManijeroTopBarMenuItem
+import com.jamarglex.manijero.design.ManijeroTopBarSearch
 import manijero.shared.generated.resources.Res
 import manijero.shared.generated.resources.chat_home_privacy
 import manijero.shared.generated.resources.coverage_open
 import manijero.shared.generated.resources.ic_help
 import manijero.shared.generated.resources.ic_info
+import manijero.shared.generated.resources.land_search_clear
+import manijero.shared.generated.resources.land_search_close
+import manijero.shared.generated.resources.land_search_hint
+import manijero.shared.generated.resources.land_search_label
 import org.jetbrains.compose.resources.stringResource
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
@@ -294,6 +299,36 @@ fun App(
         BackHandler { goBack(systemBackTarget) }
     }
     val upTarget = systemBackTarget?.takeIf { showsUpNavigation(destination) }
+    // The land search lives in the top bar of `Mis terrenos`. Closing it, with its arrow, system back
+    // or by leaving the screen, also clears the filter so the list never stays filtered unseen.
+    var landSearchOpen by remember { mutableStateOf(false) }
+    val closeLandSearch: () -> Unit = {
+        landSearchOpen = false
+        landListState = landListState.reduce(LandListAction.QueryChanged(""))
+    }
+    val landSearchAvailable =
+        destination == AppDestination.LandList && landListState.lands.isNotEmpty() && !landListState.loadFailed
+    LaunchedEffect(landSearchAvailable) {
+        if (!landSearchAvailable && (landSearchOpen || landListState.query.isNotEmpty())) closeLandSearch()
+    }
+    BackHandler(enabled = landSearchOpen && landSearchAvailable) { closeLandSearch() }
+    val landSearch = if (landSearchAvailable) {
+        ManijeroTopBarSearch(
+            open = landSearchOpen,
+            query = landListState.query,
+            label = stringResource(Res.string.land_search_label),
+            hint = stringResource(Res.string.land_search_hint),
+            clearDescription = stringResource(Res.string.land_search_clear),
+            closeDescription = stringResource(Res.string.land_search_close),
+            onOpen = { landSearchOpen = true },
+            onClose = closeLandSearch,
+            onQueryChange = { query ->
+                landListState = landListState.reduce(LandListAction.QueryChanged(query))
+            },
+        )
+    } else {
+        null
+    }
     val chatMenuItems = listOf(
         ManijeroTopBarMenuItem(
             label = stringResource(Res.string.chat_home_privacy),
@@ -325,6 +360,7 @@ fun App(
             // The assistant's `⋮` menu: the privacy notice and what the app covers.
             menuItems = if (destination == AppDestination.Chat) chatMenuItems else emptyList(),
             screenTitle = screenTitleResource(destination)?.let { stringResource(it) },
+            search = landSearch,
         ) {
             when (destination) {
                 AppDestination.Chat -> ChatHomeScreen(

@@ -22,6 +22,7 @@ import com.jamarglex.manijero.design.ManijeroDestination
 import com.jamarglex.manijero.design.ManijeroNavigationRail
 import com.jamarglex.manijero.design.ManijeroTopAppBar
 import com.jamarglex.manijero.design.ManijeroTopBarMenuItem
+import com.jamarglex.manijero.design.ManijeroTopBarSearch
 import com.jamarglex.manijero.design.selectedDestinationIndex
 import com.jamarglex.manijero.design.WideWindowBreakpoint
 import com.jamarglex.manijero.theme.ManijeroTheme
@@ -45,6 +46,9 @@ import org.jetbrains.compose.resources.stringResource
  * navigation bars, applies the ime inset so the bottom bar stays above the keyboard, and passes the
  * remaining scaffold padding to [content]. It owns the navigation copy and section callbacks; the
  * screens it hosts keep their own state, copy, padding and scroll.
+ *
+ * [search], when given, puts the magnifier (and, once opened, the search field) in the top bar; the
+ * composition root passes it on `Mis terrenos` only.
  *
  * [screenTitle] is passed on detail routes only: the top bar then shows that title (and no brand
  * mark) and the screens drop their own large heading. Top-level tab screens keep the brand mark and
@@ -70,6 +74,7 @@ internal fun AppShell(
     onBack: (() -> Unit)? = null,
     menuItems: List<ManijeroTopBarMenuItem> = emptyList(),
     screenTitle: String? = null,
+    search: ManijeroTopBarSearch? = null,
     content: @Composable () -> Unit,
 ) {
     val sections = availableSections(landsAvailable)
@@ -99,6 +104,7 @@ internal fun AppShell(
                             backDescription = stringResource(Res.string.nav_back),
                             menuItems = menuItems,
                             menuDescription = stringResource(Res.string.nav_more),
+                            search = search,
                         )
                     }
                 }

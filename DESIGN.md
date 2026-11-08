@@ -298,7 +298,12 @@ them; feature specs own screen-specific behavior.
 - Give each screen one primary action, with plain labels such as “Añadir terreno” and “Preguntar”.
   On `Mis terrenos` it is an extended floating action (`ic_add` plus the visible label, named
   `Añadir terreno`) in the bottom end corner above the tab bar, with clearance after the last row so
-  it never covers a land; the empty state carries no second button.
+  it never covers a land; the empty state carries no second button. The land search is a magnifier
+  button (`ic_search`, 48 dp, named `Buscar terreno`) at the end of the `Mis terrenos` top bar,
+  always visible and never inside the `⋮` menu, shown only while lands are listed. Opening it turns
+  the whole top bar into a close arrow (`Cerrar la búsqueda`) and the shared search field
+  (`Buscar terreno`, with its clear action); closing it, by the arrow, system back or leaving the
+  screen, clears the filter so the list is never filtered out of sight.
 - Use a clear heading, short explanation, and predictable back/home navigation and action placement.
 - Provide large mobile touch targets, comfortable Desktop pointer targets, keyboard operation, and
   visible focus. Essential instructions must not depend on hover.

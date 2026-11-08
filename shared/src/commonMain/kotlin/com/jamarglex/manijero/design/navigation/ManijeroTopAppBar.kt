@@ -20,12 +20,15 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.focus.FocusRequester
+import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.semantics.heading
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.style.TextOverflow
@@ -38,7 +41,26 @@ import manijero.shared.generated.resources.Res
 import manijero.shared.generated.resources.ic_back
 import manijero.shared.generated.resources.ic_info
 import manijero.shared.generated.resources.ic_more
+import manijero.shared.generated.resources.ic_search
 import org.jetbrains.compose.resources.DrawableResource
+
+/**
+ * The top bar's search action. While [open] is false the bar shows a magnifier button (named
+ * [label]) that calls [onOpen]; while true the bar becomes a close arrow (named [closeDescription])
+ * plus the search field, and [onClose] ends the search. The caller owns [query] and decides what
+ * closing does to it; the bar filters nothing.
+ */
+internal data class ManijeroTopBarSearch(
+    val open: Boolean,
+    val query: String,
+    val label: String,
+    val hint: String,
+    val clearDescription: String,
+    val closeDescription: String,
+    val onOpen: () -> Unit,
+    val onClose: () -> Unit,
+    val onQueryChange: (String) -> Unit,
+)
 
 /** One entry of the top bar menu: its visible [label], an optional decorative [icon], the action. */
 internal data class ManijeroTopBarMenuItem(
@@ -65,6 +87,9 @@ internal data class ManijeroTopBarMenuItem(
  * With [screenTitle] the bar shows the screen's own [title] (marked as a heading) instead of the
  * brand mark and app name: this is the detail-screen form, after the up arrow.
  *
+ * With [search], a magnifier button sits at the end of the bar (before the menu), always visible and
+ * never inside the `⋮` menu; opening it turns the bar into the search field.
+ *
  * When [menuItems] and the menu button's accessible name [menuDescription] are given, a `⋮`
  * button (`ic_more`, 48 dp) at the end of the bar opens a menu with one labelled row per item, each
  * with an optional decorative glyph. The menu is omitted without a name.
@@ -83,6 +108,7 @@ internal fun ManijeroTopAppBar(
     menuItems: List<ManijeroTopBarMenuItem> = emptyList(),
     menuDescription: String? = null,
     screenTitle: Boolean = false,
+    search: ManijeroTopBarSearch? = null,
 ) {
     var menuOpen by remember { mutableStateOf(false) }
     val actionName = privacyDescription ?: privacyLabel
@@ -116,6 +142,29 @@ internal fun ManijeroTopAppBar(
                             )
                         }
                     }
+                    if (search != null && search.open) {
+                        // Search mode replaces the whole bar: close arrow, then the field.
+                        val focus = remember { FocusRequester() }
+                        LaunchedEffect(Unit) { focus.requestFocus() }
+                        IconButton(
+                            onClick = search.onClose,
+                            modifier = Modifier.size(ManijeroLayout.MinTouchTarget),
+                        ) {
+                            ManijeroIcon(
+                                resource = Res.drawable.ic_back,
+                                contentDescription = search.closeDescription,
+                            )
+                        }
+                        ManijeroSearchField(
+                            value = search.query,
+                            onValueChange = search.onQueryChange,
+                            label = search.label,
+                            clearDescription = search.clearDescription,
+                            placeholder = search.hint,
+                            modifier = Modifier.weight(1f).focusRequester(focus),
+                        )
+                        return@Row
+                    }
                     // A top-level screen shows the brand mark and the app name; a detail screen shows
                     // its own title (as the screen's one heading) and no mark.
                     if (!screenTitle) ManijeroBrandMark()
@@ -128,6 +177,17 @@ internal fun ManijeroTopAppBar(
                         maxLines = 2,
                         overflow = TextOverflow.Ellipsis,
                     )
+                    if (search != null) {
+                        IconButton(
+                            onClick = search.onOpen,
+                            modifier = Modifier.size(ManijeroLayout.MinTouchTarget),
+                        ) {
+                            ManijeroIcon(
+                                resource = Res.drawable.ic_search,
+                                contentDescription = search.label,
+                            )
+                        }
+                    }
                     if (menuItems.isNotEmpty() && menuDescription != null) {
                         Box {
                             IconButton(

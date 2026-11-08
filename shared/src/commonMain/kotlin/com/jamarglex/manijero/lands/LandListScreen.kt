@@ -33,7 +33,6 @@ import com.jamarglex.manijero.design.ManijeroChipTone
 import com.jamarglex.manijero.design.ManijeroEmptyState
 import com.jamarglex.manijero.design.ManijeroScreen
 import com.jamarglex.manijero.design.ManijeroAttributeChip
-import com.jamarglex.manijero.design.ManijeroSearchField
 import com.jamarglex.manijero.design.ManijeroSectionHeader
 import com.jamarglex.manijero.design.ManijeroStatCard
 import com.jamarglex.manijero.design.WideWindowBreakpoint
@@ -73,8 +72,6 @@ import manijero.shared.generated.resources.land_list_variety
 import manijero.shared.generated.resources.land_list_water
 import manijero.shared.generated.resources.land_list_zone
 import manijero.shared.generated.resources.land_search_clear
-import manijero.shared.generated.resources.land_search_hint
-import manijero.shared.generated.resources.land_search_label
 import manijero.shared.generated.resources.land_search_no_results
 import manijero.shared.generated.resources.land_summary_count_caption
 import manijero.shared.generated.resources.land_summary_count_caption_filtered
@@ -261,8 +258,9 @@ fun LandListScreen(
 private val AddActionClearance = 72.dp
 
 /**
- * The populated list: the summary of the shown set, the search field, then the matching rows or the
- * no-results panel. The Add action is the screen's floating action, not part of this column.
+ * The populated list: the summary of the shown set, then the matching rows or the no-results panel.
+ * The Add action is the screen's floating action and the search field lives in the top bar (the
+ * query arrives through [state]); neither is part of this column.
  *
  * The summary describes exactly the set the person is looking at: every saved land for a blank
  * query, only the matches otherwise. When nothing matches there is no summary, because a total for
@@ -292,14 +290,6 @@ private fun LandListContent(
             wideWindow = wideWindow,
         )
     }
-
-    ManijeroSearchField(
-        value = state.query,
-        onValueChange = onQueryChange,
-        label = stringResource(Res.string.land_search_label),
-        clearDescription = stringResource(Res.string.land_search_clear),
-        placeholder = stringResource(Res.string.land_search_hint),
-    )
 
     if (matches.isEmpty()) {
         LandNoResults(onClearQuery = { onQueryChange("") })

@@ -7,6 +7,7 @@ import com.jamarglex.manijero.chat.ChatHomeScreen
 import com.jamarglex.manijero.settings.SettingsScreen
 import com.jamarglex.manijero.coverage.CoverageScreen
 import com.jamarglex.manijero.design.ManijeroTopBarMenuItem
+import com.jamarglex.manijero.design.ManijeroTopBarSearch
 import com.jamarglex.manijero.lands.LandListScreen
 import com.jamarglex.manijero.theme.ManijeroTheme
 import kotlin.test.Test
@@ -52,6 +53,12 @@ class AppShellScreenshotsTest : AndroidScreenshotTestSupport() {
         }
 
     @Test
+    fun appShellLandsSearchOpenCompact() =
+        capture("app_shell_lands_search_open_light") {
+            ManijeroTheme(darkTheme = false) { LandsShell(searchOpen = true) }
+        }
+
+    @Test
     fun appShellAssistantCompactLargeText() =
         capture("app_shell_assistant_compact_large_text", fontScale = 2f) {
             ManijeroTheme(darkTheme = false) { AssistantShell() }
@@ -69,8 +76,21 @@ private fun AssistantShell() {
 }
 
 @Composable
-private fun LandsShell() {
-    ShellFrame(AppSection.Lands) {
+private fun LandsShell(searchOpen: Boolean = false) {
+    ShellFrame(
+        AppSection.Lands,
+        search = ManijeroTopBarSearch(
+            open = searchOpen,
+            query = if (searchOpen) "loma" else "",
+            label = "Buscar terreno",
+            hint = "Buscar por nombre, municipio o tipo…",
+            clearDescription = "Borrar la búsqueda",
+            closeDescription = "Cerrar la búsqueda",
+            onOpen = {},
+            onClose = {},
+            onQueryChange = {},
+        ),
+    ) {
         LandListScreen(
             state = ScreenshotFixtures.twoLands,
             onAddLand = {},
@@ -103,6 +123,7 @@ private fun ShellFrame(
     menuItems: List<ManijeroTopBarMenuItem> = emptyList(),
     screenTitle: String? = null,
     tabsVisible: Boolean = true,
+    search: ManijeroTopBarSearch? = null,
     content: @Composable () -> Unit,
 ) {
     AppShell(
@@ -112,6 +133,7 @@ private fun ShellFrame(
         onSectionSelect = {},
         onBack = onBack,
         screenTitle = screenTitle,
+        search = search,
         menuItems = menuItems,
         content = content,
     )
