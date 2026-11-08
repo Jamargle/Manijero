@@ -103,3 +103,4 @@ __pycache__/
 # outside this folder; these patterns only guard against an accidental copy. Never commit them.
 *.token
 pilot-clients*.json
+usability-results*.json

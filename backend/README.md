@@ -2688,3 +2688,24 @@ Output is one `PASS`/`FAIL`/`SKIP` line per step and exactly one `Result:` line,
 tracebacks, question, answer, passage, land, or token text: only fixed labels, reason codes, source
 counts, and the address. **Exit codes**: `0` all four passed; `1` any failed or skipped step (the
 `Result:` line names them and, for skips, the `--local-rag-start` fix); `2` an extra argument.
+
+### Usability results
+
+`./scripts/init.sh --usability-record` (steps in [`docs/owner-guide.md`](../docs/owner-guide.md), kit in
+[`docs/usability-session/`](../docs/usability-session/)) runs `backend/scripts/usability_record.py`
+(operator-only; logic in `app/usability_results.py`; never imported by the service). The dispatch matches
+`--demo-rehearsal`: one argument only (else exit `2`), the shared dev environment linked if `backend/.venv` is absent.
+
+- **File.** `~/manijero/usability/usability-results.json` (folder `0700`, file `0600`, temp file + rename). Schema
+  `usability-results-v1`: `participants` sorted by code, each with `code`, four `tasks` (`first_use`, `add_two_lands`,
+  `land_question`, `sources`; each `outcome` `completed|needed_help|gave_up`, whole `minutes` 0-60, `note`), `land_choice_shown`
+  on `land_question`, and `debrief_note`. No dates, names, or contact fields. A file with any other shape is left untouched.
+- **Prompts.** Code `P1`-`P99`; per task a result `1|2|3`, minutes, an optional note; yes/no for whether the app asked to choose
+  a land; an optional debrief note; `yes` at the recap. Replacing a saved code needs `yes`. Notes are at most 200 characters
+  (debrief 400). Three invalid answers in a row to one prompt, end of input, Ctrl+C, or no `yes` save nothing (exit `1`).
+- **Screening (lexical, not a guarantee).** A note is refused for a capitalised word outside the app-word list in
+  `usability_results.APP_WORDS`, a name or address cue (`se llama`, `don`, `señora`, `calle`...), five or more digits in a row,
+  or `app.input_guardrails.screen_question` returning `personal_data` (phone, email, DNI, NIE, NIF, IBAN). It cannot recognise
+  every name or address, so the kit also tells the facilitator not to write them. Refused text is never printed or stored.
+- **Test-only.** `MANIJERO_USABILITY_HOME` replaces the folder and is refused inside the checkout. Tests in
+  `tests/test_usability_session.py` use temporary folders and scripted answers.
