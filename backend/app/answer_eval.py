@@ -2,7 +2,7 @@
 import json
 from datetime import date
 from pathlib import Path
-from typing import Any
+from typing import Any, Callable
 from app.ask_api import AskResponse, get_retrieval_k
 
 VERSION = "pac-answer-eval-v2"
@@ -218,6 +218,7 @@ def evaluate(
     k: int = 5,
     *,
     coverage: dict[str, Any] | None = None,
+    row_extra: Callable[[dict[str, Any], dict[str, Any]], dict[str, Any]] | None = None,
 ) -> dict[str, Any]:
     rows = []
     for case in cases:
@@ -284,6 +285,8 @@ def evaluate(
                 set(choices) - {land["id"] for land in case["land_context"]["lands"]}
             ),
         }
+        if row_extra is not None:
+            row.update(row_extra(case, actual))
         rows.append(row)
     count = len(rows)
     roles = sorted(

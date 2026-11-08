@@ -1,0 +1,275 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://manijero.invalid/schemas/trap-set-v1.json",
+  "title": "Trap question queue: drafts until a named reviewer decides",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "additional_areas",
+    "items"
+  ],
+  "properties": {
+    "schema_version": {
+      "const": "trap-set-v1"
+    },
+    "additional_areas": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "id",
+          "kind",
+          "label"
+        ],
+        "properties": {
+          "id": {
+            "type": "string",
+            "minLength": 1
+          },
+          "kind": {
+            "const": "boundary"
+          },
+          "label": {
+            "type": "string",
+            "minLength": 1
+          }
+        }
+      }
+    },
+    "items": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "$ref": "#/$defs/item"
+      }
+    }
+  },
+  "$defs": {
+    "land": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id"
+      ],
+      "properties": {
+        "id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128
+        },
+        "municipality": {
+          "type": "string"
+        },
+        "water_regime": {
+          "enum": [
+            "dryland",
+            "irrigated",
+            "mixed",
+            "unknown"
+          ]
+        },
+        "production_method": {
+          "enum": [
+            "conventional",
+            "organic",
+            "mixed",
+            "unknown"
+          ]
+        }
+      }
+    },
+    "stamp": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "by",
+        "on"
+      ],
+      "properties": {
+        "by": {
+          "type": "string",
+          "minLength": 1
+        },
+        "on": {
+          "type": "string",
+          "format": "date"
+        }
+      }
+    },
+    "item": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "category",
+        "area",
+        "question",
+        "land_context",
+        "expected_status",
+        "drafted",
+        "review_state"
+      ],
+      "properties": {
+        "id": {
+          "type": "string",
+          "pattern": "^trap-[0-9]{3}$"
+        },
+        "category": {
+          "enum": [
+            "prompt_injection",
+            "false_premise",
+            "cooperative_practice",
+            "personal_advice",
+            "typo"
+          ]
+        },
+        "area": {
+          "type": "string",
+          "minLength": 1
+        },
+        "question": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 2000
+        },
+        "land_context": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "mode",
+            "lands"
+          ],
+          "properties": {
+            "mode": {
+              "enum": [
+                "general",
+                "all_active",
+                "selected"
+              ]
+            },
+            "lands": {
+              "type": "array",
+              "items": {
+                "$ref": "#/$defs/land"
+              }
+            }
+          }
+        },
+        "expected_status": {
+          "enum": [
+            "answered",
+            "abstained"
+          ]
+        },
+        "expected_source_ids": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "expected_passage_ids": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "critical_facts": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1
+          }
+        },
+        "anchor": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "source_id",
+            "passage_id",
+            "text"
+          ],
+          "properties": {
+            "source_id": {
+              "type": "string"
+            },
+            "passage_id": {
+              "type": "string"
+            },
+            "text": {
+              "type": "string",
+              "minLength": 1
+            }
+          }
+        },
+        "acceptable_abstention_reasons": {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": {
+            "enum": [
+              "no_evidence",
+              "insufficient_evidence",
+              "conflicting_evidence",
+              "false_premise",
+              "unsafe_request",
+              "generator_abstained",
+              "personal_data",
+              "prompt_injection",
+              "out_of_domain"
+            ]
+          }
+        },
+        "must_not_say": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "string",
+            "minLength": 1
+          }
+        },
+        "variant_of": {
+          "type": "string",
+          "minLength": 1
+        },
+        "drafted": {
+          "$ref": "#/$defs/stamp"
+        },
+        "review_state": {
+          "enum": [
+            "draft",
+            "approved",
+            "rejected"
+          ]
+        },
+        "decision": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "decision",
+            "reviewed_by",
+            "reviewed_on"
+          ],
+          "properties": {
+            "decision": {
+              "enum": [
+                "approved",
+                "rejected"
+              ]
+            },
+            "reviewed_by": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 80
+            },
+            "reviewed_on": {
+              "type": "string",
+              "format": "date"
+            }
+          }
+        }
+      }
+    }
+  }
+}
