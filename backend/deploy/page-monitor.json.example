@@ -1,0 +1,5 @@
+{"sources":[
+  {"id":"fega-pac","issuer":"FEGA","url":"https://www.fega.gob.es/pac"},
+  {"id":"mapa-pac","issuer":"MAPA","url":"https://www.mapa.gob.es/es/pac"},
+  {"id":"junta-pac","issuer":"Junta de Andalucía","url":"https://www.juntadeandalucia.es/pac"}
+]}

@@ -912,6 +912,125 @@
           "valueSize": 16
         }
       }
+    },
+    {
+      "id": 12,
+      "type": "row",
+      "title": "Knowledge updates",
+      "collapsed": false,
+      "gridPos": {
+        "x": 0,
+        "y": 33,
+        "w": 24,
+        "h": 1
+      },
+      "panels": []
+    },
+    {
+      "id": 13,
+      "type": "stat",
+      "title": "Knowledge updates",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "manijero-prometheus"
+      },
+      "gridPos": {
+        "x": 0,
+        "y": 34,
+        "w": 24,
+        "h": 6
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "manijero:status_knowledge_updates{env=\"local\"}",
+          "instant": true,
+          "legendFormat": "__auto",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "manijero-prometheus"
+          }
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "mappings": [
+            {
+              "type": "value",
+              "options": {
+                "-1": {
+                  "index": 0,
+                  "color": "text",
+                  "text": "No information yet. Knowledge updates are on but no run has finished yet, or the result cannot be read. First thing to do: run ./scripts/init.sh --knowledge-updates-status."
+                },
+                "0": {
+                  "index": 1,
+                  "color": "green",
+                  "text": "OK. The last knowledge update run is ready for your review and finished within the last 30 hours. Nothing to do here; open its summary when you want to review it."
+                },
+                "1": {
+                  "index": 2,
+                  "color": "orange",
+                  "text": "Warning. No knowledge update run has finished in the last 30 hours; this Mac may have been asleep or off. First thing to do: run ./scripts/init.sh --knowledge-updates-status."
+                },
+                "2": {
+                  "index": 3,
+                  "color": "red",
+                  "text": "Problem. The last knowledge update run failed, ran out of time, or was interrupted. First thing to do: run ./scripts/init.sh --knowledge-updates-status and do what its summary says."
+                },
+                "4": {
+                  "index": 4,
+                  "color": "text",
+                  "text": "Not set up yet. Daily knowledge updates are not turned on. First thing to do: run ./scripts/init.sh --knowledge-updates-status."
+                }
+              }
+            },
+            {
+              "type": "special",
+              "options": {
+                "match": "null+nan",
+                "result": {
+                  "index": 5,
+                  "color": "text",
+                  "text": "No information yet. The dashboard has not received data for this check. First thing to do: wait one minute, then run ./scripts/init.sh --monitoring-status."
+                }
+              }
+            }
+          ],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "text",
+                "value": null
+              }
+            ]
+          },
+          "color": {
+            "mode": "fixed",
+            "fixedColor": "text"
+          },
+          "noValue": "No information yet. The dashboard has not received data for this check. First thing to do: wait one minute, then run ./scripts/init.sh --monitoring-status."
+        },
+        "overrides": []
+      },
+      "options": {
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "textMode": "value",
+        "colorMode": "background",
+        "graphMode": "none",
+        "justifyMode": "left",
+        "orientation": "auto",
+        "text": {
+          "valueSize": 16
+        }
+      }
     }
   ]
 }

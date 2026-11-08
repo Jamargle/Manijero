@@ -38,6 +38,7 @@ from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any, Callable, Iterator, List, Mapping, Optional, Protocol, Sequence, Tuple
 
+from app import knowledge_ops
 from app import knowledge_release as kr
 from app import local_rag_bootstrap as bootstrap
 from app.local_generation import LocalModelRecord, loopback_opener
@@ -329,6 +330,10 @@ def launch_environment(
         environment["MANIJERO_ANSWER_TRACE"] = "on"
     if not settings.answer_cache:
         environment["MANIJERO_ANSWER_CACHE"] = "off"
+    knowledge_ops_home = knowledge_ops.knowledge_ops_home(inherited)
+    if knowledge_ops_home.is_dir():
+        # Read-only recency for the health dashboard; only passed once the owner turned updates on.
+        environment[knowledge_ops.STATE_DIR_ENV] = str(knowledge_ops_home)
     return environment
 
 

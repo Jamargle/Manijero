@@ -26,6 +26,7 @@ from typing import Any, Callable, Dict, Iterable, List, Mapping, Optional, Seque
 
 CONTENT_TYPE = "text/plain; version=0.0.4; charset=utf-8"
 SOURCE_UPDATE_STATE_DIR_ENV = "MANIJERO_SOURCE_UPDATE_STATE_DIR"
+KNOWLEDGE_OPS_STATE_DIR_ENV = "MANIJERO_KNOWLEDGE_OPS_STATE_DIR"
 PREFIX = "manijero_"
 
 # Label allowlist: the only label names a sample may carry.
@@ -58,6 +59,7 @@ READINESS_PROBLEMS = (
 CACHE_OUTCOMES = ("hit", "miss", "expired", "discarded")
 RELEASE_STATES = ("served", "refused", "repository")
 JOBS = ("monitor", "boe", "boja")
+KNOWLEDGE_OPS_OUTCOMES = ("review_ready", "failed", "stopped_at_time_limit", "interrupted")
 RELEASE_ID = re.compile(r"^[0-9a-f]{16}$")
 BUCKETS = (0.05, 0.1, 0.25, 0.5, 1.0, 2.5, 5.0, 10.0, 30.0, 60.0)
 
@@ -85,6 +87,11 @@ FAMILIES: Dict[str, Tuple[str, str]] = {
     "source_update_stale": ("gauge", "1 when the job has no recent successful run."),
     "source_update_last_success_timestamp_seconds": (
         "gauge", "Unix time of the job's last successful run."),
+    "knowledge_ops_configured": ("gauge", "1 when a knowledge-update run folder is configured."),
+    "knowledge_ops_readable": ("gauge", "1 when the knowledge-update run ledger could be read."),
+    "knowledge_ops_last_run_outcome": ("gauge", "1 for the outcome of the last knowledge-update run."),
+    "knowledge_ops_last_run_finished_timestamp_seconds": (
+        "gauge", "Unix time the last knowledge-update run finished."),
 }
 
 
@@ -200,6 +207,7 @@ class HealthMetrics:
         problems: Sequence[str] = (),
         release: Tuple[str, str] = ("none", "repository"),
         source_updates: Optional[Mapping[str, Any]] = None,
+        knowledge_ops: Optional[Mapping[str, Any]] = None,
     ) -> str:
         """Prometheus text format 0.0.4: sorted families, each with HELP and TYPE."""
 
@@ -242,6 +250,7 @@ class HealthMetrics:
                     state=clamp(state, RELEASE_STATES)),
             1))
         _render_source_updates(samples, source_updates)
+        _render_knowledge_ops(samples, knowledge_ops)
 
         lines: List[str] = []
         for name in sorted(FAMILIES):
@@ -279,6 +288,45 @@ def _render_source_updates(
             samples["source_update_last_success_timestamp_seconds"].append(
                 _sample("source_update_last_success_timestamp_seconds",
                         _labels(job=job), entry["last_success"]))
+
+
+def _render_knowledge_ops(
+    samples: Dict[str, List[str]], snapshot: Optional[Mapping[str, Any]]
+) -> None:
+    samples["knowledge_ops_configured"].append(
+        _sample("knowledge_ops_configured", (), 0 if snapshot is None else 1))
+    if snapshot is None:
+        return
+    readable = bool(snapshot.get("readable"))
+    samples["knowledge_ops_readable"].append(_sample("knowledge_ops_readable", (), 1 if readable else 0))
+    if not readable:
+        return
+    outcome = snapshot.get("outcome")
+    for known in KNOWLEDGE_OPS_OUTCOMES:
+        samples["knowledge_ops_last_run_outcome"].append(
+            _sample("knowledge_ops_last_run_outcome", _labels(outcome=known), 1 if outcome == known else 0))
+    if snapshot.get("finished") is not None:
+        samples["knowledge_ops_last_run_finished_timestamp_seconds"].append(
+            _sample("knowledge_ops_last_run_finished_timestamp_seconds", (), snapshot["finished"]))
+
+
+def read_knowledge_ops(environ: Mapping[str, str] | None = None) -> Optional[Dict[str, Any]]:
+    """Last knowledge-update run outcome and time, or ``None`` when no run folder is configured.
+
+    Any failure reports ``readable`` as false; the folder path and the error text are never
+    exposed. The outcome is one of a fixed set, the time is a Unix time.
+    """
+
+    source = os.environ if environ is None else environ
+    folder = (source.get(KNOWLEDGE_OPS_STATE_DIR_ENV) or "").strip()
+    if not folder:
+        return None
+    try:
+        from app.knowledge_ops import metrics_snapshot  # lazy: optional tooling
+
+        return metrics_snapshot(Path(folder))
+    except Exception:  # noqa: BLE001
+        return {"readable": False}
 
 
 def read_source_updates(environ: Mapping[str, str] | None = None) -> Optional[Dict[str, Any]]:

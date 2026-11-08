@@ -205,6 +205,7 @@ Durable MUST/MUST NOT rules for backend answer path, retrieval, generation, eval
   tests MUST stay offline (sockets blocked, fakes only). Reason: `knowledge_update_scheduler` — a
   merged repository schedule would make real requests to official sites without an operator choice,
   and committed state would bypass human-reviewed canonical changes.
+- **MUST NOT**: an orchestrated knowledge update run (`knowledge_ops`) publish, merge, record a decision, reindex, release, or write `knowledge/`, or build a review package; it stops at `review-ready.json` (`published: false`) and the owner approves before anything goes live. Its launchd agent `org.manijero.knowledge-ops` is an operator-installed host unit, not a repository schedule, and its summary, ledger, and metrics carry counts, fixed codes, candidate ids, and times only. Reason: `knowledge_ops_orchestrator` — a scheduled job must not turn an unreviewed official publication into an answer.
 - **MUST**: change-impact analysis MUST stay read-only over approved knowledge and MUST NOT retire,
   replace, re-approve, or re-date a source, passage, evaluation case, index, or answer. Every
   potentially affected candidate MUST remain review-required, and an ambiguous publication,

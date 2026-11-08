@@ -6,7 +6,7 @@ and fake tokens. No network is used and no real pilot token is read.
 
 from __future__ import annotations
 
-from datetime import date, datetime, timezone
+from datetime import date, datetime, timedelta, timezone
 import json
 from pathlib import Path
 import re
@@ -18,7 +18,7 @@ from fastapi.testclient import TestClient
 
 import app.ask_api as ask_api
 import app.gemini_generation as gemini_module
-from app import health_metrics
+from app import health_metrics, knowledge_ops
 from app import source_update_scheduler as scheduler
 from app.ask_api import (
     CorpusDocuments,
@@ -91,7 +91,9 @@ EXPECTED_FAMILIES = {
     "request_rejections_total", "answers_total", "feedback_total", "abstentions_total",
     "generation_outcomes_total", "answer_cache_lookups_total", "knowledge_release_info", "source_updates_configured",
     "source_updates_readable", "source_updates_healthy", "source_update_stale",
-    "source_update_last_success_timestamp_seconds",
+    "source_update_last_success_timestamp_seconds", "knowledge_ops_configured",
+    "knowledge_ops_readable", "knowledge_ops_last_run_outcome",
+    "knowledge_ops_last_run_finished_timestamp_seconds",
 }
 
 
@@ -101,6 +103,7 @@ EXPECTED_FAMILIES = {
 @pytest.fixture(autouse=True)
 def _clean_environment(monkeypatch: pytest.MonkeyPatch) -> None:
     monkeypatch.delenv(health_metrics.SOURCE_UPDATE_STATE_DIR_ENV, raising=False)
+    monkeypatch.delenv(health_metrics.KNOWLEDGE_OPS_STATE_DIR_ENV, raising=False)
     monkeypatch.delenv(ask_api.KNOWLEDGE_RELEASE_ROOT_ENV, raising=False)
     monkeypatch.setattr(ask_api, "_LAST_RELEASE_OUTCOME", None)
 
@@ -796,3 +799,78 @@ def test_answer_cache_lookup_outcomes_clamp_to_the_fixed_values() -> None:
     assert page.value("answer_cache_lookups_total", outcome="hit") == 1
     assert page.value("answer_cache_lookups_total", outcome="other") == 1
     assert "secreta" not in page.text
+
+
+# --- knowledge-update run entry -----------------------------------------------------------------
+
+
+def _ops_ledger(folder: Path, outcome: str | None, *, finished: bool = True, age_hours: float = 1.0) -> None:
+    start = datetime.now(timezone.utc) - timedelta(hours=age_hours)
+    common = {"schema_version": knowledge_ops.LEDGER_SCHEMA, "run_id": "run-20261101T102000Z-00000000",
+              "trigger": "schedule", "started_at": start.isoformat()}
+    records = [{**common, "event": "run_started"}]
+    if finished:
+        records.append({**common, "event": "run_finished", "finished_at": (start + timedelta(minutes=5)).isoformat(),
+                        "outcome": outcome, "steps": [{"step": "discover", "status": "done", "attempts": 1, "code": None}]})
+    folder.mkdir(parents=True, exist_ok=True)
+    (folder / knowledge_ops.LEDGER_NAME).write_text("".join(json.dumps(r) + "\n" for r in records), encoding="utf-8")
+
+
+def test_knowledge_ops_unconfigured_reports_only_the_configured_zero() -> None:
+    with TestClient(build_app()) as client:
+        page = scrape(client)
+    assert page.value("knowledge_ops_configured") == 0
+    assert not {name for name in page.sample_names() if "knowledge_ops" in name} - {"manijero_knowledge_ops_configured"}
+
+
+@pytest.mark.parametrize("outcome", ["review_ready", "failed", "stopped_at_time_limit"])
+def test_knowledge_ops_reports_the_last_outcome_and_time(
+    monkeypatch: pytest.MonkeyPatch, tmp_path: Path, outcome: str
+) -> None:
+    folder = tmp_path / "ops-folder-SECRET"
+    _ops_ledger(folder, outcome)
+    monkeypatch.setenv(health_metrics.KNOWLEDGE_OPS_STATE_DIR_ENV, str(folder))
+    with TestClient(build_app()) as client:
+        page = scrape(client)
+    assert page.value("knowledge_ops_configured") == 1 and page.value("knowledge_ops_readable") == 1
+    for known in health_metrics.KNOWLEDGE_OPS_OUTCOMES:
+        assert page.value("knowledge_ops_last_run_outcome", outcome=known) == (1 if known == outcome else 0)
+    assert page.value("knowledge_ops_last_run_finished_timestamp_seconds") > 0
+    assert "SECRET" not in page.text
+
+
+def test_knowledge_ops_reports_a_run_that_never_finished_as_interrupted(
+    monkeypatch: pytest.MonkeyPatch, tmp_path: Path
+) -> None:
+    _ops_ledger(tmp_path / "ops", None, finished=False, age_hours=3)
+    monkeypatch.setenv(health_metrics.KNOWLEDGE_OPS_STATE_DIR_ENV, str(tmp_path / "ops"))
+    with TestClient(build_app()) as client:
+        page = scrape(client)
+    assert page.value("knowledge_ops_last_run_outcome", outcome="interrupted") == 1
+    assert page.values("knowledge_ops_last_run_finished_timestamp_seconds") == []
+
+
+def test_knowledge_ops_an_unreadable_or_missing_folder_is_not_readable(
+    monkeypatch: pytest.MonkeyPatch, tmp_path: Path
+) -> None:
+    broken = tmp_path / "broken-SECRET"
+    broken.mkdir()
+    (broken / knowledge_ops.LEDGER_NAME).write_text("not json\n", encoding="utf-8")
+    for folder in (broken, tmp_path / "missing-SECRET"):
+        monkeypatch.setenv(health_metrics.KNOWLEDGE_OPS_STATE_DIR_ENV, str(folder))
+        with TestClient(build_app()) as client:
+            page = scrape(client)
+        assert page.value("knowledge_ops_configured") == 1 and page.value("knowledge_ops_readable") == 0
+        assert page.values("knowledge_ops_last_run_outcome") == []
+        assert "SECRET" not in page.text
+
+
+def test_knowledge_ops_a_folder_with_no_run_yet_has_only_zero_outcomes(
+    monkeypatch: pytest.MonkeyPatch, tmp_path: Path
+) -> None:
+    (tmp_path / "ops").mkdir()
+    monkeypatch.setenv(health_metrics.KNOWLEDGE_OPS_STATE_DIR_ENV, str(tmp_path / "ops"))
+    with TestClient(build_app()) as client:
+        page = scrape(client)
+    assert page.value("knowledge_ops_readable") == 1
+    assert all(page.value("knowledge_ops_last_run_outcome", outcome=o) == 0 for o in health_metrics.KNOWLEDGE_OPS_OUTCOMES)

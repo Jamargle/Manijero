@@ -274,6 +274,28 @@ if [[ "${1:-}" == "--qa-alerts-setup" || "${1:-}" == "--qa-alerts-start" || "${1
   exec "$LOCAL_RAG_PYTHON" "$REPO_ROOT/backend/scripts/qa_alerts.py" "${1#--qa-alerts-}"
 fi
 
+# Owner commands for the scheduled knowledge update cycle (a launchd run every day at 10:20 on this Mac,
+# docs/owner-guide/knowledge-updates.md). Test-only variables: MANIJERO_KNOWLEDGE_OPS_HOME,
+# MANIJERO_KNOWLEDGE_OPS_STEP_CLI, MANIJERO_KNOWLEDGE_OPS_NO_WAIT, MANIJERO_LAUNCHCTL_CLI, and MANIJERO_LAUNCH_AGENTS_DIR.
+if [[ "${1:-}" == "--knowledge-updates-on" || "${1:-}" == "--knowledge-updates-off" || "${1:-}" == "--knowledge-updates-run" || "${1:-}" == "--knowledge-updates-status" ]]; then
+  REPO_ROOT="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")/.." && pwd)"
+  if (( $# > 1 )); then
+    printf 'Run %s on its own, with nothing after it.\n' "$1" >&2
+    exit 2
+  fi
+  LOCAL_RAG_PYTHON="$REPO_ROOT/backend/.venv/bin/python"
+  if [[ ! -x "$LOCAL_RAG_PYTHON" ]] && ! "$REPO_ROOT/scripts/python-env.sh" dev --if-present >/dev/null 2>&1; then
+    if [[ "$1" == "--knowledge-updates-off" ]]; then
+      printf 'Result: knowledge updates were not on, so there was nothing to turn off.\n'
+      exit 0
+    fi
+    printf 'The backend tools are not set up yet. Run ./scripts/init.sh --local-rag-setup, then try again.\n'
+    printf 'Result: knowledge updates did not run because the backend tools are not set up.\n'
+    exit 2
+  fi
+  exec "$LOCAL_RAG_PYTHON" "$REPO_ROOT/backend/scripts/knowledge_ops.py" "${1#--knowledge-updates-}"
+fi
+
 # Owner command: smoke-test the Desktop and Android emulator apps against the running local answer
 # service (docs/owner-guide/local-checks.md). Like --local-rag-*, it runs before the local.properties write; AGP
 # reads ANDROID_HOME instead. backend/app/local_smoke.py checks the service, Java, and the emulator.
@@ -476,7 +498,7 @@ AS_OF="${MANIJERO_AS_OF:-2026-10-13}"
 
 usage() {
   cat <<'EOF'
-Usage: ./scripts/init.sh [--check|--fast|--verify|--feature <id>|--backend-tests [targets]|--setup-python [dev|hybrid|docparse]|--backend|--mock|--mock-status|--mock-stop|--local-rag-setup|--local-rag-status|--local-rag-start|--local-rag-service-status|--local-rag-load-test|--local-rag-stop|--container-build|--container-start|--container-status|--container-stop|--monitoring-start|--monitoring-status|--monitoring-stop|--pilot-token-save|--demo-rehearsal|--golden-review|--golden-decide|--glossary-review|--glossary-decide|--grounding-judge-setup|--grounding-judge-report|--usability-record|--local-smoke|--qa-check|--environments-status|--qa-settings-setup|--qa-deploy|--qa-update|--qa-rollback|--qa-status|--qa-stop|--qa-alerts-setup|--qa-alerts-start|--qa-alerts-stop|--qa-alerts-status|--qa-alerts-test|--android|--android-run|--desktop|--android-qa|--desktop-qa|--help]
+Usage: ./scripts/init.sh [--check|--fast|--verify|--feature <id>|--backend-tests [targets]|--setup-python [dev|hybrid|docparse]|--backend|--mock|--mock-status|--mock-stop|--local-rag-setup|--local-rag-status|--local-rag-start|--local-rag-service-status|--local-rag-load-test|--local-rag-stop|--container-build|--container-start|--container-status|--container-stop|--monitoring-start|--monitoring-status|--monitoring-stop|--pilot-token-save|--demo-rehearsal|--golden-review|--golden-decide|--glossary-review|--glossary-decide|--grounding-judge-setup|--grounding-judge-report|--usability-record|--local-smoke|--qa-check|--environments-status|--qa-settings-setup|--qa-deploy|--qa-update|--qa-rollback|--qa-status|--qa-stop|--qa-alerts-setup|--qa-alerts-start|--qa-alerts-stop|--qa-alerts-status|--qa-alerts-test|--knowledge-updates-on|--knowledge-updates-run|--knowledge-updates-status|--knowledge-updates-off|--android|--android-run|--desktop|--android-qa|--desktop-qa|--help]
 
   --check                   Check Java and the Gradle wrapper, then print standard commands (default)
   --fast                    Shared host tests, contract examples, backend unit tests, and the five
@@ -558,6 +580,10 @@ Usage: ./scripts/init.sh [--check|--fast|--verify|--feature <id>|--backend-tests
   --qa-alerts-stop          Turn the QA alert check off (Telegram details are kept)
   --qa-alerts-status        Say whether the alert check is on and what its last run found
   --qa-alerts-test          Send one test alert to Telegram
+  --knowledge-updates-on    Turn on the daily knowledge update run (10:20, stops at "ready for review")
+  --knowledge-updates-run   Run the whole knowledge update cycle now (one hour at most)
+  --knowledge-updates-status  Say whether the daily run is on and how the last run went
+  --knowledge-updates-off   Turn the daily run off (the history is kept)
   --android                 Build the Android debug APK
   --android-run             Build, start an emulator if needed, install, and launch the app
   --desktop                 Launch the Desktop app

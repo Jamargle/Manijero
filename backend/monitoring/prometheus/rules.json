@@ -43,6 +43,10 @@
         {
           "record": "manijero:status_abstentions",
           "expr": "((manijero:abstention_percent_1h < 50) * 0) or (((manijero:abstention_percent_1h >= 50) < 80) * 0 + 1) or ((manijero:abstention_percent_1h >= 80) * 0 + 2) or (max by (env) (up) * 0 - 1) or (absent(up{env=\"qa\"}) * 4)"
+        },
+        {
+          "record": "manijero:status_knowledge_updates",
+          "expr": "((max by (env) (manijero_knowledge_ops_configured) == 0) * 0 + 4) or ((max by (env) (manijero_knowledge_ops_last_run_outcome{outcome=~\"failed|stopped_at_time_limit|interrupted\"}) == 1) * 0 + 2) or (((time() - max by (env) (manijero_knowledge_ops_last_run_finished_timestamp_seconds)) > 108000) * 0 + 1) or ((max by (env) (manijero_knowledge_ops_last_run_outcome{outcome=\"review_ready\"}) == 1) * 0) or (max by (env) (manijero_knowledge_ops_configured) * 0 - 1)"
         }
       ]
     }

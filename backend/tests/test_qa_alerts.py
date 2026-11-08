@@ -940,3 +940,17 @@ def test_status_never_changes_anything(h: Harness) -> None:
     calls = list(h.launchctl.calls)
     alerts.run_status(h.ports)
     assert {p: p.read_bytes() for p in snapshot} == snapshot and h.launchctl.calls == calls
+
+
+def test_the_launchctl_label_defaults_to_qa_alerts_and_can_name_another_agent():
+    seen = []
+    default = alerts.SystemLaunchctl(501, cli="/bin/echo")
+    other = alerts.SystemLaunchctl(501, cli="/bin/echo", label="org.manijero.knowledge-ops")
+    for launchctl in (default, other):
+        launchctl._run = lambda args: seen.append(list(args)) or True  # type: ignore[method-assign]
+        launchctl.is_loaded()
+        launchctl.bootout()
+    assert seen == [
+        ["print", "gui/501/org.manijero.qa-alerts"], ["bootout", "gui/501/org.manijero.qa-alerts"],
+        ["print", "gui/501/org.manijero.knowledge-ops"], ["bootout", "gui/501/org.manijero.knowledge-ops"],
+    ]
