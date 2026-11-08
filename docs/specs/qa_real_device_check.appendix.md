@@ -128,9 +128,4 @@
 - Constraint line added to `docs/constraints/hosting-and-pilot.md`; spec Notes item 6 and verify block updated.
 - `./scripts/init.sh --feature qa_real_device_check`: passed. `./scripts/init.sh --fast`: 10 offline checks passed (backend-tests 2566 passed, 8 skipped).
 
-## Handoff
-
-- Status: `passing`; all repairs committed except the third (guard tests, constraint line, spec/appendix edits), left uncommitted for the orchestrator.
-- Next role: validator. Review the third repair above plus 762b2ca (classpath wiring) and 4037a18 (`not_on_qa` feedback).
-- Then the owner runs `--container-build` from the up-to-date main checkout, `--qa-update` answering yes, and reruns `docs/owner-guide.md` "Owner walkthrough: QA check" steps 1-3.
-- If every step matches: orchestrator records it as evidence only, sets `accepted`, deletes this section, commits `feat: complete qa_real_device_check`.
+- Owner walkthrough 2026-11-08: Owner reported steps 1-3 of 'Owner walkthrough: QA check' completed successfully after --container-build and --qa-update: --qa-status running, --qa-check passed (result file: outcome=answered sources=1 feedback=sent), and --qa-check after --qa-stop failed at the service step; QA redeployed. Android remains out of scope (no device).

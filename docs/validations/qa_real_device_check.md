@@ -59,3 +59,8 @@ Verdict: accept, condition: pending owner walkthrough (QA rebuilt via `--contain
 - Scope: no Android, no new dependencies; no secret file read.
 - Checks rerun: `./scripts/init.sh --feature qa_real_device_check` passed; `./scripts/init.sh --fast` 10/10 (backend-tests 2566 passed, 8 skipped). `--verify` not rerun: no Android, packaging, or `desktopApp` change.
 - Only the walkthrough can show: the real QA run answers with sources, accepts `Útil` after the QA update, and `--qa-stop` prints the service-step failure.
+
+## Owner walkthrough (2026-11-08)
+
+- Owner reported steps 1-3 of 'Owner walkthrough: QA check' completed successfully after --container-build and --qa-update: --qa-status running, --qa-check passed (result file: outcome=answered sources=1 feedback=sent), and --qa-check after --qa-stop failed at the service step; QA redeployed. Android remains out of scope (no device).
+- Status set to `accepted` on that report; no second validator (evidence-only update).
