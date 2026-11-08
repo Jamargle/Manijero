@@ -1464,6 +1464,35 @@ last-success timestamps. Candidates remain `pending`; a human must verify
 provenance and approve any canonical change. See
 `knowledge/official-discovery-state.schema.json`.
 
+### Candidate relevance suggestions
+
+`backend/scripts/classify_candidate_relevance.py` gives discovered candidates a
+first-pass, suggest-only triage with the pinned local model (Ollama, loopback only,
+no cost). Start Ollama first, then run from the repository root:
+
+```sh
+backend/.venv/bin/python backend/scripts/classify_candidate_relevance.py \
+  --discovery-state <state.json> --procedure-map knowledge/procedure_map.json \
+  --report <review.json>
+```
+
+It reads an `official-discovery-state-v1` file (pending candidates only, at most 5,000)
+and writes a `relevance-review-v1` list (`knowledge/relevance-review.schema.json`) with
+one row per candidate, sorted by id: `label` (`relevant`, `not_relevant`, `unsure`), one
+procedure-map `topic` or `null`, a fixed `reason`, and `truncated`. Titles and issuers are
+sent as data (whitespace normalized, 500 characters at most); the instruction never
+contains candidate text. A title that `corpus_security` flags is not sent and becomes
+`unsure`; malformed or out-of-vocabulary output becomes `unsure`, and the model's text is
+never stored or printed. The file has input SHA-256 digests, the model tag and digest, and
+no timestamp, so equal answers give equal bytes.
+
+Success prints one `Result: ... review list written to <path>.` line and exits `0`. An
+unusable input, model record, or report path (inside `knowledge/` or equal to an input),
+too many candidates, or a model that is not running or not the pinned one prints one
+`Result: the relevance classification did not run: <failure>. Nothing was written.` line on
+stderr and exits `2`. Nothing is dropped or changed; a person decides. Suggestions are not
+legal relevance and their accuracy is not measured.
+
 ## Scheduled source updates (owned host, best-effort)
 
 `app/source_update_scheduler.py` (CLI `scripts/run_source_updates.py`) runs the

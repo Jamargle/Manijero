@@ -1,0 +1,42 @@
+{
+  "schema_version": "official-discovery-state-v1",
+  "registries": {},
+  "candidates": {
+    "cand-01": {
+      "candidate_id": "cand-01",
+      "issuer": "SYNTHETIC issuer",
+      "registry_id": "synthetic-registry",
+      "registry_url": "https://example.invalid/registry",
+      "publication_url": "https://example.invalid/cand-01",
+      "title": "SYNTHETIC: Resolucion de ayudas al olivar de ejemplo",
+      "stable_identity": "cand-01",
+      "version_hash": "0000000000000000000000000000000000000000000000000000000000000000",
+      "review_status": "pending",
+      "observations": []
+    },
+    "cand-02": {
+      "candidate_id": "cand-02",
+      "issuer": "SYNTHETIC issuer",
+      "registry_id": "synthetic-registry",
+      "registry_url": "https://example.invalid/registry",
+      "publication_url": "https://example.invalid/cand-02",
+      "title": "SYNTHETIC: Orden sobre pesca de ejemplo",
+      "stable_identity": "cand-02",
+      "version_hash": "0000000000000000000000000000000000000000000000000000000000000000",
+      "review_status": "pending",
+      "observations": []
+    },
+    "cand-03": {
+      "candidate_id": "cand-03",
+      "issuer": "SYNTHETIC issuer",
+      "registry_id": "synthetic-registry",
+      "registry_url": "https://example.invalid/registry",
+      "publication_url": "https://example.invalid/cand-03",
+      "title": "SYNTHETIC: Resolucion de riego de ejemplo",
+      "stable_identity": "cand-03",
+      "version_hash": "0000000000000000000000000000000000000000000000000000000000000000",
+      "review_status": "pending",
+      "observations": []
+    }
+  }
+}
