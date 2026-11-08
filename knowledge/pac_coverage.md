@@ -47,6 +47,15 @@ autor del proyecto** (Diego, 2026-10-27). No es una revisión legal independient
 no es un estudio de usuarios y no demuestra calidad general de las respuestas.
 Los resultados son informativos: no hay umbral numérico ni puerta de calidad.
 
+### Preguntas de oro en borrador
+
+[`knowledge/golden_set.json`](golden_set.json) reúne preguntas de oro redactadas por un
+agente, ancladas a los siete pasajes aprobados o marcadas como abstención deliberada. Todas
+están en estado `draft`: **no cuentan** en `pac_answer_eval.json`, en ninguna puerta ni en
+ninguna puntuación hasta que una persona con nombre las apruebe. Solo se puntúan las
+aprobadas, con `--golden`. Recuentos aprobadas/rechazadas: se anotarán tras la revisión del
+propietario.
+
 ### Matriz de cobertura
 
 | Área | Tipo | Casos | Resultado |

@@ -130,6 +130,11 @@ Durable MUST/MUST NOT rules for backend answer path, retrieval, generation, eval
   enforcement is agreed separately. Reason: `land_safety_evaluation` established the reproducible
   synthetic baseline; a gate whose numbers came from synthetic fixtures, or a case whose critical
   fact nobody checked, would turn an unverified expectation into a false safety guarantee.
+- **MUST**: a golden-set item (`knowledge/golden_set.json`) MUST NOT be scored or read by any gate,
+  release, review, demo, or load command until a named reviewer's decision is recorded by the
+  decide command, and an answered item's anchor MUST quote an approved, current passage verbatim.
+  Reason: `golden_dataset_expansion` ([spec](../specs/golden_dataset_expansion.md)); agent-drafted
+  questions are unverified expectations until a person approves them.
 
 ## Campaign scope
 

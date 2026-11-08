@@ -1,0 +1,109 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://manijero.invalid/schemas/golden-set-v1.json",
+  "title": "Golden question queue: drafts until a named reviewer decides",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema_version", "additional_areas", "items"],
+  "properties": {
+    "schema_version": {"const": "golden-set-v1"},
+    "additional_areas": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["id", "kind", "label"],
+        "properties": {
+          "id": {"type": "string", "minLength": 1},
+          "kind": {"const": "topic"},
+          "label": {"type": "string", "minLength": 1}
+        }
+      }
+    },
+    "items": {
+      "type": "array",
+      "minItems": 1,
+      "items": {"$ref": "#/$defs/item"}
+    }
+  },
+  "$defs": {
+    "land": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id"],
+      "properties": {
+        "id": {"type": "string", "minLength": 1, "maxLength": 128},
+        "municipality": {"type": "string"},
+        "water_regime": {"enum": ["dryland", "irrigated", "mixed", "unknown"]},
+        "production_method": {"enum": ["conventional", "organic", "mixed", "unknown"]}
+      }
+    },
+    "stamp": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["by", "on"],
+      "properties": {
+        "by": {"type": "string", "minLength": 1},
+        "on": {"type": "string", "format": "date"}
+      }
+    },
+    "item": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id", "question_type", "segment", "area", "question", "land_context",
+        "expected_status", "drafted", "review_state"
+      ],
+      "properties": {
+        "id": {"type": "string", "pattern": "^golden-[0-9]{3}$"},
+        "question_type": {
+          "enum": ["procedure", "deadline", "eligibility_caveat", "land_dependent", "out_of_scope", "colloquial"]
+        },
+        "segment": {"enum": ["secano-convencional", "regadio-convencional", "ecologico", "transversal"]},
+        "area": {"type": "string", "minLength": 1},
+        "question": {"type": "string", "minLength": 1, "maxLength": 2000},
+        "land_context": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["mode", "lands"],
+          "properties": {
+            "mode": {"enum": ["general", "all_active", "selected"]},
+            "lands": {"type": "array", "items": {"$ref": "#/$defs/land"}}
+          }
+        },
+        "expected_status": {"enum": ["answered", "abstained"]},
+        "expected_source_ids": {"type": "array", "items": {"type": "string"}},
+        "expected_passage_ids": {"type": "array", "items": {"type": "string"}},
+        "critical_facts": {"type": "array", "items": {"type": "string", "minLength": 1}},
+        "anchor": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["source_id", "passage_id", "text"],
+          "properties": {
+            "source_id": {"type": "string"},
+            "passage_id": {"type": "string"},
+            "text": {"type": "string", "minLength": 1}
+          }
+        },
+        "deliberate_abstention": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["basis"],
+          "properties": {"basis": {"type": "string", "minLength": 1}}
+        },
+        "drafted": {"$ref": "#/$defs/stamp"},
+        "review_state": {"enum": ["draft", "approved", "rejected"]},
+        "decision": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["decision", "reviewed_by", "reviewed_on"],
+          "properties": {
+            "decision": {"enum": ["approved", "rejected"]},
+            "reviewed_by": {"type": "string", "minLength": 1, "maxLength": 80},
+            "reviewed_on": {"type": "string", "format": "date"}
+          }
+        }
+      }
+    }
+  }
+}
