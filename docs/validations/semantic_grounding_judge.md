@@ -2,7 +2,7 @@
 
 - Spec: [docs/specs/semantic_grounding_judge.md](../specs/semantic_grounding_judge.md); evidence: [appendix](../specs/semantic_grounding_judge.appendix.md).
 - Validator run: 2026-11-08, independent of the implementer; no Ollama, no network, no commit.
-- Verdict: **accept, condition `pending owner walkthrough`** (scenario 10). Keep status `passing` until the owner reports the walkthrough matched the guide, then persist `accepted`.
+- Verdict: **accept, condition `pending owner walkthrough`** (scenario 10), met 2026-11-08: status `accepted`.
 
 ## Checks rerun
 
@@ -20,10 +20,15 @@
 - Owner commands: `init.sh` blocks take no arguments, end with one `Result:` line, and name the fix; owner guide has 49 lines and a pinned-line table; `backend/README.md` addition is 25 lines.
 - Durable docs updated as listed (ARCHITECTURE, lands and answers constraints, risks row 13, READMEs, owner-guide index).
 
-## Remaining limits (only the owner walkthrough can show)
+## Owner walkthrough (scenario 10), 2026-11-08
 
-- Setup downloads the pinned model, verifies the digest, and a second run downloads nothing.
-- The report runs end to end against real Ollama and prints the expected `Result:` line.
-- The closed-Ollama prerequisite failure reads plainly and recovers.
-- Aggregate counts from that run: _to be recorded here, labelled unchecked against human review_.
-- The judge's real per-sentence behaviour is unmeasured; its scores make no accuracy claim.
+- The owner followed `docs/owner-guide/grounding-judge.md` and reports every step behaved as the guide expects.
+- Setup runs and the closed-Ollama (`ollama_unavailable`) prerequisite and recovery: reported "as expected"; their `Result:` lines were not quoted.
+- Report `Result:` line as reported: `judged 29 draft sentences from 28 drafts (28 supported, 1 not supported, 0 unclear, 1 not judged); judge scores are unchecked against human review.` Report path `build/grounding-judge/report.json` in the owner's worktree.
+- These counts are judge scores, unchecked against human review; no accuracy claim is made about the judge.
+- The model-card link in `license_reference` was not read from Ollama and not confirmed by the owner; the record now says so (focused tier rerun: passed).
+
+## Remaining limits
+
+- The judge's real per-sentence behaviour is unmeasured against human review; its scores make no accuracy claim.
+- The judge ran on the owner's Mac only; one walkthrough run, not a repeatability study.
