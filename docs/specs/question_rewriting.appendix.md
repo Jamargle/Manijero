@@ -64,10 +64,6 @@ Golden-origin candidates (implementer verifies each against the rules; owner dec
 - Broad single-token pairs (`mandar`, `papeleo`) can pull unrelated passages; `check` catches regressions only on reviewed cases.
 - Owner approvals happen after validator accept; `check` must be rerun on the approved file before merge.
 
-## Handoff
-
-Status `passing`; validator returned accept with condition `pending owner walkthrough` (2026-11-08, `docs/validations/question_rewriting.md`), held in commit `chore: hold question_rewriting at passing pending owner walkthrough`. Next: owner walkthrough, then an evidence-only update sets `accepted` (no second validator). Left for the owner walkthrough (contract scenario 11): approve or reject the 15 `proposed` pairs, rerun `check` on the result, and commit the glossary. Noted for the validator: `mandar` does not fire on `mandado`/`manden` (exact tokens, by design); `--glossary-review` counts only contiguous official-term matches in passages, so most notice pairs show 0.
-
 ## Feature evidence
 
 Implementer, 2026-11-08 (status `passing`, not accepted; owner walkthrough pending):
@@ -79,6 +75,16 @@ Implementer, 2026-11-08 (status `passing`, not accepted; owner walkthrough pendi
 - Regressing fixture `tests/fixtures/question_glossary/regressing.json` (`obligatorio` -> passage wording): `check` exit 1, `cuaderno-digital-obligatorio: breaks with the glossary; pairs fired: gl-001`.
 - Owner commands through `init.sh`: `--glossary-review` ends `Result: 15 word pairs wait for your decision (0 approved, 0 rejected). ...`; empty-name decide and unknown number `99` each end with a pinned `Result: nothing was recorded. ...` line and change nothing.
 - Changed an existing test: `test_notice_pipeline.py::test_only_the_cli_and_tests_reference_the_notice_pipeline` now also allows `question_glossary_review.py` (the offline review tool reads `notice-review-v1` and reuses `personal_data_codes`); `test_question_glossary.py` asserts nothing on the `/ask` path imports it.
+
+Repair after owner walkthrough, 2026-11-08 (implementer; tests only, glossary and product code unchanged):
+- `backend/tests/test_question_glossary_review.py`: `copy_committed` now strips decisions (all-proposed tmp copy) so list/decide/bad-decision tests no longer depend on owner states; committed-glossary test asserts every entry is approved/rejected with a matching decision; check test expects `proposed=0, approved=14, rejected=1`.
+- `./scripts/init.sh --feature question_rewriting`: 278 passed; `glossary check: 15 entries OK (proposed=0, approved=14, rejected=1); 66 cases checked, 3 improved`.
+- `./scripts/init.sh --fast`: all 10 offline checks passed (3021 passed, 9 skipped).
+
+Owner walkthrough, 2026-11-08 (reported by the owner; following `docs/owner-guide/question-glossary-review.md`):
+- `--glossary-review` ends `Result: no word pairs wait for your decision (14 approved, 1 rejected).` Rejected: `gl-002` (la aplicación del móvil). Decisions committed in `9551a21`.
+- Orchestrator rerun on the committed glossary: `glossary_review.py check` exit 0, `15 entries OK (proposed=0, approved=14, rejected=1); 66 cases checked, 3 improved`, no regression.
+- The missing-name and unknown-number results were not reported separately; the owner reported completing the guide.
 
 ## Validator checklist
 

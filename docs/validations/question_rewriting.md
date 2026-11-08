@@ -4,14 +4,15 @@ Spec: [question_rewriting.md](../specs/question_rewriting.md) · Appendix: [ques
 
 ## Verdict
 
-`accept`, condition `pending owner walkthrough` (spec scenario 11). Validated 2026-11-08 by the independent validator; status stays `passing` until the owner reports the walkthrough matched the guide.
+`accept` (spec scenario 11 satisfied). First validated 2026-11-08 pending the owner walkthrough; revalidated the same day after the owner completed it and the implementer repaired the tests the applied decisions broke. The orchestrator may persist `accepted`.
 
 ## Checks rerun
 
-- `./scripts/init.sh --feature question_rewriting`: 278 passed; `glossary_review.py check` exit 0 (15 entries, all proposed; 66 cases checked, 0 improved).
+- `./scripts/init.sh --feature question_rewriting`: 278 passed; `glossary_review.py check` exit 0 (15 entries OK, proposed=0, approved=14, rejected=1; 66 cases checked, 3 improved).
 - `./scripts/init.sh --fast`: all 10 offline checks passed (backend 3021 passed, 9 skipped).
-- `./scripts/init.sh --glossary-review`: lists 15 waiting pairs with plain labels and ends with the pinned `Result:` line.
-- `--verify` not rerun: the diff touches only `backend/`, docs, and `scripts/init.sh` (no `shared/`, apps, Gradle, or packaging).
+- Owner decisions in `backend/config/question_glossary.json`: 14 approved, 1 rejected (gl-002), each with `decision` matching `review_state`, reviewer, and date; no proposed entries remain.
+- Test repair (`backend/tests/test_question_glossary_review.py`): `copy_committed` now strips decisions so list/decide tests no longer depend on owner choices; the committed-glossary test asserts a fully decided, consistent state; the `check` test pins the new counts. No test was removed or weakened.
+- `--verify` not rerun: no `shared/`, apps, Gradle, or packaging changes.
 
 ## Review against the spec
 
@@ -22,12 +23,10 @@ Spec: [question_rewriting.md](../specs/question_rewriting.md) · Appendix: [ques
 - `knowledge/`, `notice_pipeline.py`, `release_gates.py`, `contracts/`, and the apps are unchanged.
 - Docs present: ARCHITECTURE, constraint MUST, owner guide (52 lines) plus README row, backend README, CONTEXT, known limitations, and the PROGRESS digest.
 
+## Owner walkthrough
+
+2026-11-08, owner `Jose`, following `docs/owner-guide/question-glossary-review.md`: `--glossary-review` ends `Result: no word pairs wait for your decision (14 approved, 1 rejected).` (rejected `gl-002`). Glossary committed in `9551a21`; `check` rerun exit 0 with no regression. The missing-name and unknown-number results were not reported separately.
+
 ## Remaining limits
 
-Only the owner walkthrough can show:
-- the list and decide output reads clearly to the owner;
-- the missing-name and unknown-number cases record nothing;
-- the final `Result: no word pairs wait for your decision ...`;
-- the approved/rejected counts, with `check` rerun to exit 0 on the resulting glossary.
-
-Until then all 15 pairs are `proposed`, so expansion is a no-op. The effect on answers is unmeasured until `colloquial_ab_evaluation`.
+- Approved pairs now expand retrieval queries; the effect on answers is only partly measured (`check`: 3 of 66 cases improved) until `colloquial_ab_evaluation`.

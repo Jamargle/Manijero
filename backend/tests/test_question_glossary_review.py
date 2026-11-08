@@ -4,7 +4,6 @@ from __future__ import annotations
 
 import importlib.util
 import json
-import shutil
 import socket
 from datetime import date
 from pathlib import Path
@@ -77,8 +76,13 @@ def entries(path: Path) -> List[Dict[str, Any]]:
 
 
 def copy_committed(tmp_path: Path) -> Path:
+    """The committed entries with every review decision removed, so tests do not depend on the owner's choices."""
+    document = json.loads(COMMITTED.read_text(encoding="utf-8"))
+    for item in document["entries"]:
+        item["review_state"] = "proposed"
+        item.pop("decision", None)
     target = tmp_path / "glossary.json"
-    shutil.copy(COMMITTED, target)
+    target.write_text(json.dumps(document, ensure_ascii=False), encoding="utf-8")
     return target
 
 
@@ -182,9 +186,10 @@ def test_screening_refuses_pairs_with_personal_data_injection_digits_urls() -> N
         assert review.screen_pair(colloquial, official), (colloquial, official)
 
 
-def test_committed_glossary_is_valid_all_proposed_and_golden_words_occur_in_their_questions() -> None:
+def test_committed_glossary_is_valid_fully_decided_and_golden_words_occur_in_their_questions() -> None:
     document = review.read_document(COMMITTED)
-    assert {e["review_state"] for e in document["entries"]} == {"proposed"}
+    assert {e["review_state"] for e in document["entries"]} <= {"approved", "rejected"}
+    assert all(e["decision"]["decision"] == e["review_state"] for e in document["entries"])
     golden = {i["id"]: i["question"] for i in json.loads((REPO / "knowledge" / "golden_set.json").read_text("utf-8"))["items"]}
     from app.retrieval import tokenize
 
@@ -310,7 +315,7 @@ def test_deciding_on_a_damaged_file_records_nothing(tmp_path: Path, capsys: pyte
 def test_check_passes_on_the_committed_glossary(capsys: pytest.CaptureFixture) -> None:
     code, out = run(capsys, "check", "--glossary", str(COMMITTED), *CHECK_ARGS)
     assert code == 0
-    assert out.strip().startswith("glossary check: 15 entries OK (proposed=15, approved=0, rejected=0); ")
+    assert out.strip().startswith("glossary check: 15 entries OK (proposed=0, approved=14, rejected=1); ")
     assert "cases checked" in out and "improved" in out
 
 
