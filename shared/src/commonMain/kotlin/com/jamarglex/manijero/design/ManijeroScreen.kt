@@ -6,10 +6,12 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
@@ -34,13 +36,19 @@ internal val WideWindowBreakpoint = 840.dp
  * [screenHorizontalPadding], and a centred content column capped at
  * [ManijeroLayout.ContentMaxWidth].
  *
- * It owns no window insets and no top or bottom bar: the future shell's `Scaffold` is the single
- * inset owner. The content is a plain [ColumnScope] so a screen can stack its own sections, and
- * the column adds [ManijeroSpacing.Comfortable] between them by default.
+ * It owns no window insets and no top or bottom bar: the shell's `Scaffold` is the single inset
+ * owner. The content is a plain [ColumnScope] so a screen can stack its own sections, and the
+ * column adds [ManijeroSpacing.Comfortable] between them by default.
+ *
+ * [bottomBar], when given, stays attached to the bottom of the screen below the scrolling content
+ * (the chat composer). It shares the same centred column and horizontal padding, is separated by a
+ * 1 dp `outlineVariant` divider, and is capped at [BottomBarMaxHeightFraction] of the screen with
+ * its own scroll so enlarged text can never push the content out of view.
  */
 @Composable
 internal fun ManijeroScreen(
     modifier: Modifier = Modifier,
+    bottomBar: (@Composable ColumnScope.() -> Unit)? = null,
     content: @Composable ColumnScope.() -> Unit,
 ) {
     Surface(
@@ -50,27 +58,59 @@ internal fun ManijeroScreen(
     ) {
         BoxWithConstraints(modifier = Modifier.fillMaxSize()) {
             val horizontalPadding = screenHorizontalPadding(maxWidth)
-            Column(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .verticalScroll(rememberScrollState())
-                    .padding(
-                        horizontal = horizontalPadding,
-                        vertical = ManijeroLayout.ScreenPaddingVertical,
-                    ),
-                horizontalAlignment = Alignment.CenterHorizontally,
-            ) {
+            val screenHeight = maxHeight
+            Column(modifier = Modifier.fillMaxSize()) {
                 Column(
                     modifier = Modifier
-                        .widthIn(max = ManijeroLayout.ContentMaxWidth)
-                        .fillMaxWidth(),
-                    verticalArrangement = Arrangement.spacedBy(ManijeroSpacing.Comfortable),
-                    content = content,
-                )
+                        .weight(1f)
+                        .fillMaxWidth()
+                        .verticalScroll(rememberScrollState())
+                        .padding(
+                            horizontal = horizontalPadding,
+                            vertical = ManijeroLayout.ScreenPaddingVertical,
+                        ),
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                ) {
+                    Column(
+                        modifier = Modifier
+                            .widthIn(max = ManijeroLayout.ContentMaxWidth)
+                            .fillMaxWidth(),
+                        verticalArrangement = Arrangement.spacedBy(ManijeroSpacing.Comfortable),
+                        content = content,
+                    )
+                }
+                if (bottomBar != null) {
+                    HorizontalDivider(
+                        thickness = ManijeroLayout.BorderWidth,
+                        color = MaterialTheme.colorScheme.outlineVariant,
+                    )
+                    Column(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .heightIn(max = screenHeight * BottomBarMaxHeightFraction)
+                            .verticalScroll(rememberScrollState())
+                            .padding(
+                                horizontal = horizontalPadding,
+                                vertical = ManijeroSpacing.Small,
+                            ),
+                        horizontalAlignment = Alignment.CenterHorizontally,
+                    ) {
+                        Column(
+                            modifier = Modifier
+                                .widthIn(max = ManijeroLayout.ContentMaxWidth)
+                                .fillMaxWidth(),
+                            verticalArrangement = Arrangement.spacedBy(ManijeroSpacing.Compact),
+                            content = bottomBar,
+                        )
+                    }
+                }
             }
         }
     }
 }
+
+/** The largest share of the screen height a pinned [ManijeroScreen] bottom bar may take. */
+internal const val BottomBarMaxHeightFraction = 0.5f
 
 /**
  * Pure padding decision for [ManijeroScreen]: compact windows keep the 24 dp screen padding and

@@ -20,6 +20,13 @@ Stitch mockups reference archive is indexed in [`design-references/README.md`](d
 
 `shared_design_system` defines paired roles in `shared/src/commonMain`, selected automatically with the common Compose system appearance signal. No appearance setting or platform theme fork exists. The constructors explicitly map every applicable Material 3 role plus the semantic caution, emphasis, and Ecológico chip colours; source values are in `ManijeroColors.kt`. Common previews cover light, dark, and enlarged text. Shape and spacing scales live in `ManijeroTokens.kt`.
 
+**Shapes (Stitch V2, adopted 2026-11-08).** Colours are unchanged; only the shape scale follows the
+Stitch V2 screens: `Small` 8 dp, `Medium` 16 dp (nested tiles), `Large` 24 dp (cards, callouts,
+choice cards), `ExtraLarge` 32 dp (chat hero, empty state), `Field` 16 dp (Material `extraSmall`, so
+every outlined text field and menu), and `Pill` for attribute chips, suggestion chips and the search
+field. Chat bubbles are 24 dp with a tight 6 dp top corner on the speaker's side (`BubbleOwn` at the
+end, `BubbleAssistant` at the start). Material buttons keep their default pill shape.
+
 **Typography:** the app uses the Material 3 default typography, which resolves to the platform font. Stitch's Source Serif 4 / Source Sans 3 scale is not adopted: no custom family, scale, or bundled font asset is part of the design system.
 
 **Palette status (2026-10-25).** The values below are the implemented palette: `design_token_refresh` applies them in `ManijeroColors.kt` and re-gates the contrast tests in both appearances. Earlier acceptance records keep their original values as history.
@@ -223,10 +230,10 @@ them; feature specs own screen-specific behavior.
 - **Page frame.** `ManijeroScreen` paints `background`, owns one vertical scroll, applies 24 dp
   horizontal padding below 840 dp and 40 dp from it, 32 dp vertical padding, and centres a 720 dp
   content column. It owns no window insets and no bars; `AppShell` is the single inset owner.
-- **Containers.** `ManijeroCard` has `Surface`, `Tonal`, `Outlined` and `Danger` tones (16 dp
-  radius; 1 dp `outlineVariant` or `error` border where the tone defines one) and is never
+- **Containers.** `ManijeroCard` has `Surface`, `Tonal`, `Outlined` and `Danger` tones (24 dp
+  radius by default, a caller-chosen shape such as the 32 dp chat hero; 1 dp `outlineVariant` or `error` border where the tone defines one) and is never
   clickable: a caller puts its own button, link or choice row inside. `ManijeroSectionHeader` emits
-  a real `heading()` only when asked. `ManijeroStatCard` requires the caption that states what the
+  a real `heading()` only when asked. `ManijeroStatCard` is a borderless `Tonal` card and requires the caption that states what the
   value counts. `ManijeroEmptyState` pairs the decorative olive branch with a real heading, a plain
   explanation and one caller-supplied action.
 - **Messages and attributes.** `ManijeroCallout` has `Info`, `Caution`, `Danger` and `Confirmation`
@@ -300,16 +307,22 @@ component layer. These rules are durable:
   inside one politely announced node; it adds no confident colour, check or "verified" cue. The
   working state is a neutral `surfaceContainerLow` notice, text only. A failure is a
   `ManijeroCallout(Danger)` whose `Reintentar` is its own sibling control, never a transcript entry.
-- **Suggestions.** The three accepted example questions are wrapping `AssistChip`s with a
+- **Suggestions.** The three accepted example questions are wrapping pill `AssistChip`s with a
   decorative `ic_chat`. They never truncate a question and only fill the composer; they never submit.
-- **Composer and footer.** The field keeps `Escribe tu pregunta`, the example placeholder, 3–6 lines
-  and the over-limit message. Between the field and the button sits the separate retention
-  checkbox row (`Permitir guardar esta pregunta…`, unchecked by default, the whole labelled row one
-  checkbox target) with its plain detail line stating "only the next question", no land data, and
-  30-day deletion; ticking it never sends and every send unticks it. The field is then followed by
-  one full-width filled `Preguntar` button with a
-  decorative `ic_send`, disabled while blank, over the limit or submitting. The privacy summary is
-  always present; the two icon + label footer actions appear only when their callbacks are wired.
+- **Composer (pinned, adopted 2026-11-08).** The composer is attached to the bottom of the screen
+  through `ManijeroScreen`'s `bottomBar` slot: a 1 dp `outlineVariant` divider, the same centred
+  column, and at most half the screen height with its own scroll, so 2× text never hides the
+  transcript. The field keeps `Escribe tu pregunta`, the example placeholder, 1–5 lines, the 24 dp
+  rounded shape and the over-limit message. The filled pill `Preguntar` button with a decorative
+  `ic_send` sits beside the field from 560 dp at normal text size and spans the width below it
+  otherwise; its label is always visible and it is disabled while blank, over the limit or
+  submitting.
+- **Retention and footer.** The separate retention checkbox row (`Permitir guardar esta pregunta…`,
+  unchecked by default, the whole labelled row one checkbox target) with its plain detail line
+  stating "only the next question", no land data, and 30-day deletion is the last block of the
+  scrolling content, after the suggestions and directly above the pinned composer; ticking it never
+  sends and every send unticks it. The privacy summary is always present below it; the two
+  icon + label footer actions appear only when their callbacks are wired.
 - **Land chooser.** The clarification chooser is an outlined card with the accepted title,
   explanation, one checkbox row per offered land (the box aligned with the land name inside a 48 dp
   target, the unchanged plain `LandDetails` below), and `Continuar`, enabled only after a selection.
@@ -318,11 +331,9 @@ component layer. These rules are durable:
 - **Welcome card.** Until dismissed, an outlined `ManijeroCard` sits above the hero: a
   `titleMedium` title without heading semantics, four `bodyLarge` lines, and one `OutlinedButton`
   `Entendido`. It blocks nothing and pushes the hero down on compact screens.
-- **Compact limit.** At 360×800 dp with both shell bars, the hero and suggestions occupy the first
-  screen, so the composer's `Preguntar` button needs a scroll (a little longer since the retention
-  row was added below the field). This is a recorded limit of
-  the accepted order, not a hidden control: the field and button stay in the same scroll and are
-  never icon-only or off the page.
+- **Compact layout.** At 360×800 dp with both shell bars, the pinned field and `Preguntar` button
+  are always on screen; the retention choice and privacy summary need a scroll below the
+  suggestions. Neither control is ever icon-only or off the page.
 - **Answer feedback row.** Every finished answer (`answered` or `abstained`) carries one quiet row
   directly below the card and its source cards and above `Inspeccionar`: two neutral outlined
   buttons, `Útil` and `No útil` (never filled, never the screen's primary action), each with its own

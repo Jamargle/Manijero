@@ -27,7 +27,7 @@ internal fun ManijeroStatCard(
     supporting: String,
     modifier: Modifier = Modifier,
 ) {
-    ManijeroCard(modifier = modifier, tone = ManijeroCardTone.Outlined) {
+    ManijeroCard(modifier = modifier, tone = ManijeroCardTone.Tonal) {
         Text(
             text = label,
             style = MaterialTheme.typography.titleSmall,

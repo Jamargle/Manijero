@@ -26,6 +26,7 @@ import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.tooling.preview.Preview
 import com.jamarglex.manijero.theme.ManijeroIconSize
+import com.jamarglex.manijero.theme.ManijeroShapes
 import com.jamarglex.manijero.theme.ManijeroSpacing
 import com.jamarglex.manijero.theme.ManijeroTheme
 import manijero.shared.generated.resources.Res
@@ -78,6 +79,7 @@ internal fun ManijeroSearchField(
         },
         trailingIcon = clearButton,
         singleLine = true,
+        shape = ManijeroShapes.Pill,
     )
 }
 

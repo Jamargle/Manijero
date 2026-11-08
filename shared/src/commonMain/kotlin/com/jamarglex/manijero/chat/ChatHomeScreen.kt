@@ -1,6 +1,8 @@
 package com.jamarglex.manijero.chat
 
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.BoxWithConstraints
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.padding
@@ -31,6 +33,7 @@ import androidx.compose.ui.semantics.LiveRegionMode
 import androidx.compose.ui.semantics.heading
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.testTag
 import com.jamarglex.manijero.ChatHomeAction
 import com.jamarglex.manijero.ChatHomeState
@@ -43,6 +46,8 @@ import com.jamarglex.manijero.design.ManijeroIcon
 import com.jamarglex.manijero.design.ManijeroScreen
 import com.jamarglex.manijero.lands.Land
 import com.jamarglex.manijero.theme.ManijeroIconSize
+import com.jamarglex.manijero.theme.ManijeroLayout
+import com.jamarglex.manijero.theme.ManijeroShapes
 import com.jamarglex.manijero.theme.ManijeroSpacing
 import com.jamarglex.manijero.transcriptScrollKey
 import manijero.shared.generated.resources.Res
@@ -76,7 +81,8 @@ import org.jetbrains.compose.resources.stringResource
 
 /**
  * The assistant surface inside the one app shell: one tonal hero, the transcript in order, the
- * accepted suggested questions, the composer, and the always-visible privacy summary.
+ * accepted suggested questions, the retention choice, the always-visible privacy summary, and the
+ * composer pinned to the bottom of the screen below that scrolling content.
  *
  * The screen owns no request, land read or validation rule; it renders the pure state it is given.
  * Newest transcript content is brought into view once per appended element — a new entry, the
@@ -104,7 +110,11 @@ internal fun ChatHomeScreen(
         if (scrollKey != initialScrollKey) transcriptEndRequester.bringIntoView()
     }
 
-    ManijeroScreen(modifier = modifier) {
+    ManijeroScreen(
+        modifier = modifier,
+        // The composer stays attached to the bottom of the screen; the transcript scrolls above it.
+        bottomBar = { ChatComposer(state = state, onAction = onAction) },
+    ) {
         if (showWelcome) WelcomeCard(onDismiss = onDismissWelcome)
         ChatHero()
 
@@ -163,7 +173,10 @@ internal fun ChatHomeScreen(
         }
 
         SuggestedQuestions(onAction = onAction)
-        ChatComposer(state = state, onAction = onAction)
+        RetentionChoice(
+            checked = state.retainNextQuestion,
+            onCheckedChange = { onAction(ChatHomeAction.RetentionChoiceChanged(it)) },
+        )
         ChatFooter(
             onPrivacyClick = onPrivacyClick,
             onCoverageClick = onCoverageClick,
@@ -204,7 +217,7 @@ private fun WelcomeCard(onDismiss: () -> Unit) {
  */
 @Composable
 private fun ChatHero() {
-    ManijeroCard(tone = ManijeroCardTone.Tonal) {
+    ManijeroCard(tone = ManijeroCardTone.Tonal, shape = ManijeroShapes.ExtraLarge) {
         // The mark sits above the heading, not beside it: at 2× text a side-by-side mark narrows the
         // title column enough to break a single word and the final question mark onto its own line.
         ManijeroBrandMark()
@@ -254,6 +267,7 @@ private fun SuggestedQuestions(onAction: (ChatHomeAction) -> Unit) {
                 AssistChip(
                     onClick = { onAction(ChatHomeAction.SuggestedQuestionSelected(question)) },
                     label = { Text(text = question) },
+                    shape = ManijeroShapes.Pill,
                     leadingIcon = {
                         ManijeroIcon(
                             resource = Res.drawable.ic_chat,
@@ -268,53 +282,81 @@ private fun SuggestedQuestions(onAction: (ChatHomeAction) -> Unit) {
 }
 
 /**
- * The question field, the separate retention choice, and the one visible primary action of the
- * surface. The choice is its own control: ticking it never sends, and sending resets it.
+ * The pinned composer: the question field and the one visible primary action of the surface. On
+ * wide windows at normal text size the `Preguntar` button sits beside the field; otherwise it spans
+ * the width below it. The label stays visible on every width: a person with little computer
+ * experience must never have to infer the action from a lone arrow, and the send glyph stays
+ * decorative. The retention choice sits in the scrolling content, directly above this bar.
  */
 @Composable
 private fun ChatComposer(state: ChatHomeState, onAction: (ChatHomeAction) -> Unit) {
-    Column(
-        modifier = Modifier.fillMaxWidth(),
-        verticalArrangement = Arrangement.spacedBy(ManijeroSpacing.Small),
-    ) {
-        OutlinedTextField(
-            value = state.question,
-            onValueChange = { onAction(ChatHomeAction.QuestionChanged(it)) },
-            modifier = Modifier.fillMaxWidth().testTag(ChatTestTags.QUESTION_FIELD),
-            label = { Text(stringResource(Res.string.chat_home_question_label)) },
-            placeholder = { Text(stringResource(Res.string.chat_home_question_hint)) },
-            isError = state.isOverCharacterLimit,
-            supportingText = if (state.isOverCharacterLimit) {
-                { Text(stringResource(Res.string.chat_home_question_too_long)) }
-            } else {
-                null
-            },
-            minLines = 3,
-            maxLines = 6,
-        )
-
-        RetentionChoice(
-            checked = state.retainNextQuestion,
-            onCheckedChange = { onAction(ChatHomeAction.RetentionChoiceChanged(it)) },
-        )
-
-        // The label is visible on purpose: a person with little computer experience must never have
-        // to infer the action from a lone arrow, and the send glyph stays decorative.
-        Button(
-            onClick = { onAction(ChatHomeAction.AskClicked) },
-            enabled = state.canAsk,
-            modifier = Modifier.fillMaxWidth().testTag(ChatTestTags.ASK_BUTTON),
-        ) {
-            ManijeroIcon(
-                resource = Res.drawable.ic_send,
-                contentDescription = null,
-                size = ManijeroIconSize.Inline,
+    BoxWithConstraints(modifier = Modifier.fillMaxWidth()) {
+        val sideBySide = maxWidth >= ComposerSideBySideMinWidth &&
+            LocalDensity.current.fontScale <= ComposerSideBySideMaxFontScale
+        val field: @Composable (Modifier) -> Unit = { fieldModifier ->
+            OutlinedTextField(
+                value = state.question,
+                onValueChange = { onAction(ChatHomeAction.QuestionChanged(it)) },
+                modifier = fieldModifier.testTag(ChatTestTags.QUESTION_FIELD),
+                label = { Text(stringResource(Res.string.chat_home_question_label)) },
+                placeholder = { Text(stringResource(Res.string.chat_home_question_hint)) },
+                isError = state.isOverCharacterLimit,
+                supportingText = if (state.isOverCharacterLimit) {
+                    { Text(stringResource(Res.string.chat_home_question_too_long)) }
+                } else {
+                    null
+                },
+                shape = ManijeroShapes.Large,
+                minLines = 1,
+                maxLines = 5,
             )
-            Spacer(modifier = Modifier.width(ManijeroSpacing.Compact))
-            Text(stringResource(Res.string.chat_home_ask))
+        }
+        val askButton: @Composable (Modifier) -> Unit = { buttonModifier ->
+            Button(
+                onClick = { onAction(ChatHomeAction.AskClicked) },
+                enabled = state.canAsk,
+                modifier = buttonModifier
+                    .heightIn(min = ManijeroLayout.MinTouchTarget)
+                    .testTag(ChatTestTags.ASK_BUTTON),
+            ) {
+                ManijeroIcon(
+                    resource = Res.drawable.ic_send,
+                    contentDescription = null,
+                    size = ManijeroIconSize.Inline,
+                )
+                Spacer(modifier = Modifier.width(ManijeroSpacing.Compact))
+                Text(stringResource(Res.string.chat_home_ask))
+            }
+        }
+        if (sideBySide) {
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(ManijeroSpacing.Small),
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                field(Modifier.weight(1f))
+                askButton(Modifier.height(ComposerSideBySideButtonHeight))
+            }
+        } else {
+            Column(
+                modifier = Modifier.fillMaxWidth(),
+                verticalArrangement = Arrangement.spacedBy(ManijeroSpacing.Compact),
+            ) {
+                field(Modifier.fillMaxWidth())
+                askButton(Modifier.fillMaxWidth())
+            }
         }
     }
 }
+
+/** From this composer width (and at normal text size) the button sits beside the field. */
+private val ComposerSideBySideMinWidth = 560.dp
+
+/** Above this text scale the button always drops below the field so neither control is squeezed. */
+private const val ComposerSideBySideMaxFontScale = 1.3f
+
+/** Matches a one-line outlined field so the pill button lines up with it. */
+private val ComposerSideBySideButtonHeight = 56.dp
 
 /**
  * The per-question permission to keep the redacted question and answer. It is unchecked by
