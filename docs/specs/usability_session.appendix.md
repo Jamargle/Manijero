@@ -103,10 +103,4 @@
 - [ ] Focused block passes via `./scripts/init.sh --feature usability_session`.
 - [ ] Verdict is accept-with-condition; status stays `passing` until the real session is reported.
 
-## Handoff
-
-- Status: `passing`; validator accept pending owner walkthrough (2026-11-08, see `docs/validations/usability_session.md`).
-- Next: owner runs a real session (2-3 low-confidence participants, Desktop QA app, made-up data) following `docs/owner-guide.md` "Owner walkthrough: usability session", then reports the printed summary.
-- On report: evidence-only update (acceptance record, Feature evidence, PROGRESS, session-log), status `accepted`, commit `feat: complete usability_session`; findings become follow-up items. Delete this section then.
-- Open owner questions (non-blocking): see "Open questions for the owner" above.
-- Last checks: `--feature usability_session` 66 passed; `--fast` 10/10 passed.
+- Owner walkthrough 2026-11-08: Owner reported the usability session completed successfully on the Desktop QA app with made-up data, results recorded with --usability-record under anonymous codes. Number of participants, per-task outcomes and findings were not reported here; they stay in the owner's local results file (~/manijero/usability/usability-results.json), which agents do not read.

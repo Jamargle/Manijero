@@ -36,3 +36,8 @@ Spec: [usability_session.md](../specs/usability_session.md) · Appendix: [usabil
 - Note screening is lexical: it can miss unusual personal data or refuse harmless words (documented in `backend/README.md` and `docs/progress/known-limitations.md`).
 - No user findings exist yet; they become follow-up items later.
 - Security: no personal data is echoed, logged, or stored; file mode 0600, folder 0700; no issues found.
+
+## Owner walkthrough (2026-11-08)
+
+- Owner reported the usability session completed successfully on the Desktop QA app with made-up data, results recorded with --usability-record under anonymous codes. Number of participants, per-task outcomes and findings were not reported here; they stay in the owner's local results file (~/manijero/usability/usability-results.json), which agents do not read.
+- Status set to `accepted` on that report; no second validator (evidence-only update).
