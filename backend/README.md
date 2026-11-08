@@ -2768,6 +2768,31 @@ decision (atomic rewrite; bad input records nothing; one `Result:` line each; ra
   items to the cases (`review.role = author_only`) and `additional_areas` to the coverage, and adds
   `golden: {approved, draft, rejected}`. Without the flag the output is unchanged.
 
+### Grounding judge
+
+Offline, evaluation-only, report-only ([spec](../docs/specs/semantic_grounding_judge.md); owner steps in
+[`docs/owner-guide/grounding-judge.md`](../docs/owner-guide/grounding-judge.md)). `app/grounding_judge.py`
+(pure parts) and `scripts/judge_grounding.py` draft the reviewed cases plus the approved golden items with
+the pinned generator in-process (`create_app(local_transport=<recorder>)`, answer cache off), then ask a
+second pinned loopback model whether each draft sentence is supported by the passages it cites. Nothing on
+the `/ask` path imports the judge, and the judge never changes an answer.
+
+- Judge record `backend/config/grounding_judge_model.json` (`local-generation-model-v1` shape, Qwen family,
+  not Mistral): digest, size, and license were copied from local Ollama 0.40.14 (`/api/tags`, `/api/show`),
+  never invented. `timeout_seconds` is 14 only to pass the record gate; each judge request uses the
+  `JUDGE_TIMEOUT_SECONDS = 60` constant. `show-pin` prints what Ollama has installed, for a future re-pin.
+- `judge_grounding.py check-record` (offline): both records valid, judge pinned, different tag, digest, family.
+  `setup` pulls the pinned tag and verifies the digest (never edits the record). `run` takes explicit
+  `--catalog --passages --cases --golden --active-campaign --as-of --k --report`; owners use
+  `./scripts/init.sh --grounding-judge-setup` and `--grounding-judge-report`.
+- Output: `grounding-judge-report-v1` (`knowledge/grounding-judge-report.schema.json`), canonical JSON, no
+  timestamp, outside `knowledge/`. Verdicts per sentence: `supported`, `not_supported`, `unclear`, `uncited`,
+  `citation_invalid`, `unjudged_invalid_output`, `unjudged_error` (unjudged never counts as supported).
+  `supported_share` = supported / (supported + not_supported + unclear), overall and split by verifier
+  (`accepted` = `local_used`, `rejected` = `verifier_rejected`) and case set. Judge scores are unchecked
+  against human review; no accuracy claim is made. Stdout never carries question, answer, sentence, or passage text.
+- Tests: `tests/test_grounding_judge.py` uses fake generator, judge, and opener with sockets blocked.
+
 ### Demo rehearsal
 
 `./scripts/init.sh --demo-rehearsal` (owner steps in [`docs/owner-guide/local-checks.md`](../docs/owner-guide/local-checks.md),

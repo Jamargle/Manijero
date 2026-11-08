@@ -135,6 +135,12 @@ Durable MUST/MUST NOT rules for backend answer path, retrieval, generation, eval
   decide command, and an answered item's anchor MUST quote an approved, current passage verbatim.
   Reason: `golden_dataset_expansion` ([spec](../specs/golden_dataset_expansion.md)); agent-drafted
   questions are unverified expectations until a person approves them.
+- **MUST**: the grounding judge (`backend/app/grounding_judge.py`) MUST stay evaluation-only (never in
+  `/ask` or any gate), MUST use a pinned model of a different family than the generator, MUST fail
+  closed to "not judged" (an unjudged sentence never counts as supported), MUST report its scores
+  labelled unchecked against human review with no accuracy claim, and its tests MUST NOT need Ollama.
+  Reason: `semantic_grounding_judge` ([spec](../specs/semantic_grounding_judge.md)); a second model's
+  opinion is an unverified signal, not proof that an answer is correct.
 - **MUST**: a validity regression case MUST rest only on reviewed catalog or passage metadata. When
   the reviewed corpus lacks the source, the case MUST expect abstention, and a precondition test
   MUST fail once such a source appears so the case is revisited. Reason: `validity_regression_cases`.

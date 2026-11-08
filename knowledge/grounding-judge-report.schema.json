@@ -1,0 +1,189 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://manijero.invalid/schemas/grounding-judge-report-v1.json",
+  "title": "Grounding judge report",
+  "description": "Derived, report-only count of how a second pinned local model judged each sentence of the local drafts against the passages the sentence cites. The judge scores are unchecked against human review and make no accuracy claim; the report never changes /ask, the corpus, or the golden set.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "instruction_versions",
+    "generator",
+    "judge",
+    "inputs",
+    "settings",
+    "cases",
+    "summary",
+    "judge_review",
+    "limits"
+  ],
+  "properties": {
+    "schema_version": {"const": "grounding-judge-report-v1"},
+    "instruction_versions": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["generator", "judge"],
+      "properties": {
+        "generator": {"type": "string", "minLength": 1},
+        "judge": {"type": "string", "minLength": 1}
+      }
+    },
+    "generator": {"$ref": "#/$defs/model"},
+    "judge": {"$ref": "#/$defs/model"},
+    "inputs": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["catalog_sha256", "passages_sha256", "cases_sha256", "golden_sha256"],
+      "properties": {
+        "catalog_sha256": {"$ref": "#/$defs/sha256"},
+        "passages_sha256": {"$ref": "#/$defs/sha256"},
+        "cases_sha256": {"$ref": "#/$defs/sha256"},
+        "golden_sha256": {"$ref": "#/$defs/sha256"}
+      }
+    },
+    "settings": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["active_campaign", "as_of", "k"],
+      "properties": {
+        "active_campaign": {"type": "string", "minLength": 1},
+        "as_of": {"type": "string", "pattern": "^\\d{4}-\\d{2}-\\d{2}$"},
+        "k": {"type": "integer", "minimum": 1, "maximum": 100}
+      }
+    },
+    "cases": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["id", "case_set", "outcome", "sentences"],
+        "properties": {
+          "id": {"type": "string", "minLength": 1},
+          "case_set": {"enum": ["reviewed", "golden"]},
+          "outcome": {
+            "enum": [
+              "not_drafted",
+              "local_used",
+              "verifier_rejected",
+              "rate_limited",
+              "redaction_failed",
+              "payload_invalid",
+              "transport_error",
+              "timeout",
+              "malformed_output",
+              "provider_abstained"
+            ]
+          },
+          "sentences": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": ["index", "text", "cited", "verdict"],
+              "properties": {
+                "index": {"type": "integer", "minimum": 1},
+                "text": {"type": "string", "minLength": 1},
+                "cited": {"type": "array", "items": {"type": "integer", "minimum": 0}},
+                "verdict": {"$ref": "#/$defs/verdict"}
+              }
+            }
+          }
+        }
+      }
+    },
+    "summary": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["cases", "drafts", "outcomes", "overall", "by_verifier", "by_case_set"],
+      "properties": {
+        "cases": {"type": "integer", "minimum": 0},
+        "drafts": {"type": "integer", "minimum": 0},
+        "outcomes": {
+          "type": "object",
+          "additionalProperties": {"type": "integer", "minimum": 0}
+        },
+        "overall": {"$ref": "#/$defs/block"},
+        "by_verifier": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["accepted", "rejected"],
+          "properties": {
+            "accepted": {"$ref": "#/$defs/block"},
+            "rejected": {"$ref": "#/$defs/block"}
+          }
+        },
+        "by_case_set": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["reviewed", "golden"],
+          "properties": {
+            "reviewed": {"$ref": "#/$defs/block"},
+            "golden": {"$ref": "#/$defs/block"}
+          }
+        }
+      }
+    },
+    "judge_review": {"const": "unchecked_against_human_review"},
+    "limits": {
+      "type": "array",
+      "minItems": 1,
+      "items": {"type": "string", "minLength": 1}
+    }
+  },
+  "$defs": {
+    "sha256": {"type": "string", "pattern": "^[a-f0-9]{64}$"},
+    "model": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["model", "digest"],
+      "properties": {
+        "model": {"type": "string", "minLength": 1},
+        "digest": {"$ref": "#/$defs/sha256"}
+      }
+    },
+    "verdict": {
+      "enum": [
+        "supported",
+        "not_supported",
+        "unclear",
+        "uncited",
+        "citation_invalid",
+        "unjudged_invalid_output",
+        "unjudged_error"
+      ]
+    },
+    "block": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["sentences", "verdicts", "supported_share"],
+      "properties": {
+        "sentences": {"type": "integer", "minimum": 0},
+        "verdicts": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "supported",
+            "not_supported",
+            "unclear",
+            "uncited",
+            "citation_invalid",
+            "unjudged_invalid_output",
+            "unjudged_error"
+          ],
+          "properties": {
+            "supported": {"type": "integer", "minimum": 0},
+            "not_supported": {"type": "integer", "minimum": 0},
+            "unclear": {"type": "integer", "minimum": 0},
+            "uncited": {"type": "integer", "minimum": 0},
+            "citation_invalid": {"type": "integer", "minimum": 0},
+            "unjudged_invalid_output": {"type": "integer", "minimum": 0},
+            "unjudged_error": {"type": "integer", "minimum": 0}
+          }
+        },
+        "supported_share": {
+          "anyOf": [{"type": "number", "minimum": 0, "maximum": 1}, {"type": "null"}]
+        }
+      }
+    }
+  }
+}
