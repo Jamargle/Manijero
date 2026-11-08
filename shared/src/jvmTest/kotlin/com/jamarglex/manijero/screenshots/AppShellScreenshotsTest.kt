@@ -98,7 +98,7 @@ private fun SettingsShell() {
 
 @Composable
 private fun HelpDetailShell() {
-    ShellFrame(AppSection.Settings, onBack = {}) {
+    ShellFrame(AppSection.Settings, onBack = {}, screenTitle = "Qué puedes preguntar", tabsVisible = false) {
         CoverageScreen(onPrivacyClick = {}, onBack = {})
     }
 }
@@ -108,14 +108,17 @@ private fun ShellFrame(
     section: AppSection,
     onBack: (() -> Unit)? = null,
     menuItems: List<ManijeroTopBarMenuItem> = emptyList(),
+    screenTitle: String? = null,
+    tabsVisible: Boolean = true,
     content: @Composable () -> Unit,
 ) {
     AppShell(
         selectedSection = section,
         landsAvailable = true,
-        navigationVisible = true,
+        navigationVisible = tabsVisible,
         onSectionSelect = {},
         onBack = onBack,
+        screenTitle = screenTitle,
         menuItems = menuItems,
         content = content,
     )

@@ -20,7 +20,7 @@ import kotlin.test.assertEquals
 class AnswerInspectorScreenTest {
 
     @Test
-    fun showsOneHeadingTheNoteAndEverySection() =
+    fun showsTheNoteAndEverySectionAndLeavesTheTitleToTheTopBar() =
         runDesktopComposeUiTest(width = 900, height = 3000) {
             setContent {
                 ManijeroTheme(darkTheme = false) {
@@ -28,8 +28,9 @@ class AnswerInspectorScreenTest {
                 }
             }
 
-            onAllNodes(SemanticsMatcher.keyIsDefined(SemanticsProperties.Heading)).assertCountEquals(1)
-            onNodeWithText("Inspección de la respuesta").assertExists()
+            // The title is the top bar's heading now, so the screen adds none of its own.
+            onAllNodes(SemanticsMatcher.keyIsDefined(SemanticsProperties.Heading)).assertCountEquals(0)
+            onNodeWithText("Inspección de la respuesta").assertDoesNotExist()
             onNodeWithText("Esta vista es solo para pruebas en este equipo. No se guarda ni se comparte.")
                 .assertExists()
             listOf("Búsqueda", "Pasajes encontrados", "Redacción", "Comprobación", "Resultado").forEach {

@@ -324,6 +324,7 @@ fun App(
             onBack = upTarget?.let { target -> { goBack(target) } },
             // The assistant's `⋮` menu: the privacy notice and what the app covers.
             menuItems = if (destination == AppDestination.Chat) chatMenuItems else emptyList(),
+            screenTitle = screenTitleResource(destination)?.let { stringResource(it) },
         ) {
             when (destination) {
                 AppDestination.Chat -> ChatHomeScreen(

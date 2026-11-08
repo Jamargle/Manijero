@@ -266,12 +266,16 @@ them; feature specs own screen-specific behavior.
   `Ayuda` tab on 2026-11-08 and borrows `ic_help` until its own icon is chosen with the owner); the
   lands tab is omitted
   when no local repository is injected. Tabs are the only top-level navigation: top-level screens
-  must not add another `Volver` or `Mis terrenos` route. The bars are hidden on add/edit/remove forms
-  and the `Borrar para siempre` confirmation, which keep their own `Cancelar`; privacy,
-  `Terrenos eliminados`, `Ayuda` and `Copia en un archivo` stay detail routes with their own
-  `Volver`, so their bars remain visible. Every route except the three tab screens also shows an up
-  arrow (`ic_back`, named `Volver`, 48 dp) at the start of the top bar, like other phone apps; it
-  goes exactly where system back goes. `Ajustes` (tab icon `ic_settings`) opens with the
+  must not add another `Volver` or `Mis terrenos` route. **Top bar and tab bar follow the screen
+  level (owner decision 2026-11-08).** On the three tab screens the top bar keeps the brand mark and
+  `Manijero`, the tab bar (or rail) stays, and the screen adds no large title of its own where the
+  selected tab already says where the person is (`Ajustes` has none). On every detail route (the
+  land forms, `Quitar terreno`, `Borrar para siempre`, `Terrenos eliminados`, `Copia en un archivo`,
+  privacy, `Ayuda`, `Conexión` and the inspector) the tab bar and rail are hidden, the top bar shows
+  an up arrow (`ic_back`, named `Volver`, 48 dp; it goes exactly where system back goes) and the
+  screen's title as its one heading in place of the brand mark, and the screen does not repeat the
+  title as a large heading in its content. The forms keep their own `Cancelar`, and the info screens
+  keep their closing `Volver`. `Ajustes` (tab icon `ic_settings`) opens with the
   `Ayúdanos a mejorar` section (an
   outlined card with a real heading, one labelled switch row announced as a switch, and four plain
   lines: starts off, what is and is never kept, stays on until turned off, 30-day deletion), followed

@@ -26,6 +26,8 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.semantics.heading
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import com.jamarglex.manijero.theme.ManijeroIconSize
@@ -60,6 +62,9 @@ internal data class ManijeroTopBarMenuItem(
  * 48 dp `IconButton`) leads the bar, like the back arrow of other phone apps. It is omitted without
  * a name, because an unnamed interactive control is not acceptable.
  *
+ * With [screenTitle] the bar shows the screen's own [title] (marked as a heading) instead of the
+ * brand mark and app name: this is the detail-screen form, after the up arrow.
+ *
  * When [menuItems] and the menu button's accessible name [menuDescription] are given, a `⋮`
  * button (`ic_more`, 48 dp) at the end of the bar opens a menu with one labelled row per item, each
  * with an optional decorative glyph. The menu is omitted without a name.
@@ -77,6 +82,7 @@ internal fun ManijeroTopAppBar(
     backDescription: String? = null,
     menuItems: List<ManijeroTopBarMenuItem> = emptyList(),
     menuDescription: String? = null,
+    screenTitle: Boolean = false,
 ) {
     var menuOpen by remember { mutableStateOf(false) }
     val actionName = privacyDescription ?: privacyLabel
@@ -110,11 +116,15 @@ internal fun ManijeroTopAppBar(
                             )
                         }
                     }
-                    ManijeroBrandMark()
+                    // A top-level screen shows the brand mark and the app name; a detail screen shows
+                    // its own title (as the screen's one heading) and no mark.
+                    if (!screenTitle) ManijeroBrandMark()
                     Text(
                         text = title,
                         style = MaterialTheme.typography.titleLarge,
-                        modifier = Modifier.weight(1f),
+                        modifier = Modifier
+                            .weight(1f)
+                            .then(if (screenTitle) Modifier.semantics { heading() } else Modifier),
                         maxLines = 2,
                         overflow = TextOverflow.Ellipsis,
                     )
@@ -202,6 +212,12 @@ private fun ManijeroTopAppBarPreviewFrame(dark: Boolean) {
                 )
                 ManijeroTopAppBar(title = "Manijero")
                 ManijeroTopAppBar(title = "Manijero", onBack = {}, backDescription = "Volver")
+                ManijeroTopAppBar(
+                    title = "Terrenos eliminados",
+                    onBack = {},
+                    backDescription = "Volver",
+                    screenTitle = true,
+                )
                 ManijeroTopAppBar(
                     title = "Manijero",
                     menuItems = listOf(ManijeroTopBarMenuItem("Opción", onClick = {})),

@@ -64,12 +64,6 @@ fun PrivacyScreen(
     ManijeroScreen(modifier) {
             Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
                 Text(
-                    text = stringResource(Res.string.privacy_title),
-                    style = MaterialTheme.typography.headlineMedium,
-                    color = MaterialTheme.colorScheme.onBackground,
-                    modifier = Modifier.semantics { heading() },
-                )
-                Text(
                     text = stringResource(Res.string.privacy_intro),
                     style = MaterialTheme.typography.bodyLarge,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,

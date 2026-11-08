@@ -46,6 +46,10 @@ import org.jetbrains.compose.resources.stringResource
  * remaining scaffold padding to [content]. It owns the navigation copy and section callbacks; the
  * screens it hosts keep their own state, copy, padding and scroll.
  *
+ * [screenTitle] is passed on detail routes only: the top bar then shows that title (and no brand
+ * mark) and the screens drop their own large heading. Top-level tab screens keep the brand mark and
+ * `Manijero`, because the selected tab already says where the person is.
+ *
  * [menuItems], when not empty, fill the top bar's `⋮` menu (the composition root passes them on the
  * assistant screen only).
  *
@@ -65,6 +69,7 @@ internal fun AppShell(
     modifier: Modifier = Modifier,
     onBack: (() -> Unit)? = null,
     menuItems: List<ManijeroTopBarMenuItem> = emptyList(),
+    screenTitle: String? = null,
     content: @Composable () -> Unit,
 ) {
     val sections = availableSections(landsAvailable)
@@ -88,7 +93,8 @@ internal fun AppShell(
                 Surface(color = MaterialTheme.colorScheme.surfaceContainerLowest) {
                     Column(modifier = Modifier.statusBarsPadding()) {
                         ManijeroTopAppBar(
-                            title = stringResource(Res.string.app_title),
+                            title = screenTitle ?: stringResource(Res.string.app_title),
+                            screenTitle = screenTitle != null,
                             onBack = onBack,
                             backDescription = stringResource(Res.string.nav_back),
                             menuItems = menuItems,

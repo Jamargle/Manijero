@@ -50,12 +50,6 @@ fun PermanentlyDeleteLandScreen(
 ) {
     ManijeroScreen(modifier = modifier) {
         Text(
-            text = stringResource(Res.string.permanently_delete_land_title),
-            style = MaterialTheme.typography.headlineMedium,
-            color = MaterialTheme.colorScheme.onBackground,
-            modifier = Modifier.semantics { heading() },
-        )
-        Text(
             text = stringResource(Res.string.permanently_delete_land_confirm, state.name),
             style = MaterialTheme.typography.bodyLarge,
             color = MaterialTheme.colorScheme.onSurfaceVariant,

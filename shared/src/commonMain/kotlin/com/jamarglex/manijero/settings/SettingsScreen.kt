@@ -39,12 +39,10 @@ import manijero.shared.generated.resources.settings_improvement_detail_3
 import manijero.shared.generated.resources.settings_improvement_detail_4
 import manijero.shared.generated.resources.settings_improvement_switch
 import manijero.shared.generated.resources.settings_improvement_title
-import manijero.shared.generated.resources.settings_intro
-import manijero.shared.generated.resources.settings_title
 import org.jetbrains.compose.resources.stringResource
 
 /**
- * The `Ajustes` tab: one heading, a short explanation, then in order the `Ayúdanos a mejorar`
+ * The `Ajustes` tab: no large title of its own (the selected tab says where the person is), then in order the `Ayúdanos a mejorar`
  * section, `Copia en un archivo` and `Ayuda`, each place it leads to as one tappable row.
  * `Ayuda` is always offered; `Copia en un archivo` only when the host wires [onOpenBackup] (a local
  * land store and a platform file picker exist). The screen owns no state and no copy beyond its rows.
@@ -58,18 +56,6 @@ internal fun SettingsScreen(
     onOpenBackup: (() -> Unit)? = null,
 ) {
     ManijeroScreen(modifier = modifier) {
-        Column(verticalArrangement = Arrangement.spacedBy(ManijeroSpacing.Small)) {
-            Text(
-                text = stringResource(Res.string.settings_title),
-                style = MaterialTheme.typography.headlineMedium,
-                modifier = Modifier.semantics { heading() },
-            )
-            Text(
-                text = stringResource(Res.string.settings_intro),
-                style = MaterialTheme.typography.bodyLarge,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-            )
-        }
         ImprovementSection(enabled = improvementEnabled, onChange = onImprovementChange)
         if (onOpenBackup != null) {
             SettingsRow(

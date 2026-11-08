@@ -1,5 +1,18 @@
 package com.jamarglex.manijero
 
+import manijero.shared.generated.resources.Res
+import manijero.shared.generated.resources.add_land_title
+import manijero.shared.generated.resources.connection_title
+import manijero.shared.generated.resources.coverage_title
+import manijero.shared.generated.resources.edit_land_title
+import manijero.shared.generated.resources.inspector_title
+import manijero.shared.generated.resources.land_backup_title
+import manijero.shared.generated.resources.permanently_delete_land_title
+import manijero.shared.generated.resources.privacy_title
+import manijero.shared.generated.resources.remove_land_title
+import manijero.shared.generated.resources.removed_lands_title
+import org.jetbrains.compose.resources.StringResource
+
 /**
  * The three top-level places the shell exposes as tabs, first tab first: `Mis terrenos`,
  * `Asistente`, `Ajustes`.
@@ -103,18 +116,33 @@ internal fun rememberedSectionAfterBack(
 }
 
 /**
- * Navigation is hidden only while a land form holds unsaved input or a deletion waits for its second
- * confirmation, so a stray tab tap cannot abandon a draft or a pending decision. Privacy and the
- * removed-lands list are detail routes with a visible `Volver`, so they keep the bars.
+ * The tab bar (or rail) belongs to the three top-level screens only (owner decision 2026-11-08).
+ * Every detail route, including the land forms and the deletion confirmation, hides it, so a stray
+ * tab tap cannot abandon a draft or a pending decision and the way out is the top bar's up arrow.
  */
-internal fun navigationVisible(destination: AppDestination): Boolean = when (destination) {
-    AppDestination.AddLand,
-    AppDestination.EditLand,
-    AppDestination.RemoveLand,
-    AppDestination.PermanentlyDeleteLand,
-    -> false
+internal fun navigationVisible(destination: AppDestination): Boolean = !showsUpNavigation(destination)
 
-    else -> true
+/**
+ * The title the top bar shows for a detail route, or `null` on the three top-level screens (which
+ * keep the brand mark and `Manijero`). Every route with an up arrow has a title, so a detail screen
+ * never repeats it as a large heading in its content.
+ */
+internal fun screenTitleResource(destination: AppDestination): StringResource? = when (destination) {
+    AppDestination.Chat,
+    AppDestination.LandList,
+    AppDestination.Settings,
+    -> null
+
+    AppDestination.AddLand -> Res.string.add_land_title
+    AppDestination.EditLand -> Res.string.edit_land_title
+    AppDestination.RemoveLand -> Res.string.remove_land_title
+    AppDestination.RemovedLands -> Res.string.removed_lands_title
+    AppDestination.PermanentlyDeleteLand -> Res.string.permanently_delete_land_title
+    AppDestination.LandBackup -> Res.string.land_backup_title
+    AppDestination.Privacy -> Res.string.privacy_title
+    AppDestination.Coverage -> Res.string.coverage_title
+    AppDestination.Connection -> Res.string.connection_title
+    AppDestination.Inspector -> Res.string.inspector_title
 }
 
 /**

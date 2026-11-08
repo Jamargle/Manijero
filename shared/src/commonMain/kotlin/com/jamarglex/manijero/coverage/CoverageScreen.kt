@@ -40,7 +40,6 @@ fun CoverageScreen(
 ) {
     ManijeroScreen(modifier) {
         Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
-            Text(stringResource(Res.string.coverage_title), style = MaterialTheme.typography.headlineMedium, modifier = Modifier.semantics { heading() })
             Text(stringResource(Res.string.coverage_intro), style = MaterialTheme.typography.bodyLarge, color = MaterialTheme.colorScheme.onSurfaceVariant)
         }
         ManijeroCard(tone = ManijeroCardTone.Outlined) {
