@@ -95,8 +95,8 @@ def test_canonical_case_artifact_loads_with_declared_coverage():
     assert all(case["review"]["role"] == "author_only" for case in cases)
     assert {area["kind"] for area in coverage_block["areas"]} == {"topic", "boundary"}
     assert len([a for a in coverage_block["areas"] if a["kind"] == "topic"]) == 3
-    assert len([a for a in coverage_block["areas"] if a["kind"] == "boundary"]) == 5
-    assert len(cases) == 14
+    assert len([a for a in coverage_block["areas"] if a["kind"] == "boundary"]) == 8
+    assert len(cases) == 17
     assert coverage_block["omissions"]
 
 
@@ -340,10 +340,10 @@ def test_report_reports_author_only_review_coverage_and_denominators():
         "plazo-presentacion": 2,
         "plazo-modificacion": 4,
     }
-    assert sum(report["coverage"]["boundaries"].values()) == 5
+    assert sum(report["coverage"]["boundaries"].values()) == 8
     assert report["coverage"]["omissions"] == coverage_block["omissions"]
-    assert report["answered_cases"] == 11
-    assert report["abstention_cases"] == 3
+    assert report["answered_cases"] == 12
+    assert report["abstention_cases"] == 5
     assert report["clarification_cases"] == 0
 
 

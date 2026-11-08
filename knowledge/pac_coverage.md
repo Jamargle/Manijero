@@ -68,13 +68,24 @@ aprobadas, con `--golden`. Revisión del propietario (Jose, 2026-11-08): 46 apro
 | `tema-fuera-de-alcance` | límite | 1 | se abstiene correctamente (guardia de alcance) |
 | `reclamacion-fuera-de-alcance` | límite | 1 | se abstiene correctamente (guardia de alcance) |
 | `alcance-terrenos` | límite | 1 | responde igual para todos los terrenos; no procede aclaración |
+| `norma-derogada` | límite | 1 | se abstiene (`no_evidence`); ninguna fuente revisada nombra el RD 1077/2014 |
+| `plazo-vencido` | límite | 1 | responde con el plazo revisado y el aviso de plazo terminado (fecha de evaluación 2026-10-26) |
+| `cuaderno-digital-fuera-de-alcance` | límite | 1 | se abstiene (`no_evidence`); ninguna fuente revisada cubre el cuaderno digital |
 
-Totales: **14 casos**, **3 temas** (9 casos) y **5 límites** (5 casos). De los 11
-casos que esperan respuesta, 11 responden, 8 coinciden en fuente y pasaje y 9
-coinciden en la frase crítica literal. De los 3 casos que esperan abstención, los 3 se
+Totales: **17 casos**, **3 temas** (9 casos) y **8 límites** (8 casos). De los 12
+casos que esperan respuesta, 12 responden, 9 coinciden en fuente y pasaje y 10
+coinciden en la frase crítica literal. De los 5 casos que esperan abstención, los 5 se
 abstienen y no hay respuestas inesperadas. No hay casos de aclaración de terrenos: el corpus aprobado
 no declara `applicability`, así que la respuesta no cambia entre terrenos; la
 aclaración mixta sigue cubierta por `land_safety_eval`, no por este conjunto PAC.
+
+Casos de validez (`validity_regression_cases`, revisados solo por el autor, 2026-11-07). Los dos
+que se abstienen lo hacen porque el corpus revisado no contiene la fuente; no se afirma nada
+sobre la vigencia del RD 1077/2014 ni sobre si el cuaderno digital es voluntario u obligatorio.
+Huecos: falta un pasaje revisado que diga si el RD 1077/2014 sigue en vigor o qué lo sustituye,
+y falta una fuente revisada sobre el cuaderno digital de explotación (`rd_1054_2022` sigue
+`not_added`). Un test de precondición falla si aparece cualquiera de esas fuentes, o si cambia el
+`official_deadline` revisado de `pasaje-plazo-presentacion-2026-andalucia`, para revisar el caso.
 
 Casos concretos (el informe conserva cada fallo visible):
 

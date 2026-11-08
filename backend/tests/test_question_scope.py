@@ -130,7 +130,7 @@ def test_near_misses_and_reviewed_answered_questions_do_not_match():
         for case in eval_document()["cases"]
         if case.get("expected_status") == "answered"
     ]
-    assert len(reviewed) == 11
+    assert len(reviewed) == 12
     for question in reviewed + NEAR_MISSES:
         assert out_of_scope_topic(question) is None, question
 

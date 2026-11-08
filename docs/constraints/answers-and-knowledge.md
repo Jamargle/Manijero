@@ -135,6 +135,9 @@ Durable MUST/MUST NOT rules for backend answer path, retrieval, generation, eval
   decide command, and an answered item's anchor MUST quote an approved, current passage verbatim.
   Reason: `golden_dataset_expansion` ([spec](../specs/golden_dataset_expansion.md)); agent-drafted
   questions are unverified expectations until a person approves them.
+- **MUST**: a validity regression case MUST rest only on reviewed catalog or passage metadata. When
+  the reviewed corpus lacks the source, the case MUST expect abstention, and a precondition test
+  MUST fail once such a source appears so the case is revisited. Reason: `validity_regression_cases`.
 
 ## Campaign scope
 

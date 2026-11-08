@@ -171,11 +171,11 @@ def report_files(home: Path) -> List[Path]:
 def test_the_reviewed_cases_load(load, env: boot.Env) -> None:
     cases = load.load_cases(env.ctx)
 
-    assert len(cases) == 14
+    assert len(cases) == 17
     assert all(case["question"] for case in cases)
     # One reviewed case carries an ``all_active`` context in the corpus; measurement still sends
     # the empty general context for every case (scenario 9), which the test below checks.
-    assert [case["land_context"]["mode"] for case in cases].count("general") == 13
+    assert [case["land_context"]["mode"] for case in cases].count("general") == 16
 
 
 def _case_document(env: boot.Env) -> Path:
@@ -549,7 +549,7 @@ def test_a_clean_run_reports_and_saves_an_aggregate_report(load, running: Harnes
     assert code == 0, running.output
     assert running.lines[0] == load.CHECKING_LINE
     assert running.lines[1].startswith("The local answer service is running at http://127.0.0.1:8000 (process 40000, knowledge release ")
-    assert running.lines[2] == load.plan_line(14, tiny_plan(load))
+    assert running.lines[2] == load.plan_line(17, tiny_plan(load))
     assert running.lines[3] == "Warm-up: 2 of 2 questions answered (1.00 s, 2.00 s)."
     assert "Steady phase: 3 questions finished, 0 did not answer." in running.lines
     assert "  Median 0.50 s, p95 0.50 s, slowest 0.50 s." in running.lines
@@ -563,7 +563,7 @@ def test_a_clean_run_reports_and_saves_an_aggregate_report(load, running: Harnes
     report = json.loads(report_path.read_text(encoding="utf-8"))
     assert stat.S_IMODE(report_path.stat().st_mode) == 0o600
     assert report["schema"] == "local-load-measurement-v1"
-    assert report["reviewed_cases"] == 14
+    assert report["reviewed_cases"] == 17
     assert report["plan"] == {
         "clients": 1,
         "ramp_seconds": 0.0,
