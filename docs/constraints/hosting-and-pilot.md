@@ -5,6 +5,7 @@ Durable MUST/MUST NOT rules for hosted pilot operations and provider boundaries.
 ## Hosted pilot and provider boundaries
 
 - **MUST**: a QA test build takes its pilot token only from the QA access key (`<QA home>/credentials/qa-test-device.token`, or the `MANIJERO_PILOT_TOKEN_FILE` test override) and **MUST NOT** read `pilot-token.local`; a local build **MUST NOT** read the QA key or the QA address file. Reason: [`client_environment_builds`](../specs/client_environment_builds.md).
+- **MUST**: the QA access key stays on the owner's Mac (owner decision 2026-11-07, `:shared:runDesktopQaCheck` only); anything deployed or reachable online **MUST NOT** contain secrets, kept by offline guard tests on the image build context, git ignore, qa-check outputs, the Funnel target, and `PilotTokenGuardTest`/`QaCheckGuardTest`. Reason: [`qa_real_device_check`](../specs/qa_real_device_check.md).
 - **MUST**: a managed tunnel (Cloudflare Tunnel for a pilot; Tailscale Funnel for QA only) is transport only; any public pilot API MUST enforce its own
   authentication, authorization, per-client rate limiting, and request-size limits. Reason:
   `hosting_provider_review` found that Cloudflare Tunnel removes the public origin IP but does not
@@ -63,8 +64,11 @@ Durable MUST/MUST NOT rules for hosted pilot operations and provider boundaries.
   loopback host (`localhost`, `127.0.0.1`, `[::1]`, `10.0.2.2`), and MUST NOT be shown, logged,
   committed, put in state or exceptions, or sent on `/health` or `/ready`. It MUST NOT be built into an Android release variant
   or a packaged/release Desktop output, even when the file exists; only Android debug and the
-  Desktop `run` task may carry it. Reason:
-  [`client_pilot_credentials`](../specs/client_pilot_credentials.md) — the token is a per-client
+  Desktop `run` task (and, for the QA key, the test-only `:shared:runDesktopQaCheck`, which appends the
+  generated resource folder when it starts and never passes the key as a JVM property, environment
+  entry, or argument) may carry it. Reason:
+  [`client_pilot_credentials`](../specs/client_pilot_credentials.md) and
+  [`qa_real_device_check`](../specs/qa_real_device_check.md) — the token is a per-client
   access credential, and a cleartext LAN request or a logged header would hand it to anyone on the
   path; decision 5 keeps it out of anything that could be distributed.
 - **MUST**: `POST /feedback` MUST accept exactly one field, `rating`, with a fixed value (`useful`

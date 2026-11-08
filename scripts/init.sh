@@ -275,6 +275,25 @@ if [[ "${1:-}" == "--local-smoke" ]]; then
   exec "$LOCAL_RAG_PYTHON" "$REPO_ROOT/backend/scripts/local_rag.py" smoke
 fi
 
+# Owner command: check the QA Desktop app against the live QA service end to end (docs/owner-guide.md
+# "Check the QA Desktop app"). Like --local-smoke it resolves Java here and lets qa_check.py report a
+# missing one. Test-only variables: MANIJERO_QA_HOME and MANIJERO_QA_ADDRESS_FILE.
+if [[ "${1:-}" == "--qa-check" ]]; then
+  REPO_ROOT="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")/.." && pwd)"
+  if (( $# > 1 )); then
+    printf 'Run %s on its own, with nothing after it.\n' "$1" >&2
+    exit 2
+  fi
+  LOCAL_RAG_PYTHON="$REPO_ROOT/backend/.venv/bin/python"
+  if [[ ! -x "$LOCAL_RAG_PYTHON" ]] && ! "$REPO_ROOT/scripts/python-env.sh" dev --if-present >/dev/null 2>&1; then
+    printf 'The local answer tools are not set up yet. Run ./scripts/init.sh --local-rag-setup to set them up.\n'
+    printf 'Result: the QA check did not run. Run ./scripts/init.sh --local-rag-setup.\n'
+    exit 1
+  fi
+  manijero_resolve_java || true
+  exec "$LOCAL_RAG_PYTHON" "$REPO_ROOT/backend/scripts/qa_check.py"
+fi
+
 # Owner command: rehearse the demo (docs/owner-guide.md, docs/demo-script.md). It checks the
 # running local answer service and the reviewed-update gate, changes nothing, and runs before the
 # local.properties write like the other answer-service commands.
@@ -380,7 +399,7 @@ AS_OF="${MANIJERO_AS_OF:-2026-10-13}"
 
 usage() {
   cat <<'EOF'
-Usage: ./scripts/init.sh [--check|--fast|--verify|--feature <id>|--backend-tests [targets]|--setup-python [dev|hybrid|docparse]|--backend|--mock|--mock-status|--mock-stop|--local-rag-setup|--local-rag-status|--local-rag-start|--local-rag-service-status|--local-rag-load-test|--local-rag-stop|--container-build|--container-start|--container-status|--container-stop|--monitoring-start|--monitoring-status|--monitoring-stop|--pilot-token-save|--demo-rehearsal|--golden-review|--golden-decide|--usability-record|--local-smoke|--environments-status|--qa-settings-setup|--qa-deploy|--qa-update|--qa-rollback|--qa-status|--qa-stop|--android|--android-run|--desktop|--android-qa|--desktop-qa|--help]
+Usage: ./scripts/init.sh [--check|--fast|--verify|--feature <id>|--backend-tests [targets]|--setup-python [dev|hybrid|docparse]|--backend|--mock|--mock-status|--mock-stop|--local-rag-setup|--local-rag-status|--local-rag-start|--local-rag-service-status|--local-rag-load-test|--local-rag-stop|--container-build|--container-start|--container-status|--container-stop|--monitoring-start|--monitoring-status|--monitoring-stop|--pilot-token-save|--demo-rehearsal|--golden-review|--golden-decide|--usability-record|--local-smoke|--qa-check|--environments-status|--qa-settings-setup|--qa-deploy|--qa-update|--qa-rollback|--qa-status|--qa-stop|--android|--android-run|--desktop|--android-qa|--desktop-qa|--help]
 
   --check                   Check Java and the Gradle wrapper, then print standard commands (default)
   --fast                    Shared host tests, contract examples, backend unit tests, and the five
@@ -433,6 +452,9 @@ Usage: ./scripts/init.sh [--check|--fast|--verify|--feature <id>|--backend-tests
   --local-smoke             With the local answer service running, ask it one fixed question through
                             the Desktop app and the app on the running Android emulator; one PASS or
                             FAIL line each (installs the debug app over the existing one, data kept)
+  --qa-check                With QA deployed, check end to end that the QA Desktop app reaches QA,
+                            shows a sourced answer to a made-up question, and gets its Útil rating
+                            accepted; one PASS or FAIL line per step (needs the QA access key)
   --environments-status     Read-only: say in plain words what the local, QA, and prod
                             environments each have (nothing is deployed or contacted)
   --qa-settings-setup       Prepare the QA settings file and access keys on this computer
@@ -1005,6 +1027,7 @@ Build and run:
   ./scripts/init.sh --container-build  # build the answer service image in Docker Desktop (see docs/owner-guide.md)
   ./scripts/init.sh --container-start  # run it in the background (--container-status, --container-stop)
   ./scripts/init.sh --local-smoke      # with it running: ask it once through the Desktop and Android emulator apps
+  ./scripts/init.sh --qa-check         # with QA deployed: reachable, sourced answer, feedback accepted (Desktop, no clicking)
   ./scripts/init.sh --demo-rehearsal   # with it running: rehearse the demo (docs/demo-script.md)
   ./scripts/init.sh --usability-record # save one usability-session participant (docs/usability-session/)
   ./scripts/init.sh --environments-status # what the local, QA, and prod environments each have

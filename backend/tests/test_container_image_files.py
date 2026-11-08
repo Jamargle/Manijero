@@ -253,6 +253,21 @@ def test_the_dockerignore_is_an_allowlist_without_tests_virtualenvs_settings_or_
     assert not [file for file in files if "/tests/" in file or file.endswith((".env", ".example", ".pyc"))]
 
 
+def test_the_qa_access_key_and_token_folders_can_never_enter_the_image_build_context() -> None:
+    patterns = ignore_patterns()
+    allowed = [pattern[1:].rstrip("/") for pattern in patterns if pattern.startswith("!")]
+    for secret in ("desktopApp/build/generated/pilotToken/pilot-token.txt", "build/qa-check/desktop.log",
+                   "backend/app/qa-test-device.token", "backend/container/x.token", "pilot-token.local",
+                   "backend/config/pilot-clients.json", "backend/app/pilot-clients-qa.json",
+                   "manijero/qa/credentials/qa-test-device.token"):
+        assert not included(secret, patterns), secret
+    # No allowlist entry is, or contains, the generated folder, the QA outputs, or a credentials folder.
+    for entry in allowed:
+        assert not entry.startswith(("desktopApp", "build", "manijero")) and "credentials" not in entry, entry
+        assert "token" not in entry.lower() and "qa-check" not in entry, entry
+    assert not [file for file in context_files() if file.endswith(".token") or "pilot-clients" in file]
+
+
 def test_the_optional_parser_runtime_is_pinned_and_never_enters_the_image() -> None:
     requirement = REPO_ROOT / "backend" / "requirements-docparse.txt"
     lines = [
