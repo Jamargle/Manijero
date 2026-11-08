@@ -138,8 +138,10 @@ Durable MUST/MUST NOT rules for land editing, fields, storage, automatic copies,
 - **MUST**: the local generation transport (`backend/app/local_generation.py::OllamaTransport`)
   MUST talk only to the `OLLAMA_BASE_URL` loopback constant (`http://127.0.0.1:11434`), with no
   proxy, no redirect, and no configurable or remote URL, and MUST use only the pinned tag whose
-  installed digest matches `backend/config/local_generation_model.json`. Changing the model,
-  digest, or limits in that record MUST be a reviewed change carrying new measurement evidence.
+  installed digest matches `backend/config/local_generation_model.json`; the offline grounding judge
+  MAY also use only the tag whose digest matches `backend/config/grounding_judge_model.json`
+  ([spec](../specs/semantic_grounding_judge.md)). Changing the model,
+  digest, or limits in either record MUST be a reviewed change carrying new measurement evidence.
   Local generation MUST stay off unless both `MANIJERO_GENERATION_PROVIDER=local` and a matching
   `MANIJERO_LOCAL_MODEL` are set; in the pilot profile it MUST also require a passed pilot review.
   Automated tests MUST NOT need Ollama. Reason: `local_generation_provider`; the question stays on

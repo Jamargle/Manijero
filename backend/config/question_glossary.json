@@ -1,0 +1,290 @@
+{
+  "schema_version": "question-glossary-v1",
+  "entries": [
+    {
+      "id": "gl-001",
+      "colloquial": "el cuaderno",
+      "official": "cuaderno de explotación",
+      "origin": {
+        "kind": "notice",
+        "ref": "f4be3c13753a"
+      },
+      "drafted": {
+        "by": "agent:question_rewriting",
+        "on": "2026-11-08"
+      },
+      "review_state": "approved",
+      "decision": {
+        "decision": "approved",
+        "reviewed_by": "Jose",
+        "reviewed_on": "2026-11-08"
+      }
+    },
+    {
+      "id": "gl-002",
+      "colloquial": "la aplicación del móvil",
+      "official": "aplicación móvil de la administración",
+      "origin": {
+        "kind": "notice",
+        "ref": "f4be3c13753a"
+      },
+      "drafted": {
+        "by": "agent:question_rewriting",
+        "on": "2026-11-08"
+      },
+      "review_state": "rejected",
+      "decision": {
+        "decision": "rejected",
+        "reviewed_by": "Jose",
+        "reviewed_on": "2026-11-08"
+      }
+    },
+    {
+      "id": "gl-003",
+      "colloquial": "la ayuda del olivar",
+      "official": "ayuda para el cultivo del olivar",
+      "origin": {
+        "kind": "notice",
+        "ref": "f4be3c13753a"
+      },
+      "drafted": {
+        "by": "agent:question_rewriting",
+        "on": "2026-11-08"
+      },
+      "review_state": "approved",
+      "decision": {
+        "decision": "approved",
+        "reviewed_by": "Jose",
+        "reviewed_on": "2026-11-08"
+      }
+    },
+    {
+      "id": "gl-004",
+      "colloquial": "la firma del trámite",
+      "official": "firma electrónica de la solicitud",
+      "origin": {
+        "kind": "notice",
+        "ref": "f4be3c13753a"
+      },
+      "drafted": {
+        "by": "agent:question_rewriting",
+        "on": "2026-11-08"
+      },
+      "review_state": "approved",
+      "decision": {
+        "decision": "approved",
+        "reviewed_by": "Jose",
+        "reviewed_on": "2026-11-08"
+      }
+    },
+    {
+      "id": "gl-005",
+      "colloquial": "la PAC",
+      "official": "solicitud única de la PAC",
+      "origin": {
+        "kind": "notice",
+        "ref": "f4be3c13753a"
+      },
+      "drafted": {
+        "by": "agent:question_rewriting",
+        "on": "2026-11-08"
+      },
+      "review_state": "approved",
+      "decision": {
+        "decision": "approved",
+        "reviewed_by": "Jose",
+        "reviewed_on": "2026-11-08"
+      }
+    },
+    {
+      "id": "gl-006",
+      "colloquial": "los papeles",
+      "official": "documentación de la solicitud",
+      "origin": {
+        "kind": "notice",
+        "ref": "f4be3c13753a"
+      },
+      "drafted": {
+        "by": "agent:question_rewriting",
+        "on": "2026-11-08"
+      },
+      "review_state": "approved",
+      "decision": {
+        "decision": "approved",
+        "reviewed_by": "Jose",
+        "reviewed_on": "2026-11-08"
+      }
+    },
+    {
+      "id": "gl-007",
+      "colloquial": "los recintos",
+      "official": "recintos del SIGPAC",
+      "origin": {
+        "kind": "notice",
+        "ref": "f4be3c13753a"
+      },
+      "drafted": {
+        "by": "agent:question_rewriting",
+        "on": "2026-11-08"
+      },
+      "review_state": "approved",
+      "decision": {
+        "decision": "approved",
+        "reviewed_by": "Jose",
+        "reviewed_on": "2026-11-08"
+      }
+    },
+    {
+      "id": "gl-008",
+      "colloquial": "mandar",
+      "official": "presentar",
+      "origin": {
+        "kind": "golden",
+        "ref": "golden-039"
+      },
+      "drafted": {
+        "by": "agent:question_rewriting",
+        "on": "2026-11-08"
+      },
+      "review_state": "approved",
+      "decision": {
+        "decision": "approved",
+        "reviewed_by": "Jose",
+        "reviewed_on": "2026-11-08"
+      }
+    },
+    {
+      "id": "gl-009",
+      "colloquial": "tocar",
+      "official": "modificar",
+      "origin": {
+        "kind": "golden",
+        "ref": "golden-040"
+      },
+      "drafted": {
+        "by": "agent:question_rewriting",
+        "on": "2026-11-08"
+      },
+      "review_state": "approved",
+      "decision": {
+        "decision": "approved",
+        "reviewed_by": "Jose",
+        "reviewed_on": "2026-11-08"
+      }
+    },
+    {
+      "id": "gl-010",
+      "colloquial": "papeleo",
+      "official": "solicitud",
+      "origin": {
+        "kind": "golden",
+        "ref": "golden-041"
+      },
+      "drafted": {
+        "by": "agent:question_rewriting",
+        "on": "2026-11-08"
+      },
+      "review_state": "approved",
+      "decision": {
+        "decision": "approved",
+        "reviewed_by": "Jose",
+        "reviewed_on": "2026-11-08"
+      }
+    },
+    {
+      "id": "gl-011",
+      "colloquial": "avisar",
+      "official": "notificaciones",
+      "origin": {
+        "kind": "golden",
+        "ref": "golden-044"
+      },
+      "drafted": {
+        "by": "agent:question_rewriting",
+        "on": "2026-11-08"
+      },
+      "review_state": "approved",
+      "decision": {
+        "decision": "approved",
+        "reviewed_by": "Jose",
+        "reviewed_on": "2026-11-08"
+      }
+    },
+    {
+      "id": "gl-012",
+      "colloquial": "internet",
+      "official": "medios electrónicos",
+      "origin": {
+        "kind": "golden",
+        "ref": "golden-044"
+      },
+      "drafted": {
+        "by": "agent:question_rewriting",
+        "on": "2026-11-08"
+      },
+      "review_state": "approved",
+      "decision": {
+        "decision": "approved",
+        "reviewed_by": "Jose",
+        "reviewed_on": "2026-11-08"
+      }
+    },
+    {
+      "id": "gl-013",
+      "colloquial": "equivocado",
+      "official": "error material",
+      "origin": {
+        "kind": "golden",
+        "ref": "golden-045"
+      },
+      "drafted": {
+        "by": "agent:question_rewriting",
+        "on": "2026-11-08"
+      },
+      "review_state": "approved",
+      "decision": {
+        "decision": "approved",
+        "reviewed_by": "Jose",
+        "reviewed_on": "2026-11-08"
+      }
+    },
+    {
+      "id": "gl-014",
+      "colloquial": "arreglar",
+      "official": "rectificar",
+      "origin": {
+        "kind": "golden",
+        "ref": "golden-045"
+      },
+      "drafted": {
+        "by": "agent:question_rewriting",
+        "on": "2026-11-08"
+      },
+      "review_state": "approved",
+      "decision": {
+        "decision": "approved",
+        "reviewed_by": "Jose",
+        "reviewed_on": "2026-11-08"
+      }
+    },
+    {
+      "id": "gl-015",
+      "colloquial": "ordenador",
+      "official": "medios electrónicos",
+      "origin": {
+        "kind": "golden",
+        "ref": "golden-046"
+      },
+      "drafted": {
+        "by": "agent:question_rewriting",
+        "on": "2026-11-08"
+      },
+      "review_state": "approved",
+      "decision": {
+        "decision": "approved",
+        "reviewed_by": "Jose",
+        "reviewed_on": "2026-11-08"
+      }
+    }
+  ]
+}

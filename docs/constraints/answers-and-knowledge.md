@@ -135,6 +135,12 @@ Durable MUST/MUST NOT rules for backend answer path, retrieval, generation, eval
   decide command, and an answered item's anchor MUST quote an approved, current passage verbatim.
   Reason: `golden_dataset_expansion` ([spec](../specs/golden_dataset_expansion.md)); agent-drafted
   questions are unverified expectations until a person approves them.
+- **MUST**: the grounding judge (`backend/app/grounding_judge.py`) MUST stay evaluation-only (never in
+  `/ask` or any gate), MUST use a pinned model of a different family than the generator, MUST fail
+  closed to "not judged" (an unjudged sentence never counts as supported), MUST report its scores
+  labelled unchecked against human review with no accuracy claim, and its tests MUST NOT need Ollama.
+  Reason: `semantic_grounding_judge` ([spec](../specs/semantic_grounding_judge.md)); a second model's
+  opinion is an unverified signal, not proof that an answer is correct.
 - **MUST**: a validity regression case MUST rest only on reviewed catalog or passage metadata. When
   the reviewed corpus lacks the source, the case MUST expect abstention, and a precondition test
   MUST fail once such a source appears so the case is revisited. Reason: `validity_regression_cases`.
@@ -280,6 +286,15 @@ Durable MUST/MUST NOT rules for backend answer path, retrieval, generation, eval
   claim legal currency, validity, meaning, or coverage. Reason: `official_page_change_monitor` notices
   that a page may have changed; only a human can decide what that means, and the monitor must not
   become a second unreviewed knowledge path.
+
+- **MUST**: question-glossary expansion (`question_rewriting`) MUST use only owner-approved
+  colloquial -> official pairs, MUST append the official term to the retrieval query and never
+  replace the grower's words, MUST change only the retrieval query (not screening, checks, drafting
+  payload, cache-key text, trace, retention, or response), MUST fail closed to no expansion on any
+  file or setting problem, and MUST NOT log a term. A glossary change MUST pass
+  `backend/scripts/glossary_review.py check`, and release gates MUST stay glossary-free. Reason: an
+  unreviewed or model-made rewrite would put words in the grower's mouth and unmeasured wording
+  into retrieval ([spec](../specs/question_rewriting.md)).
 
 ## Procedure map
 
