@@ -11,6 +11,7 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.tooling.preview.Preview
 import com.jamarglex.manijero.theme.ManijeroLayout
 import com.jamarglex.manijero.theme.ManijeroShapes
@@ -32,7 +33,7 @@ internal enum class ManijeroCardTone {
 }
 
 /**
- * The shared card container: 16 dp large radius, comfortable internal padding, and a 1 dp border
+ * The shared card container: 24 dp large radius (or the caller's [shape]), comfortable internal padding, and a 1 dp border
  * where the tone defines one ([ManijeroCardTone.Outlined] uses `outlineVariant`,
  * [ManijeroCardTone.Danger] uses `error`).
  *
@@ -43,6 +44,7 @@ internal enum class ManijeroCardTone {
 internal fun ManijeroCard(
     modifier: Modifier = Modifier,
     tone: ManijeroCardTone = ManijeroCardTone.Outlined,
+    shape: Shape = ManijeroShapes.Large,
     content: @Composable ColumnScope.() -> Unit,
 ) {
     val scheme = MaterialTheme.colorScheme
@@ -65,7 +67,7 @@ internal fun ManijeroCard(
 
     Surface(
         modifier = modifier.fillMaxWidth(),
-        shape = ManijeroShapes.Large,
+        shape = shape,
         color = container,
         contentColor = scheme.onSurface,
         border = border,

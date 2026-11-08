@@ -86,7 +86,6 @@ private fun ChatHomePrivacyPreview() {
         ChatHomeScreen(
             state = ChatHomeState(),
             onAction = {},
-            onPrivacyClick = {},
         )
     }
 }
@@ -125,7 +124,6 @@ private fun ChatHomeWideWindowPreview() {
                 ),
             ),
             onAction = {},
-            onPrivacyClick = {},
         )
     }
 }
@@ -153,7 +151,6 @@ private fun ChatHomeLongConversationLargeTextPreview() {
                 ),
             ),
             onAction = {},
-            onPrivacyClick = {},
         )
     }
 }

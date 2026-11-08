@@ -21,16 +21,20 @@ import com.jamarglex.manijero.design.ManijeroBottomNavigation
 import com.jamarglex.manijero.design.ManijeroDestination
 import com.jamarglex.manijero.design.ManijeroNavigationRail
 import com.jamarglex.manijero.design.ManijeroTopAppBar
+import com.jamarglex.manijero.design.ManijeroTopBarMenuItem
+import com.jamarglex.manijero.design.ManijeroTopBarSearch
 import com.jamarglex.manijero.design.selectedDestinationIndex
 import com.jamarglex.manijero.design.WideWindowBreakpoint
 import com.jamarglex.manijero.theme.ManijeroTheme
 import manijero.shared.generated.resources.Res
 import manijero.shared.generated.resources.app_title
 import manijero.shared.generated.resources.ic_chat
-import manijero.shared.generated.resources.ic_help
+import manijero.shared.generated.resources.ic_settings
 import manijero.shared.generated.resources.ic_lands
 import manijero.shared.generated.resources.nav_assistant
-import manijero.shared.generated.resources.nav_help
+import manijero.shared.generated.resources.nav_back
+import manijero.shared.generated.resources.nav_more
+import manijero.shared.generated.resources.nav_settings
 import manijero.shared.generated.resources.nav_lands
 import org.jetbrains.compose.resources.stringResource
 
@@ -43,9 +47,22 @@ import org.jetbrains.compose.resources.stringResource
  * remaining scaffold padding to [content]. It owns the navigation copy and section callbacks; the
  * screens it hosts keep their own state, copy, padding and scroll.
  *
+ * [search], when given, puts the magnifier (and, once opened, the search field) in the top bar; the
+ * composition root passes it on `Mis terrenos` only.
+ *
+ * [screenTitle] is passed on detail routes only: the top bar then shows that title (and no brand
+ * mark) and the screens drop their own large heading. Top-level tab screens keep the brand mark and
+ * `Manijero`, because the selected tab already says where the person is.
+ *
+ * [menuItems], when not empty, fill the top bar's `⋮` menu (the composition root passes them on the
+ * assistant screen only).
+ *
+ * [onBack], when given, shows the up arrow at the start of the top bar; the composition root passes
+ * it on every detail route and the forms, and omits it on the three top-level tabs.
+ *
  * When [navigationVisible] is false (a land form holds unsaved input) only the top app bar remains.
- * The top app bar deliberately exposes no right-side action: privacy stays reachable from the chat
- * footer and the help screen.
+ * The top app bar's only right-side control is the assistant's `⋮` menu ([menuItems]); privacy
+ * stays reachable from that menu and from the help screen under `Ajustes`.
  */
 @Composable
 internal fun AppShell(
@@ -54,6 +71,10 @@ internal fun AppShell(
     navigationVisible: Boolean,
     onSectionSelect: (AppSection) -> Unit,
     modifier: Modifier = Modifier,
+    onBack: (() -> Unit)? = null,
+    menuItems: List<ManijeroTopBarMenuItem> = emptyList(),
+    screenTitle: String? = null,
+    search: ManijeroTopBarSearch? = null,
     content: @Composable () -> Unit,
 ) {
     val sections = availableSections(landsAvailable)
@@ -76,7 +97,15 @@ internal fun AppShell(
             topBar = {
                 Surface(color = MaterialTheme.colorScheme.surfaceContainerLowest) {
                     Column(modifier = Modifier.statusBarsPadding()) {
-                        ManijeroTopAppBar(title = stringResource(Res.string.app_title))
+                        ManijeroTopAppBar(
+                            title = screenTitle ?: stringResource(Res.string.app_title),
+                            screenTitle = screenTitle != null,
+                            onBack = onBack,
+                            backDescription = stringResource(Res.string.nav_back),
+                            menuItems = menuItems,
+                            menuDescription = stringResource(Res.string.nav_more),
+                            search = search,
+                        )
                     }
                 }
             },
@@ -121,13 +150,13 @@ internal fun AppShell(
 private fun AppSection.labelResource() = when (this) {
     AppSection.Assistant -> Res.string.nav_assistant
     AppSection.Lands -> Res.string.nav_lands
-    AppSection.Help -> Res.string.nav_help
+    AppSection.Settings -> Res.string.nav_settings
 }
 
 private fun AppSection.iconResource() = when (this) {
     AppSection.Assistant -> Res.drawable.ic_chat
     AppSection.Lands -> Res.drawable.ic_lands
-    AppSection.Help -> Res.drawable.ic_help
+    AppSection.Settings -> Res.drawable.ic_settings
 }
 
 // Preview sample only, never shipped copy.
@@ -161,7 +190,7 @@ private fun AppShellCompactLightPreview() =
 @Preview(name = "AppShell compact — oscuro", widthDp = 400, heightDp = 640)
 @Composable
 private fun AppShellCompactDarkPreview() =
-    AppShellPreviewFrame(AppSection.Help, dark = true)
+    AppShellPreviewFrame(AppSection.Settings, dark = true)
 
 @Preview(name = "AppShell ancho — claro", widthDp = 1000, heightDp = 700)
 @Composable

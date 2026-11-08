@@ -17,11 +17,11 @@ class AppNavigationTest {
     @Test
     fun `lands tab exists only with a local repository`() {
         assertEquals(
-            listOf(AppSection.Lands, AppSection.Assistant, AppSection.Help),
+            listOf(AppSection.Lands, AppSection.Assistant, AppSection.Settings),
             availableSections(landsAvailable = true),
         )
         assertEquals(
-            listOf(AppSection.Assistant, AppSection.Help),
+            listOf(AppSection.Assistant, AppSection.Settings),
             availableSections(landsAvailable = false),
         )
     }
@@ -32,7 +32,7 @@ class AppNavigationTest {
 
         assertEquals(0, sections.indexOf(AppSection.Lands))
         assertEquals(1, sections.indexOf(AppSection.Assistant))
-        assertEquals(2, sections.indexOf(AppSection.Help))
+        assertEquals(2, sections.indexOf(AppSection.Settings))
     }
 
     @Test
@@ -95,13 +95,13 @@ class AppNavigationTest {
     fun `each tab opens its own top-level screen`() {
         assertEquals(AppDestination.Chat, sectionDestination(AppSection.Assistant))
         assertEquals(AppDestination.LandList, sectionDestination(AppSection.Lands))
-        assertEquals(AppDestination.Coverage, sectionDestination(AppSection.Help))
+        assertEquals(AppDestination.Settings, sectionDestination(AppSection.Settings))
     }
 
     @Test
     fun `top-level screens round-trip through their tab`() {
         availableSections(landsAvailable = true).forEach { section ->
-            assertEquals(section, tabForDestination(sectionDestination(section), AppSection.Help))
+            assertEquals(section, tabForDestination(sectionDestination(section), AppSection.Settings))
         }
     }
 
@@ -128,11 +128,11 @@ class AppNavigationTest {
             tabForDestination(AppDestination.PermanentlyDeleteLand, AppSection.Assistant),
         )
         assertEquals(
-            AppSection.Lands,
+            AppSection.Settings,
             tabForDestination(AppDestination.LandBackup, AppSection.Assistant),
         )
         assertEquals(
-            AppSection.Help,
+            AppSection.Settings,
             tabForDestination(AppDestination.Coverage, AppSection.Assistant),
         )
     }
@@ -154,17 +154,25 @@ class AppNavigationTest {
     }
 
     @Test
-    fun `only the land forms and the deletion confirmation hide the navigation bars`() {
-        assertFalse(navigationVisible(AppDestination.AddLand))
-        assertFalse(navigationVisible(AppDestination.EditLand))
-        assertFalse(navigationVisible(AppDestination.RemoveLand))
-        assertFalse(navigationVisible(AppDestination.PermanentlyDeleteLand))
+    fun `the navigation bars show on the three tab screens only`() {
+        listOf(AppDestination.Chat, AppDestination.LandList, AppDestination.Settings).forEach {
+            assertTrue(navigationVisible(it), it.name)
+        }
+        AppDestination.entries
+            .filter { it !in setOf(AppDestination.Chat, AppDestination.LandList, AppDestination.Settings) }
+            .forEach { assertFalse(navigationVisible(it), it.name) }
+    }
 
-        assertTrue(navigationVisible(AppDestination.Chat))
-        assertTrue(navigationVisible(AppDestination.LandList))
-        assertTrue(navigationVisible(AppDestination.RemovedLands))
-        assertTrue(navigationVisible(AppDestination.Coverage))
-        assertTrue(navigationVisible(AppDestination.Privacy))
+    @Test
+    fun `every detail route has a top bar title and the tab screens have none`() {
+        val tabs = setOf(AppDestination.Chat, AppDestination.LandList, AppDestination.Settings)
+        AppDestination.entries.forEach { destination ->
+            assertEquals(
+                destination in tabs,
+                screenTitleResource(destination) == null,
+                destination.name,
+            )
+        }
     }
 
     @Test
@@ -202,16 +210,16 @@ class AppNavigationTest {
     }
 
     @Test
-    fun `the backup screen is a lands detail route that keeps the bars and returns to the list`() {
+    fun `the backup screen is a settings detail route that hides the bars and returns to settings`() {
         assertEquals(
-            AppDestination.LandList,
+            AppDestination.Settings,
             backTarget(AppDestination.LandBackup, AppSection.Lands, AppDestination.Chat),
         )
-        assertTrue(navigationVisible(AppDestination.LandBackup))
+        assertFalse(navigationVisible(AppDestination.LandBackup))
     }
 
     @Test
-    fun `the inspector route sits under the assistant tab, keeps the bars and returns to the chat`() {
+    fun `the inspector route sits under the assistant tab, hides the bars and returns to the chat`() {
         AppSection.entries.forEach { fallback ->
             assertEquals(AppSection.Assistant, tabForDestination(AppDestination.Inspector, fallback))
             assertEquals(
@@ -220,40 +228,52 @@ class AppNavigationTest {
             )
             assertEquals(fallback, rememberedSectionAfterBack(AppDestination.Inspector, fallback))
         }
-        assertTrue(navigationVisible(AppDestination.Inspector))
+        assertFalse(navigationVisible(AppDestination.Inspector))
     }
 
     @Test
-    fun `the test-build connection route sits under help, keeps the bars and returns to help`() {
+    fun `the test-build connection route sits under settings, hides the bars and returns to help`() {
         AppSection.entries.forEach { fallback ->
-            assertEquals(AppSection.Help, tabForDestination(AppDestination.Connection, fallback))
+            assertEquals(AppSection.Settings, tabForDestination(AppDestination.Connection, fallback))
             assertEquals(
                 AppDestination.Coverage,
                 backTarget(AppDestination.Connection, fallback, AppDestination.Chat),
             )
             assertEquals(fallback, rememberedSectionAfterBack(AppDestination.Coverage, fallback))
         }
-        assertTrue(navigationVisible(AppDestination.Connection))
+        assertFalse(navigationVisible(AppDestination.Connection))
     }
 
     @Test
-    fun `help returns to the tab it was entered from`() {
+    fun `settings returns to the tab it was entered from`() {
         assertEquals(
             AppDestination.Chat,
-            backTarget(AppDestination.Coverage, AppSection.Assistant, AppDestination.Chat),
+            backTarget(AppDestination.Settings, AppSection.Assistant, AppDestination.Chat),
         )
         assertEquals(
             AppDestination.LandList,
-            backTarget(AppDestination.Coverage, AppSection.Lands, AppDestination.Chat),
+            backTarget(AppDestination.Settings, AppSection.Lands, AppDestination.Chat),
         )
     }
 
     @Test
-    fun `help never returns to itself`() {
+    fun `settings never returns to itself`() {
         assertEquals(
             AppDestination.Chat,
-            backTarget(AppDestination.Coverage, AppSection.Help, AppDestination.Chat),
+            backTarget(AppDestination.Settings, AppSection.Settings, AppDestination.Chat),
         )
+    }
+
+    @Test
+    fun `help returns to where it was opened from`() {
+        listOf(AppDestination.Settings, AppDestination.Chat, AppDestination.Privacy).forEach { origin ->
+            assertEquals(
+                origin,
+                backTarget(AppDestination.Coverage, AppSection.Assistant, AppDestination.Chat, origin),
+            )
+        }
+        assertEquals(AppSection.Settings, tabForDestination(AppDestination.Settings, AppSection.Lands))
+        assertTrue(navigationVisible(AppDestination.Settings))
     }
 
     @Test
@@ -264,8 +284,16 @@ class AppNavigationTest {
         )
         assertEquals(
             AppDestination.Coverage,
-            backTarget(AppDestination.Privacy, AppSection.Help, AppDestination.Coverage),
+            backTarget(AppDestination.Privacy, AppSection.Settings, AppDestination.Coverage),
         )
+    }
+
+    @Test
+    fun `the up arrow shows on every route except the three tab screens`() {
+        val tabs = setOf(AppDestination.Chat, AppDestination.LandList, AppDestination.Settings)
+        AppDestination.entries.forEach { destination ->
+            assertEquals(destination !in tabs, showsUpNavigation(destination), destination.name)
+        }
     }
 
     @Test

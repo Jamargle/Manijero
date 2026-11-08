@@ -1,11 +1,18 @@
 package com.jamarglex.manijero.lands
 
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.test.ExperimentalTestApi
+import androidx.compose.ui.test.assertCountEquals
+import androidx.compose.ui.test.assertHeightIsAtLeast
+import androidx.compose.ui.test.onAllNodesWithContentDescription
 import androidx.compose.ui.test.onNodeWithContentDescription
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.v2.runDesktopComposeUiTest
 import com.jamarglex.manijero.theme.ManijeroTheme
+import androidx.compose.ui.unit.dp
 import kotlin.test.Test
 import kotlin.test.assertEquals
 
@@ -31,6 +38,33 @@ class LandScreenInteractionTest {
             onNodeWithContentDescription("Quitar el terreno «Los Olivos»").performClick()
             assertEquals(listOf(second), edits)
             assertEquals(listOf(first), removals)
+        }
+
+    @Test
+    fun theAddActionIsOneFloatingButtonInEveryStateExceptAFailedRead() =
+        runDesktopComposeUiTest(width = 900, height = 1200) {
+            val land = Land("first", "Los Olivos", "El Llano", createdAtEpochMillis = 0, updatedAtEpochMillis = 0)
+            var added = 0
+            var state by mutableStateOf(LandListState())
+            setContent {
+                ManijeroTheme(darkTheme = false) {
+                    LandListScreen(
+                        state = state,
+                        onAddLand = { added++ },
+                        onEditLand = {}, onRemoveLand = {}, onRetry = {}, onQueryChange = {},
+                    )
+                }
+            }
+            // Empty list: the one action floats in the corner, not inside the empty state.
+            onAllNodesWithContentDescription("Añadir terreno").assertCountEquals(1)
+            onNodeWithContentDescription("Añadir terreno").assertHeightIsAtLeast(48.dp).performClick()
+            assertEquals(1, added)
+
+            state = LandListState(lands = listOf(land))
+            onAllNodesWithContentDescription("Añadir terreno").assertCountEquals(1)
+
+            state = LandListState(loadFailed = true)
+            onNodeWithContentDescription("Añadir terreno").assertDoesNotExist()
         }
 
     @Test

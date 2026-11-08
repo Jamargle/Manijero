@@ -15,6 +15,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.semantics.LiveRegionMode
 import androidx.compose.ui.semantics.liveRegion
 import androidx.compose.ui.semantics.semantics
@@ -77,6 +78,7 @@ internal fun ChatMessageBubble(
                 textColor = MaterialTheme.colorScheme.onPrimary,
                 containerColor = MaterialTheme.colorScheme.primary,
                 borderColor = null,
+                shape = ManijeroShapes.BubbleOwn,
             )
         }
 
@@ -247,7 +249,7 @@ private fun ChatAbstentionCard(
     val semanticColors = LocalManijeroSemanticColors.current
     Surface(
         modifier = modifier.fillMaxWidth(),
-        shape = ManijeroShapes.Large,
+        shape = ManijeroShapes.BubbleAssistant,
         color = semanticColors.cautionSurface,
         contentColor = MaterialTheme.colorScheme.onSurface,
         border = BorderStroke(ManijeroLayout.BorderWidth, semanticColors.caution),
@@ -321,6 +323,7 @@ private fun ChatBubble(
     stateLabelColor: Color = labelColor,
     liveRegionMode: LiveRegionMode? = null,
     annotatedText: AnnotatedString? = null,
+    shape: Shape = ManijeroShapes.BubbleAssistant,
 ) {
     Surface(
         modifier = modifier.semantics(mergeDescendants = true) {
@@ -328,7 +331,7 @@ private fun ChatBubble(
                 liveRegion = liveRegionMode
             }
         },
-        shape = ManijeroShapes.Large,
+        shape = shape,
         color = containerColor,
         contentColor = textColor,
         border = borderColor?.let { BorderStroke(ManijeroLayout.BorderWidth, it) },

@@ -23,32 +23,29 @@ import manijero.shared.generated.resources.ic_add
 import manijero.shared.generated.resources.ic_back
 import manijero.shared.generated.resources.ic_chat
 import manijero.shared.generated.resources.ic_check
-import manijero.shared.generated.resources.ic_chevron_down
 import manijero.shared.generated.resources.ic_clear
-import manijero.shared.generated.resources.ic_delete
-import manijero.shared.generated.resources.ic_edit
 import manijero.shared.generated.resources.ic_external_link
 import manijero.shared.generated.resources.ic_help
 import manijero.shared.generated.resources.ic_info
+import manijero.shared.generated.resources.ic_more
 import manijero.shared.generated.resources.ic_lands
 import manijero.shared.generated.resources.ic_retry
 import manijero.shared.generated.resources.ic_search
 import manijero.shared.generated.resources.ic_send
+import manijero.shared.generated.resources.ic_settings
 import manijero.shared.generated.resources.ic_warning
 import org.jetbrains.compose.resources.DrawableResource
 
 /** One glyph and the review identifier printed under it. The label is not shipped copy. */
 private data class BoardGlyph(val label: String, val resource: DrawableResource)
 
-/** The sixteen icons in spec order, each labelled with its resource name for the reviewer. */
+/** The fifteen icons in use, each labelled with its resource name for the reviewer. */
 private val boardGlyphs = listOf(
     BoardGlyph("ic_chat", Res.drawable.ic_chat),
     BoardGlyph("ic_lands", Res.drawable.ic_lands),
     BoardGlyph("ic_help", Res.drawable.ic_help),
     BoardGlyph("ic_search", Res.drawable.ic_search),
     BoardGlyph("ic_add", Res.drawable.ic_add),
-    BoardGlyph("ic_edit", Res.drawable.ic_edit),
-    BoardGlyph("ic_delete", Res.drawable.ic_delete),
     BoardGlyph("ic_back", Res.drawable.ic_back),
     BoardGlyph("ic_retry", Res.drawable.ic_retry),
     BoardGlyph("ic_send", Res.drawable.ic_send),
@@ -56,13 +53,14 @@ private val boardGlyphs = listOf(
     BoardGlyph("ic_info", Res.drawable.ic_info),
     BoardGlyph("ic_warning", Res.drawable.ic_warning),
     BoardGlyph("ic_check", Res.drawable.ic_check),
-    BoardGlyph("ic_chevron_down", Res.drawable.ic_chevron_down),
     BoardGlyph("ic_clear", Res.drawable.ic_clear),
+    BoardGlyph("ic_settings", Res.drawable.ic_settings),
+    BoardGlyph("ic_more", Res.drawable.ic_more),
 )
 
 /**
  * Review-only board for the brand vectors: the mark at 28/32/48 dp, the illustration at 160/200 dp,
- * all sixteen icons at 24 dp, and two icons at the inline 20 dp.
+ * all fifteen icons at 24 dp, and two icons at the inline 20 dp.
  *
  * It lives in `commonTest`, not in production `commonMain`, because nothing in the app renders it:
  * its only consumers are the Desktop and Android host screenshot suites, which use it to prove that

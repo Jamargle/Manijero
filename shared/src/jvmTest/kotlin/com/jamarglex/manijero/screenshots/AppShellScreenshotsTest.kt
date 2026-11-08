@@ -4,7 +4,10 @@ import androidx.compose.runtime.Composable
 import com.jamarglex.manijero.AppSection
 import com.jamarglex.manijero.AppShell
 import com.jamarglex.manijero.chat.ChatHomeScreen
+import com.jamarglex.manijero.settings.SettingsScreen
 import com.jamarglex.manijero.coverage.CoverageScreen
+import com.jamarglex.manijero.design.ManijeroTopBarMenuItem
+import com.jamarglex.manijero.design.ManijeroTopBarSearch
 import com.jamarglex.manijero.lands.LandListScreen
 import com.jamarglex.manijero.theme.ManijeroTheme
 import kotlin.test.Test
@@ -37,8 +40,28 @@ class AppShellScreenshotsTest : ScreenshotTestSupport() {
 
     @Test
     fun appShellHelpRailLight() =
-        capture(name = "app_shell_help_rail_light", width = 900, height = LAND_HEIGHT) {
-            ManijeroTheme(darkTheme = false) { HelpShell() }
+        capture(name = "app_shell_settings_rail_light", width = 900, height = LAND_HEIGHT) {
+            ManijeroTheme(darkTheme = false) { SettingsShell() }
+        }
+
+    @Test
+    fun appShellHelpCompactWithUpArrow() =
+        capture(
+            name = "app_shell_help_compact_up_light",
+            width = PHONE_WIDTH,
+            height = PHONE_HEIGHT,
+        ) {
+            ManijeroTheme(darkTheme = false) { HelpDetailShell() }
+        }
+
+    @Test
+    fun appShellLandsSearchOpenCompact() =
+        capture(
+            name = "app_shell_lands_search_open_light",
+            width = PHONE_WIDTH,
+            height = PHONE_HEIGHT,
+        ) {
+            ManijeroTheme(darkTheme = false) { LandsShell(searchOpen = true) }
         }
 
     @Test
@@ -55,14 +78,30 @@ class AppShellScreenshotsTest : ScreenshotTestSupport() {
 
 @Composable
 private fun AssistantShell() {
-    ShellFrame(AppSection.Assistant) {
+    ShellFrame(
+        AppSection.Assistant,
+        menuItems = listOf(ManijeroTopBarMenuItem("Privacidad y ayuda", onClick = {})),
+    ) {
         ChatHomeScreen(state = ScreenshotFixtures.idleChat, onAction = {})
     }
 }
 
 @Composable
-private fun LandsShell() {
-    ShellFrame(AppSection.Lands) {
+private fun LandsShell(searchOpen: Boolean = false) {
+    ShellFrame(
+        AppSection.Lands,
+        search = ManijeroTopBarSearch(
+            open = searchOpen,
+            query = if (searchOpen) "loma" else "",
+            label = "Buscar terreno",
+            hint = "Buscar por nombre, municipio o tipo…",
+            clearDescription = "Borrar la búsqueda",
+            closeDescription = "Cerrar la búsqueda",
+            onOpen = {},
+            onClose = {},
+            onQueryChange = {},
+        ),
+    ) {
         LandListScreen(
             state = ScreenshotFixtures.twoLands,
             onAddLand = {},
@@ -75,19 +114,38 @@ private fun LandsShell() {
 }
 
 @Composable
-private fun HelpShell() {
-    ShellFrame(AppSection.Help) {
-        CoverageScreen(onPrivacyClick = {})
+private fun SettingsShell() {
+    ShellFrame(AppSection.Settings) {
+        SettingsScreen(onOpenHelp = {}, improvementEnabled = false, onImprovementChange = {}, onOpenBackup = {})
     }
 }
 
 @Composable
-private fun ShellFrame(section: AppSection, content: @Composable () -> Unit) {
+private fun HelpDetailShell() {
+    ShellFrame(AppSection.Settings, onBack = {}, screenTitle = "Qué puedes preguntar", tabsVisible = false) {
+        CoverageScreen(onPrivacyClick = {}, onBack = {})
+    }
+}
+
+@Composable
+private fun ShellFrame(
+    section: AppSection,
+    onBack: (() -> Unit)? = null,
+    menuItems: List<ManijeroTopBarMenuItem> = emptyList(),
+    screenTitle: String? = null,
+    tabsVisible: Boolean = true,
+    search: ManijeroTopBarSearch? = null,
+    content: @Composable () -> Unit,
+) {
     AppShell(
         selectedSection = section,
         landsAvailable = true,
-        navigationVisible = true,
+        navigationVisible = tabsVisible,
         onSectionSelect = {},
+        onBack = onBack,
+        screenTitle = screenTitle,
+        search = search,
+        menuItems = menuItems,
         content = content,
     )
 }

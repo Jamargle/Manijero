@@ -20,6 +20,13 @@ Stitch mockups reference archive is indexed in [`design-references/README.md`](d
 
 `shared_design_system` defines paired roles in `shared/src/commonMain`, selected automatically with the common Compose system appearance signal. No appearance setting or platform theme fork exists. The constructors explicitly map every applicable Material 3 role plus the semantic caution, emphasis, and Ecológico chip colours; source values are in `ManijeroColors.kt`. Common previews cover light, dark, and enlarged text. Shape and spacing scales live in `ManijeroTokens.kt`.
 
+**Shapes (Stitch V2, adopted 2026-11-08).** Colours are unchanged; only the shape scale follows the
+Stitch V2 screens: `Small` 8 dp, `Medium` 16 dp (nested tiles), `Large` 24 dp (cards, callouts,
+choice cards), `ExtraLarge` 32 dp (chat hero, empty state), `Field` 16 dp (Material `extraSmall`, so
+every outlined text field and menu), and `Pill` for attribute chips, suggestion chips and the search
+field. Chat bubbles are 24 dp with a tight 6 dp top corner on the speaker's side (`BubbleOwn` at the
+end, `BubbleAssistant` at the start). Material buttons keep their default pill shape.
+
 **Typography:** the app uses the Material 3 default typography, which resolves to the platform font. Stitch's Source Serif 4 / Source Sans 3 scale is not adopted: no custom family, scale, or bundled font asset is part of the design system.
 
 **Palette status (2026-10-25).** The values below are the implemented palette: `design_token_refresh` applies them in `ManijeroColors.kt` and re-gates the contrast tests in both appearances. Earlier acceptance records keep their original values as history.
@@ -51,7 +58,7 @@ The ten accepted token names keep their roles. Seven take the Stitch value; `pri
 | `caution-surface` | `#FFF2D4` | `#4B350D` | no role; semantic |
 | `danger` | `#BA1A1A` | `#FFB4AB` | `error` |
 
-`outlineVariant` is a separate gated boundary token rather than one of those ten: light `#757C71`, dark `#868E86` — the corrected values. The shared theme is the only place in the repository allowed to declare a hex colour; screens read Material 3 roles or the `LocalManijeroSemanticColors` values instead. The launcher artwork is still the stock Android Studio template, so no token was changed on that basis.
+`outlineVariant` is a separate gated boundary token rather than one of those ten: light `#757C71`, dark `#868E86` — the corrected values. The shared theme is the only place in the repository allowed to declare a hex colour; screens read Material 3 roles or the `LocalManijeroSemanticColors` values instead. The launcher artwork (owner decision 2026-11-08) is the brand mark's olive branch in `#4E5A1E` on Stitch V2's `#F9D332`→`#9DB21E` gradient. Those three hex values live only in the launcher resources (`androidApp/src/main/res/drawable*/ic_launcher_*.xml` and the Desktop `app_icon.xml`); they are identity artwork, not palette tokens, and no screen may use them.
 
 ### Material role map
 
@@ -175,7 +182,8 @@ contract.
 
 ### Icon set
 
-- Sixteen outline glyphs. A screen needing another glyph extends the inventory in its own feature
+- Fifteen outline glyphs (`ic_settings`, a gear for the `Ajustes` tab, and `ic_more`, three dots
+  for the top bar menu, both added 2026-11-08). `ic_edit`, `ic_delete` and `ic_chevron_down` were removed as unused (no screen draws them; add one back with the feature that needs it). A screen needing another glyph extends the inventory in its own feature
   instead of drawing a path inline.
 - Geometry: 24 dp on a 24×24 viewport, 2 dp stroke, round caps and joins, no fill, content inside the
   2–22 dp safe area. Sizes: 24 dp default, 20 dp inline (`ManijeroIconSize.Default` / `Inline`); never
@@ -190,7 +198,8 @@ contract.
 
 ### Brand mark and empty-state illustration
 
-- `ManijeroBrandMark(modifier, size)`: open olive ring with a leaf, `primary`, 32 dp default (28 and
+- `ManijeroBrandMark(modifier, size)`: line olive branch with two leaves and three olives (after the
+  Stitch V2 line logo, owner decision 2026-11-08), `primary`, 32 dp default (28 and
   48 dp valid), no blur, no description or colour parameter. Identity only — never a check, seal,
   badge, or "verified" cue, and never applied to an answer, source, or land.
 - `ManijeroOliveBranch(modifier, size)`: olive sprig on a circular `primaryContainer` halo painted in
@@ -223,10 +232,10 @@ them; feature specs own screen-specific behavior.
 - **Page frame.** `ManijeroScreen` paints `background`, owns one vertical scroll, applies 24 dp
   horizontal padding below 840 dp and 40 dp from it, 32 dp vertical padding, and centres a 720 dp
   content column. It owns no window insets and no bars; `AppShell` is the single inset owner.
-- **Containers.** `ManijeroCard` has `Surface`, `Tonal`, `Outlined` and `Danger` tones (16 dp
-  radius; 1 dp `outlineVariant` or `error` border where the tone defines one) and is never
+- **Containers.** `ManijeroCard` has `Surface`, `Tonal`, `Outlined` and `Danger` tones (24 dp
+  radius by default, a caller-chosen shape such as the 32 dp chat hero; 1 dp `outlineVariant` or `error` border where the tone defines one) and is never
   clickable: a caller puts its own button, link or choice row inside. `ManijeroSectionHeader` emits
-  a real `heading()` only when asked. `ManijeroStatCard` requires the caption that states what the
+  a real `heading()` only when asked. `ManijeroStatCard` is a borderless `Tonal` card and requires the caption that states what the
   value counts. `ManijeroEmptyState` pairs the decorative olive branch with a real heading, a plain
   explanation and one caller-supplied action.
 - **Messages and attributes.** `ManijeroCallout` has `Info`, `Caution`, `Danger` and `Confirmation`
@@ -247,29 +256,54 @@ them; feature specs own screen-specific behavior.
   mark the selection with Material's indicator plus a heavier label (never colour alone), keep 48 dp
   targets, omit window insets, and resolve an out-of-range index to "nothing selected".
 - **App shell (adopted 2026-10-25).** `AppShell` is the one frame around every destination: a
-  `ManijeroTopAppBar` with the brand mark and the visible `Manijero` title and **no right-side
-  action**, the selected screen, and `ManijeroBottomNavigation` below 840 dp or
+  `ManijeroTopAppBar` with the brand mark and the visible `Manijero` title; its only right-side
+  control is a `⋮` menu button (`ic_more`, 48 dp, named `Más opciones`) shown on the `Asistente`
+  screen only, whose menu holds `Privacidad y ayuda` and `Qué cubre la app` (owner decision
+  2026-11-08; they are no longer chat footer links), the selected screen, and `ManijeroBottomNavigation` below 840 dp or
   `ManijeroNavigationRail` from 840 dp. With a local store injected the app opens on
   `Mis terrenos`; without one it opens on `Asistente`, so no tab can be dead. Tabs run left to right
-  as `Mis terrenos`, `Asistente` and `Ayuda` (top to bottom on the rail); the lands tab is omitted
+  as `Mis terrenos`, `Asistente` and `Ajustes` (top to bottom on the rail; `Ajustes` replaced the
+  `Ayuda` tab on 2026-11-08 and borrows `ic_help` until its own icon is chosen with the owner); the
+  lands tab is omitted
   when no local repository is injected. Tabs are the only top-level navigation: top-level screens
-  must not add another `Volver` or `Mis terrenos` route. The bars are hidden on add/edit/remove forms
-  and the `Borrar para siempre` confirmation, which keep their own `Cancelar`; privacy,
-  `Terrenos eliminados`, and `Copia en un archivo` stay detail routes with their own `Volver`, so
-  their bars remain visible. `Conexión` is a test-build-only detail route from `Ayuda`, has its own
-  `Volver`, and back returns to `Ayuda`.
-  Android system back returns lands → assistant, a form → lands, `Terrenos eliminados` → lands, `Copia en un archivo` → lands, the
-  `Borrar para siempre` confirmation → `Terrenos eliminados`, `Ayuda` → the tab it was opened from,
-  and privacy → the section it was opened from; it is not installed on the assistant tab, so the
+  must not add another `Volver` or `Mis terrenos` route. **Top bar and tab bar follow the screen
+  level (owner decision 2026-11-08).** On the three tab screens the top bar keeps the brand mark and
+  `Manijero`, the tab bar (or rail) stays, and the screen adds no large title of its own where the
+  selected tab already says where the person is (`Ajustes` has none). On every detail route (the
+  land forms, `Quitar terreno`, `Borrar para siempre`, `Terrenos eliminados`, `Copia en un archivo`,
+  privacy, `Ayuda`, `Conexión` and the inspector) the tab bar and rail are hidden, the top bar shows
+  an up arrow (`ic_back`, named `Volver`, 48 dp; it goes exactly where system back goes) and the
+  screen's title as its one heading in place of the brand mark, and the screen does not repeat the
+  title as a large heading in its content. The forms keep their own `Cancelar`, and the info screens
+  keep their closing `Volver`. `Ajustes` (tab icon `ic_settings`) opens with the
+  `Ayúdanos a mejorar` section (an
+  outlined card with a real heading, one labelled switch row announced as a switch, and four plain
+  lines: starts off, what is and is never kept, stays on until turned off, 30-day deletion), followed
+  by whole-card buttons: `Copia en un archivo` (only with a local store and a file picker; it is no longer offered on
+  `Mis terrenos`), then `Ayuda` (always). `Ayuda` and `Copia en un archivo` sit under the `Ajustes` tab; `Ayuda` can also be
+  opened from the chat footer and the privacy notice. `Conexión` is a test-build-only detail route
+  from `Ayuda`, has its own `Volver`, and back returns to `Ayuda`.
+  Android system back returns lands → assistant, a form → lands, `Terrenos eliminados` → lands,
+  `Copia en un archivo` → `Ajustes`, the `Borrar para siempre` confirmation → `Terrenos eliminados`,
+  `Ajustes` → the tab it was opened from, `Ayuda` → where it was opened from (`Ajustes`, the chat or
+  privacy), and privacy → the section it was opened from; it is not installed on the assistant tab, so the
   platform default applies. The shell is the **single** owner of the status bar, navigation bar,
   horizontal system-bar and ime insets; the bars and screens add none.
-  Privacy remains reachable from the chat footer and the help screen.
+  Privacy remains reachable from the assistant's `⋮` menu and the help screen.
 - **Evidence.** The review-only `commonTest` gallery is captured at 1200×3000 dp and at 360 dp with
   2× text on both hosts; see `docs/screenshot-regression.md`.
 
 ## Layout and interaction
 
 - Give each screen one primary action, with plain labels such as “Añadir terreno” and “Preguntar”.
+  On `Mis terrenos` it is an extended floating action (`ic_add` plus the visible label, named
+  `Añadir terreno`) in the bottom end corner above the tab bar, with clearance after the last row so
+  it never covers a land; the empty state carries no second button. The land search is a magnifier
+  button (`ic_search`, 48 dp, named `Buscar terreno`) at the end of the `Mis terrenos` top bar,
+  always visible and never inside the `⋮` menu, shown only while lands are listed. Opening it turns
+  the whole top bar into a close arrow (`Cerrar la búsqueda`) and the shared search field
+  (`Buscar terreno`, with its clear action); closing it, by the arrow, system back or leaving the
+  screen, clears the filter so the list is never filtered out of sight.
 - Use a clear heading, short explanation, and predictable back/home navigation and action placement.
 - Provide large mobile touch targets, comfortable Desktop pointer targets, keyboard operation, and
   visible focus. Essential instructions must not depend on hover.
@@ -300,16 +334,27 @@ component layer. These rules are durable:
   inside one politely announced node; it adds no confident colour, check or "verified" cue. The
   working state is a neutral `surfaceContainerLow` notice, text only. A failure is a
   `ManijeroCallout(Danger)` whose `Reintentar` is its own sibling control, never a transcript entry.
-- **Suggestions.** The three accepted example questions are wrapping `AssistChip`s with a
+- **Suggestions.** The three accepted example questions are wrapping pill `AssistChip`s with a
   decorative `ic_chat`. They never truncate a question and only fill the composer; they never submit.
-- **Composer and footer.** The field keeps `Escribe tu pregunta`, the example placeholder, 3–6 lines
-  and the over-limit message. Between the field and the button sits the separate retention
-  checkbox row (`Permitir guardar esta pregunta…`, unchecked by default, the whole labelled row one
-  checkbox target) with its plain detail line stating "only the next question", no land data, and
-  30-day deletion; ticking it never sends and every send unticks it. The field is then followed by
-  one full-width filled `Preguntar` button with a
-  decorative `ic_send`, disabled while blank, over the limit or submitting. The privacy summary is
-  always present; the two icon + label footer actions appear only when their callbacks are wired.
+- **Composer (pinned, adopted 2026-11-08).** The composer is attached to the bottom of the screen
+  through `ManijeroScreen`'s `bottomBar` slot: a 1 dp `outlineVariant` divider, the same centred
+  column, and at most half the screen height with its own scroll, so 2× text never hides the
+  transcript. The field keeps `Escribe tu pregunta`, the example placeholder, 1–5 lines, the 24 dp
+  rounded shape and the over-limit message. Beside it on every width sits a round 56 dp filled
+  send button (messaging-app style, owner decision 2026-11-08): `ic_send` with the accessible name
+  `Preguntar`, disabled while blank, over the limit or submitting. It is the one icon-only primary
+  action in the app; its name is still the plain verb.
+- **Retention (`Ayúdanos a mejorar`, owner decision 2026-11-08).** Below the field, inside the
+  pinned bar, sits one short row: the underlined label `Ayúdanos a mejorar` on the left, a separate
+  link that opens `Ajustes`, and a switch on the right (its own 48 dp control, named `Ayúdanos a
+  mejorar: guardar tus preguntas y respuestas`). The full explanation lives only in `Ajustes`. It is
+  the same standing, off-by-default value as the `Ajustes` switch; turning it on never sends and
+  sending keeps it. The row shows only while the choice is off: once on it is replaced by one
+  centred `labelSmall`/`onSurfaceVariant` line, `Tus preguntas se guardan temporalmente` (plain
+  text, not interactive), and the choice can only be turned off with the `Ajustes` switch.
+- **Footer.** The privacy summary is always present at the end of the scrolling content. The
+  `Privacidad y ayuda` and `Qué cubre la app` actions live in the top bar's `⋮` menu on this
+  screen.
 - **Land chooser.** The clarification chooser is an outlined card with the accepted title,
   explanation, one checkbox row per offered land (the box aligned with the land name inside a 48 dp
   target, the unchanged plain `LandDetails` below), and `Continuar`, enabled only after a selection.
@@ -318,11 +363,9 @@ component layer. These rules are durable:
 - **Welcome card.** Until dismissed, an outlined `ManijeroCard` sits above the hero: a
   `titleMedium` title without heading semantics, four `bodyLarge` lines, and one `OutlinedButton`
   `Entendido`. It blocks nothing and pushes the hero down on compact screens.
-- **Compact limit.** At 360×800 dp with both shell bars, the hero and suggestions occupy the first
-  screen, so the composer's `Preguntar` button needs a scroll (a little longer since the retention
-  row was added below the field). This is a recorded limit of
-  the accepted order, not a hidden control: the field and button stay in the same scroll and are
-  never icon-only or off the page.
+- **Compact layout.** At 360×800 dp with both shell bars, the pinned field, send button and
+  `Ayúdanos a mejorar` row (or, while on, its one-line reminder) are always on screen; the privacy summary needs a scroll below the
+  suggestions. At 2× text the pinned bar may reach its half-screen cap and scroll on its own.
 - **Answer feedback row.** Every finished answer (`answered` or `abstained`) carries one quiet row
   directly below the card and its source cards and above `Inspeccionar`: two neutral outlined
   buttons, `Útil` and `No útil` (never filled, never the screen's primary action), each with its own
@@ -350,7 +393,7 @@ callbacks unchanged; the privacy shared-attribute list remains derived from its 
 The visual grouping must not alter the distinction between device-local land records and attributes
 that may accompany a question. See [the feature contract](docs/specs/help_privacy_refresh.md).
 `Ayuda` also offers one full-width `TextButton` `Ver bienvenida` after the help card, which shows
-the chat welcome card again.
+the chat welcome card again, and ends with a `Volver` that returns to where it was opened from.
 
 ## MVP surface intent
 

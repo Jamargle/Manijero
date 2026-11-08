@@ -35,6 +35,7 @@ class LandBackupFlowInteractionTest {
                 val files = ScriptedFiles(LandBackupOpenResult.Opened(LandBackupFormat.encode(backup)))
                 setContent { App(landRepository = repository, landBackupFiles = files) }
 
+                onNodeWithText("Ajustes").performClick()
                 onNodeWithText("Copia en un archivo").performScrollTo().performClick()
                 onNodeWithText("El archivo no está protegido").assertExists()
 
@@ -75,6 +76,7 @@ class LandBackupFlowInteractionTest {
                     App(landRepository = repository, landBackupFiles = ScriptedFiles(LandBackupOpenResult.Opened(damaged)))
                 }
 
+                onNodeWithText("Ajustes").performClick()
                 onNodeWithText("Copia en un archivo").performScrollTo().performClick()
                 onNodeWithText("Elegir un archivo").performScrollTo().performClick()
                 waitForIdle()

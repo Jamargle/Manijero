@@ -68,7 +68,7 @@ internal fun ManijeroAttributeChip(
 
     Surface(
         modifier = modifier,
-        shape = ManijeroShapes.Medium,
+        shape = ManijeroShapes.Pill,
         color = container,
         contentColor = ink,
         border = BorderStroke(ManijeroLayout.BorderWidth, scheme.outlineVariant),
@@ -77,8 +77,8 @@ internal fun ManijeroAttributeChip(
             text = label,
             style = MaterialTheme.typography.labelLarge,
             modifier = Modifier.padding(
-                horizontal = ManijeroSpacing.Small,
-                vertical = ManijeroSpacing.Micro,
+                horizontal = ManijeroSpacing.Comfortable,
+                vertical = ManijeroSpacing.ExtraSmall,
             ),
         )
     }

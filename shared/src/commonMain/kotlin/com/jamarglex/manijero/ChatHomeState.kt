@@ -33,11 +33,12 @@ data class ChatHomeState(
     val failedQuestion: String? = null,
     val clarificationQuestion: String? = null,
     /**
-     * The person's explicit permission to keep the **next** sent question and its answer for
-     * product improvement. Unchecked by default, never set by sending, and reset to `false` by every
-     * send (ask, retry, or land choice), so each retained question needs its own fresh choice.
+     * The person's standing permission (`Ayúdanos a mejorar`) to keep the sent questions and their
+     * answers for product improvement. Off by default and never set by sending; it stays as chosen
+     * across sends until the person turns it off (owner decision 2026-11-08). The host persists it
+     * on the device; the reducer only carries it into each send's effect.
      */
-    val retainNextQuestion: Boolean = false,
+    val retainQuestions: Boolean = false,
 ) {
     val canAsk: Boolean
         get() = phase == SubmissionPhase.IDLE &&
@@ -116,7 +117,7 @@ sealed interface ChatHomeAction {
     data class RequestFailed(val failure: RequestFailure) : ChatHomeAction
     data object RetryClicked : ChatHomeAction
 
-    /** The person ticked or unticked the retention box. It never submits anything. */
+    /** The person turned `Ayúdanos a mejorar` on or off. It never submits anything. */
     data class RetentionChoiceChanged(val allowed: Boolean) : ChatHomeAction
 
     /**
@@ -150,7 +151,7 @@ sealed interface ChatEffect {
         /** The exact wording to send. */
         val question: String
 
-        /** Whether the person explicitly allowed retention for this one send. */
+        /** Whether `Ayúdanos a mejorar` was on when this send was made. */
         val retainForImprovement: Boolean
     }
 
@@ -204,7 +205,7 @@ fun ChatHomeState.reduce(action: ChatHomeAction): ChatReduction = when (action) 
         )
 
     is ChatHomeAction.RetentionChoiceChanged ->
-        ChatReduction(copy(retainNextQuestion = action.allowed))
+        ChatReduction(copy(retainQuestions = action.allowed))
 
     ChatHomeAction.AskClicked -> {
         if (!canAsk) ChatReduction(this) else {
@@ -221,10 +222,8 @@ fun ChatHomeState.reduce(action: ChatHomeAction): ChatReduction = when (action) 
                     failedQuestion = null,
                     // A fresh question is not a clarification: drop any retained wording.
                     clarificationQuestion = null,
-                    // The permission covered this one question only.
-                    retainNextQuestion = false,
                 ),
-                effect = ChatEffect.Submit(originalQuestion, retainNextQuestion),
+                effect = ChatEffect.Submit(originalQuestion, retainQuestions),
             )
         }
     }
@@ -294,9 +293,8 @@ fun ChatHomeState.reduce(action: ChatHomeAction): ChatReduction = when (action) 
                     submittedQuestion = wording,
                     // messages stay untouched: a retry never appends a second user message.
                     failure = null,
-                    retainNextQuestion = false,
                 ),
-                effect = ChatEffect.Submit(wording, retainNextQuestion),
+                effect = ChatEffect.Submit(wording, retainQuestions),
             )
         }
     }
@@ -320,10 +318,9 @@ fun ChatHomeState.reduce(action: ChatHomeAction): ChatReduction = when (action) 
                     submittedQuestion = wording,
                     failure = null,
                     failedQuestion = null,
-                    retainNextQuestion = false,
                     // messages untouched, exactly like RetryClicked.
                 ),
-                effect = ChatEffect.SubmitSelected(wording, action.selectedLandIds, retainNextQuestion),
+                effect = ChatEffect.SubmitSelected(wording, action.selectedLandIds, retainQuestions),
             )
         }
     }
@@ -403,7 +400,7 @@ fun ChatEffect.QuestionEffect.request(lands: List<Land>) = when (this) {
         if (chosen.isEmpty()) generalAskRequest(question) else selectedAskRequest(question, chosen)
     }
 }.let { request ->
-    // Retention is requested only with the person's explicit choice for this send, and never when
+    // Retention is requested only while the person's `Ayúdanos a mejorar` choice is on, and never when
     // the wording contains a saved land's private label (see `retentionAllowedFor`).
     if (retainForImprovement && retentionAllowedFor(question, lands)) {
         request.copy(retain_for_improvement = true)

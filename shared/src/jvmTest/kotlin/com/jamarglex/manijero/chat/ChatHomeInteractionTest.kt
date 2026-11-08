@@ -20,6 +20,8 @@ import androidx.compose.ui.test.assertIsOff
 import androidx.compose.ui.test.assertIsOn
 import androidx.compose.ui.test.hasText
 import androidx.compose.ui.test.isToggleable
+import androidx.compose.ui.test.hasContentDescription
+import androidx.compose.ui.test.onNodeWithContentDescription
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.performScrollTo
@@ -60,7 +62,7 @@ class ChatHomeInteractionTest {
                 }
             }
 
-            onNodeWithText("Preguntar").performScrollTo().assertIsNotEnabled()
+            onNodeWithContentDescription("Preguntar").performScrollTo().assertIsNotEnabled()
         }
 
     @Test
@@ -161,10 +163,11 @@ class ChatHomeInteractionTest {
         }
 
     @Test
-    fun retentionChoiceIsUncheckedSeparateAndNeverSubmits() =
+    fun retentionSwitchIsOffSeparateLinksToSettingsAndLeavesAReminder() =
         runDesktopComposeUiTest(width = 900, height = 1200) {
             val actions = mutableListOf<ChatHomeAction>()
             var state by mutableStateOf(ChatHomeState(question = "¿Puedo regar hoy?"))
+            var infoOpened = 0
             setContent {
                 ManijeroTheme(darkTheme = false) {
                     ChatHomeScreen(
@@ -172,20 +175,32 @@ class ChatHomeInteractionTest {
                         onAction = { action ->
                             actions += action
                             if (action is ChatHomeAction.RetentionChoiceChanged) {
-                                state = state.copy(retainNextQuestion = action.allowed)
+                                state = state.copy(retainQuestions = action.allowed)
                             }
                         },
+                        onRetentionInfoClick = { infoOpened += 1 },
                     )
                 }
             }
 
-            val label = "Permitir guardar esta pregunta y su respuesta para mejorar Manijero"
-            onNode(hasText(label) and isToggleable()).performScrollTo().assertIsOff().performClick()
+            val switch = "Ayúdanos a mejorar: guardar tus preguntas y respuestas"
+            onNodeWithText("Tus preguntas se guardan temporalmente").assertDoesNotExist()
+            onNode(hasContentDescription(switch) and isToggleable()).assertIsOff().performClick()
 
             assertEquals(listOf<ChatHomeAction>(ChatHomeAction.RetentionChoiceChanged(true)), actions)
-            onNode(hasText(label) and isToggleable()).assertIsOn()
-            onNodeWithText("se borra sola en 30 días como máximo", substring = true).assertExists()
-            onNodeWithText("Preguntar").assertIsEnabled()
+            // Once on, the chat no longer offers it (it is turned off only in Ajustes) and shows the
+            // one small reminder line instead.
+            onNode(hasContentDescription(switch)).assertDoesNotExist()
+            onNodeWithText("Ayúdanos a mejorar").assertDoesNotExist()
+            onNodeWithText("Tus preguntas se guardan temporalmente").assertExists()
+            onNodeWithContentDescription("Preguntar").assertIsEnabled()
+
+            // While off, the short label is a separate link to Ajustes; it never toggles.
+            state = state.copy(retainQuestions = false)
+            onNodeWithText("Ayúdanos a mejorar").assertHasClickAction().performClick()
+            assertEquals(1, infoOpened)
+            assertEquals(1, actions.size)
+            onNodeWithText("30 días", substring = true).assertDoesNotExist()
         }
 
     @Test
@@ -245,7 +260,7 @@ class ChatHomeInteractionTest {
                 ChatHomeAction.FeedbackClicked(3, AnswerRating.NOT_USEFUL),
                 actions.last(),
             )
-            onNodeWithText("Preguntar").assertExists()
+            onNodeWithContentDescription("Preguntar").assertExists()
         }
 
     @Test
@@ -280,7 +295,7 @@ class ChatHomeInteractionTest {
             onAllNodesWithText("Útil").assertCountEquals(0)
             onAllNodesWithText("No útil").assertCountEquals(0)
             // The composer is untouched: it is still there with its own state.
-            onNodeWithText("Preguntar").assertExists()
+            onNodeWithContentDescription("Preguntar").assertExists()
         }
 
     @Test

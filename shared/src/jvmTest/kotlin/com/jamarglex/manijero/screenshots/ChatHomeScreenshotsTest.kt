@@ -19,8 +19,6 @@ class ChatHomeScreenshotsTest : ScreenshotTestSupport() {
                 ChatHomeScreen(
                     state = ScreenshotFixtures.idleChat,
                     onAction = {},
-                    onPrivacyClick = {},
-                    onCoverageClick = {},
                 )
             }
         }
@@ -33,8 +31,20 @@ class ChatHomeScreenshotsTest : ScreenshotTestSupport() {
                 ChatHomeScreen(
                     state = ScreenshotFixtures.idleChat,
                     onAction = {},
-                    onPrivacyClick = {},
-                    onCoverageClick = {},
+                    onRetentionInfoClick = {},
+                )
+            }
+        }
+
+    /** `Ayúdanos a mejorar` on: the switch row is replaced by the one small reminder line. */
+    @Test
+    fun chatHomeSavingOnLightPhone() =
+        capture(name = "chat_home_saving_on_light_phone", width = PHONE_WIDTH, height = PHONE_HEIGHT) {
+            ManijeroTheme(darkTheme = false) {
+                ChatHomeScreen(
+                    state = ScreenshotFixtures.idleChat.copy(retainQuestions = true),
+                    onAction = {},
+                    onRetentionInfoClick = {},
                 )
             }
         }
@@ -47,8 +57,6 @@ class ChatHomeScreenshotsTest : ScreenshotTestSupport() {
                 ChatHomeScreen(
                     state = ScreenshotFixtures.answeredChat,
                     onAction = {},
-                    onPrivacyClick = {},
-                    onCoverageClick = {},
                 )
             }
         }
@@ -69,8 +77,6 @@ class ChatHomeScreenshotsTest : ScreenshotTestSupport() {
                 ChatHomeScreen(
                     state = ScreenshotFixtures.answeredChat,
                     onAction = {},
-                    onPrivacyClick = {},
-                    onCoverageClick = {},
                 )
             }
         }
@@ -83,8 +89,6 @@ class ChatHomeScreenshotsTest : ScreenshotTestSupport() {
                 ChatHomeScreen(
                     state = ScreenshotFixtures.answeredFeedbackSent,
                     onAction = {},
-                    onPrivacyClick = {},
-                    onCoverageClick = {},
                 )
             }
         }
@@ -97,8 +101,6 @@ class ChatHomeScreenshotsTest : ScreenshotTestSupport() {
                 ChatHomeScreen(
                     state = ScreenshotFixtures.abstainedResponse,
                     onAction = {},
-                    onPrivacyClick = {},
-                    onCoverageClick = {},
                 )
             }
         }
@@ -111,8 +113,6 @@ class ChatHomeScreenshotsTest : ScreenshotTestSupport() {
                 ChatHomeScreen(
                     state = ScreenshotFixtures.answeredInspectedChat,
                     onAction = {},
-                    onPrivacyClick = {},
-                    onCoverageClick = {},
                     onInspect = {},
                 )
             }
@@ -126,8 +126,6 @@ class ChatHomeScreenshotsTest : ScreenshotTestSupport() {
                 ChatHomeScreen(
                     state = ScreenshotFixtures.abstainedInspectedChat,
                     onAction = {},
-                    onPrivacyClick = {},
-                    onCoverageClick = {},
                     onInspect = {},
                 )
             }
@@ -177,8 +175,6 @@ class ChatHomeScreenshotsTest : ScreenshotTestSupport() {
                 ChatHomeScreen(
                     state = ScreenshotFixtures.idleChat,
                     onAction = {},
-                    onPrivacyClick = {},
-                    onCoverageClick = {},
                     showWelcome = true,
                 )
             }
@@ -197,8 +193,6 @@ class ChatHomeScreenshotsTest : ScreenshotTestSupport() {
                 ChatHomeScreen(
                     state = ScreenshotFixtures.idleChat,
                     onAction = {},
-                    onPrivacyClick = {},
-                    onCoverageClick = {},
                     showWelcome = true,
                 )
             }

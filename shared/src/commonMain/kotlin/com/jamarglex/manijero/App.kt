@@ -1,5 +1,17 @@
 package com.jamarglex.manijero
 
+import com.jamarglex.manijero.design.ManijeroTopBarMenuItem
+import com.jamarglex.manijero.design.ManijeroTopBarSearch
+import manijero.shared.generated.resources.Res
+import manijero.shared.generated.resources.chat_home_privacy
+import manijero.shared.generated.resources.coverage_open
+import manijero.shared.generated.resources.ic_help
+import manijero.shared.generated.resources.ic_info
+import manijero.shared.generated.resources.land_search_clear
+import manijero.shared.generated.resources.land_search_close
+import manijero.shared.generated.resources.land_search_hint
+import manijero.shared.generated.resources.land_search_label
+import org.jetbrains.compose.resources.stringResource
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
@@ -54,7 +66,10 @@ import com.jamarglex.manijero.lands.toDraftOrNull
 import com.jamarglex.manijero.lands.toEditLandState
 import com.jamarglex.manijero.lands.toPermanentlyDeleteLandState
 import com.jamarglex.manijero.lands.toRemoveLandState
+import com.jamarglex.manijero.privacy.ImprovementConsent
+import com.jamarglex.manijero.privacy.ImprovementConsentStore
 import com.jamarglex.manijero.privacy.PrivacyScreen
+import com.jamarglex.manijero.settings.SettingsScreen
 import com.jamarglex.manijero.theme.ManijeroTheme
 
 // The one-time launch hydration of the default lands list. It runs inside `remember` so repeated
@@ -96,6 +111,7 @@ fun App(
     landBackupFiles: LandBackupFiles? = null,
     connectionTools: ConnectionTools? = null,
     welcomeNotice: WelcomeNoticeStore? = null,
+    improvementConsent: ImprovementConsentStore? = null,
 ) {
     val scope = rememberCoroutineScope()
     // The first-use card exists only when a host injects its dismissed-flag store.
@@ -110,15 +126,31 @@ fun App(
             landsProvider = { landRepository?.list().orEmpty() },
         )
     }
+    // The standing `Ayúdanos a mejorar` choice, read once from the device (off when unreadable or
+    // absent) and carried into the conversation so every send uses the current value.
+    val improvement = remember(improvementConsent) { ImprovementConsent(improvementConsent) }
+    LaunchedEffect(conversation, improvement) {
+        if (improvement.enabled != conversation.state.retainQuestions) {
+            conversation.onAction(ChatHomeAction.RetentionChoiceChanged(improvement.enabled))
+        }
+    }
+    // The one way to change it, from the chat checkbox or the `Ajustes` switch: the device value and
+    // the conversation always move together.
+    val setImprovement: (Boolean) -> Unit = { enabled ->
+        improvement.update(enabled)
+        conversation.onAction(ChatHomeAction.RetentionChoiceChanged(enabled))
+    }
     val landsAvailable = landRepository != null
     // `Mis terrenos` is the launch tab when there is a local store; without one it would be a dead
     // tab, so the assistant opens instead.
     var destination by remember { mutableStateOf(initialDestination(landsAvailable)) }
-    // The last top-level section that is not Help, so back from Ayuda returns to the tab it was
+    // The last top-level section that is not Ajustes, so back from Ajustes returns to the tab it was
     // entered from instead of to itself. Detail routes (privacy, forms) keep their owning section.
     var previousSection by remember { mutableStateOf(initialSection(landsAvailable)) }
     // Where the privacy notice's own `Volver` returns to. Privacy is a detail route, not a tab.
     var privacyReturn by remember { mutableStateOf(initialDestination(landsAvailable)) }
+    // Where `Ayuda`'s own `Volver` returns to: `Ajustes`, the chat footer, or the privacy notice.
+    var coverageReturn by remember { mutableStateOf(AppDestination.Settings) }
     // The transcript entry whose `Inspeccionar` link was tapped. In memory only; never persisted.
     var inspected by remember { mutableStateOf<ChatMessage?>(null) }
     var addLandState by remember { mutableStateOf(AddLandState()) }
@@ -235,7 +267,7 @@ fun App(
             }
             destination = target
         }
-        if (section != AppSection.Help) previousSection = section
+        if (section != AppSection.Settings) previousSection = section
     }
 
     // System back applies the same route table as the visible controls. It is installed only when
@@ -245,24 +277,76 @@ fun App(
         destination = destination,
         previousSection = previousSection,
         privacyReturn = privacyReturn,
+        coverageReturn = coverageReturn,
     )
-    if (systemBackTarget != null) {
-        BackHandler {
-            if (systemBackTarget == AppDestination.LandList) {
-                addLandState = AddLandState()
-                editLandState = null
-                removeLandState = null
-                permanentlyDeleteLandState = null
-            }
-            if (systemBackTarget == AppDestination.RemovedLands) {
-                permanentlyDeleteLandState = null
-            }
-            destination = systemBackTarget
-            // Back to a top-level tab also makes it the remembered section, so a later `Ayuda`
-            // return, and the selected tab, agree with the screen the person is actually on.
-            previousSection = rememberedSectionAfterBack(systemBackTarget, previousSection)
+    // System back and the top bar's up arrow share one route step.
+    val goBack: (AppDestination) -> Unit = { target ->
+        if (target == AppDestination.LandList) {
+            addLandState = AddLandState()
+            editLandState = null
+            removeLandState = null
+            permanentlyDeleteLandState = null
         }
+        if (target == AppDestination.RemovedLands) {
+            permanentlyDeleteLandState = null
+        }
+        destination = target
+        // Back to a top-level tab also makes it the remembered section, so a later `Ajustes`
+        // return, and the selected tab, agree with the screen the person is actually on.
+        previousSection = rememberedSectionAfterBack(target, previousSection)
     }
+    if (systemBackTarget != null) {
+        BackHandler { goBack(systemBackTarget) }
+    }
+    val upTarget = systemBackTarget?.takeIf { showsUpNavigation(destination) }
+    // The land search lives in the top bar of `Mis terrenos`. Closing it, with its arrow, system back
+    // or by leaving the screen, also clears the filter so the list never stays filtered unseen.
+    var landSearchOpen by remember { mutableStateOf(false) }
+    val closeLandSearch: () -> Unit = {
+        landSearchOpen = false
+        landListState = landListState.reduce(LandListAction.QueryChanged(""))
+    }
+    val landSearchAvailable =
+        destination == AppDestination.LandList && landListState.lands.isNotEmpty() && !landListState.loadFailed
+    LaunchedEffect(landSearchAvailable) {
+        if (!landSearchAvailable && (landSearchOpen || landListState.query.isNotEmpty())) closeLandSearch()
+    }
+    BackHandler(enabled = landSearchOpen && landSearchAvailable) { closeLandSearch() }
+    val landSearch = if (landSearchAvailable) {
+        ManijeroTopBarSearch(
+            open = landSearchOpen,
+            query = landListState.query,
+            label = stringResource(Res.string.land_search_label),
+            hint = stringResource(Res.string.land_search_hint),
+            clearDescription = stringResource(Res.string.land_search_clear),
+            closeDescription = stringResource(Res.string.land_search_close),
+            onOpen = { landSearchOpen = true },
+            onClose = closeLandSearch,
+            onQueryChange = { query ->
+                landListState = landListState.reduce(LandListAction.QueryChanged(query))
+            },
+        )
+    } else {
+        null
+    }
+    val chatMenuItems = listOf(
+        ManijeroTopBarMenuItem(
+            label = stringResource(Res.string.chat_home_privacy),
+            icon = Res.drawable.ic_info,
+            onClick = {
+                privacyReturn = AppDestination.Chat
+                destination = AppDestination.Privacy
+            },
+        ),
+        ManijeroTopBarMenuItem(
+            label = stringResource(Res.string.coverage_open),
+            icon = Res.drawable.ic_help,
+            onClick = {
+                coverageReturn = AppDestination.Chat
+                destination = AppDestination.Coverage
+            },
+        ),
+    )
 
     // One shared theme and one shell for every destination; the platform entry points stay
     // theme-free. The shell owns the bars, the section callbacks and the window insets.
@@ -272,22 +356,26 @@ fun App(
             landsAvailable = landRepository != null,
             navigationVisible = navigationVisible(destination),
             onSectionSelect = openSection,
+            onBack = upTarget?.let { target -> { goBack(target) } },
+            // The assistant's `⋮` menu: the privacy notice and what the app covers.
+            menuItems = if (destination == AppDestination.Chat) chatMenuItems else emptyList(),
+            screenTitle = screenTitleResource(destination)?.let { stringResource(it) },
+            search = landSearch,
         ) {
             when (destination) {
                 AppDestination.Chat -> ChatHomeScreen(
                     state = conversation.state,
-                    onAction = { action -> conversation.onAction(action) },
+                    onAction = { action ->
+                        if (action is ChatHomeAction.RetentionChoiceChanged) {
+                            setImprovement(action.allowed)
+                        } else {
+                            conversation.onAction(action)
+                        }
+                    },
+                    onRetentionInfoClick = { openSection(AppSection.Settings) },
                     clarificationLands = clarificationLands,
                     showWelcome = welcome?.visible == true,
                     onDismissWelcome = { welcome?.dismiss() },
-                    onPrivacyClick = {
-                        privacyReturn = AppDestination.Chat
-                        destination = AppDestination.Privacy
-                    },
-                    onCoverageClick = {
-                        previousSection = selectedSection
-                        destination = AppDestination.Coverage
-                    },
                     // `Inspeccionar` exists only for an entry that kept an inspection, which the
                     // answer service allows only for a test build's loopback address.
                     onInspect = { message ->
@@ -308,11 +396,27 @@ fun App(
                 AppDestination.Privacy -> PrivacyScreen(
                     onBack = { destination = privacyReturn },
                     onCoverageClick = {
-                        previousSection = selectedSection
+                        // Opened from `Ayuda`: go back to it rather than stacking a loop.
+                        if (privacyReturn != AppDestination.Coverage) coverageReturn = AppDestination.Privacy
                         destination = AppDestination.Coverage
                     },
                 )
+                AppDestination.Settings -> SettingsScreen(
+                    improvementEnabled = improvement.enabled,
+                    onImprovementChange = setImprovement,
+                    onOpenHelp = {
+                        coverageReturn = AppDestination.Settings
+                        destination = AppDestination.Coverage
+                    },
+                    onOpenBackup = landBackup?.let { controller ->
+                        {
+                            controller.reset()
+                            destination = AppDestination.LandBackup
+                        }
+                    },
+                )
                 AppDestination.Coverage -> CoverageScreen(
+                    onBack = { destination = coverageReturn },
                     onPrivacyClick = {
                         privacyReturn = AppDestination.Coverage
                         destination = AppDestination.Privacy
@@ -374,13 +478,6 @@ fun App(
                         readRemovedLands()
                         destination = AppDestination.RemovedLands
                     },
-                    onOpenBackup = landBackup?.let { controller ->
-                        {
-                            landConfirmation = null
-                            controller.reset()
-                            destination = AppDestination.LandBackup
-                        }
-                    },
                 )
 
                 // Export and restore through the platform picker. Choosing a file only previews it;
@@ -392,7 +489,7 @@ fun App(
                         onChooseFile = controller::chooseFile,
                         onConfirmRestore = controller::confirmRestore,
                         onCancelPreview = controller::dismissPreview,
-                        onBack = { destination = AppDestination.LandList },
+                        onBack = { destination = AppDestination.Settings },
                     )
                 }
 

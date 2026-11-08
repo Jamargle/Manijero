@@ -59,12 +59,6 @@ fun ConnectionScreen(
 ) {
     ManijeroScreen(modifier = modifier) {
         Text(
-            text = stringResource(Res.string.connection_title),
-            style = MaterialTheme.typography.headlineMedium,
-            color = MaterialTheme.colorScheme.onBackground,
-            modifier = Modifier.semantics { heading() },
-        )
-        Text(
             text = stringResource(Res.string.connection_intro),
             style = MaterialTheme.typography.bodyLarge,
             color = MaterialTheme.colorScheme.onSurfaceVariant,

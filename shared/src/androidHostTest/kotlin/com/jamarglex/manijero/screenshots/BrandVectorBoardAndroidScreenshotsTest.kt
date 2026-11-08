@@ -21,7 +21,7 @@ import org.robolectric.annotation.GraphicsMode
 @Config(sdk = [35], qualifiers = "es-rES-w900dp-h1200dp-mdpi")
 class BrandVectorBoardAndroidScreenshotsTest : AndroidScreenshotTestSupport() {
 
-    /** The mark, the illustration, and the sixteen icons, light appearance. */
+    /** The mark, the illustration, and the fifteen icons, light appearance. */
     @Test
     fun brandVectorBoardLight() =
         capture("brand_vector_board_light") {

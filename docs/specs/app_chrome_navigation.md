@@ -222,7 +222,7 @@ fi
 if grep -rnE 'Color\(0x|#[0-9A-Fa-f]{3,8}' "$root/AppShell.kt" "$root/AppNavigation.kt" --include='*.kt'; then
   echo "raw colour literal in the shell" >&2; exit 1
 fi
-for shot in app_shell_assistant_compact_light app_shell_lands_rail_dark app_shell_help_rail_light app_shell_assistant_compact_large_text; do
+for shot in app_shell_assistant_compact_light app_shell_lands_rail_dark app_shell_settings_rail_light app_shell_assistant_compact_large_text; do
   test -f "$REPO_ROOT/shared/src/jvmTest/screenshots/$shot.png" || { echo "missing Desktop golden: $shot" >&2; exit 1; }
   test -f "$REPO_ROOT/shared/src/androidHostTest/screenshots/$shot.png" || { echo "missing Android golden: $shot" >&2; exit 1; }
 done

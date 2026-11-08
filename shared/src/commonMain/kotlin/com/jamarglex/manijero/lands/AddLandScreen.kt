@@ -105,13 +105,6 @@ fun AddLandScreen(
                 verticalArrangement = Arrangement.spacedBy(16.dp),
             ) {
                 Text(
-                    text = stringResource(Res.string.add_land_title),
-                    style = MaterialTheme.typography.headlineMedium,
-                    color = MaterialTheme.colorScheme.onBackground,
-                    // The form title is the one heading semantic on this surface.
-                    modifier = Modifier.semantics { heading() },
-                )
-                Text(
                     text = stringResource(Res.string.add_land_description),
                     style = MaterialTheme.typography.bodyLarge,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,

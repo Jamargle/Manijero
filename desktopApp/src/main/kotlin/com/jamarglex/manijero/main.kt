@@ -13,6 +13,9 @@ import com.jamarglex.manijero.lands.AwtBackupFileChooser
 import com.jamarglex.manijero.lands.DesktopLandBackupFiles
 import com.jamarglex.manijero.lands.FileLandStorage
 import com.jamarglex.manijero.lands.LandRepository
+import com.jamarglex.manijero.platform.manijeroAppIcon
+import com.jamarglex.manijero.privacy.FileImprovementConsentStore
+import com.jamarglex.manijero.privacy.desktopImprovementConsentPath
 import com.jamarglex.manijero.welcome.FileWelcomeNoticeStore
 import com.jamarglex.manijero.welcome.desktopWelcomeStorePath
 import java.nio.file.Path
@@ -61,14 +64,18 @@ private fun runApp(environment: DesktopEnvironment) = application {
         LandRepository(FileLandStorage(landStorePath(environment.dataFolder)))
     }
     val welcomeNotice = remember { FileWelcomeNoticeStore(desktopWelcomeStorePath(folder = environment.dataFolder)) }
+    val improvementConsent = remember {
+        FileImprovementConsentStore(desktopImprovementConsentPath(folder = environment.dataFolder))
+    }
 
     Window(
         onCloseRequest = { answerClient.close(); exitApplication() },
         title = environment.title,
+        icon = manijeroAppIcon(),
     ) {
         // The portable backup uses the native file dialog, owned by this window so it opens on top.
         val landBackupFiles = remember(window) { DesktopLandBackupFiles(AwtBackupFileChooser(window)) }
-        App(landRepository, answerService, landBackupFiles, connectionTools, welcomeNotice)
+        App(landRepository, answerService, landBackupFiles, connectionTools, welcomeNotice, improvementConsent)
     }
 }
 

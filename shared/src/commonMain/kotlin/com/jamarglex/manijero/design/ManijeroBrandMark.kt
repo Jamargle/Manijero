@@ -23,7 +23,7 @@ import manijero.shared.generated.resources.brand_mark
 import org.jetbrains.compose.resources.painterResource
 
 /**
- * The Manijero identity mark: an open olive ring with a leaf, tinted `primary`.
+ * The Manijero identity mark: a line olive branch with two leaves and three olives, tinted `primary`.
  *
  * Identity, not status. The wrapper takes no content description, no colour, and no state, so a
  * caller cannot turn it into a check, seal, badge, or "verified" cue. It is decorative, draws at

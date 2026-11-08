@@ -20,6 +20,7 @@ import com.jamarglex.manijero.lands.AndroidLandBackupFiles
 import com.jamarglex.manijero.lands.ContentResolverBackupDocuments
 import com.jamarglex.manijero.lands.LandRepository
 import com.jamarglex.manijero.lands.SharedPreferencesLandStorage
+import com.jamarglex.manijero.privacy.AndroidImprovementConsentStore
 import com.jamarglex.manijero.welcome.AndroidWelcomeNoticeStore
 
 class MainActivity : ComponentActivity() {
@@ -48,6 +49,7 @@ class MainActivity : ComponentActivity() {
         }
     }
     private val welcomeNotice by lazy { AndroidWelcomeNoticeStore(applicationContext) }
+    private val improvementConsent by lazy { AndroidImprovementConsentStore(applicationContext) }
     private val landRepository by lazy {
         LandRepository(SharedPreferencesLandStorage(applicationContext))
     }
@@ -82,7 +84,7 @@ class MainActivity : ComponentActivity() {
         }
 
         setContent {
-            App(landRepository, answerService, landBackupFiles, connectionTools, welcomeNotice)
+            App(landRepository, answerService, landBackupFiles, connectionTools, welcomeNotice, improvementConsent)
         }
     }
 

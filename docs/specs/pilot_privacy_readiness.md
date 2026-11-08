@@ -28,6 +28,11 @@ Given the user has not explicitly opted in for a question, when that question is
 
 ### Explicit per-question opt-in
 
+> **Amended 2026-11-08 (owner decision):** the opt-in is now a standing, off-by-default
+> `Ayúdanos a mejorar` choice (chat checkbox and `Ajustes` switch, one device-local value) instead of
+> a per-question tick. The full explanation lives in `Ajustes`. The qualified privacy review must
+> cover this change; see `docs/constraints/lands.md` and `docs/pilot-privacy.md`.
+
 Given the user sees a plain-Spanish explanation for the current question, when they explicitly opt in, then only redacted question/answer text may be retained; the land context, land IDs, names, notes, and stable device/user identifiers are excluded.
 
 ### Expiration and withdrawal
