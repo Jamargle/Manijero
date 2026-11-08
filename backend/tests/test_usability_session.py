@@ -100,7 +100,7 @@ def test_facilitator_script_commands_rules_and_honest_task_3() -> None:
 
 
 def test_owner_guide_section_title_and_size() -> None:
-    guide = (REPO_ROOT / "docs" / "owner-guide.md").read_text(encoding="utf-8")
+    guide = (REPO_ROOT / "docs" / "owner-guide" / "usability-session.md").read_text(encoding="utf-8")
     match = re.search(r"^## Owner walkthrough: usability session\n(.*?)(?=^## |\Z)", guide, re.S | re.M)
     assert match, "missing section"
     assert len(match.group(0).splitlines()) <= 66

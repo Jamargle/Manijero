@@ -96,7 +96,7 @@ When `--golden-decide` runs · Then nothing is written, it exits nonzero, and it
 
 ### 9. Manual acceptance: owner walkthrough
 
-Given the validator has accepted the feature · When the owner follows `Owner walkthrough: golden set review` in `docs/owner-guide.md` · Then the walkthrough is complete when the owner has done all of these:
+Given the validator has accepted the feature · When the owner follows `Owner walkthrough: golden set review` in `docs/owner-guide/golden-set-review.md` · Then the walkthrough is complete when the owner has done all of these:
 - listed the drafts,
 - approved or rejected every item,
 - triggered one missing-input case and one unknown-number case, each recording nothing,
@@ -128,7 +128,7 @@ The resulting `knowledge/golden_set.json` is then committed on the feature branc
 - `backend/scripts/evaluate_pac_answers.py` — modify; optional `--golden`.
 - `backend/tests/test_golden_set.py`, `backend/tests/fixtures/golden_set/` — create; offline tests on fixture corpus and the canonical file.
 - `scripts/init.sh` — modify; two owner commands and help lines.
-- `docs/owner-guide.md` — modify; "Review the golden questions" and "Owner walkthrough: golden set review" (≤60 lines together).
+- `docs/owner-guide/golden-set-review.md` — modify; "Review the golden questions" and "Owner walkthrough: golden set review" (≤60 lines together).
 - `backend/README.md` (≤30 lines), `knowledge/README.md`, `knowledge/pac_coverage.md` — modify; see below.
 
 ## Visual design impact
@@ -141,7 +141,7 @@ UI involved: no. Terminal output only; Spanish item text, English labels like th
 - `docs/constraints/answers-and-knowledge.md`: update — add one "Safety evaluation" MUST: a golden item is not scored or read by any gate until a named reviewer's decision is recorded by the decide command, and an answered item's anchor must quote an approved, current passage verbatim.
 - `docs/constraints/operations.md`: not needed — the existing owner-operability rules apply unchanged.
 - `AGENTS.md`: not needed.
-- Other: `knowledge/README.md` (artifact table rows and the draft→approved rule), `knowledge/pac_coverage.md` (a short Spanish section: drafts do not count, plus approved counts after the walkthrough), `backend/README.md` (`check` and `--golden`), `docs/owner-guide.md`.
+- Other: `knowledge/README.md` (artifact table rows and the draft→approved rule), `knowledge/pac_coverage.md` (a short Spanish section: drafts do not count, plus approved counts after the walkthrough), `backend/README.md` (`check` and `--golden`), `docs/owner-guide/golden-set-review.md`.
 
 ## Focused verification (required)
 

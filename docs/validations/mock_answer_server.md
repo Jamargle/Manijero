@@ -24,10 +24,10 @@ All Gradle runs used `JAVA_HOME` set to the Gradle-provisioned Zulu 21 JDK (this
 
 - No change to `contracts/`, app code, `backend/`, or `knowledge/`; no new Gradle module; Ktor server libraries are `jvmTest`-only, so nothing ships.
 - In scope: a mock started from another folder is named and nothing starts (falls under scenario 5's "port taken"). Stricter `/ask` checks (strict JSON → 400, quoted boolean → 422, land ID and municipality length limits) follow `contracts/openapi.yaml` and the backend; scenario 10's list is examples, and error bodies stay generic.
-- `docs/owner-guide.md` matches the real messages; ARCHITECTURE, PROGRESS, and known-limitations updated as the spec requires.
+- `docs/owner-guide/mock-service.md` matches the real messages; ARCHITECTURE, PROGRESS, and known-limitations updated as the spec requires.
 
 ## Findings and honest gaps
 
-- **F1 (non-blocking):** M1 (Desktop app) and M2 (Android emulator, proving `10.0.2.2` reaches the loopback bind) were not run in any agent session. The in-memory test decodes all three states through the real `KtorAnswerService`, and app code is unchanged. The owner should run M1/M2 from `docs/owner-guide.md` before relying on scenario 12.
+- **F1 (non-blocking):** M1 (Desktop app) and M2 (Android emulator, proving `10.0.2.2` reaches the loopback bind) were not run in any agent session. The in-memory test decodes all three states through the real `KtorAnswerService`, and app code is unchanged. The owner should run M1/M2 from `docs/owner-guide/mock-service.md` before relying on scenario 12.
 - **F2 (low):** first-run prepare duration not measured (Gradle cache was warm).
 - **F3 (low):** `PROGRESS.md` gained a limitations-digest line beyond the one the spec listed; consistent with known-limitations.

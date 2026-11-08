@@ -95,6 +95,7 @@ def test_resolve_conflicts_leaves_code_to_a_person() -> None:
     assert bf.resolver_for("backend/app/settings.py") is None
     assert bf.resolver_for("scripts/init.sh") is None
     assert bf.resolver_for("docs/progress/session-log.md") is bf.union_or_merge
+    assert bf.resolver_for("docs/owner-guide/qa.md") is bf.union_or_merge
     text = "top\n<<<<<<< HEAD\nthe new rule\n||||||| base\nthe old rule\n=======\nthe other rule\n>>>>>>> x\n"
     assert bf.resolve_conflicts(text, bf.union_or_merge) is None
     text = "top\n<<<<<<< HEAD\n| a |\n||||||| base\n=======\n| b |\n>>>>>>> x\nend\n"

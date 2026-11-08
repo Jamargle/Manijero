@@ -48,7 +48,7 @@ Given a temporary copy of `backend/tests/fixtures/change_impact` and the synthet
 
 ### 5. The live script is honest and usable
 
-Given `docs/demo-script.md` · Then it is written in plain Spanish and gives, in order: preparation commands, the automated rehearsal, a general question that shows an answer with source cards and the pinned scope caption, a trap question that shows `Sin respuesta segura`, the manual `Inspeccionar` walkthrough (local test build, loopback, `development` only), the synthetic reviewed-update explanation, and a closing limits section. It marks each app-only step as manual, gives a fallback when the inspector is absent, and promises no land clarification, legal conclusion, or eligibility result. `docs/owner-guide.md` gains numbered command steps, the expected `Result:` line, a short failure table of outputs the owner can actually reach, and a pointer to the script.
+Given `docs/demo-script.md` · Then it is written in plain Spanish and gives, in order: preparation commands, the automated rehearsal, a general question that shows an answer with source cards and the pinned scope caption, a trap question that shows `Sin respuesta segura`, the manual `Inspeccionar` walkthrough (local test build, loopback, `development` only), the synthetic reviewed-update explanation, and a closing limits section. It marks each app-only step as manual, gives a fallback when the inspector is absent, and promises no land clarification, legal conclusion, or eligibility result. `docs/owner-guide/local-checks.md` gains numbered command steps, the expected `Result:` line, a short failure table of outputs the owner can actually reach, and a pointer to the script.
 
 ### 6. Misuse, safety, and no stray writes
 
@@ -70,7 +70,7 @@ Given an extra argument after `--demo-rehearsal` · Then one sentence and exit `
 - `backend/scripts/demo_rehearsal.py` — create: the four-step CLI and output.
 - `backend/tests/test_demo_rehearsal.py` — create: fake-service, closed-port, review-gate, safety, and `init.sh` cases.
 - `docs/demo-script.md` — create: plain-Spanish live run sheet (about 80 lines) with manual app steps and honest limits.
-- `docs/owner-guide.md` — modify: "Rehearse the live demo" section (steps, expected `Result:` line, failure table, pointer to the script).
+- `docs/owner-guide/local-checks.md` — modify: "Rehearse the live demo" section (steps, expected `Result:` line, failure table, pointer to the script).
 - `backend/README.md` — modify: how the rehearsal works, what it asserts, the temporary workspace, and the synthetic declaration.
 - `ARCHITECTURE.md` — modify: one bullet for the operator-only rehearsal harness.
 - `docs/constraints/operations.md` — modify: one MUST for the rehearsal's read-only/temp-only and synthetic rules.
@@ -86,7 +86,7 @@ UI involved: no change. The script refers to existing surfaces and pinned copy o
 - `ARCHITECTURE.md`: update — one sentence/bullet naming the operator-only `demo_rehearsal.py` harness; the service boundary and app wiring do not change.
 - `docs/constraints/operations.md`: update — MUST: a rehearsal/check command is read-only for `knowledge/` and owner data, writes only a temporary workspace it removes, sends no land data, and declares synthetic content; reason `rag_demo_rehearsal`.
 - `AGENTS.md`: not needed — no workflow, startup-path, or repo-wide rule change.
-- Other: `docs/demo-script.md` create; `docs/owner-guide.md` update; `backend/README.md` update; `PROGRESS.md`, `docs/progress/known-limitations.md`, `docs/progress/session-log.md` at acceptance.
+- Other: `docs/demo-script.md` create; `docs/owner-guide/local-checks.md` update; `backend/README.md` update; `PROGRESS.md`, `docs/progress/known-limitations.md`, `docs/progress/session-log.md` at acceptance.
 
 ## Focused verification (required)
 
@@ -97,7 +97,7 @@ MANIJERO_PYTHON="${MANIJERO_PYTHON:-backend/.venv/bin/python}" ./scripts/init.sh
 ```
 <!-- verify:end -->
 
-The live run (`./scripts/init.sh --demo-rehearsal` with `--local-rag-start` running) is the owner walkthrough in `docs/owner-guide.md`, not part of this offline block. If it cannot run in the implementation environment, the appendix records exactly which steps were not run.
+The live run (`./scripts/init.sh --demo-rehearsal` with `--local-rag-start` running) is the owner walkthrough in `docs/owner-guide/local-checks.md`, not part of this offline block. If it cannot run in the implementation environment, the appendix records exactly which steps were not run.
 
 ## Appendix
 

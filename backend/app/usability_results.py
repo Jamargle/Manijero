@@ -1,7 +1,7 @@
 """Anonymous usability-session results: code and note screening, record model, store, summary.
 
 Operator-only support for ``./scripts/init.sh --usability-record`` (see
-``backend/scripts/usability_record.py`` and ``docs/owner-guide.md``). The answer service never
+``backend/scripts/usability_record.py`` and ``docs/owner-guide/usability-session.md``). The answer service never
 imports this module.
 
 The results file keeps only anonymous participant codes (``P1``..``P99``), fixed outcome codes,

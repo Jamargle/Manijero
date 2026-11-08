@@ -30,7 +30,7 @@ Make reviewed, article-scale chunks searchable through the accepted BM25 and Chr
 - No new model, runtime pin, dependency, download, network call, or paid service. Vectors come only from the existing pinned `bge-m3` artifact and `chromadb==1.5.9`.
 - No mixing with reviewed passages: with the flag on, the request corpus is the structured passage set alone.
 - No retrieval- or answer-quality claim, and no BM25-vs-structured comparison: no committed real chunk set exists.
-- No `scripts/init.sh` mode and no change to container, deployment scripts, QA settings files, or environment profiles; the flag only becomes usable when a developer sets it. No `docs/owner-guide.md` step.
+- No `scripts/init.sh` mode and no change to container, deployment scripts, QA settings files, or environment profiles; the flag only becomes usable when a developer sets it. No `docs/owner-guide/` step.
 
 ## Job story
 
@@ -135,7 +135,7 @@ UI involved: no. The citation location suffix `, pág. N` / `, págs. N-M` appea
 - `knowledge/README.md`: update. One Files row for the schema, plus a qualifier on "only reviewed passages ... are ever searchable" naming the flag-only structured index (local development and QA).
 - `backend/README.md`: update. One section of at most 30 lines: command, layout, review gate, flag variables, refusal codes, and the hybrid pairing.
 - `docs/progress/known-limitations.md` + `PROGRESS.md` digest: update. One line: honoured only in local development and QA, source-level review only (chunk text not separately reviewed), no quality comparison, and extractive answers may quote the `[título · ruta]` prefix.
-- `AGENTS.md`, `docs/owner-guide.md`, `contracts/openapi.yaml`, `DESIGN.md`, `CONTEXT.md`, `scripts/init.sh`, environment and container files: not needed. The feature is developer-only and changes no wire format, UI, domain, workflow, or owner command.
+- `AGENTS.md`, `docs/owner-guide/`, `contracts/openapi.yaml`, `DESIGN.md`, `CONTEXT.md`, `scripts/init.sh`, environment and container files: not needed. The feature is developer-only and changes no wire format, UI, domain, workflow, or owner command.
 
 ## Focused verification (required)
 

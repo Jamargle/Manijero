@@ -10,7 +10,7 @@
   2. Split deterministically only on explicit article/chapter/annex headings present in the Markdown (Spanish forms); preserve page mapping and source hash; add a contextual prefix with the source title and heading path.
   3. Validity metadata comes only from reviewed source/catalog metadata; otherwise keep it unknown, and never infer or parse dates from free text.
   4. No model, no network, no OCR in the chunker; bounded input and fail-closed on malformed manifests.
-  5. Developer-only: no `docs/owner-guide.md` step and no new `init.sh` mode.
+  5. Developer-only: no `docs/owner-guide/` step and no new `init.sh` mode.
   6. Acceptance: validator accept is final; no owner walkthrough.
 
 ## Goal
@@ -24,7 +24,7 @@ Turn each reviewed, page-mapped parsed document into structure-faithful chunks �
 - No inferred structure: no splitting on numbered sub-items (`1.`, `a)`), tables, or layout/font cues; no token-window subdivision or overlap.
 - No boundary beyond the owner decision: `Título`, `Sección`, `Disposición`, and `Preámbulo` lines never split a document, so such text stays in its enclosing chunk and the limit is recorded.
 - No validity inference: no date, campaign, applicability, or in-force reading from document text; no expiry evaluation (retrieval already filters with `--as-of`).
-- No owner-facing operation, no `docs/owner-guide.md` step.
+- No owner-facing operation, no `docs/owner-guide/` step.
 
 ## Job story
 
@@ -91,7 +91,7 @@ UI involved: no.
 - `backend/README.md`: update — one section of at most 30 lines: command, artifact layout, heading rule, catalog join, bounds, exit codes.
 - `knowledge/README.md`: update — one Files row for the schema and one sentence in "Adding a document".
 - `docs/progress/known-limitations.md` + `PROGRESS.md` digest: update — one line: heading detection is a conservative Spanish shape rule limited to article/chapter/annex (títulos, secciones, and disposiciones stay inside their chunk), validity is only as reviewed as the catalog, chunks are never answerable, and no accuracy is claimed.
-- `docs/owner-guide.md`, `contracts/openapi.yaml`, `DESIGN.md`, `CONTEXT.md`, `scripts/init.sh`, `scripts/python-env.sh`: not needed — developer-only, stdlib, no wire, UI, domain, or command change.
+- `docs/owner-guide/`, `contracts/openapi.yaml`, `DESIGN.md`, `CONTEXT.md`, `scripts/init.sh`, `scripts/python-env.sh`: not needed — developer-only, stdlib, no wire, UI, domain, or command change.
 
 ## Focused verification (required)
 

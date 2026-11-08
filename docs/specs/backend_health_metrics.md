@@ -19,7 +19,7 @@ Give the later `monitoring_dashboard` (and an operator with `curl`) one machine-
 ## Non-goals
 
 - No dashboard, alerting, scraper, Prometheus server, or metric storage (`monitoring_dashboard`, `qa_service_alerts`).
-- No owner command or `docs/owner-guide.md` steps; the owner never opens `/metrics` directly.
+- No owner command or `docs/owner-guide/` steps; the owner never opens `/metrics` directly.
 - No wiring of the source-update state folder into `--local-rag-start`, the container, or the QA settings file; the service only reads it when `MANIJERO_SOURCE_UPDATE_STATE_DIR` is already set.
 - No per-client, per-land, per-question, per-passage, or per-source labels; no cross-worker aggregation; no persistence across restarts.
 - No change to `/health`, `/ready`, `/ask` responses, `contracts/openapi.yaml`, or the Android/Desktop apps.
@@ -111,7 +111,7 @@ UI involved: no.
 - `AGENTS.md`: not needed — no workflow change.
 - `backend/README.md`: update — a "Health metrics" section of at most 30 lines: families, the profile gate, the opt-in state-folder key, and per-process reset.
 - `docs/progress/known-limitations.md`: update — one line: per-process counters reset on restart, freshness only when the state folder is set, in-process tests only.
-- `docs/owner-guide.md`, `contracts/openapi.yaml`: not needed — no owner operation; not a client contract.
+- `docs/owner-guide/`, `contracts/openapi.yaml`: not needed — no owner operation; not a client contract.
 
 ## Focused verification (required)
 

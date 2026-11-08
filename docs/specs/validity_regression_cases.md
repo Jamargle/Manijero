@@ -86,7 +86,7 @@ Given the tests run · Then no socket is opened, no generation provider, hybrid 
 - `knowledge/README.md` (line ~107), `backend/README.md` (case-count sentences near lines 1068 and 1329), `docs/risks-and-open-questions.md` (the "narrow sample" row) — update the case/boundary counts only. Historical measurement lines (for example, `docs/constraints/answers-and-knowledge.md` line ~94) stay as written.
 - `docs/constraints/answers-and-knowledge.md` — one MUST (see below).
 - `feature_list.json`, `PROGRESS.md`, `docs/progress/current-state.md`, `docs/progress/known-limitations.md`, `docs/progress/session-log.md`, `docs/validations/validity_regression_cases.md` — implementer/validator only, after evidence exists.
-- No change: `source_catalog.json`, `passages.json`, schemas, `backend/app/**`, `backend/scripts/**`, `docs/owner-guide.md`.
+- No change: `source_catalog.json`, `passages.json`, schemas, `backend/app/**`, `backend/scripts/**`, `docs/owner-guide/`.
 
 ## Visual design impact
 
@@ -97,7 +97,7 @@ UI involved: no.
 - `ARCHITECTURE.md`: not needed — no boundary, module, or runtime surface changes.
 - `docs/constraints/answers-and-knowledge.md`: update "Safety evaluation" with one MUST. A validity regression case MUST rest only on reviewed catalog or passage metadata. When the reviewed corpus lacks the source, the case MUST expect abstention, and a precondition test MUST fail once such a source appears. Reason: `validity_regression_cases`.
 - `AGENTS.md`: not needed — no workflow change.
-- Other: `knowledge/pac_coverage.md` owns the case matrix and gaps. `known-limitations.md` and `current-state.md` move from 14 to 17 cases at acceptance. `docs/owner-guide.md`, `DESIGN.md`, and `CONTEXT.md`: not needed.
+- Other: `knowledge/pac_coverage.md` owns the case matrix and gaps. `known-limitations.md` and `current-state.md` move from 14 to 17 cases at acceptance. `docs/owner-guide/`, `DESIGN.md`, and `CONTEXT.md`: not needed.
 
 ## Focused verification (required)
 

@@ -4,11 +4,11 @@
 
 - `id`: qa_server_deployment · `area`: operations · `depends_on`: environment_profiles, backend_container_image, local_end_to_end_smoke, backend_health_metrics (all accepted) · `status` at planning: not_started
 - User-visible behavior: the owner runs `./scripts/init.sh --qa-deploy` to run the QA answer service from the already built container image on their Mac, in the pilot profile, reachable by real devices at a fixed `https://<mac>.<tailnet>.ts.net` address through Tailscale Funnel; `--qa-update` ships a newer image, `--qa-rollback` puts the previous one back, `--qa-status` says in plain words whether QA runs, answers, and is reachable, and `--qa-stop` takes QA off the internet and stops it. Each ends with one plain `Result:` line.
-- Verification: offline unit and subprocess tests with fake Docker and Tailscale CLIs, fake probes, fake QA homes and fake tokens (Focused verification); manual acceptance is the owner walkthrough in `docs/owner-guide.md` ("Owner walkthrough: QA"): set up Tailscale, deploy, check from a phone browser, update, roll back.
+- Verification: offline unit and subprocess tests with fake Docker and Tailscale CLIs, fake probes, fake QA homes and fake tokens (Focused verification); manual acceptance is the owner walkthrough in `docs/owner-guide/qa.md` ("Owner walkthrough: QA"): set up Tailscale, deploy, check from a phone browser, update, roll back.
 - Notes: owner decisions (2026-11-02):
   1. QA host is the owner's own Mac (free). The answer service runs in the existing container image; Ollama runs on the Mac and is reached from the container through the existing relay.
   2. HTTPS for real devices goes through Tailscale Funnel (free account, fixed `https://<mac>.<tailnet>.ts.net`). No Cloudflare, no paid domain.
-  3. The owner creates the Tailscale account and turns on Funnel themself from copy-paste steps in `docs/owner-guide.md`; account setup is never automated.
+  3. The owner creates the Tailscale account and turns on Funnel themself from copy-paste steps in `docs/owner-guide/qa.md`; account setup is never automated.
   4. `docs/constraints/hosting-and-pilot.md` and the hosting decision record (`docs/specs/hosting_provider_review.md`) name Tailscale Funnel as QA transport only; QA uses synthetic test data only, no real users.
   5. The service still enforces its own pilot token auth, per-client rate limiting, and request-size limits, and starts only through the pilot-profile launcher (`serve_pilot.py`); the image entrypoint is reconciled with it.
   6. Deploy, update, and roll back are one named command each with plain `Result:` lines (`docs/constraints/operations.md`).
@@ -88,7 +88,7 @@ UI involved: no. No app screen or Spanish copy changes; QA apps already read `qa
 - `docs/constraints/operations.md`: update — the intro's "never relax a ... gate" names the owner-decided QA test-data-only exception; new MUST for the five QA commands (loopback publish, QA labels only, Funnel touched only for its own entry, stop removes Funnel first, confirmation before deploy/update/rollback); the `qa-address.local` MUST NOT now says `--qa-deploy` writes the address there and in the QA settings file.
 - `docs/specs/hosting_provider_review.md`: update — dated addendum "QA transport (2026-11-02)": Tailscale Funnel on the owner's Mac, transport only, test data only; pilot selection unchanged.
 - `ARCHITECTURE.md`: update — one bullet for `qa_deployment.py` and the entrypoint's pilot path.
-- `docs/owner-guide.md`: update (≤ ~60 lines) — "Set up Tailscale (one time)" (account, install, log in, turn on HTTPS and Funnel), "Deploy / Update / Roll back / Check / Stop QA", "Owner walkthrough: QA"; update "Build the QA test apps" step 3.
+- `docs/owner-guide/qa.md`: update (≤ ~60 lines) — "Set up Tailscale (one time)" (account, install, log in, turn on HTTPS and Funnel), "Deploy / Update / Roll back / Check / Stop QA", "Owner walkthrough: QA"; update "Build the QA test apps" step 3.
 - `backend/README.md`: update (≤ ~30 lines) — QA deployment internals, argv, test-only `MANIJERO_TAILSCALE_CLI`/`MANIJERO_QA_PORT`.
 - `docs/risks-and-open-questions.md`, `docs/progress/known-limitations.md`, `PROGRESS.md`: update at acceptance — QA depends on the Mac being awake; Funnel exposes a public hostname; test-data-only is a rule, not a technical filter; clients-file readability under Docker Desktop is proven only by the walkthrough.
 - `AGENTS.md`, `CONTEXT.md`, `DESIGN.md`, `contracts/`, `docs/constraints/lands.md`: not needed — the relay is unchanged.

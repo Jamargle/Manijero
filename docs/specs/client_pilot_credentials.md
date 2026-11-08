@@ -7,7 +7,7 @@
 - Verification: focused shared transport, redaction, and guard tests; an in-process fake of the pilot profile's `/ask` gate; a pytest for the owner save command; host compiles; and a build-injection check with a fake token file. No running service, device, or emulator. Commands are in Focused verification.
 - Notes: owner decisions recorded 2026-11-01:
   1. The pilot bearer token reaches Android and Desktop as a local, git-ignored build-time setting. Testers never type it; no in-app token entry screen or on-device token storage UI.
-  2. The setting must NOT live in `local.properties` (agents are forbidden from reading or modifying it). Choose a dedicated git-ignored source (e.g. a git-ignored file, environment variable, or Gradle property), documented as one copy-paste step in `docs/owner-guide.md`. Agents never read or print a real token; tests use fake tokens only.
+  2. The setting must NOT live in `local.properties` (agents are forbidden from reading or modifying it). Choose a dedicated git-ignored source (e.g. a git-ignored file, environment variable, or Gradle property), documented as one copy-paste step in `docs/owner-guide/pilot-token-and-settings.md`. Agents never read or print a real token; tests use fake tokens only.
   3. The token must never appear in logs, crash text, UI, or committed files, consistent with [`docs/constraints/hosting-and-pilot.md`](../constraints/hosting-and-pilot.md). With no token configured, builds still work against the local unauthenticated services (mock and local RAG) exactly as today.
   4. "Test them against the local pilot profile": automated verification must not need a running service, real device, or emulator; use fakes/in-process servers. Any real-service check belongs to the owner walkthrough.
   5. (2026-11-01) Only Android DEBUG builds may carry the pilot token; release builds must never carry it, even when the token file exists. Desktop is unchanged unless the same release/debug distinction exists there.
@@ -113,14 +113,14 @@ UI involved: no. No screen, copy, or baseline changes. Failures reuse the accept
 
 - `ARCHITECTURE.md`: update "Answer service boundary" with the build-time token source, per-host injection, `/ask`-only header, and the https-or-loopback rule.
 - `docs/constraints/hosting-and-pilot.md`: add one MUST/MUST NOT rule. A client token comes only from the git-ignored build setting. It is sent only on `/ask` over https or loopback, and never shown, logged, committed, or put on probes. Reason: this spec.
-- `docs/owner-guide.md`: add "Give the apps the pilot token": copy the token, run `./scripts/init.sh --pilot-token-save`, the expected `Result:` line, each failure line with its fix, and that a re-run replaces the token.
+- `docs/owner-guide/pilot-token-and-settings.md`: add "Give the apps the pilot token": copy the token, run `./scripts/init.sh --pilot-token-save`, the expected `Result:` line, each failure line with its fix, and that a re-run replaces the token.
 - `backend/README.md`: update the "Current gap" bullet under credential rotation. Clients can now send the token, and it points to the owner-guide step.
 - `AGENTS.md`: update "Operating rules" with one clause: agents never read, print, or modify `pilot-token.local`, and tests use fake tokens through `MANIJERO_PILOT_TOKEN_FILE`.
 - `docs/progress/known-limitations.md` and `docs/risks-and-open-questions.md`: add that a built-in token is extractable from a built app, and that no live pilot-profile answer has been observed from an app.
 - Revision 2026-11-01 (decision 5), update each in place, no new sections:
   - `ARCHITECTURE.md` pilot-token paragraph: Android `BuildConfig.PILOT_TOKEN` is file-backed only for `debug` and `null` for release; the Desktop resource folder is on the `run` task's classpath only, never in `jar` or any packaged/release output.
   - `docs/constraints/hosting-and-pilot.md` token rule: add "MUST NOT be built into an Android release variant or a packaged/release Desktop output, even when the file exists; only Android debug and the Desktop `run` task may carry it". Reason: this spec, decision 5.
-  - `docs/owner-guide.md` "Give the apps the pilot token": test builds only (`./scripts/init.sh --android`, `--desktop`), release or packaged apps never carry it; update the two quoted `Result:` lines.
+  - `docs/owner-guide/pilot-token-and-settings.md` "Give the apps the pilot token": test builds only (`./scripts/init.sh --android`, `--desktop`), release or packaged apps never carry it; update the two quoted `Result:` lines.
   - `docs/progress/known-limitations.md` (entry at "Android and Desktop builds can carry a pilot bearer token") and the matching `docs/risks-and-open-questions.md` row: only test builds carry it, so a release or packaged app cannot reach a pilot-profile service until a release credential path exists (`client_environment_builds` or a later decision). The extractability note stays for test builds.
   - `backend/README.md` "Client token" bullet: Android debug and Desktop `run` builds send it; release and packaged builds never do.
   - `AGENTS.md`: not needed (the agent rule is unchanged).

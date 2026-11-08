@@ -114,7 +114,7 @@ Given the mock is running · Then it listens only on `127.0.0.1`. The Android em
 - `shared/build.gradle.kts` — modify; `jvmTest` server dependencies, the `prepareMockAnswerServer` task, and `contracts/examples` declared as a `jvmTest` input.
 - `gradle/libs.versions.toml` — modify; three Ktor server library aliases on the existing `ktor` version.
 - `scripts/init.sh` — modify; the three modes, usage text, and `--check` text.
-- `docs/owner-guide.md` — create; numbered copy-paste steps for start, status, and stop, with expected results and what to do if they differ.
+- `docs/owner-guide/mock-service.md` — create; numbered copy-paste steps for start, status, and stop, with expected results and what to do if they differ.
 - `ARCHITECTURE.md`, `PROGRESS.md` "Start and verify", `docs/progress/known-limitations.md` — modify; see below.
 
 ## Visual design impact
@@ -126,7 +126,7 @@ UI involved: no. The apps render the examples through existing accepted chat sta
 - `ARCHITECTURE.md`: update. Add one bullet naming the test-only mock answer service (shared `jvmTest`, loopback, examples only, never shipped, started by `./scripts/init.sh --mock`), and add it as a consumer in the "Contract map" HTTP row.
 - `docs/constraints/operations.md`: not needed. The feature follows its existing rules and adds none. Loopback-only binding and serving only examples are this contract's behavior.
 - `AGENTS.md`: not needed; agent workflow and routing are unchanged.
-- `docs/owner-guide.md`: create (required by the `operations.md` owner-guide rule; this is the first feature that needs it).
+- `docs/owner-guide/mock-service.md`: create (required by the `operations.md` owner-guide rule; this is the first feature that needs it).
 - `PROGRESS.md` "Start and verify": update with one line for the three mock commands.
 - `docs/progress/known-limitations.md`: update with one line saying that mock answers are fixed contract examples, not real or legal answers, and run on Desktop and the Android emulator only.
 - `contracts/`, `backend/README.md`: not needed, because both are unchanged.

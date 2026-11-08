@@ -11,7 +11,7 @@
   - First panels: service up/down, answer speed, error rate, and abstention rate, each shown as plain-language OK / warning / problem with what it means and the first thing to do (see docs/constraints/operations.md).
   - Never show question text, land context, client identifiers or tokens.
   - Acceptance: validator accept plus a short owner walkthrough (run one command, open one address, check it reads clearly). The validator may accept with condition "pending owner walkthrough".
-- Planning decisions: Grafana cannot read `/metrics` by itself, so a pinned Prometheus container scrapes it and Grafana reads Prometheus; both are free and self-hosted. Monitoring has its own start/status/stop commands (owner decision "one named command starts it"); it does not start with `--local-rag-start` or `--container-start`, which keep working without Docker (see Durable documentation). Dashboard copy is English, like every existing owner command and `docs/owner-guide.md`. Files read by Prometheus or Grafana as YAML are written as JSON documents (valid YAML) so stdlib `json` can check them without a new dependency.
+- Planning decisions: Grafana cannot read `/metrics` by itself, so a pinned Prometheus container scrapes it and Grafana reads Prometheus; both are free and self-hosted. Monitoring has its own start/status/stop commands (owner decision "one named command starts it"); it does not start with `--local-rag-start` or `--container-start`, which keep working without Docker (see Durable documentation). Dashboard copy is English, like every existing owner command and `docs/owner-guide/monitoring.md`. Files read by Prometheus or Grafana as YAML are written as JSON documents (valid YAML) so stdlib `json` can check them without a new dependency.
 
 ## Goal
 
@@ -83,7 +83,7 @@ App UI involved: no. The Grafana page is owner-facing: plain sentences, never co
 
 - `ARCHITECTURE.md`: update — one line: owner-run monitoring (Prometheus + Grafana in Docker Desktop) reads `/metrics`; files in `backend/monitoring/`.
 - `docs/constraints/operations.md`: update — amend the first Monitoring MUST with the owner decision (2026-11-02) that monitoring has its own start/status/stop commands, and add one MUST: monitoring publishes only `127.0.0.1`, uses digest-pinned images, keeps only `manijero_*`/`up` series and allowlisted labels. Reason: this spec.
-- `docs/owner-guide.md`: update — "Open the health dashboard" (start, check, stop, the state table, two "if it differs" rows) and "Owner walkthrough: health dashboard"; at most 60 lines.
+- `docs/owner-guide/monitoring.md`: update — "Open the health dashboard" (start, check, stop, the state table, two "if it differs" rows) and "Owner walkthrough: health dashboard"; at most 60 lines.
 - `backend/README.md`: update — "Health dashboard" section, at most 30 lines.
 - `docs/progress/known-limitations.md`: update — one line: runs only on the owner's Mac, not alerting, QA not set up until `qa_server_deployment`, thresholds are initial.
 - `AGENTS.md`, `CONSTRAINTS.md` index, `DESIGN.md`, `contracts/`: not needed.

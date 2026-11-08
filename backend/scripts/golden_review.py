@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """List, decide, and check the golden question queue (``knowledge/golden_set.json``).
 
-Owner commands, run through ``./scripts/init.sh`` (steps in ``docs/owner-guide.md``)::
+Owner commands, run through ``./scripts/init.sh`` (steps in ``docs/owner-guide/golden-set-review.md``)::
 
     ./scripts/init.sh --golden-review
     ./scripts/init.sh --golden-decide approve|reject "<name>" <number-or-id>...

@@ -13,7 +13,7 @@
 - `backend/monitoring/thresholds.json`, `backend/monitoring/prometheus/rules.json` — `errors.window` `15m`, `warning_percent` 2, `problem_percent` 10; dashboard error share = 5xx of `/ask` over `/ask`, only when `/ask` count > 0.
 - `backend/app/health_metrics.py` — `manijero_http_requests_total{route,code}` counter since process start; `manijero_ready`.
 - `scripts/init.sh` lines 202–248 — dispatch blocks for `--monitoring-*` and `--qa-*` (`Run %s on its own`, venv check, exec entry script); usage lines 381–400.
-- `docs/owner-guide.md` "Set up Tailscale (one time)", "Deploy, update, roll back, check, and stop QA", "Owner walkthrough: QA" — tone and table shape to copy.
+- `docs/owner-guide/qa.md` "Set up Tailscale (one time)", "Deploy, update, roll back, check, and stop QA", "Owner walkthrough: QA" — tone and table shape to copy.
 - `backend/tests/test_local_rag_service.py` — `test_the_service_never_imports_the_operator_modules` list to extend.
 - `docs/specs/monitoring_dashboard.md` + appendix — owner-command and English-copy conventions; dashboard explicitly "not alerting".
 

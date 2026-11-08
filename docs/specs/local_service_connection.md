@@ -140,7 +140,7 @@ The result callout is the polite live region. No new tokens, icons, or screensho
 - `ARCHITECTURE.md`: update the "Answer service boundary". In test builds, the base URL is resolved per request from `ActiveServiceAddress`, and the `Conexión` probe uses the same client. Gating is by Android variant source sets and the Desktop `run`-only property. Release wiring keeps a fixed URL.
 - `docs/constraints/ui-shell.md`: update "App shell and navigation" with one rule. MUST: test-build tools are reachable only when a host injects them. The Android release source set and every Desktop packaging or release task MUST NOT inject them, and `TestBuildGatingGuardTest` guards this.
 - `DESIGN.md`: update the "App shell" bullet with one clause: `Conexión` is a test-build-only detail route from `Ayuda`, has its own `Volver`, and back returns to `Ayuda`.
-- `docs/constraints/operations.md`, `docs/owner-guide.md`: not needed. No owner command is added or changed; `--android-run` and `--desktop` already launch test builds.
+- `docs/constraints/operations.md`, `docs/owner-guide/`: not needed. No owner command is added or changed; `--android-run` and `--desktop` already launch test builds.
 - `AGENTS.md`, `CONTEXT.md`, `contracts/`, and `backend/README.md`: not needed. The workflow, domain terms, wire contract, and service are unchanged.
 
 ## Focused verification (required)

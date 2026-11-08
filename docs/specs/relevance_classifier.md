@@ -76,7 +76,7 @@ Given the same inputs and the same model responses · When the command runs twic
 - `backend/tests/test_relevance_classifier.py` and `backend/tests/fixtures/relevance_classifier/` — create; synthetic discovery state (labelled synthetic) and scripted fake model.
 - `backend/README.md` (about 25 lines), `knowledge/README.md` (one schema row), `ARCHITECTURE.md`, `docs/constraints/answers-and-knowledge.md`, `docs/risks-and-open-questions.md` — update.
 - `feature_list.json`, `PROGRESS.md`, `docs/progress/*`, `docs/validations/relevance_classifier.md` — implementer/validator only, after evidence.
-- Do not change: `backend/config/local_generation_model.json`, `knowledge/` canonical data, `contracts/`, `shared/`, `scripts/init.sh`, `docs/owner-guide.md`, existing tests.
+- Do not change: `backend/config/local_generation_model.json`, `knowledge/` canonical data, `contracts/`, `shared/`, `scripts/init.sh`, `docs/owner-guide/`, existing tests.
 
 ## Visual design impact
 
@@ -86,7 +86,7 @@ None. No Compose UI, Spanish app copy, or screenshot baseline changes.
 
 - `ARCHITECTURE.md`: update — one bullet: `relevance_classifier.py` reads discovery state, calls only the pinned loopback model, writes a suggest-only review list outside `knowledge/`.
 - `docs/constraints/answers-and-knowledge.md`: update — one MUST under "Knowledge updates and retrieval": relevance suggestions are review-only outside `knowledge/`, never drop/admit/change candidates, candidate text only in the data role, flagged or unparseable cases fail closed to `unsure`, tests need no Ollama. The `OllamaTransport` rule in `docs/constraints/lands.md` already covers the endpoint: not needed.
-- `AGENTS.md`, `CONTEXT.md`, `DESIGN.md`, `docs/owner-guide.md`: not needed (developer-only, no workflow, term, or UI change).
+- `AGENTS.md`, `CONTEXT.md`, `DESIGN.md`, `docs/owner-guide/`: not needed (developer-only, no workflow, term, or UI change).
 - Other: `backend/README.md` (command, inputs, artifact, exit/Result protocol, limits), `knowledge/README.md` (schema row), `docs/risks-and-open-questions.md` (unmeasured accuracy; unflagged reworded injection can still sway a real model within the vocabulary).
 
 ## Focused verification

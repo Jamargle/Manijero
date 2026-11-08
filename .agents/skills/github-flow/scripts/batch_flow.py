@@ -232,7 +232,7 @@ def resolver_for(path: str) -> Optional[Resolver]:
 
     if path == "feature_list.json":
         return newest_status_lines
-    if path in ("PROGRESS.md", "docs/owner-guide.md") or (path.startswith("docs/progress/") and path.endswith(".md")):
+    if path == "PROGRESS.md" or (path.startswith(("docs/progress/", "docs/owner-guide/")) and path.endswith(".md")):
         return union_or_merge
     return None
 

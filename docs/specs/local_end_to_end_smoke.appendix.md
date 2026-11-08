@@ -22,7 +22,7 @@
 - `connection/ServiceAddress.kt`, `ServiceStatusChecker.kt`, `ConnectionTools.kt`: the address resolution, the store interface (save and clear can throw), and the five check results.
 - `shared/src/jvmTest/.../chat/ChatHomeInteractionTest.kt`: the `runDesktopComposeUiTest` interaction pattern.
 - `docs/constraints/operations.md`: the owner-operability MUSTs.
-- `docs/owner-guide.md` headings: existing local-service sections and the walkthrough format.
+- `docs/owner-guide/local-answer-service.md` headings: existing local-service sections and the walkthrough format.
 - Not inspected: `ClarificationChooser.kt` and `SourceCards.kt` bodies beyond the string references; `ChatConversation` internals; the AGP `installDebug` reinstall flags (taken as "keeps data", to be confirmed in evidence); and Compose `waitUntil` behavior with real network I/O on Android.
 
 ### Existing patterns to follow

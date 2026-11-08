@@ -78,7 +78,7 @@ UI involved: no visible change. One invisible test tag; chat screenshot baseline
 - `docs/constraints/hosting-and-pilot.md`: update the Desktop token rule: only the Desktop `run` task and the test-only `:shared:runDesktopQaCheck` may carry the generated token resource. Reason: this spec.
 - `docs/constraints/operations.md`: update the smoke/check MUST: a check against QA sends only the fixed synthetic question and at most one `useful` rating per run. Reason: this spec.
 - `ARCHITECTURE.md`: update the local smoke harness bullet with one sentence on the QA Desktop check.
-- `docs/owner-guide.md`: update (at most ~40 lines): "Check the QA Desktop app" (command, `Result:` lines, table of reachable failure lines), "Owner walkthrough: QA check", and replace step 4 of "Owner walkthrough: QA" (Android) with `--qa-check`.
+- `docs/owner-guide/qa.md`: update (at most ~40 lines): "Check the QA Desktop app" (command, `Result:` lines, table of reachable failure lines), "Owner walkthrough: QA check", and replace step 4 of "Owner walkthrough: QA" (Android) with `--qa-check`.
 - `backend/README.md`: update (at most ~20 lines): QA check order, result line, codes, log, timeouts.
 - `docs/progress/known-limitations.md`, `docs/risks-and-open-questions.md`, `PROGRESS.md`: update at acceptance: no Android device or emulator check against QA (owner has no device, 2026-11-07); `--android-qa` never ran on a device; the Desktop check is offscreen; each run adds one `useful` to QA's per-process feedback count; the first question may need the one retry.
 - `AGENTS.md`, `CONTEXT.md`, `DESIGN.md`, `contracts/`: not needed.

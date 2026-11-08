@@ -82,7 +82,7 @@ que el comando ya ha comprobado.
 | `FAIL  Grounded answer: ...` | La respuesta general no trae fuentes aprobadas o no es de alcance general. | No hagas la demostración; enseña el `Result:` a un desarrollador. |
 | `FAIL  Trap abstention: ...` | La pregunta trampa respondió en vez de abstenerse. | No uses esa pregunta; enseña el `Result:` a un desarrollador. |
 | `FAIL  Reviewed update: ...` | El paso de revisión no se comportó como debe. | No expliques la actualización; enseña el `Result:` a un desarrollador. |
-| `Result: the demo rehearsal did not run. Run ./scripts/init.sh --local-rag-setup.` | Faltan las herramientas locales. | Sigue [Set up the local answer tools](owner-guide.md#set-up-the-local-answer-tools). |
+| `Result: the demo rehearsal did not run. Run ./scripts/init.sh --local-rag-setup.` | Faltan las herramientas locales. | Sigue [Set up the local answer tools](owner-guide/local-answer-service.md#set-up-the-local-answer-tools). |
 
 El ensayo no arranca nada y no toca tus terrenos ni el conocimiento aprobado. Puedes repetirlo
 las veces que quieras.

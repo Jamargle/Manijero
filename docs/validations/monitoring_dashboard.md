@@ -27,7 +27,7 @@ Spec: [../specs/monitoring_dashboard.md](../specs/monitoring_dashboard.md) · Ev
 
 ## Owner walkthrough (2026-11-03)
 
-The owner ran `docs/owner-guide.md` "Owner walkthrough: health dashboard" on their Mac with Docker Desktop and reported every step as expected:
+The owner ran `docs/owner-guide/monitoring.md` "Owner walkthrough: health dashboard" on their Mac with Docker Desktop and reported every step as expected:
 
 1. `--monitoring-start`: `Result: the health dashboard started at http://127.0.0.1:3000.`, first start about 30 seconds.
 2. Local row with the service stopped: as described ("good").

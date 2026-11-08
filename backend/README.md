@@ -388,7 +388,7 @@ cases to exercise.
 - **Client token:** Android debug and Desktop `run` (test) builds send the client's bearer
   token on `POST /ask`; release and packaged builds never carry it. They send it once the
   owner saves it with `./scripts/init.sh --pilot-token-save` (see
-  [`docs/owner-guide.md`](../docs/owner-guide.md) "Give the apps the pilot token" and
+  [`docs/owner-guide/pilot-token-and-settings.md`](../docs/owner-guide/pilot-token-and-settings.md) "Give the apps the pilot token" and
   [`client_pilot_credentials`](../docs/specs/client_pilot_credentials.md)). QA test builds
   (`-PmanijeroEnvironment=qa`, [`client_environment_builds`](../docs/specs/client_environment_builds.md))
   send the QA key instead. It is built in,
@@ -2388,7 +2388,7 @@ path; vector fields are tagged `vector_digest_differs` instead of hidden.
 
 The owner sets up every local RAG artifact with `./scripts/init.sh --local-rag-setup` and checks
 it with `./scripts/init.sh --local-rag-status`; the copy-paste steps are in
-[`docs/owner-guide.md`](../docs/owner-guide.md). The code is `app/local_rag_bootstrap.py`
+[`docs/owner-guide/local-answer-service.md`](../docs/owner-guide/local-answer-service.md). The code is `app/local_rag_bootstrap.py`
 (orchestration), `app/pinned_download.py` (stdlib pinned-file downloader), and
 `scripts/local_rag.py` (entry point). The service never imports them. Neither command starts the
 service; that is `--local-rag-start` (see "Local answer service" below). Neither command installs
@@ -2478,7 +2478,7 @@ only.
 ### Local answer service
 
 `./scripts/init.sh --local-rag-start`, `--local-rag-service-status`, and `--local-rag-stop`
-(owner steps in [`docs/owner-guide.md`](../docs/owner-guide.md)) run `scripts/local_rag.py
+(owner steps in [`docs/owner-guide/local-answer-service.md`](../docs/owner-guide/local-answer-service.md)) run `scripts/local_rag.py
 start|service-status|stop`, implemented by `app/local_rag_service.py` (operator-only, stdlib at
 import, never imported by the service). Without a dev environment, start and status print the
 "not set up yet" pair and exit `1`; stop exits `0` with "nothing to stop".
@@ -2526,7 +2526,7 @@ stop; `1` a prerequisite or check failed, or not running (status); `2` an extra 
 ### Container image
 
 `./scripts/init.sh --container-build`, `--container-start`, `--container-status`, and
-`--container-stop` (owner steps in [`docs/owner-guide.md`](../docs/owner-guide.md)) run
+`--container-stop` (owner steps in [`docs/owner-guide/container.md`](../docs/owner-guide/container.md)) run
 `scripts/local_rag.py container-build|container-start|container-status|container-stop`,
 implemented by `app/local_container.py` (operator-only, stdlib at import, never imported by the
 service). Docker is reached only through `${MANIJERO_DOCKER_CLI:-docker}`; the override exists for
@@ -2607,7 +2607,7 @@ platform only; the image is a default-profile local runtime, not a pilot launche
 ### QA deployment
 
 `./scripts/init.sh --qa-deploy`, `--qa-update`, `--qa-rollback`, `--qa-status`, and `--qa-stop` (owner
-steps in [`docs/owner-guide.md`](../docs/owner-guide.md)) run `scripts/qa_service.py <operation>`,
+steps in [`docs/owner-guide/qa.md`](../docs/owner-guide/qa.md)) run `scripts/qa_service.py <operation>`,
 implemented by `app/qa_deployment.py` (operator-only, never imported by the service; spec
 [`qa_server_deployment`](../docs/specs/qa_server_deployment.md)). QA is container `manijero-qa` from
 tag `manijero-backend:qa-current` (update promotes `:local` and keeps `:qa-previous`; rollback swaps
@@ -2639,7 +2639,7 @@ abstention fails the answer step; the result names the first failing step. Spec:
 ### QA alerts
 
 `./scripts/init.sh --qa-alerts-setup`, `--qa-alerts-start`, `--qa-alerts-stop`, `--qa-alerts-status`, and
-`--qa-alerts-test` (owner steps in [`docs/owner-guide.md`](../docs/owner-guide.md)) run
+`--qa-alerts-test` (owner steps in [`docs/owner-guide/qa-alerts.md`](../docs/owner-guide/qa-alerts.md)) run
 `scripts/qa_alerts.py <operation>`, implemented by `app/qa_alerts.py` (operator-only, stdlib-only, never
 imported by the service; spec [`qa_service_alerts`](../docs/specs/qa_service_alerts.md)). `check` is what
 launchd runs; it is not an owner command. The job is the user agent `org.manijero.qa-alerts`
@@ -2656,7 +2656,7 @@ hours, the same kind at most once per 60 minutes, and recovery after 2 OK checks
 
 ### Local smoke test
 
-`./scripts/init.sh --local-smoke` (owner steps in [`docs/owner-guide.md`](../docs/owner-guide.md))
+`./scripts/init.sh --local-smoke` (owner steps in [`docs/owner-guide/local-checks.md`](../docs/owner-guide/local-checks.md))
 runs `scripts/local_rag.py smoke`, implemented by `app/local_smoke.py` (operator-only,
 stdlib-only, never imported by the service). The dispatch runs before the `local.properties`
 write and exports `ANDROID_HOME`/`ANDROID_SDK_ROOT` (default `~/Library/Android/sdk`) for AGP.
@@ -2729,7 +2729,7 @@ a dev-only dependency used to read the YAML contract.
 
 ### Local load test
 
-`./scripts/init.sh --local-rag-load-test` (owner steps in [`docs/owner-guide.md`](../docs/owner-guide.md))
+`./scripts/init.sh --local-rag-load-test` (owner steps in [`docs/owner-guide/local-checks.md`](../docs/owner-guide/local-checks.md))
 runs `scripts/measure_local_load.py` (operator-only, stdlib-only, no k6/Locust or new dependency,
 never imported by the service). With the service started by `--local-rag-start`, it sends each
 reviewed case question with the empty `general` land context from 10 clients, closed loop with no
@@ -2755,7 +2755,7 @@ draft timeout or 30 requests/minute limit, so a low p95 can hide drafting.
 
 `knowledge/golden_set.json` (`golden-set-v1`, loader `app/golden_set.py`) holds 40-60 agent-drafted
 questions beside `pac_answer_eval.json`; no gate, release, review, demo, or load code reads it.
-Owner steps are in [`docs/owner-guide.md`](../docs/owner-guide.md): `./scripts/init.sh --golden-review`
+Owner steps are in [`docs/owner-guide/golden-set-review.md`](../docs/owner-guide/golden-set-review.md): `./scripts/init.sh --golden-review`
 lists the waiting items and `--golden-decide approve|reject "<name>" <number-or-id>...` records a
 decision (atomic rewrite; bad input records nothing; one `Result:` line each; raw errors in
 `build/golden-review/last-error.log`).
@@ -2770,7 +2770,7 @@ decision (atomic rewrite; bad input records nothing; one `Result:` line each; ra
 
 ### Demo rehearsal
 
-`./scripts/init.sh --demo-rehearsal` (owner steps in [`docs/owner-guide.md`](../docs/owner-guide.md),
+`./scripts/init.sh --demo-rehearsal` (owner steps in [`docs/owner-guide/local-checks.md`](../docs/owner-guide/local-checks.md),
 live order in [`docs/demo-script.md`](../docs/demo-script.md)) runs
 `backend/scripts/demo_rehearsal.py` (operator-only, stdlib-only plus `app.review_package` and
 `app.abstention`, never imported by the service). The dispatch runs before the `local.properties`
@@ -2806,7 +2806,7 @@ counts, and the address. **Exit codes**: `0` all four passed; `1` any failed or 
 
 ### Usability results
 
-`./scripts/init.sh --usability-record` (steps in [`docs/owner-guide.md`](../docs/owner-guide.md), kit in
+`./scripts/init.sh --usability-record` (steps in [`docs/owner-guide/usability-session.md`](../docs/owner-guide/usability-session.md), kit in
 [`docs/usability-session/`](../docs/usability-session/)) runs `backend/scripts/usability_record.py`
 (operator-only; logic in `app/usability_results.py`; never imported by the service). The dispatch matches
 `--demo-rehearsal`: one argument only (else exit `2`), the shared dev environment linked if `backend/.venv` is absent.

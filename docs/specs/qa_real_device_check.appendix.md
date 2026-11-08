@@ -23,7 +23,7 @@
 - `shared/src/commonMain/.../chat/AnswerService.kt`, `AnswerFeedback.kt`, `ChatTestTags.kt`, `ChatTranscript.kt` — `sendFeedback` with the same token rule; rating row under answered and abstained replies; failure line has no tag yet.
 - `shared/src/jvmTest/.../platform/PilotTokenGuardTest.kt`, `LocalSmokeGuardTest.kt` — rules the new task must respect.
 - `docs/constraints/hosting-and-pilot.md` (token rule, line ~66), `docs/constraints/operations.md` (line 20) — rules to update.
-- `docs/owner-guide.md` "Deploy, update, ... QA", "Owner walkthrough: QA", "Build the QA test apps" — sections to extend.
+- `docs/owner-guide/qa.md` "Deploy, update, ... QA", "Owner walkthrough: QA", "Build the QA test apps" — sections to extend.
 
 ### Planner decisions
 

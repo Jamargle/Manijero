@@ -15,7 +15,7 @@
 - `backend/app/ask_api.py`, `knowledge_release.py`, `embedding_index.py`, `vector_store.py` — paths derived from `parents[2]`; with the release root set the service reads the release, not `knowledge/` (to be confirmed by the staged-layout smoke).
 - `backend/requirements.txt` (ranges), `requirements-embeddings.txt` (exact torch/transformers pins), `requirements-hybrid.txt` (`-r` both plus `chromadb==1.5.9`), `backend/deploy/requirements-production.txt` (exact fastapi/uvicorn/httpx; transitive not hash-pinned), `.python-version` (`3.12`).
 - `backend/tests/test_local_rag_commands.py` — subprocess pattern (temporary home, empty venv root, fake CLI, skip without `backend/.venv`).
-- `docs/owner-guide.md` headings — section and walkthrough style to extend.
+- `docs/owner-guide/container.md` headings — section and walkthrough style to extend.
 - `ARCHITECTURE.md`, `PROGRESS.md` "Current state", `feature_list.json` (dependent `qa_server_deployment`).
 - No `Dockerfile`, `.dockerignore`, or compose file exists in the repository. Not inspected: `serve_pilot.py`, `pilot_config.py` internals, `scripts/python-env.sh` internals.
 
@@ -54,7 +54,7 @@
 6. Extend `backend/scripts/local_rag.py` with the four choices and Ctrl+C sentences (build: nothing tagged; start: container removed).
 7. Change the port-in-use sentence in `local_rag_service.py` and the mock block in `init.sh`; add the `--container-*` dispatch, `usage`, `--check` listing.
 8. Write the three test files; update `test_local_rag_service.py` for the sentence.
-9. Update `docs/owner-guide.md`, `backend/README.md`, `ARCHITECTURE.md`, `operations.md`, `lands.md`, `risks-and-open-questions.md`.
+9. Update `docs/owner-guide/container.md`, `backend/README.md`, `ARCHITECTURE.md`, `operations.md`, `lands.md`, `risks-and-open-questions.md`.
 10. Run the focused block and `./scripts/init.sh --fast`; record one-line results.
 11. Hand the walkthrough to the orchestrator for the owner; record results.
 
@@ -85,7 +85,7 @@
   - empty home with fake daemon open: build and start name `--local-rag-setup`, home not created;
   - extra argument for each command and a bad port: exit 2.
 - E2E: not applicable; app-to-service checks are `local_end_to_end_smoke`.
-- Owner walkthrough (operations.md MUST; the owner runs it exactly as `docs/owner-guide.md` writes it, from a fresh checkout; agents do not run it). For each step the owner reports the `Result:` line and anything different:
+- Owner walkthrough (operations.md MUST; the owner runs it exactly as `docs/owner-guide/container.md` writes it, from a fresh checkout; agents do not run it). For each step the owner reports the `Result:` line and anything different:
   1. Install Docker Desktop per the guide's one-time section; open it once. Report the version shown in **About**.
   2. `./scripts/init.sh --local-rag-status` → `Result: all 6 parts are ready.`; `./scripts/init.sh --local-rag-service-status` → not running (otherwise `--local-rag-stop`).
   3. Missing prerequisite: quit Docker Desktop; `./scripts/init.sh --container-build` → the open-Docker line and `Result: the image was not built. …`.

@@ -63,7 +63,7 @@ Given `P1` is already saved · When the owner types `P1` · Then it says P1 is a
 
 ### 8. Owner guide walkthrough
 
-Given `docs/owner-guide.md` · Then it has a section titled exactly `Owner walkthrough: usability session` with numbered steps (prepare QA and the app, print the kit, run each participant, record, reset, send the summary), the expected `Result:` lines, one missing-prerequisite case (QA not running), one recovery (replace a mistyped participant), and a table of only the messages the owner can reach; at most about 60 lines.
+Given `docs/owner-guide/usability-session.md` · Then it has a section titled exactly `Owner walkthrough: usability session` with numbered steps (prepare QA and the app, print the kit, run each participant, record, reset, send the summary), the expected `Result:` lines, one missing-prerequisite case (QA not running), one recovery (replace a mistyped participant), and a table of only the messages the owner can reach; at most about 60 lines.
 
 ## Technical approach
 
@@ -80,7 +80,7 @@ Given `docs/owner-guide.md` · Then it has a section titled exactly `Owner walkt
 - `backend/app/usability_results.py`, `backend/scripts/usability_record.py` — create.
 - `backend/tests/test_usability_session.py` — create: kit guards, recorder, refusals, file safety, `init.sh` dispatch/misuse.
 - `scripts/init.sh` — modify: dispatch, `usage`, `--check` listing. `.gitignore` — modify: one guard line.
-- `docs/owner-guide.md`, `backend/README.md`, `ARCHITECTURE.md`, `docs/constraints/operations.md` — modify (see below).
+- `docs/owner-guide/usability-session.md`, `backend/README.md`, `ARCHITECTURE.md`, `docs/constraints/operations.md` — modify (see below).
 - Not changed: `shared/`, `androidApp/`, `desktopApp/`, Gradle files, `contracts/`, `knowledge/`, `backend/app/input_guardrails.py` (imported only), QA and service modules, `DESIGN.md`.
 
 ## Visual design impact
@@ -91,7 +91,7 @@ UI involved: no app change. The kit only quotes existing labels (`Antes de empez
 
 - `ARCHITECTURE.md`: update — one line: operator-only `usability_results.py`/`usability_record.py` behind `--usability-record`, writing anonymous results outside the checkout; never imported by the service.
 - `docs/constraints/operations.md`: update — one MUST: a results-recording command stores only anonymous `P<n>` codes, fixed outcome codes, minutes, and screened notes outside the checkout with mode `0600`, refuses personal-data-looking input without echoing it, and asks before replacing a record. Reason: `usability_session`.
-- `docs/owner-guide.md`: update — `Owner walkthrough: usability session` (scenario 8). `backend/README.md`: update — at most 30 lines (command, schema, screening rules and their limits, test-only variable).
+- `docs/owner-guide/usability-session.md`: update — `Owner walkthrough: usability session` (scenario 8). `backend/README.md`: update — at most 30 lines (command, schema, screening rules and their limits, test-only variable).
 - `AGENTS.md`, `CONTEXT.md`, `DESIGN.md`, `contracts/`, `knowledge/README.md`: not needed — no workflow, glossary, UI, or contract change.
 - At `passing`: one line each in `PROGRESS.md` and `docs/progress/known-limitations.md` (kit ready, no session run, lexical screening). At `accepted` (after the real session): `docs/risks-and-open-questions.md` usability row updated with the observed evidence, `docs/progress/session-log.md` line, follow-up items added.
 
@@ -106,7 +106,7 @@ MANIJERO_PYTHON="${MANIJERO_PYTHON:-backend/.venv/bin/python}" ./scripts/init.sh
 ```
 <!-- verify:end -->
 
-The real session (Desktop QA app, 2-3 participants, `--usability-record`) is the owner walkthrough in `docs/owner-guide.md`; it is not part of this block and gates `accepted` (Notes 7).
+The real session (Desktop QA app, 2-3 participants, `--usability-record`) is the owner walkthrough in `docs/owner-guide/usability-session.md`; it is not part of this block and gates `accepted` (Notes 7).
 
 ## Appendix
 

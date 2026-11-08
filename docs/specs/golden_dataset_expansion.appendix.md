@@ -18,7 +18,7 @@
 - `backend/app/release_gates.py`, `backend/app/knowledge_release.py`, `knowledge/knowledge-release-manifest.schema.json` — the release bundles `pac_answer_eval.json`, and per-case no-regression applies to unchanged cases.
 - `backend/scripts/demo_rehearsal.py`, `backend/scripts/measure_local_load.py`, `backend/scripts/knowledge_review.py` (consumer known from specs, not opened) — other `--cases` consumers.
 - `scripts/init.sh` — the `--demo-rehearsal` dispatch pattern (venv fallback, `Result:` on missing setup, runs before the `local.properties` write). `run_feature` reads the spec's verify block generically, so no planner wiring is needed.
-- `docs/owner-guide.md` — the header promises one `Result:` line per command, and owner sections use numbered steps plus a "You see / What it means / What to do" table.
+- `docs/owner-guide/golden-set-review.md` — the header promises one `Result:` line per command, and owner sections use numbered steps plus a "You see / What it means / What to do" table.
 - `docs/constraints/operations.md` — owner operability: one command, prerequisite check first, one result line, no JSON editing, and a walkthrough with a missing-prerequisite case and a recovery.
 - `docs/constraints/answers-and-knowledge.md` — "Safety evaluation" holds the review-before-entry rule; the new golden rule goes there.
 - `docs/archive/MasterPlanV3.md` §2.3, §12 — segments A/B/C plus transversal; source-first principle; composition 40–60.

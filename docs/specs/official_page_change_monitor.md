@@ -83,7 +83,7 @@ Given the same config, page bytes, prior state, and injected `--now`, when the c
 - `ARCHITECTURE.md` — update; add the page-monitor runtime boundary next to the existing source monitor.
 - `docs/constraints/answers-and-knowledge.md` — update; add the durable review-only/outside-`knowledge/` rule.
 - `docs/validations/official_page_change_monitor.md` — created by the independent validator only.
-- `knowledge/`, `contracts/`, `shared/`, client code, `docs/owner-guide.md`, `scripts/init.sh` — no changes; the focused tier uses the existing `--backend-tests`/`--feature` runner.
+- `knowledge/`, `contracts/`, `shared/`, client code, `docs/owner-guide/`, `scripts/init.sh` — no changes; the focused tier uses the existing `--backend-tests`/`--feature` runner.
 
 ## Visual design impact
 
@@ -95,7 +95,7 @@ No UI involved. No `DESIGN.md` section applies.
 - `docs/constraints/answers-and-knowledge.md`: update — page changes are review signals; state/report stay outside `knowledge/`; no canonical, release, index, or `/ask` effect; no legal-currency claim.
 - `AGENTS.md`: not needed — no workflow, startup path, or repo-wide rule changes; developers use the existing `--backend-tests` and `--feature` tiers.
 - `backend/README.md`: update — developer command, config/state/report shape, exit codes, and honest limits.
-- `docs/owner-guide.md`: not needed — developer-only feature; no owner operation or walkthrough.
+- `docs/owner-guide/`: not needed — developer-only feature; no owner operation or walkthrough.
 - `docs/risks-and-open-questions.md`: update only if evidence shows a new operational risk; the normalized-diff and dynamic-page limits otherwise stay in this appendix.
 
 ## Focused verification (required)

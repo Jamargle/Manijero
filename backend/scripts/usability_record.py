@@ -2,7 +2,7 @@
 """Record one usability-session participant under an anonymous code.
 
 Owner entry point behind ``./scripts/init.sh --usability-record`` (steps in
-``docs/owner-guide.md``, kit in ``docs/usability-session/``). It asks for the code from the paper
+``docs/owner-guide/usability-session.md``, kit in ``docs/usability-session/``). It asks for the code from the paper
 sheet, one outcome and whole minutes per task, optional short notes, and whether the app asked
 to choose a land in task 3; shows a recap of counts only; and saves after ``yes``. It then prints
 counts and median minutes for every saved participant and exactly one ``Result:`` line.

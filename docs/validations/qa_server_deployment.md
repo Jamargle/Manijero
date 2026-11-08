@@ -4,7 +4,7 @@
 
 **Accepted** (2026-11-07) after the owner walkthrough; evidence-only acceptance, no second validator (see "Owner walkthrough" below).
 
-**Accept, condition: pending owner walkthrough** (2026-11-03). Independent validation of the uncommitted diff against `docs/specs/qa_server_deployment.md`. Feature stays `passing` until the owner reports the "Owner walkthrough: QA" in `docs/owner-guide.md` matched.
+**Accept, condition: pending owner walkthrough** (2026-11-03). Independent validation of the uncommitted diff against `docs/specs/qa_server_deployment.md`. Feature stays `passing` until the owner reports the "Owner walkthrough: QA" in `docs/owner-guide/qa.md` matched.
 
 ## Checks rerun
 

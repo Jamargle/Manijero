@@ -94,7 +94,7 @@ UI involved: no.
 - `backend/README.md`: update — one section of at most 30 lines: command, screen-only mode, refusal and failure codes, bounds, exit codes, where to keep real notices.
 - `docs/progress/known-limitations.md` + `PROGRESS.md` digest: update — one line: the notice screen is a lexical Spanish heuristic (can miss an unusual name or address, can refuse a cooperative named after a person or saint), tested only on invented notices, no extraction quality measured, output unreviewed.
 - `docs/risks-and-open-questions.md`: update — one line: real notices pending from the owner; processing them needs a run on the owner's Mac.
-- `docs/owner-guide.md`, `docs/pilot-privacy.md`, `contracts/`, `DESIGN.md`, `CONTEXT.md`, `scripts/init.sh`, `knowledge/`: not needed — developer-only, no pilot participant data flow, wire, UI, domain, or command change.
+- `docs/owner-guide/`, `docs/pilot-privacy.md`, `contracts/`, `DESIGN.md`, `CONTEXT.md`, `scripts/init.sh`, `knowledge/`: not needed — developer-only, no pilot participant data flow, wire, UI, domain, or command change.
 
 ## Focused verification (required)
 

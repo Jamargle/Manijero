@@ -80,7 +80,7 @@ Given the same inputs and `--as-of`, when the command runs twice, then the two J
 - `docs/constraints/answers-and-knowledge.md` — update; one MUST for structural expiry read and review-only proposals.
 - `docs/risks-and-open-questions.md` — update; the consolidation-state gap and unmeasured detection.
 - `feature_list.json`, `PROGRESS.md`, `docs/progress/session-log.md`, `docs/validations/validity_checker.md` — implementer/validator only, after evidence exists.
-- `docs/owner-guide.md` — not changed; owner decision: no walkthrough. No init.sh mode: this is a knowledge-reviewer CLI like `analyze_legal_changes.py`.
+- `docs/owner-guide/` — not changed; owner decision: no walkthrough. No init.sh mode: this is a knowledge-reviewer CLI like `analyze_legal_changes.py`.
 
 ## Visual design impact
 
@@ -91,7 +91,7 @@ None. No Compose UI, route, Spanish copy, or screenshot baseline changes.
 - `ARCHITECTURE.md`: update — add `source_validity.py` and its derived, review-only artifact boundary.
 - `docs/constraints/answers-and-knowledge.md`: update — a derived validity check may read an expired catalog structurally but never makes anything eligible; retirement/addition proposals stay review-only outside `knowledge/`.
 - `AGENTS.md`: not needed — no workflow, startup path, or repo-wide rule changes.
-- Other: `backend/README.md` (command and artifact), `knowledge/README.md` (schema row), `docs/risks-and-open-questions.md` (limits); `DESIGN.md`, `CONTEXT.md`: not needed. `docs/owner-guide.md`: not needed by owner decision.
+- Other: `backend/README.md` (command and artifact), `knowledge/README.md` (schema row), `docs/risks-and-open-questions.md` (limits); `DESIGN.md`, `CONTEXT.md`: not needed. `docs/owner-guide/`: not needed by owner decision.
 
 ## Focused verification
 

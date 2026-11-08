@@ -674,7 +674,7 @@ def _deploy_locked(ctx: bootstrap.Context, ports: QaPorts, facts: _Facts) -> int
     out("Address: {}".format(address))
     out("WARNING: QA is for made-up test questions only. The privacy review is still pending; no real users.")
     out("Next steps:")
-    out("  Rebuild the QA apps so they use this address (docs/owner-guide.md, \"Build the QA test apps\").")
+    out("  Rebuild the QA apps so they use this address (docs/owner-guide/qa.md, \"Build the QA test apps\").")
     out("  On a phone, open {}/health in the browser; it should show a short status.".format(address))
     out("  {}   check it at any time".format(STATUS_COMMAND))
     out("  {}     take it off the internet when you are done".format(STOP_COMMAND))

@@ -11,7 +11,7 @@
 - `scripts/init.sh` — early owner-command dispatch (`--demo-rehearsal` lines 278-294 is the closest pattern), `usage` (~line 387), `--check` listing (~line 964), verify-block parser for `--feature`.
 - `docs/specs/rag_demo_rehearsal.md` + archived appendix — owner-command plus plain-Spanish run-sheet shape; same `applicability` limit on land clarification.
 - `docs/specs/local_load_test.md` — results written outside the checkout under an environment home, mode `0600`, aggregate-only output.
-- `docs/owner-guide.md` — English, numbered steps, expected `Result:` lines, "If ... shows something else" tables; walkthrough sections (`Owner walkthrough: local smoke test`, `... QA`).
+- `docs/owner-guide/` — English, numbered steps, expected `Result:` lines, "If ... shows something else" tables; walkthrough sections (`Owner walkthrough: local smoke test`, `... QA`).
 - `backend/app/input_guardrails.py` — `screen_question` returns `personal_data` first (DNI, NIE, NIF, phone, email, IBAN; SIGPAC/cadastral masked); names and addresses are not screened.
 - `backend/app/qa_deployment.py` (`_confirm`) and `backend/app/local_rag_bootstrap.py` (~line 1280) — injected prompter; `yes` confirmation; `None` on end of input.
 - `backend/app/local_rag_bootstrap.py` — `MANIJERO_LOCAL_HOME` test-only override pattern; homes must be outside the checkout.
@@ -53,7 +53,7 @@
 3. Add `backend/scripts/usability_record.py`: resolve home (refuse inside checkout), load file, prompt loop with three-tries rule, replace confirmation, recap counts only, `yes` to save, summary, `Result:`; KeyboardInterrupt/EOF → nothing saved.
 4. Add `--usability-record` to `scripts/init.sh` dispatch, `usage`, and `--check` listing; add the `.gitignore` guard.
 5. Add `backend/tests/test_usability_session.py` (tests below).
-6. Update `docs/owner-guide.md`, `backend/README.md`, `ARCHITECTURE.md`, `docs/constraints/operations.md`.
+6. Update `docs/owner-guide/usability-session.md`, `backend/README.md`, `ARCHITECTURE.md`, `docs/constraints/operations.md`.
 7. Run the focused block; record the one-line result in Feature evidence.
 8. At `passing`: `PROGRESS.md` and `docs/progress/known-limitations.md` one line each. At `accepted` (after the real session): risks row, session-log line, follow-up items.
 

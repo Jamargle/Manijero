@@ -4,7 +4,7 @@
 
 - `id`: qa_service_alerts · `area`: operations · `depends_on`: qa_server_deployment, monitoring_dashboard (both accepted) · `status` at planning: not_started
 - User-visible behavior: after a one-time Telegram bot setup, the owner turns on a check that runs on their Mac every 5 minutes and sends one plain-language Telegram message when QA goes down, is not ready, is erroring, or stops answering at its public address, one "back to normal" message when it clears, and at most a reminder every 4 hours while it stays broken. Named commands set up, start, stop, check, and test the alerts, each ending with one `Result:` line.
-- Verification: offline unit and `scripts/init.sh` subprocess tests with a fake Telegram, fake probes, fake Docker/Tailscale, and a fake `launchctl` (Focused verification); manual acceptance is the owner walkthrough in `docs/owner-guide.md` ("Owner walkthrough: QA alerts").
+- Verification: offline unit and `scripts/init.sh` subprocess tests with a fake Telegram, fake probes, fake Docker/Tailscale, and a fake `launchctl` (Focused verification); manual acceptance is the owner walkthrough in `docs/owner-guide/qa-alerts.md` ("Owner walkthrough: QA alerts").
 - Notes — Owner decisions 2026-11-07:
   1. Alert channel: a Telegram bot the owner creates once, guided by a step-by-step owner-guide section; account and bot creation are never automated. The bot token and chat id live only in a local untracked secrets file outside the repository; they are never committed, printed, logged, or passed in argv.
   2. The check runs on the owner's Mac as a launchd user agent every 5 minutes, with one named start, one stop, and one status command, each ending with one plain `Result:` line.
@@ -81,7 +81,7 @@ App UI involved: no. Owner text (terminal and Telegram) is plain English, state 
 
 - `docs/constraints/operations.md`: update — amend the "check that runs outside that host" MUST with owner decision 2026-11-07 (QA alerts run on the same Mac, detect service problems only while it is awake, never described as host-outage alerting); add one MUST for QA alerts (secrets only in `~/manijero/alerts/credentials/`, never argv/printed/logged; fixed message texts; launchctl only for its own label; 4-hour reminder, 60-minute same-kind cap).
 - `ARCHITECTURE.md`: update — one bullet for `qa_alerts.py` (launchd check, Telegram).
-- `docs/owner-guide.md`: update (≤ ~60 lines) — "Set up Telegram alerts (one time)" (BotFather steps, `--qa-alerts-setup`), "Turn QA alerts on, check, test, and off" (table of `Result:` lines and the message table), "Owner walkthrough: QA alerts"; note the macOS "Background item added" notice.
+- `docs/owner-guide/qa-alerts.md`: update (≤ ~60 lines) — "Set up Telegram alerts (one time)" (BotFather steps, `--qa-alerts-setup`), "Turn QA alerts on, check, test, and off" (table of `Result:` lines and the message table), "Owner walkthrough: QA alerts"; note the macOS "Background item added" notice.
 - `backend/README.md`: update (≤ ~30 lines) — internals, plist keys, test seams.
 - `docs/progress/known-limitations.md`: update — sleeping/off Mac undetectable; the public probe runs from the same Mac; erroring needs 15 minutes of samples.
 - `PROGRESS.md`, session log: at acceptance. `AGENTS.md`, `CONSTRAINTS.md`, `CONTEXT.md`, `DESIGN.md`, `contracts/`: not needed.
