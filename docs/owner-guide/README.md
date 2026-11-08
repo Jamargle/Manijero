@@ -28,6 +28,8 @@ In the order you usually need them:
 9. [QA alerts](qa-alerts.md): get a Telegram message when QA stops working.
 10. [Usability session](usability-session.md): run and record a session with test participants.
 11. [Question glossary review](question-glossary-review.md): approve or reject the proposed everyday-word to official-term pairs.
+11. [Grounding judge](grounding-judge.md): download the second model that checks drafted sentences and
+    produce its counts report (scores unchecked against human review).
 
 An "Owner walkthrough" section near the end of a guide holds one-time acceptance steps whose
 `Result:` lines you report to the developer.

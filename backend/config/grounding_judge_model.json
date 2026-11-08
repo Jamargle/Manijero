@@ -1,0 +1,17 @@
+{
+  "schema_version": "local-generation-model-v1",
+  "model": "qwen2.5:7b-instruct-q4_K_M",
+  "digest": "845dbda0ea48ed749caafd9e6037047aa19acfcfd82e704d7ca97d631a0b697e",
+  "license": "Apache-2.0",
+  "license_reference": "Ollama 0.40.14 /api/show license text 'Apache License, Version 2.0, January 2004' (11343 chars, sha256 832dd9e00a68dd83b3c3fb9f5588dad7dcf337a0db50f7d9483f310cd292e92e), recorded 2026-11-08; model card https://huggingface.co/Qwen/Qwen2.5-7B-Instruct (link not read from Ollama; not confirmed by the owner)",
+  "parameter_size": "7.6B",
+  "quantization": "Q4_K_M",
+  "size_bytes": 4683087332,
+  "num_ctx": 4096,
+  "timeout_seconds": 14,
+  "max_output_tokens": 32,
+  "max_requests_per_minute": 600,
+  "max_requests_per_day": 100000,
+  "keep_alive_seconds": 1800,
+  "recorded_on": "2026-11-08"
+}

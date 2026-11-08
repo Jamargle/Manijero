@@ -377,6 +377,37 @@ if [[ "${1:-}" == "--glossary-review" || "${1:-}" == "--glossary-decide" ]]; the
   exec "$LOCAL_RAG_PYTHON" "$REPO_ROOT/backend/scripts/glossary_review.py" decide -- "$@"
 fi
 
+# Owner commands: the offline grounding judge (docs/owner-guide/grounding-judge.md). --grounding-judge-setup
+# downloads the pinned judge model and checks its digest; --grounding-judge-report drafts the reviewed and
+# golden questions with the local drafting model, has the judge model check each sentence, and writes
+# build/grounding-judge/report.json. Both take no arguments, end with one Result: line, and run before the
+# local.properties write.
+if [[ "${1:-}" == "--grounding-judge-setup" || "${1:-}" == "--grounding-judge-report" ]]; then
+  REPO_ROOT="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")/.." && pwd)"
+  GROUNDING_COMMAND="${1#--grounding-judge-}"
+  if (( $# > 1 )); then
+    printf 'Run %s on its own, with nothing after it.\n' "$1" >&2
+    exit 2
+  fi
+  LOCAL_RAG_PYTHON="$REPO_ROOT/backend/.venv/bin/python"
+  if [[ ! -x "$LOCAL_RAG_PYTHON" ]] && ! "$REPO_ROOT/scripts/python-env.sh" dev --if-present >/dev/null 2>&1; then
+    printf 'The local answer tools are not set up yet. Run ./scripts/init.sh --local-rag-setup to set them up.\n'
+    printf 'Result: the grounding judge command did not run. Run ./scripts/init.sh --local-rag-setup.\n'
+    exit 1
+  fi
+  if [[ "$GROUNDING_COMMAND" == "setup" ]]; then
+    exec "$LOCAL_RAG_PYTHON" "$REPO_ROOT/backend/scripts/judge_grounding.py" setup
+  fi
+  exec "$LOCAL_RAG_PYTHON" "$REPO_ROOT/backend/scripts/judge_grounding.py" run \
+    --catalog "$REPO_ROOT/knowledge/source_catalog.json" \
+    --passages "$REPO_ROOT/knowledge/passages.json" \
+    --cases "$REPO_ROOT/knowledge/pac_answer_eval.json" \
+    --golden "$REPO_ROOT/knowledge/golden_set.json" \
+    --active-campaign 2026 \
+    --as-of "$(date +%Y-%m-%d)" \
+    --report "$REPO_ROOT/build/grounding-judge/report.json"
+fi
+
 # Owner command: save one usability-session participant's results under an anonymous code
 # (docs/owner-guide/usability-session.md, docs/usability-session/). It never reads or writes the apps or the
 # service; the results file lives outside the checkout.
@@ -445,7 +476,7 @@ AS_OF="${MANIJERO_AS_OF:-2026-10-13}"
 
 usage() {
   cat <<'EOF'
-Usage: ./scripts/init.sh [--check|--fast|--verify|--feature <id>|--backend-tests [targets]|--setup-python [dev|hybrid|docparse]|--backend|--mock|--mock-status|--mock-stop|--local-rag-setup|--local-rag-status|--local-rag-start|--local-rag-service-status|--local-rag-load-test|--local-rag-stop|--container-build|--container-start|--container-status|--container-stop|--monitoring-start|--monitoring-status|--monitoring-stop|--pilot-token-save|--demo-rehearsal|--golden-review|--golden-decide|--glossary-review|--glossary-decide|--usability-record|--local-smoke|--qa-check|--environments-status|--qa-settings-setup|--qa-deploy|--qa-update|--qa-rollback|--qa-status|--qa-stop|--qa-alerts-setup|--qa-alerts-start|--qa-alerts-stop|--qa-alerts-status|--qa-alerts-test|--android|--android-run|--desktop|--android-qa|--desktop-qa|--help]
+Usage: ./scripts/init.sh [--check|--fast|--verify|--feature <id>|--backend-tests [targets]|--setup-python [dev|hybrid|docparse]|--backend|--mock|--mock-status|--mock-stop|--local-rag-setup|--local-rag-status|--local-rag-start|--local-rag-service-status|--local-rag-load-test|--local-rag-stop|--container-build|--container-start|--container-status|--container-stop|--monitoring-start|--monitoring-status|--monitoring-stop|--pilot-token-save|--demo-rehearsal|--golden-review|--golden-decide|--glossary-review|--glossary-decide|--grounding-judge-setup|--grounding-judge-report|--usability-record|--local-smoke|--qa-check|--environments-status|--qa-settings-setup|--qa-deploy|--qa-update|--qa-rollback|--qa-status|--qa-stop|--qa-alerts-setup|--qa-alerts-start|--qa-alerts-stop|--qa-alerts-status|--qa-alerts-test|--android|--android-run|--desktop|--android-qa|--desktop-qa|--help]
 
   --check                   Check Java and the Gradle wrapper, then print standard commands (default)
   --fast                    Shared host tests, contract examples, backend unit tests, and the five
@@ -498,6 +529,11 @@ Usage: ./scripts/init.sh [--check|--fast|--verify|--feature <id>|--backend-tests
   --glossary-decide approve|reject "<name>" <number-or-id>...
                             Record your decision for the listed word pairs (nothing is recorded if
                             anything is wrong)
+  --grounding-judge-setup   One time: download the small second model that checks drafted sentences
+                            (needs Ollama; about 4.7 GB) and verify it is the reviewed one
+  --grounding-judge-report  Draft the reviewed and golden questions with the local drafting model, have
+                            the second model check each sentence, and write build/grounding-judge/report.json
+                            (counts only; scores are unchecked against human review)
   --usability-record        Save one usability-session participant's results under an anonymous
                             code (P1, P2...) and print a plain summary (see docs/owner-guide/usability-session.md)
   --local-smoke             With the local answer service running, ask it one fixed question through
