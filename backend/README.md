@@ -2768,6 +2768,28 @@ decision (atomic rewrite; bad input records nothing; one `Result:` line each; ra
   items to the cases (`review.role = author_only`) and `additional_areas` to the coverage, and adds
   `golden: {approved, draft, rejected}`. Without the flag the output is unchanged.
 
+### Question glossary
+
+`backend/config/question_glossary.json` (`question-glossary-v1`, runtime `app/question_glossary.py`)
+holds colloquial -> official pairs; only `approved` pairs apply. They append the official term to
+the retrieval query (`/ask` search and the hybrid ranker only); the grower's words stay first and
+nothing else sees the expanded text. Whole-token match after `retrieval.tokenize`, longest first,
+at most 4 terms. Owner steps: [`docs/owner-guide/question-glossary-review.md`](../docs/owner-guide/question-glossary-review.md).
+
+- `MANIJERO_QUESTION_GLOSSARY=off` disables it (default `on`; any other value also disables it). A
+  missing, oversized, wrong-schema, or invalid file disables it too. One `question_glossary` log
+  line carries `state=on approved=N` or `state=off reason=<code>`, never a term. The cache's model
+  identity gains `+glossary:<12 hex>` only when pairs are approved.
+- `python backend/scripts/glossary_review.py seed --notice-review build/notice-review/notice-review.json`
+  adds a `notice-review-v1` vocabulary as `proposed` pairs (existing entries untouched; unsafe pairs
+  are only counted; exit 2 on a damaged file). `list`/`decide` are the owner commands.
+- Developer check (exit 0/1, ids only): `python backend/scripts/glossary_review.py check --catalog
+  knowledge/source_catalog.json --passages knowledge/passages.json --cases
+  knowledge/pac_answer_eval.json --golden knowledge/golden_set.json --glossary
+  backend/config/question_glossary.json --active-campaign 2026 --as-of 2026-11-07 --k 5`. It fails
+  when an entry breaks the rules or a case that passes without the glossary fails with it.
+- Release gates never apply it; `evaluate_pac_answers.py` uses the served app, so it does.
+
 ### Demo rehearsal
 
 `./scripts/init.sh --demo-rehearsal` (owner steps in [`docs/owner-guide/local-checks.md`](../docs/owner-guide/local-checks.md),

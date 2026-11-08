@@ -36,7 +36,7 @@ import unicodedata
 from dataclasses import dataclass
 from datetime import date
 from pathlib import Path
-from typing import Any, Dict, FrozenSet, List, Optional, Protocol, Sequence, Tuple
+from typing import Any, Callable, Dict, FrozenSet, List, Optional, Protocol, Sequence, Tuple
 
 from app import answer_trace
 from app.source_catalog import (
@@ -408,8 +408,10 @@ class Retriever:
         eligible_source_count: int,
         excluded_passage_count: int,
         ranker: Optional[CandidateRanker] = None,
+        query_expansion: Optional[Callable[[str], str]] = None,
     ) -> None:
         self._ranker = ranker
+        self._query_expansion = query_expansion
         self._fingerprint: Optional[str] = None
         self._records: Tuple[_PassageRecord, ...] = tuple(records)
         self._records_by_id: Dict[str, _PassageRecord] = {
@@ -550,6 +552,26 @@ class Retriever:
             eligible_source_count=self._eligible_source_count,
             excluded_passage_count=self._excluded_passage_count,
             ranker=ranker,
+            query_expansion=self._query_expansion,
+        )
+        shared._fingerprint = self._fingerprint
+        return shared
+
+    def with_query_expansion(self, expand: Callable[[str], str]) -> "Retriever":
+        """Return a retriever that searches with ``expand(question)`` instead of the question.
+
+        Records, index, counts, and any ranker are shared. Only the query handed to the
+        search changes; callers keep their own copy of the question. ``self`` is unchanged.
+        """
+
+        shared = Retriever(
+            records=self._records,
+            index=self._index,
+            as_of=self._as_of,
+            eligible_source_count=self._eligible_source_count,
+            excluded_passage_count=self._excluded_passage_count,
+            ranker=self._ranker,
+            query_expansion=expand,
         )
         shared._fingerprint = self._fingerprint
         return shared
@@ -561,7 +583,8 @@ class Retriever:
         """
 
         started = answer_trace.note_search_begin()
-        candidates = self._search(question, k)
+        query = question if self._query_expansion is None else self._query_expansion(question)
+        candidates = self._search(query, k)
         answer_trace.note_search_end(started, candidates)
         return candidates
 

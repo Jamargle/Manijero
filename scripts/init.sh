@@ -358,6 +358,25 @@ if [[ "${1:-}" == "--golden-review" || "${1:-}" == "--golden-decide" ]]; then
   exec "$LOCAL_RAG_PYTHON" "$REPO_ROOT/backend/scripts/golden_review.py" decide -- "$@"
 fi
 
+# Owner commands: review the question glossary (docs/owner-guide/question-glossary-review.md). --glossary-review
+# lists the word pairs that wait for a decision; --glossary-decide approve|reject "<name>" <number-or-id>...
+# records a named reviewer's decision. Both end with one Result: line and run before the local.properties write.
+if [[ "${1:-}" == "--glossary-review" || "${1:-}" == "--glossary-decide" ]]; then
+  REPO_ROOT="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")/.." && pwd)"
+  GLOSSARY_COMMAND="${1#--glossary-}"
+  shift
+  LOCAL_RAG_PYTHON="$REPO_ROOT/backend/.venv/bin/python"
+  if [[ ! -x "$LOCAL_RAG_PYTHON" ]] && ! "$REPO_ROOT/scripts/python-env.sh" dev --if-present >/dev/null 2>&1; then
+    printf 'The local answer tools are not set up yet. Run ./scripts/init.sh --local-rag-setup to set them up.\n'
+    printf 'Result: the glossary review did not run. Run ./scripts/init.sh --local-rag-setup.\n'
+    exit 1
+  fi
+  if [[ "$GLOSSARY_COMMAND" == "review" ]]; then
+    exec "$LOCAL_RAG_PYTHON" "$REPO_ROOT/backend/scripts/glossary_review.py" list "$@"
+  fi
+  exec "$LOCAL_RAG_PYTHON" "$REPO_ROOT/backend/scripts/glossary_review.py" decide -- "$@"
+fi
+
 # Owner command: save one usability-session participant's results under an anonymous code
 # (docs/owner-guide/usability-session.md, docs/usability-session/). It never reads or writes the apps or the
 # service; the results file lives outside the checkout.
@@ -426,7 +445,7 @@ AS_OF="${MANIJERO_AS_OF:-2026-10-13}"
 
 usage() {
   cat <<'EOF'
-Usage: ./scripts/init.sh [--check|--fast|--verify|--feature <id>|--backend-tests [targets]|--setup-python [dev|hybrid|docparse]|--backend|--mock|--mock-status|--mock-stop|--local-rag-setup|--local-rag-status|--local-rag-start|--local-rag-service-status|--local-rag-load-test|--local-rag-stop|--container-build|--container-start|--container-status|--container-stop|--monitoring-start|--monitoring-status|--monitoring-stop|--pilot-token-save|--demo-rehearsal|--golden-review|--golden-decide|--usability-record|--local-smoke|--qa-check|--environments-status|--qa-settings-setup|--qa-deploy|--qa-update|--qa-rollback|--qa-status|--qa-stop|--qa-alerts-setup|--qa-alerts-start|--qa-alerts-stop|--qa-alerts-status|--qa-alerts-test|--android|--android-run|--desktop|--android-qa|--desktop-qa|--help]
+Usage: ./scripts/init.sh [--check|--fast|--verify|--feature <id>|--backend-tests [targets]|--setup-python [dev|hybrid|docparse]|--backend|--mock|--mock-status|--mock-stop|--local-rag-setup|--local-rag-status|--local-rag-start|--local-rag-service-status|--local-rag-load-test|--local-rag-stop|--container-build|--container-start|--container-status|--container-stop|--monitoring-start|--monitoring-status|--monitoring-stop|--pilot-token-save|--demo-rehearsal|--golden-review|--golden-decide|--glossary-review|--glossary-decide|--usability-record|--local-smoke|--qa-check|--environments-status|--qa-settings-setup|--qa-deploy|--qa-update|--qa-rollback|--qa-status|--qa-stop|--qa-alerts-setup|--qa-alerts-start|--qa-alerts-stop|--qa-alerts-status|--qa-alerts-test|--android|--android-run|--desktop|--android-qa|--desktop-qa|--help]
 
   --check                   Check Java and the Gradle wrapper, then print standard commands (default)
   --fast                    Shared host tests, contract examples, backend unit tests, and the five
@@ -474,6 +493,11 @@ Usage: ./scripts/init.sh [--check|--fast|--verify|--feature <id>|--backend-tests
   --golden-decide approve|reject "<name>" <number-or-id>...
                             Record your decision for the listed golden questions (nothing is
                             recorded if anything is wrong)
+  --glossary-review         List the colloquial -> official word pairs that wait for your decision;
+                            the full list goes to build/glossary-review/pairs.txt
+  --glossary-decide approve|reject "<name>" <number-or-id>...
+                            Record your decision for the listed word pairs (nothing is recorded if
+                            anything is wrong)
   --usability-record        Save one usability-session participant's results under an anonymous
                             code (P1, P2...) and print a plain summary (see docs/owner-guide/usability-session.md)
   --local-smoke             With the local answer service running, ask it one fixed question through

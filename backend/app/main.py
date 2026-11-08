@@ -40,6 +40,7 @@ from app.feedback_api import router as feedback_router
 from app.gemini_generation import GeminiTransport, GenerationClock
 from app.local_generation import resolve_startup_generation
 from app.health_metrics import HealthMetrics
+from app.question_glossary import QuestionGlossary, load_question_glossary
 from app.pilot_config import PilotConfig, load_config
 from app.pilot_guard import PilotGuardMiddleware
 from app.pilot_logging import configure_operational_logging, operational_log
@@ -67,6 +68,7 @@ _RETENTION_FROM_ENV = object()
 _TRACE_FROM_ENV = object()
 _INSPECTION_FROM_ENV = object()
 _CACHE_FROM_ENV = object()
+_GLOSSARY_FROM_ENV = object()
 
 
 def create_app(
@@ -79,6 +81,7 @@ def create_app(
     answer_trace: AnswerTrace | object = _TRACE_FROM_ENV,
     answer_inspection: bool | object = _INSPECTION_FROM_ENV,
     answer_cache: AnswerCache | None | object = _CACHE_FROM_ENV,
+    question_glossary: QuestionGlossary | None | object = _GLOSSARY_FROM_ENV,
 ) -> FastAPI:
     """Build the FastAPI application for the configured service profile.
 
@@ -146,6 +149,16 @@ def create_app(
         operational_log("answer_cache", state="off", reason=cache_reason)
     else:
         operational_log("answer_cache", state="off")
+    if question_glossary is _GLOSSARY_FROM_ENV:
+        question_glossary, glossary_reason = load_question_glossary(os.environ)
+    else:
+        glossary_reason = None
+    glossary = question_glossary if isinstance(question_glossary, QuestionGlossary) else None
+    application.state.question_glossary = glossary
+    if glossary is not None:
+        operational_log("question_glossary", state="on", approved=glossary.approved_count)
+    else:
+        operational_log("question_glossary", state="off", reason=glossary_reason or "disabled")
     generation = resolve_startup_generation(
         gemini_transport=generation_transport,
         local_transport=local_transport,

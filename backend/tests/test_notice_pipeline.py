@@ -581,8 +581,11 @@ def test_two_runs_are_byte_identical(tmp_path: Path) -> None:
 
 def test_only_the_cli_and_tests_reference_the_notice_pipeline() -> None:
     offenders: List[str] = []
+    # The offline glossary review tool (``question_rewriting``) reads the review file and reuses the
+    # personal-data screen; nothing on the ``/ask`` path may (see ``test_question_glossary.py``).
+    allowed = {"notice_pipeline.py", "question_glossary_review.py"}
     for path in sorted((BACKEND / "app").glob("*.py")):
-        if path.name == "notice_pipeline.py":
+        if path.name in allowed:
             continue
         source = path.read_text(encoding="utf-8")
         if "notice-review" in source or "notice_review" in source:
