@@ -262,6 +262,13 @@ Durable MUST/MUST NOT rules for backend answer path, retrieval, generation, eval
   fail closed on invalid model output, and write only unreviewed review files outside `knowledge/` that
   no answer, release, index, or eval path reads. Reason: `local_notice_pipeline` — notices are signals
   from people, not knowledge, and a leaked name or an obeyed notice would reach the corpus.
+- **MUST**: the structured-chunk index is derived and lives outside `knowledge/`. It MUST be built only
+  from chunk sets joined to approved catalog entries bound to approval evidence, MUST fail closed on any
+  malformed or unreviewed input, and MUST copy validity only from the catalog. `/ask` and `/ready` MAY
+  read it only with `MANIJERO_STRUCTURED_INDEX=on` in `MANIJERO_ENVIRONMENT=local` plus
+  `MANIJERO_DEPLOYMENT_PROFILE=development`, or in `MANIJERO_ENVIRONMENT=qa`; every other or unset
+  environment MUST ignore it. Release gates and the review merge MUST NOT read it. Reason:
+  `structured_chunk_index` — chunk text is only source-level reviewed, so it must not reach pilot or prod.
 - **MUST**: retrieval changes MUST be compared with the measured BM25 baseline on the reviewed cases;
   report-only metrics MUST NOT be described as improved answer quality without sufficient reviewed
   evidence.

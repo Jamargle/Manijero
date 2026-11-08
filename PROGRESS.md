@@ -27,7 +27,11 @@ official PDFs → deterministic Markdown plus a provenance manifest, outside `kn
 answerable; tables and Spanish OCR only through an optional pinned runtime, fake/fixture-verified),
 `legal_structure_chunker` (offline developer command that splits that Markdown into
 article/chapter/annex chunks with contextual prefixes and catalog-only validity, outside `knowledge/`
-and never answerable; validator accept, no owner walkthrough by owner decision), `corpus_security_rules` (offline scan
+and never answerable; validator accept, no owner walkthrough by owner decision), `structured_chunk_index`
+(developer command indexing only reviewed chunk sets for BM25/vectors,
+read by `/ask` only with a flag in local development or QA; source-level review, no quality claim;
+validator accept, no owner walkthrough),
+`corpus_security_rules` (offline scan
 that rejects prompt-injection or nominal-listing documents at ingestion without keeping their bytes
 or text, plus a canonical release gate that refuses a single identifier shape; heuristic, precision
 unmeasured), `rag_inspector_view` (developer

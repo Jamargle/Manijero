@@ -1832,6 +1832,36 @@ with `{"error": "NoticePipelineError", "code": ...}` and nothing written (unsafe
 `MANIJERO_DEPLOYMENT_PROFILE`, an unexpected file name, an invalid model record, or Ollama unreachable, missing,
 or a different digest). Full rules: [feature spec](../docs/specs/local_notice_pipeline.md).
 
+## Structured-chunk index (developer, local development and QA only)
+
+`manage_structured_index.py` rebuilds a derived index from reviewed chunk sets; nothing is written
+under `knowledge/`, and the last stdout line is one `Result:` line.
+
+```sh
+backend/.venv/bin/python backend/scripts/manage_structured_index.py build --chunks /path/to/legal-chunks \
+  --catalog knowledge/source_catalog.json --reviewed-baseline-revision <40-hex> \
+  --as-of 2026-11-07 --active-campaign 2026 --output /path/to/structured-index \
+  [--embedding-artifact /path/to/bge-m3 [--embedding-config CONFIG]]   # needs the hybrid venv
+backend/.venv/bin/python backend/scripts/manage_structured_index.py check --index /path/to/structured-index --catalog knowledge/source_catalog.json
+```
+
+Layout: `source_catalog.json`, `structured-passages.json` (one passage per chunk, `, pág. N` added to the
+location), `bm25-index.json`, optional `embedding-index.json` and `vector-store/`, and
+`structured-index-manifest.json` written last ([schema](../knowledge/structured-chunk-index.schema.json)).
+Review gate: each chunk set's `source_sha256` must equal an `approved`, named-reviewer catalog entry's
+`content_sha256`, and the catalog needs exactly one of `--reviewed-baseline-revision` or
+`--merge-record` plus `--passages`. Validity is copied from the catalog only. Any bad document refuses
+the whole build (exit `1`, codes `unreviewed_chunk_set`, `invalid_chunk_set`, `duplicate_chunk_id`,
+`no_reviewed_chunks`, `invalid_catalog`, `chunk_validity_mismatch`, `corpus_security`, `approval_*`);
+unsafe roots, missing inputs, bounds (1,000 sets, 20,000 chunks), and vector-step failures exit `2`.
+
+Read path: `MANIJERO_STRUCTURED_INDEX=on` plus `MANIJERO_STRUCTURED_INDEX_DIR=<index>` makes `/ask` and
+`/ready` use the index ahead of the release root, only with `MANIJERO_ENVIRONMENT=local` plus
+`MANIJERO_DEPLOYMENT_PROFILE=development`, or `MANIJERO_ENVIRONMENT=qa`; elsewhere the flag is ignored
+(logged as `structured_index_environment_refused`). A tampered or stale index (catalog hash differs from
+the served catalog) gives the generic unavailable answer. For hybrid, also set `MANIJERO_VECTOR_STORE`
+to `<index>/vector-store`. Rules: [feature spec](../docs/specs/structured_chunk_index.md).
+
 ## Legal change-impact analysis
 
 `app/change_impact.py` compares the versions that candidate ingestion recorded

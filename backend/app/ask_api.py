@@ -38,6 +38,7 @@ from app.retention import RetentionStore, retain_if_opted_in
 from app.retrieval_backend import RetrievalBackend, get_retrieval_backend
 from app.retrieval import CatalogRejectedError, PassageSetError, Retriever, validate_passage_set
 from app.source_catalog import CatalogReadError, load_catalog, validate_catalog
+from app.structured_chunk_index import structured_corpus_from_environment
 
 REPOSITORY_ROOT = Path(__file__).resolve().parents[2]
 CATALOG_PATH = REPOSITORY_ROOT / "knowledge" / "source_catalog.json"
@@ -208,10 +209,16 @@ def load_corpus_documents(
     The optional paths are an operator-tool seam (preflight and restore verification);
     the request path always uses the canonical artifact locations. When
     ``MANIJERO_KNOWLEDGE_RELEASE_ROOT`` is set and no path is given, the request reads
-    the verified published release instead (:mod:`app.knowledge_release`).
+    the verified published release instead (:mod:`app.knowledge_release`). With
+    ``MANIJERO_STRUCTURED_INDEX=on`` in local development or QA, the verified structured
+    index (:mod:`app.structured_chunk_index`) is read ahead of both; elsewhere the flag is
+    ignored.
     """
 
     if catalog_path is None and passages_path is None:
+        structured = structured_corpus_from_environment(os.environ, checkout_catalog_path=CATALOG_PATH)
+        if structured is not None:
+            return structured
         release_root = os.environ.get(KNOWLEDGE_RELEASE_ROOT_ENV, "").strip()
         if release_root:
             return _load_published_release(Path(release_root))

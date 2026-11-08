@@ -1,0 +1,23 @@
+{
+  "chunker": "manijero-legal-chunker-v1",
+  "documents": [
+    {
+      "artifact": "06da3cbc8b9aa72256ab652eba11a2d1aeb1d2cd9513608d745f1a5f664e59f0/chunks-753855904a0c8a7207bf44dbad36ee20415a335492cd153e383a1180e03d912c.json",
+      "candidate_id": "06da3cbc8b9aa72256ab652eba11a2d1aeb1d2cd9513608d745f1a5f664e59f0",
+      "chunk_count": 4,
+      "chunk_set_sha256": "d7447c9b12d4588157d65c48340119d7bbede9b6f4591abdbf9edab71c8e33a0",
+      "failure": null,
+      "source_sha256": "753855904a0c8a7207bf44dbad36ee20415a335492cd153e383a1180e03d912c",
+      "status": "chunked",
+      "warnings": []
+    }
+  ],
+  "schema_version": "legal-chunk-manifest-v1",
+  "summary": {
+    "chunked": 1,
+    "chunks": 4,
+    "documents": 1,
+    "failed": 0,
+    "unstructured": 0
+  }
+}

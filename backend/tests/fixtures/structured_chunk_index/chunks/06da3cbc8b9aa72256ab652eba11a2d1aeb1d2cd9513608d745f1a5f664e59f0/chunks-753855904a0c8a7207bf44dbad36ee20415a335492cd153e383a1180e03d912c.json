@@ -1,0 +1,84 @@
+{
+  "catalog": {
+    "applicability": {
+      "crop": "olivo",
+      "water_regime": "irrigated"
+    },
+    "campaign": "2099",
+    "catalog_sha256": "4148ea218bd130c9c836a96113f4a382a0b079f2bdc80112bdc8207b45f18d2d",
+    "critical": true,
+    "lifecycle_status": "current",
+    "published_on": "2099-01-02",
+    "source_id": "decreto-123-2026",
+    "valid_until": "2099-12-31"
+  },
+  "chunk_count": 4,
+  "chunker": "manijero-legal-chunker-v1",
+  "chunks": [
+    {
+      "candidate_id": "06da3cbc8b9aa72256ab652eba11a2d1aeb1d2cd9513608d745f1a5f664e59f0",
+      "character_count": 156,
+      "heading_path": [],
+      "id": "decreto-123-2026-0001",
+      "location": "Documento",
+      "markdown_sha256": "3bc17205b292188aadb70c873f81871a79deeb5896c0b4154552c80add6a688c",
+      "page_end": 1,
+      "page_start": 1,
+      "source_sha256": "753855904a0c8a7207bf44dbad36ee20415a335492cd153e383a1180e03d912c",
+      "text": "[Decreto 123/2026, de 1 de enero (documento sintético revisado)]\n\nDecreto 123/2026, de 1 de enero, sobre el procedimiento de solicitud (documento sintético)"
+    },
+    {
+      "candidate_id": "06da3cbc8b9aa72256ab652eba11a2d1aeb1d2cd9513608d745f1a5f664e59f0",
+      "character_count": 152,
+      "heading_path": [
+        "CAPÍTULO II",
+        "Artículo 14. Objeto"
+      ],
+      "id": "decreto-123-2026-0002",
+      "location": "CAPÍTULO II › Artículo 14. Objeto",
+      "markdown_sha256": "3bc17205b292188aadb70c873f81871a79deeb5896c0b4154552c80add6a688c",
+      "page_end": 3,
+      "page_start": 3,
+      "source_sha256": "753855904a0c8a7207bf44dbad36ee20415a335492cd153e383a1180e03d912c",
+      "text": "[Decreto 123/2026, de 1 de enero (documento sintético revisado) · CAPÍTULO II › Artículo 14. Objeto]\n\nLa solicitud se presenta en la oficina competente."
+    },
+    {
+      "candidate_id": "06da3cbc8b9aa72256ab652eba11a2d1aeb1d2cd9513608d745f1a5f664e59f0",
+      "character_count": 148,
+      "heading_path": [
+        "CAPÍTULO II",
+        "Artículo 15. Plazo"
+      ],
+      "id": "decreto-123-2026-0003",
+      "location": "CAPÍTULO II › Artículo 15. Plazo",
+      "markdown_sha256": "3bc17205b292188aadb70c873f81871a79deeb5896c0b4154552c80add6a688c",
+      "page_end": 3,
+      "page_start": 3,
+      "source_sha256": "753855904a0c8a7207bf44dbad36ee20415a335492cd153e383a1180e03d912c",
+      "text": "[Decreto 123/2026, de 1 de enero (documento sintético revisado) · CAPÍTULO II › Artículo 15. Plazo]\n\nEl plazo es de tres meses desde la publicación."
+    },
+    {
+      "candidate_id": "06da3cbc8b9aa72256ab652eba11a2d1aeb1d2cd9513608d745f1a5f664e59f0",
+      "character_count": 142,
+      "heading_path": [
+        "ANEXO I. Documentación"
+      ],
+      "id": "decreto-123-2026-0004",
+      "location": "ANEXO I. Documentación",
+      "markdown_sha256": "3bc17205b292188aadb70c873f81871a79deeb5896c0b4154552c80add6a688c",
+      "page_end": 4,
+      "page_start": 4,
+      "source_sha256": "753855904a0c8a7207bf44dbad36ee20415a335492cd153e383a1180e03d912c",
+      "text": "[Decreto 123/2026, de 1 de enero (documento sintético revisado) · ANEXO I. Documentación]\n\nDocumento de identidad y resguardo de la solicitud."
+    }
+  ],
+  "input": {
+    "candidate_id": "06da3cbc8b9aa72256ab652eba11a2d1aeb1d2cd9513608d745f1a5f664e59f0",
+    "markdown_sha256": "3bc17205b292188aadb70c873f81871a79deeb5896c0b4154552c80add6a688c",
+    "source_sha256": "753855904a0c8a7207bf44dbad36ee20415a335492cd153e383a1180e03d912c",
+    "title": "Decreto 123/2026, de 1 de enero (documento sintético revisado)"
+  },
+  "schema_version": "legal-chunk-set-v1",
+  "validity_status": "known",
+  "warnings": []
+}
