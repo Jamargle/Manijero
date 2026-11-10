@@ -74,7 +74,7 @@ Tests in `backend/tests/test_threshold_calibration.py` (synthetic corpus, no net
 
 - `backend/.venv/bin/python -m pytest -q backend/tests/test_threshold_calibration.py` — 31 passed.
 - `backend/.venv/bin/python -m pytest -q backend/tests/test_reranker_measure.py backend/tests/test_trap_set.py backend/tests/test_question_glossary.py` — 126 passed.
-- `./scripts/init.sh --feature retrieval_threshold_calibration` — focused tier passed; its third command (merge-base `git diff` over `knowledge/`, `backend/config/`, `backend/app/{retrieval,retrieval_backend,ask_api,abstention,main}.py`) was empty.
+- `./scripts/init.sh --feature retrieval_threshold_calibration` — focused tier passed; after the third command gained `backend/app/main.py`, that corrected command (merge-base `git diff` over `knowledge/`, `backend/config/`, and the named `/ask` files) was rerun and empty.
 - `./scripts/init.sh --fast` — 10/10 offline checks passed; backend 3407 passed, 9 skipped.
 - Real sweep, same inputs twice: exit 0, 18 thresholds, recommended 1.5; `report.json` SHA-256 `8881f2a0…dd0667`, `table.md` SHA-256 `953d0d59…b7798d`, identical on both runs.
 - Zero row equals today (identity check passed). Baseline at 0.0: golden answered 37 / right source 29 / correct abstentions 11 / broken 0; traps correct abstentions 16 / unexpected answers 3 / right source 5 / must-not-say 0 / worse 0.
