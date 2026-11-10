@@ -24,6 +24,7 @@ from __future__ import annotations
 
 import hashlib
 import json
+import os
 import re
 import shutil
 import tempfile
@@ -35,7 +36,7 @@ from urllib.parse import urlparse
 from zoneinfo import ZoneInfo
 
 from app import review_package
-from app.knowledge_ops import _json_text, _private_dir, _write_private, append_log
+from app.knowledge_ops import _json_text, _private_dir, _write_private
 
 HOME_ENV = "MANIJERO_KNOWLEDGE_REVIEW_HOME"  # tests only
 GH_ENV = "MANIJERO_GH_CLI"  # tests only: replaces the gh program
@@ -119,6 +120,21 @@ def knowledge_review_home(environ: Mapping[str, str]) -> Path:
 
 def hosted_review_log(home: Path) -> Path:
     return Path(home) / "logs" / LOG_NAME
+
+
+def append_review_log(home: Path, message: str) -> None:
+    """Append one fixed-code diagnostic to the private hosted-review log."""
+
+    path = hosted_review_log(home)
+    try:
+        _private_dir(path.parent)
+        descriptor = os.open(str(path), os.O_WRONLY | os.O_APPEND | os.O_CREAT, 0o600)
+        try:
+            os.write(descriptor, (message.rstrip() + "\n").encode("utf-8", "replace"))
+        finally:
+            os.close(descriptor)
+    except OSError:
+        pass
 
 
 # --- Public commands --------------------------------------------------------------------------
@@ -420,7 +436,7 @@ def _publish(
         )
         body = render_pr_body(package, review_md, before_eval, after_eval)
     except Exception as error:  # noqa: BLE001 - one sentence; the type goes to the log
-        append_log(ports.home, "evaluation failed: {}".format(type(error).__name__))
+        append_review_log(ports.home, "evaluation failed: {}".format(type(error).__name__))
         return _package_problem(
             ports,
             package_dir,
@@ -439,7 +455,7 @@ def _publish(
         ["commit", "-m", "knowledge: review package {}".format(package_id[:12])], cwd=worktree
     )
     if added_result.returncode != 0 or committed.returncode != 0:
-        append_log(ports.home, "the review commit could not be created")
+        append_review_log(ports.home, "the review commit could not be created")
         return _package_problem(
             ports,
             package_dir,
@@ -451,6 +467,7 @@ def _publish(
         ["push", "origin", "HEAD:refs/heads/{}".format(branch)], cwd=worktree
     )
     if pushed.returncode != 0:
+        append_review_log(ports.home, "push failed (exit {})".format(pushed.returncode))
         return _package_problem(
             ports,
             package_dir,
@@ -478,6 +495,10 @@ def _publish(
     )
     url = _created_url(created)
     if created.returncode != 0 or url is None:
+        if created.returncode != 0:
+            append_review_log(ports.home, "pull request create failed (exit {})".format(created.returncode))
+        else:
+            append_review_log(ports.home, "pull request create returned no url")
         return _package_problem(
             ports,
             package_dir,
@@ -595,10 +616,10 @@ def render_pr_body(
         "| Unexpected answers | {} | {} |".format(
             before["unexpected_answers"], after["unexpected_answers"]
         ),
-        "| Source matches | {} | {} |".format(
+        "| Source matches (answered cases) | {} | {} |".format(
             before["source_matches"], after["source_matches"]
         ),
-        "| Passage matches | {} | {} |".format(
+        "| Passage matches (answered cases) | {} | {} |".format(
             before["passage_matches"], after["passage_matches"]
         ),
         "",
@@ -636,14 +657,19 @@ def _evaluation_counts(report: Mapping[str, Any]) -> Dict[str, int]:
         return value
 
     rows = report.get("case_rows")
-    if not isinstance(report.get("case_rows"), list):
+    if not isinstance(rows, list):
         raise ValueError("evaluation report is missing case rows")
+    answered = [
+        row
+        for row in rows
+        if isinstance(row, dict) and row.get("expected_status") == "answered"
+    ]
     return {
         "cases": count("cases"),
         "expected_state_agreement": count("expected_state_agreement"),
         "unexpected_answers": count("unexpected_answers"),
-        "source_matches": sum(1 for row in report["case_rows"] if row.get("source_match")),
-        "passage_matches": sum(1 for row in report["case_rows"] if row.get("passage_match")),
+        "source_matches": sum(1 for row in answered if row.get("source_match")),
+        "passage_matches": sum(1 for row in answered if row.get("passage_match")),
     }
 
 
@@ -696,7 +722,8 @@ def _describe_protection(ports: Ports) -> None:
     ports.out("- only pull requests can change main, and no approval is required;")
     ports.out("- the checks fast and full must pass;")
     ports.out("- force pushes are blocked;")
-    ports.out("- the people and apps already allowed to bypass it stay allowed.")
+    ports.out("- the people and apps already allowed to bypass it stay allowed;")
+    ports.out("- any other rule already on it stays in place.")
     ports.out(
         "To undo later: on GitHub, open Settings > Rules > {} and set enforcement to "
         "Disabled.".format(RULESET_NAME)
@@ -705,39 +732,97 @@ def _describe_protection(ports: Ports) -> None:
 
 
 def ruleset_payload(existing: Mapping[str, Any], committed: Mapping[str, Any]) -> Dict[str, Any]:
-    """The update for one ruleset; existing bypass actors are always kept."""
+    """The update for one ruleset; unrelated live rules and bypass actors are kept."""
 
     payload = {
         key: committed[key]
-        for key in ("name", "target", "enforcement", "conditions", "rules")
+        for key in ("name", "target", "enforcement", "conditions")
     }
+    payload["rules"] = _merged_rules(existing.get("rules"), committed["rules"])
     payload["bypass_actors"] = existing.get("bypass_actors") or []
     return payload
 
 
+def _merged_rules(live: Any, committed: Sequence[Mapping[str, Any]]) -> List[Any]:
+    wanted = {
+        rule.get("type")
+        for rule in committed
+        if isinstance(rule, dict) and isinstance(rule.get("type"), str)
+    }
+    merged: List[Any] = list(committed)
+    if isinstance(live, list):
+        merged += [
+            rule
+            for rule in live
+            if isinstance(rule, dict) and rule.get("type") not in wanted
+        ]
+    return merged
+
+
 def ruleset_matches(existing: Mapping[str, Any], committed: Mapping[str, Any]) -> bool:
-    """Whether the live ruleset already enforces everything the committed file asks."""
+    """Whether the live ruleset already enforces everything the committed file asks.
+
+    Documented extras (for example ``integration_id`` on a required check or an
+    unrelated ruleset rule) are ignored; only what the committed file sets counts.
+    """
 
     for key in ("name", "target", "enforcement"):
         if existing.get(key) != committed.get(key):
             return False
-    if _condition_ref(existing.get("conditions")) != _condition_ref(committed.get("conditions")):
+    if "conditions" in committed and existing.get("conditions") is None:
+        return False
+    existing_condition = _condition_ref(existing.get("conditions"))
+    committed_condition = _condition_ref(committed.get("conditions"))
+    if (
+        existing_condition is None
+        or committed_condition is None
+        or existing_condition != committed_condition
+    ):
         return False
     live = _rule_rules(existing.get("rules"))
     wanted = _rule_rules(committed.get("rules"))
-    if live is None or wanted is None or set(live) != set(wanted):
+    if live is None or wanted is None or not set(wanted) <= set(live):
         return False
     for rule_type, parameters in wanted.items():
-        for name, value in parameters.items():
-            if live[rule_type].get(name) != value:
-                return False
+        if not _parameters_match(live[rule_type], parameters):
+            return False
     return True
+
+
+def _parameters_match(live: Mapping[str, Any], wanted: Mapping[str, Any]) -> bool:
+    for name, value in wanted.items():
+        if name == "required_status_checks":
+            if not _checks_match(live.get(name), value):
+                return False
+        elif live.get(name) != value:
+            return False
+    return True
+
+
+def _checks_match(live: Any, wanted: Any) -> bool:
+    def contexts(items: Any) -> Optional[List[str]]:
+        if not isinstance(items, list):
+            return None
+        found: List[str] = []
+        for item in items:
+            if not isinstance(item, dict) or not isinstance(item.get("context"), str):
+                return None
+            found.append(item["context"])
+        return sorted(found)
+
+    live_contexts = contexts(live)
+    wanted_contexts = contexts(wanted)
+    return (
+        live_contexts is not None
+        and wanted_contexts is not None
+        and live_contexts == wanted_contexts
+    )
 
 
 def _condition_ref(conditions: Any) -> Optional[Tuple[Any, Any]]:
     if not isinstance(conditions, dict):
         return None
-    ref = conditions.get("ref")
+    ref = conditions.get("ref_name")
     if not isinstance(ref, dict):
         return None
     include, exclude = ref.get("include"), ref.get("exclude", [])
@@ -778,6 +863,14 @@ def _committed_ruleset() -> Tuple[Dict[str, Any], Optional[str]]:
         return {}, (
             "The saved {} ruleset file is not valid. First thing to do: tell a developer; "
             "the details are in the review log.".format(RULESET_NAME)
+        )
+    condition = document.get("conditions")
+    ref_name = condition.get("ref_name") if isinstance(condition, dict) else None
+    include = ref_name.get("include") if isinstance(ref_name, dict) else None
+    if not isinstance(include, list) or "refs/heads/main" not in include:
+        return {}, (
+            "The saved {} ruleset does not protect main. First thing to do: update the "
+            "committed ruleset file, or tell a developer.".format(RULESET_NAME)
         )
     return document, None
 

@@ -230,7 +230,7 @@ class Owner:
             "name": committed["name"],
             "target": committed["target"],
             "enforcement": "disabled",
-            "conditions": {"ref": {"include": ["refs/heads/main"]}},
+            "conditions": {"ref_name": {"include": ["refs/heads/main"]}},
             "rules": [{"type": "non_fast_forward"}],
             "bypass_actors": [
                 {"actor_id": 5, "actor_type": "Team", "bypass_mode": "always"}
@@ -407,6 +407,8 @@ def test_the_owner_walkthrough(owner: Owner) -> None:
     assert one_clean_result(protected) == "Result: main is now protected by protected-main."
     payload = json.loads(owner.put.read_text(encoding="utf-8"))
     assert payload["name"] == "protected-main" and payload["enforcement"] == "active"
+    assert payload["conditions"]["ref_name"]["include"] == ["refs/heads/main"]
+    assert "ref" not in payload["conditions"]
     assert {rule["type"] for rule in payload["rules"]} == {
         "pull_request",
         "required_status_checks",
@@ -416,8 +418,15 @@ def test_the_owner_walkthrough(owner: Owner) -> None:
     puts = [call for call in owner.gh_calls() if call[:2] == ["api", "--method"]]
     assert len(puts) == 1
 
-    # Already matching: no update is sent.
-    updated = {**payload, "id": 42}
+    # Already matching: a documented GET shape, including an extra rule and check ids,
+    # still reports "already protected" and sends no update.
+    updated = json.loads(json.dumps({**payload, "id": 42}))
+    updated["conditions"] = {"ref_name": {"include": ["refs/heads/main"]}}
+    for rule in updated["rules"]:
+        if rule["type"] == "required_status_checks":
+            for check in rule["parameters"]["required_status_checks"]:
+                check["integration_id"] = None
+    updated["rules"].append({"type": "deletion"})
     owner.write_state(ruleset=updated)
     already = owner.init("--knowledge-review-protect")
     assert already.returncode == 0 and "already protected" in already.stdout

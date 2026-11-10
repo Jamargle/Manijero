@@ -28,7 +28,6 @@ from typing import Optional, Sequence
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
 from app import hosted_review as hosted  # noqa: E402  (path setup must run first)
-from app import knowledge_ops  # noqa: E402
 
 REPO_ROOT = Path(__file__).resolve().parents[2]
 OPERATIONS = ("open", "protect")
@@ -161,10 +160,12 @@ def main(argv: Optional[Sequence[str]] = None, ports: Optional[hosted.Ports] = N
         active.out("Result: the command was stopped.")
         return 1
     except Exception as error:  # noqa: BLE001 - one sentence and the log; never the exception text
-        knowledge_ops.append_log(active.home, "unexpected error: {}".format(type(error).__name__))
+        hosted.append_review_log(active.home, "unexpected error: {}".format(type(error).__name__))
         active.out(
             "Something unexpected went wrong. Run the same command again; if it happens "
-            "again, tell a developer. Details: {}".format(knowledge_ops.log_path(active.home))
+            "again, tell a developer. Details: {}".format(
+                hosted.hosted_review_log(active.home)
+            )
         )
         active.out("Result: the command did not finish.")
         return 1

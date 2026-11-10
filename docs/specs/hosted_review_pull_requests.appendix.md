@@ -50,7 +50,7 @@ Inspected (planner, 2026-11-10):
 - Focused block via `./scripts/init.sh --feature hosted_review_pull_requests` — all listed files pass.
 - `test_hosted_review.py` (unit, fake ports): after-state bytes equal package after hashes; body fixed lines, counts, changed-id cap, 60,000-char cut; each refusal in scenario 4 creates nothing and other packages continue; re-run states open/merged/closed; `branch exists` refusal; ruleset compare/merge keeps bypass actors; `yes` gate; missing ruleset creates nothing; gh/git argv allowlist (no merge, `--auto`, `--force`, `--delete`, `+` refspec).
 - `test_hosted_review_commands.py` (walkthrough): temp clone with a local bare `origin` seeded with fixture `knowledge/` files, fake `gh` script recording argv and returning canned JSON, `MANIJERO_KNOWLEDGE_REVIEW_HOME` temp folder; runs `./scripts/init.sh --knowledge-review-open` and `--knowledge-review-protect` exactly as the owner guide writes them; checks the pushed branch tree in the bare remote, owner checkout unchanged, one missing-prerequisite case (no `gh`) and its recovery, and the real evaluator child over fixture files.
-- Network guard: subprocess env `PATH` limited to the fake `gh` dir plus system `git`; `GIT_CONFIG_GLOBAL`/`GIT_CONFIG_NOSYSTEM` isolated; remote URL is a local path; in-process tests block sockets as `test_knowledge_ops.py` does.
+- Network guard: the walkthrough uses a fake `gh` (`MANIJERO_GH_CLI`) and a local bare `origin`, with `GIT_CONFIG_GLOBAL`/`GIT_CONFIG_NOSYSTEM` isolated; unit tests use fake ports only. No test calls GitHub or the internet.
 - `test_knowledge_update_review.py` — 46 existing tests still pass after the extraction.
 - E2E: not applicable (no app UI or `/ask` change); the command walkthrough covers the owner flow.
 
@@ -76,6 +76,16 @@ Implementer session, 2026-11-10, worktree `feature/hosted_review_pull_requests` 
 - Protect walkthrough: weak ruleset → describes, asks, one PUT keeps bypass actors; matching → `already protected`, no PUT; `no` → nothing sent, exit 1; missing ruleset → nothing created, exit 2.
 - Unit checks: after-state equals package after hashes; 60,000-char body cut with pointer; ≤20 changed ids; damaged/unsafe/stale/drift packages create nothing while a good package continues; missing `gh` (`127`) and failed `gh auth` stop with exit 2 and recovery; damaged `pull-request.json`; recorded `gh` argv has no merge/auto/review/admin and `git push` has no force/delete.
 - Honest limits: live push/PR/ruleset not exercised; zero required approvals means GitHub enforces no second reviewer; committed evidence carries names typed at `prepare`. `PROGRESS.md` untouched (integrator owns it).
+
+Validator repair, 2026-11-10 (verdict `revise`):
+
+- Ruleset payload and reader now use `conditions.ref_name`; the committed file is refused unless `ref_name.include` contains `refs/heads/main`. The old `ref` shape can no longer match.
+- `ruleset_matches` compares only what the committed file sets: required check contexts (ignoring `integration_id` and `do_not_enforce_on_create`) plus the strict flag, and it tolerates unrelated live rules. `ruleset_payload` keeps unrelated live rules and existing bypass actors.
+- Push and `gh pr create` failures append fixed-code lines to `<home>/logs/hosted-review.log` (`0600`), with no path, token, or stderr.
+- Body source/passage matches now count expected-answered rows only, labelled "(answered cases)", so abstention rows cannot inflate them.
+- Probe: documented GET → `matches=True`; payload has `ref_name` and no `ref`, keeps `deletion`; old `ref` shape → `False`.
+- `./scripts/init.sh --feature hosted_review_pull_requests` → `122 passed in 4.00s`; per file 27 / 6 / 46 / 43.
+- `./scripts/init.sh --fast` → all 10 offline checks passed; backend `3409 passed, 9 skipped`.
 
 ## Validator checklist
 

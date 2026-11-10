@@ -2278,7 +2278,7 @@ remote branch is refused.
 `protect` reads the existing `protected-main` ruleset, states the change, asks
 for `yes`, and sends one update from
 `backend/deploy/github/protected-main-ruleset.json` (required `fast` and `full`,
-zero approvals, force pushes blocked, existing bypass actors kept); it never
+zero approvals, force pushes blocked, existing bypass actors and unrelated rules kept); it never
 creates a missing ruleset. Tests and checks use a fake `gh` and a local bare
 remote. See the [owner guide](../docs/owner-guide/knowledge-review-pull-requests.md).
 

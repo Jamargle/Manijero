@@ -14,7 +14,8 @@ new knowledge release is a separate step afterwards.
 Paste `./scripts/init.sh --knowledge-review-protect`. It reads the `protected-main` ruleset, says
 what will change, and asks you to type `yes`: only pull requests can change `main` with no
 approval required (your merge is the approval); the checks `fast` and `full` must pass; force
-pushes are blocked; people and apps already allowed to bypass it stay allowed. Expect
+pushes are blocked; people and apps already allowed to bypass it stay allowed, and any other
+rule already on it stays in place. Expect
 `Result: main is now protected by protected-main.` Running it again says `already protected`.
 To undo later, open the repository on GitHub, go to **Settings > Rules > protected-main**, and
 set enforcement to **Disabled**.

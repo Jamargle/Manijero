@@ -40,10 +40,11 @@ def sha(payload: bytes) -> str:
 
 
 class FakeGit:
-    def __init__(self, baseline, *, remote_ok=True, branches=()):
+    def __init__(self, baseline, *, remote_ok=True, branches=(), push_ok=True):
         self.baseline = dict(baseline)
         self.remote_ok = remote_ok
         self.branches = set(branches)
+        self.push_ok = push_ok
         self.calls = []
         self.pushes = []
         self.committed = {}
@@ -83,7 +84,7 @@ class FakeGit:
             return CommandResult(0)
         if argv[0] == "push":
             self.pushes.append(argv)
-            return CommandResult(0)
+            return CommandResult(0 if self.push_ok else 1)
         if argv[:2] == ["worktree", "remove"]:
             shutil.rmtree(argv[2], ignore_errors=True)
             return CommandResult(0)
@@ -91,12 +92,13 @@ class FakeGit:
 
 
 class FakeGh:
-    def __init__(self, *, auth_ok=True, url=PR_URL, view=None, rulesets=None, ruleset=None):
+    def __init__(self, *, auth_ok=True, url=PR_URL, view=None, rulesets=None, ruleset=None, create_ok=True):
         self.auth_ok = auth_ok
         self.url = url
         self.view = view or {}
         self.rulesets = rulesets or []
         self.ruleset = ruleset or {}
+        self.create_ok = create_ok
         self.calls = []
         self.body = None
         self.put_body = None
@@ -108,7 +110,7 @@ class FakeGh:
             return CommandResult(0 if self.auth_ok else 1)
         if argv[:2] == ["pr", "create"]:
             self.body = Path(argv[argv.index("--body-file") + 1]).read_text(encoding="utf-8")
-            return CommandResult(0, self.url + "\n")
+            return CommandResult(0 if self.create_ok else 1, self.url + "\n" if self.create_ok else "")
         if argv[:2] == ["pr", "view"]:
             return CommandResult(0, json.dumps(self.view))
         if argv[0] == "api":
@@ -136,10 +138,10 @@ class FakeEvaluator:
         return report
 
 
-def row(case_id, *, match=True, actual="answered", source=True, passage=True):
+def row(case_id, *, match=True, actual="answered", source=True, passage=True, expected="answered"):
     return {
         "id": case_id,
-        "expected_status": "answered",
+        "expected_status": expected,
         "actual_status": actual,
         "expected_state_match": match,
         "source_match": source,
@@ -325,15 +327,20 @@ def test_the_body_starts_with_the_fixed_lines_and_report_only_counts(tmp_path):
     body = hosted_review.render_pr_body(
         package,
         "# Review\n\nEvidence.\n",
-        report([row("a", match=False, actual="abstained", source=False, passage=False)]),
-        report([row("a")]),
+        report(
+            [
+                row("a", match=False, actual="abstained", source=False, passage=False),
+                row("b", expected="abstain", actual="abstain"),
+            ]
+        ),
+        report([row("a"), row("b", expected="abstain", actual="abstain")]),
     )
     assert body.splitlines()[:2] == list(hosted_review.FIXED_BODY_LINES)
     assert "## Evaluation results" in body
-    assert "| Expected-state agreement | 0 | 1 |" in body
+    assert "| Expected-state agreement | 1 | 2 |" in body
     assert "| Unexpected answers | 0 | 0 |" in body
-    assert "| Source matches | 0 | 1 |" in body
-    assert "| Passage matches | 0 | 1 |" in body
+    assert "| Source matches (answered cases) | 0 | 1 |" in body
+    assert "| Passage matches (answered cases) | 0 | 1 |" in body
     assert "Changed cases: `a`." in body
     assert "## Review evidence" in body and "Evidence." in body
 
@@ -484,6 +491,31 @@ def test_a_failed_evaluation_sends_nothing(tmp_path):
     result_line(lines)
 
 
+def test_a_failed_push_is_logged_without_a_path_or_token(tmp_path):
+    package_dir, _, fixtures = make_package(tmp_path)
+    git = FakeGit(baseline_of(fixtures), push_ok=False)
+    ports, lines, _, _ = ready_ports(tmp_path, fixtures, home=package_dir.parent, git=git)
+
+    assert hosted_review.open_reviews(ports) == 1
+    assert any("could not be sent to GitHub" in line for line in lines)
+    log = hosted_review.hosted_review_log(ports.home).read_text(encoding="utf-8")
+    assert "push failed (exit 1)" in log
+    assert str(tmp_path) not in log
+
+
+def test_a_failed_pull_request_create_is_logged_without_a_path_or_token(tmp_path):
+    package_dir, _, fixtures = make_package(tmp_path)
+    gh = FakeGh(create_ok=False)
+    ports, lines, git, _ = ready_ports(tmp_path, fixtures, home=package_dir.parent, gh=gh)
+
+    assert hosted_review.open_reviews(ports) == 1
+    assert any("could not be created on GitHub" in line for line in lines)
+    assert len(git.pushes) == 1
+    log = hosted_review.hosted_review_log(ports.home).read_text(encoding="utf-8")
+    assert "pull request create failed (exit 1)" in log
+    assert str(tmp_path) not in log
+
+
 # --- Scenario 5: missing prerequisites fail closed ------------------------------------
 
 
@@ -565,7 +597,7 @@ def _existing_weak():
         "name": document["name"],
         "target": document["target"],
         "enforcement": "disabled",
-        "conditions": {"ref": {"include": ["refs/heads/main"]}},
+        "conditions": {"ref_name": {"include": ["refs/heads/main"]}},
         "rules": [{"type": "non_fast_forward"}],
         "bypass_actors": [{"actor_id": 5, "actor_type": "Team", "bypass_mode": "always"}],
     }
@@ -596,6 +628,8 @@ def test_protect_updates_one_ruleset_and_keeps_bypass_actors(tmp_path):
     assert gh.put_body["bypass_actors"] == existing["bypass_actors"]
     assert gh.put_body["enforcement"] == "active"
     assert gh.put_body["name"] == "protected-main"
+    assert gh.put_body["conditions"]["ref_name"]["include"] == ["refs/heads/main"]
+    assert "ref" not in gh.put_body["conditions"]
     types = {rule["type"] for rule in gh.put_body["rules"]}
     assert types == {"pull_request", "required_status_checks", "non_fast_forward"}
     assert any("only pull requests can change main" in line for line in lines)
@@ -615,14 +649,80 @@ def test_protect_creates_nothing_when_the_ruleset_is_missing(tmp_path):
     assert gh.put_body is None
 
 
-def test_ruleset_match_and_payload():
+def _documented_live():
+    """A ruleset as GitHub returns it: ref_name, check ids, and an extra rule."""
+
+    document = _existing_matching()
+    document["conditions"] = {"ref_name": {"include": ["refs/heads/main"]}}
+    rules = []
+    for rule in document["rules"]:
+        if rule["type"] != "required_status_checks":
+            rules.append(rule)
+            continue
+        parameters = dict(rule["parameters"])
+        parameters["required_status_checks"] = [
+            {"context": check["context"], "integration_id": None}
+            for check in parameters["required_status_checks"]
+        ]
+        parameters["do_not_enforce_on_create"] = False
+        rules.append({**rule, "parameters": parameters})
+    document["rules"] = rules + [{"type": "deletion"}]
+    return document
+
+
+def test_the_committed_ruleset_uses_the_documented_ref_name_shape():
     committed = _committed()
-    existing = _existing_matching()
-    assert hosted_review.ruleset_matches(existing, committed)
+    assert "ref_name" in committed["conditions"]
+    assert "ref" not in committed["conditions"]
+    assert "refs/heads/main" in committed["conditions"]["ref_name"]["include"]
+    assert hosted_review._committed_ruleset() == (committed, None)
+
+
+def test_a_committed_ruleset_without_main_is_refused(tmp_path, monkeypatch):
+    target = tmp_path / hosted_review.RULESET_FILE
+    target.parent.mkdir(parents=True)
+    target.write_text(
+        json.dumps(
+            {
+                "name": "protected-main",
+                "target": "branch",
+                "enforcement": "active",
+                "conditions": {"ref_name": {"include": ["refs/heads/other"]}},
+                "rules": [{"type": "non_fast_forward"}],
+            }
+        ),
+        encoding="utf-8",
+    )
+    monkeypatch.setattr(hosted_review, "PACKAGE_ROOT", tmp_path)
+    document, problem = hosted_review._committed_ruleset()
+    assert document == {} and "does not protect main" in problem
+
+
+def test_ruleset_match_tolerates_documented_extras_and_ignores_old_ref_shape():
+    committed = _committed()
+    assert hosted_review.ruleset_matches(_documented_live(), committed)
     assert not hosted_review.ruleset_matches(_existing_weak(), committed)
-    payload = hosted_review.ruleset_payload(existing, committed)
-    assert payload["bypass_actors"] == existing["bypass_actors"]
-    assert "bypass_actors" not in committed
+    old = json.loads(json.dumps(committed))
+    old["conditions"] = {"ref": old["conditions"]["ref_name"]}
+    assert not hosted_review.ruleset_matches(_documented_live(), old)
+
+
+def test_ruleset_payload_uses_ref_name_and_keeps_unrelated_live_rules():
+    committed = _committed()
+    live = _documented_live()
+    payload = hosted_review.ruleset_payload(live, committed)
+    assert payload["conditions"]["ref_name"]["include"] == ["refs/heads/main"]
+    assert "ref" not in payload["conditions"]
+    assert payload["bypass_actors"] == live["bypass_actors"]
+    types = [rule["type"] for rule in payload["rules"]]
+    assert "deletion" in types
+    assert types.count("deletion") == 1
+    checks = next(
+        rule["parameters"]["required_status_checks"]
+        for rule in payload["rules"]
+        if rule["type"] == "required_status_checks"
+    )
+    assert [check["context"] for check in checks] == ["fast", "full"]
 
 
 # --- Scenario 7: never merge, never force, never call GitHub in tests -----------------
