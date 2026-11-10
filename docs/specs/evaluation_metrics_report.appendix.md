@@ -80,6 +80,16 @@ Inspected 2026-11-10 (planner, read-only):
 
 <!-- Implementer appends dated entries here: commands and one-line results only. -->
 
+### 2026-11-10 — implementer
+
+- `./scripts/init.sh --feature evaluation_metrics_report` — focused tier passed: 126 pytest cases; real run exit 0 with `Result: evaluated 92 questions (17 reviewed, 49 golden, 26 trap)` and `faithfulness: not judged (skipped)`; `knowledge/` unchanged.
+- `./scripts/init.sh --fast` — all 10 offline checks passed: backend-tests 3401 passed, 9 skipped; harness-tests 22 passed; contract examples valid.
+- `tests/test_eval_metrics.py` + `tests/test_evaluate_metrics_command.py` — 25 passed with sockets blocked, real `knowledge/` read-only, fakes for Ollama and the judge transports.
+- Baseline `--no-judge`, version `3371d43c659ae38e`: hit@1 0.7321, hit@3 0.8214, hit@5 0.8214, MRR 0.7768 over 56 cases with an expected passage; abstention 34/36; numbers and dates 27/34; faithfulness not judged. Report-only baseline, not a quality claim.
+- Data note: `knowledge/pac_answer_eval.json` holds 12 answered and 5 abstained cases and no `needs_land_clarification` case today, so the clarification block reports zeros (the repository-research line says some cases are clarification).
+- `git diff --stat` against the base touches only the files the spec lists; no `knowledge/`, `contracts/`, `shared/`, `scripts/init.sh`, or requirements change.
+- No real judge run was made; the judged path is proven with fake transports only.
+
 ## Validator checklist
 
 - [ ] Case counts are 17/49/26 from the real files. Drafts and rejected items are excluded (test).
