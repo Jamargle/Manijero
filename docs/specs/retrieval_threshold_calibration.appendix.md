@@ -70,7 +70,47 @@ Tests in `backend/tests/test_threshold_calibration.py` (synthetic corpus, no net
 
 ## Feature evidence
 
-<!-- Implementer appends here: date, each command with its one-line result, manual checks in one or two lines. No pasted logs. -->
+2026-11-10, implementer (offline, synthetic corpus for tests; one real sweep over `knowledge/`).
+
+- `backend/.venv/bin/python -m pytest -q backend/tests/test_threshold_calibration.py` — 31 passed.
+- `backend/.venv/bin/python -m pytest -q backend/tests/test_reranker_measure.py backend/tests/test_trap_set.py backend/tests/test_question_glossary.py` — 126 passed.
+- `./scripts/init.sh --feature retrieval_threshold_calibration` — focused tier passed; its third command (merge-base `git diff` over `knowledge/`, `backend/config/`, `backend/app/{retrieval,retrieval_backend,ask_api,abstention,main}.py`) was empty.
+- `./scripts/init.sh --fast` — 10/10 offline checks passed; backend 3407 passed, 9 skipped.
+- Real sweep, same inputs twice: exit 0, 18 thresholds, recommended 1.5; `report.json` SHA-256 `8881f2a0…dd0667`, `table.md` SHA-256 `953d0d59…b7798d`, identical on both runs.
+- Zero row equals today (identity check passed). Baseline at 0.0: golden answered 37 / right source 29 / correct abstentions 11 / broken 0; traps correct abstentions 16 / unexpected answers 3 / right source 5 / must-not-say 0 / worse 0.
+- Recommendation 1.5 is eligible: golden broken 0, traps worse 0, right source 29 (= baseline), trap correct abstentions 18 (> 16). Changed ids vs today: `golden-024`, `golden-042`, `trap-014`, `trap-016`.
+- `table.md` (25 lines):
+
+```
+# Retrieval threshold trade-off (report only; /ask default unchanged)
+| t | G ans | G src | G abst | G broken | T abst | T unexp | T src | T must-not | T worse | note |
+|---|---|---|---|---|---|---|---|---|---|---|
+| 0.0 | 37 | 29 | 11 | 0 | 16 | 3 | 5 | 0 | 0 | eligible |
+| 1.5 | 35 | 29 | 12 | 0 | 18 | 1 | 5 | 0 | 0 | recommended |
+| 2.0 | 33 | 27 | 12 | 2 | 18 | 1 | 5 | 0 | 0 | loses 2 golden right sources; breaks 2 golden questions |
+| 2.5 | 24 | 21 | 12 | 8 | 19 | 0 | 4 | 0 | 2 | loses 8 golden right sources; breaks 8 golden questions; makes 2 trap questions worse |
+| 3.0 | 23 | 21 | 12 | 8 | 19 | 0 | 4 | 0 | 2 | loses 8 golden right sources; breaks 8 golden questions; makes 2 trap questions worse |
+| 3.5 | 18 | 17 | 12 | 12 | 19 | 0 | 3 | 0 | 4 | loses 12 golden right sources; breaks 12 golden questions; makes 4 trap questions worse |
+| 4.0 | 15 | 15 | 12 | 14 | 19 | 0 | 3 | 0 | 4 | loses 14 golden right sources; breaks 14 golden questions; makes 4 trap questions worse |
+| 4.5 | 13 | 13 | 12 | 16 | 19 | 0 | 2 | 0 | 5 | loses 16 golden right sources; breaks 16 golden questions; makes 5 trap questions worse |
+| 5.0 | 10 | 10 | 12 | 19 | 19 | 0 | 1 | 0 | 6 | loses 19 golden right sources; breaks 19 golden questions; makes 6 trap questions worse |
+| 5.5 | 8 | 8 | 12 | 21 | 19 | 0 | 1 | 0 | 6 | loses 21 golden right sources; breaks 21 golden questions; makes 6 trap questions worse |
+| 6.0 | 5 | 5 | 12 | 24 | 19 | 0 | 1 | 0 | 6 | loses 24 golden right sources; breaks 24 golden questions; makes 6 trap questions worse |
+| 6.5 | 3 | 3 | 12 | 26 | 19 | 0 | 0 | 0 | 7 | loses 26 golden right sources; breaks 26 golden questions; makes 7 trap questions worse |
+| 8.0 | 2 | 2 | 12 | 27 | 19 | 0 | 0 | 0 | 7 | loses 27 golden right sources; breaks 27 golden questions; makes 7 trap questions worse |
+| 8.5 | 0 | 0 | 12 | 29 | 19 | 0 | 0 | 0 | 7 | loses 29 golden right sources; breaks 29 golden questions; makes 7 trap questions worse |
+
+## Cooperative-practice traps
+
+| id | top score | today | at 1.5 | first acceptable abstention | golden src then |
+|---|---|---|---|---|---|
+| trap-013 | 2.249 | answered | answered | 2.5 | 21 |
+| trap-014 | 1.314 | answered | abstained (no_evidence) | 1.5 | 29 |
+| trap-016 | 1.314 | answered | abstained (no_evidence) | 1.5 | 29 |
+```
+
+- Cooperative outcome: `trap-014` and `trap-016` become `no_evidence` at 1.5; `trap-013` still answers there and first abstains acceptably at 2.5, where golden right source is 21.
+- Manual: `git status --short` shows only this feature's files; `knowledge/` has no change; the socket-guard test passes and no model/optional runtime is imported.
 
 ## Validator checklist
 
