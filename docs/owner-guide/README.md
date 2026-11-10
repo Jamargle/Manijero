@@ -35,6 +35,9 @@ In the order you usually need them:
 12. [Trap set review](trap-set-review.md): approve or reject the drafted trick questions.
 13. [Reranker](reranker.md): download an optional second reading model, measure it against today's
     search, and switch it on or off (it ships off).
+14. [Colloquial variants review](colloquial-variants-review.md): approve or reject the everyday
+    rewordings of the test questions that an offline comparison may score.
+
 
 An "Owner walkthrough" section near the end of a guide holds one-time acceptance steps whose
 `Result:` lines you report to the developer.

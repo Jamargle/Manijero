@@ -136,6 +136,14 @@ Durable MUST/MUST NOT rules for backend answer path, retrieval, generation, eval
   enforcement is agreed separately. Reason: `land_safety_evaluation` established the reproducible
   synthetic baseline; a gate whose numbers came from synthetic fixtures, or a case whose critical
   fact nobody checked, would turn an unverified expectation into a false safety guarantee.
+- **MUST**: a colloquial A/B comparison MUST read only owner-approved variants, run the same
+  approved cases through the in-process decision with the same corpus, campaign, as-of date, `k`,
+  drafting, and cache state, and differ only in the query-expansion object (none, the approved
+  glossary, the glossary plus screened terms from the pinned local model). It MUST write outside
+  `knowledge/`, make no hosted model call, report fixed-denominator hit@5 and trap regressions as
+  report-only with the rule "strictly better than no rewriting and no approved trap worse", and
+  MUST NOT change a default, setting, or release gate. Reason: an unapproved or non-comparable
+  variant, or a comparison read as an adoption, would turn an agent draft into a quality claim.
 - **MUST**: a golden-set item (`knowledge/golden_set.json`) MUST NOT be scored or read by any gate,
   release, review, demo, or load command until a named reviewer's decision is recorded by the
   decide command, and an answered item's anchor MUST quote an approved, current passage verbatim.

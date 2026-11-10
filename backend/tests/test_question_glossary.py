@@ -448,7 +448,16 @@ def test_runtime_module_imports_only_stdlib_and_retrieval() -> None:
 def test_no_runtime_module_imports_the_review_tooling() -> None:
     banned = ("question_glossary_review", "notice_pipeline", "golden_set")
     for path in sorted(APP_DIR.glob("*.py")):
-        if path.name in {"question_glossary_review.py", "notice_pipeline.py", "golden_set.py", "trap_set.py", "release_gates.py"}:
+        # These are the reviewed-data tools themselves: a durable variant set, report-only
+        # evaluation, and release gates. The runtime service never imports them.
+        if path.name in {
+            "question_glossary_review.py",
+            "notice_pipeline.py",
+            "golden_set.py",
+            "trap_set.py",
+            "release_gates.py",
+            "colloquial_ab.py",
+        }:
             continue
         if path.name in {"input_guardrails.py"}:
             continue
