@@ -70,7 +70,7 @@ Inspected 2026-11-10 (planner, read-only):
 - `git diff --stat`: no change under `knowledge/`, `contracts/`, `shared/`, `backend/container/`; `main`, `ask_api`, `generation`, `answer_eval`, `golden_set`, `trap_set`, `embeddings`, `hybrid_retrieval` untouched.
 - No agent download, real-model run, or write outside the checkout. The measure command was exercised only over fakes (fake hybrid loader and scorer, plus the real reviewed golden and trap files in `test_reranker_commands.py`).
 - Implementation notes (refinements, not contract changes): (1) a BM25 fallback is detected as "the hybrid ranker was absent or recorded a fallback reason" (`HybridRanker.last_trace.fallback_reason`), because a question with no lexical match or screened before retrieval never calls the ranker and is not a fallback. (2) The reranker keeps each id's inner score and changes only the order. (3) One `/ask` can search twice (land clarification), so "extra time" sums the scorer seconds per question. (4) The service-status `Reranker:` line is printed as `NOTE`, outside the three OK/PROBLEM checks. (5) Owner commands run with `backend/.venv-hybrid`. (6) The golden/trap case loader lives in `backend/scripts/reranker.py` (`load_cases`) and is passed to `run_measurement`, because `test_question_glossary` forbids runtime modules under `app/` from importing `golden_set`.
-- After the owner run (orchestrator, not yet done): paste the owner's two `Result:` lines here with the date and the rule-3 decision.
+- Owner run (2026-11-10): `--reranker-download` then `--reranker-measure`; one `Result:` line reported, recorded verbatim in [the acceptance record](../validations/reranker_evaluation.md): 29 today, 30 with the reranker (+1), 1 golden broken, 0 traps worse, slowest extra 2.0 s (one decimal of a value above the strict 2.0 s limit). Rule-3 decision: OFF; `default_state` unchanged (`"off"`); kept as a recorded experiment.
 
 ## Validator checklist
 
@@ -81,12 +81,3 @@ Inspected 2026-11-10 (planner, read-only):
 - Rule 3 + 2-second limit implemented exactly as scenario 6 defines; result-line text matches the contract and owner guide.
 - Owner commands: no arguments, prerequisites checked first, one `Result:` line, non-zero on failure; owner guide ≤ 60 lines, plain language, explains what a reranker is, how it is measured, how to read the line, how to switch.
 - Durable docs updated as listed; forbidden files unchanged; focused block passes as published.
-
-## Handoff
-
-- Status: `passing`, held pending the owner run. Validator 2026-11-10: accept with condition `pending owner walkthrough` (`docs/validations/reranker_evaluation.md`). Next action: owner steps below; no further validator. The reranker ships **off** (`default_state: "off"`).
-- Done: pin from the saved metadata, `app/reranker.py`, `app/reranker_measure.py`, `scripts/reranker.py`, shared downloader generalized (SHA-256 and git-blob SHA-1), retriever accessors, `MANIJERO_RERANKER` wrap in `retrieval_backend.py`, settings/launch/status wiring, four `init.sh` commands, owner guide, durable docs, tests (463 in the focused block).
-- Checks run: `./scripts/init.sh --feature reranker_evaluation` (pass, 463 tests) and `./scripts/init.sh --fast` (pass, 3312 tests). `--verify` not run: no Android, Desktop, packaging, or shared-surface change.
-- Not done by design: no model download and no real measurement (agents never do these). Real `torch`/`transformers` loading and the real latency are exercised only in the owner's run.
-- Owner steps (after validation), after `./scripts/init.sh --local-rag-setup` has finished: (1) `./scripts/init.sh --reranker-download`; (2) `./scripts/init.sh --reranker-measure`; (3) send the `Result:` line to the developer. The orchestrator records the line here and in `docs/validations/reranker_evaluation.md` and applies rule 3: on `Verdict: ON` change only `default_state` to `"on"` in `backend/config/reranker.json` plus one `PROGRESS.md` status line; on `OFF` change nothing.
-- Risks for the validator to probe: the `config.json` one-label check (`id2label` or `num_labels`) first runs on the real file at the owner's download; memory use of `bge-m3` plus the reranker (about 4.6 GB of weights) is unmeasured.
