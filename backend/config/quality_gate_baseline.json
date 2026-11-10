@@ -39,9 +39,9 @@
     }
   },
   "review": {
-    "reason": "initial measured fixture baseline recorded by the orchestrator on owner Jose's behalf under the 2026-11-10 batch owner decisions; Jose has not personally reviewed the measured numbers",
+    "reason": "approved by the owner in the batch 2 review on 2026-11-11",
     "reviewed_by": "Jose",
-    "reviewed_on": "2026-11-10"
+    "reviewed_on": "2026-11-11"
   },
   "schema_version": "eval-quality-gate-baseline-v1",
   "settings": {

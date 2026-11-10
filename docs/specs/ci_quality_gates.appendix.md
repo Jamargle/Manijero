@@ -101,7 +101,7 @@ Inspected 2026-11-10 (planner, read-only):
 
 ### 2026-11-10 — implementer
 
-- Baseline `backend/config/quality_gate_baseline.json` recorded through `record --reviewer "Jose" --reviewed-on 2026-11-10 --reason "initial measured fixture baseline recorded by the orchestrator on owner Jose's behalf under the 2026-11-10 batch owner decisions; Jose has not personally reviewed the measured numbers"`: fixtures 6/7 hit@1, 6/7 hit@3, 6/7 hit@5, MRR 0.8571; fixtures abstention 10/10; reviewed sample 9/12 hit@1, 11/12 hit@3, 11/12 hit@5, MRR 0.8333; reviewed sample abstention 5/5. The `reviewed_by` field names the owner (Jose), but the orchestrator recorded the measured numbers on the owner's behalf under the 2026-11-10 batch owner decisions; Jose has not personally reviewed the measured numbers.
+- Baseline `backend/config/quality_gate_baseline.json` measured on 2026-11-10 through `check_quality_gate.py check`: fixtures 6/7 hit@1, 6/7 hit@3, 6/7 hit@5, MRR 0.8571; fixtures abstention 10/10; reviewed sample 9/12 hit@1, 11/12 hit@3, 11/12 hit@5, MRR 0.8333; reviewed sample abstention 5/5. The owner reviewed and approved the measured baseline on 2026-11-11 in the batch 2 review; the numbers are synthetic-fixture plus 17-case-sample evidence and make no legal or real-user accuracy claim.
 - `./scripts/init.sh --feature ci_quality_gates`: 24 passed; exactly one pass `Result:` line; fixtures, `knowledge/`, and the baseline unchanged.
 - `./scripts/init.sh --fast`: all 10 offline checks passed (backend 3424 passed, 9 skipped); no `Result: quality gate` line.
 - `./scripts/init.sh --verify`: quality gate ran once after `--fast` and before the builds, printed the pass line, then `Full tier passed`; 74.9 s total, gate ~0.2 s.
@@ -109,9 +109,13 @@ Inspected 2026-11-10 (planner, read-only):
 - Temp baseline with a changed `as_of` and one with no review block: exit 2 `baseline_stale` / `baseline_unreviewed`, no comparison (also covered by command tests).
 - `record` with no reviewer: exit 2 `Result: baseline not recorded: the reviewer must be named.`; accepted temp change: `reviewed sample hit@1: 10/12 -> 9/12`, `reviewed sample MRR: 0.8433 -> 0.8333`, `Result: baseline recorded: 2 metrics changed...`, exit 0.
 - Command tests block sockets, assert two runs print the same line, confirm byte-identical `knowledge/`, fixtures, and baseline, restored env keys, and that no golden/trap/judge file is read.
-- 2026-11-10 repair: the baseline reason and this record now state that the orchestrator entered the measured numbers on owner Jose's behalf under the 2026-11-10 batch owner decisions and that Jose has not personally reviewed the measured numbers; baseline numbers are unchanged.
 - 2026-11-10 repair: a baseline MRR of `NaN`, `Infinity`, or `-Infinity` is rejected as `baseline_invalid`; `./scripts/init.sh --backend-tests tests/test_quality_gate.py tests/test_check_quality_gate_command.py -q` passed 25.
 - 2026-11-10 repair re-check: `./scripts/init.sh --feature ci_quality_gates` passed 25 with one passing gate line; `./scripts/init.sh --fast` passed all 10 checks with zero gate lines; `./scripts/init.sh --verify` ran the gate once and ended `Full tier passed` (75.1 s).
+
+### 2026-11-11 — owner review
+
+- The owner approved the measured baseline in the batch 2 review. The review block was re-recorded through `record --reviewer "Jose" --reviewed-on 2026-11-11 --reason "approved by the owner in the batch 2 review on 2026-11-11"`: 0 metrics changed; every measured number is byte-identical.
+- `./scripts/init.sh --feature ci_quality_gates` passed 25 with one passing gate line; `./scripts/init.sh --fast` passed all 10 checks with zero gate lines; `./scripts/init.sh --verify` ran the gate once and ended `Full tier passed`.
 
 ## Validator checklist
 

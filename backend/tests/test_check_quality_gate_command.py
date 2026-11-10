@@ -107,7 +107,11 @@ def test_real_check_passes_with_one_line_and_writes_nothing(
     lines = _result_lines(output)
     assert len(lines) == 1
     assert lines[0].startswith("Result: quality gate passed: fixtures ")
-    assert "Baseline reviewed by Jose on 2026-11-10." in lines[0]
+    review = _baseline_document()["review"]
+    assert (
+        f"Baseline reviewed by {review['reviewed_by']} on {review['reviewed_on']}."
+        in lines[0]
+    )
     assert BASELINE.read_bytes() == before_baseline
 
 
