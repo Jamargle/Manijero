@@ -296,6 +296,23 @@ if [[ "${1:-}" == "--knowledge-updates-on" || "${1:-}" == "--knowledge-updates-o
   exec "$LOCAL_RAG_PYTHON" "$REPO_ROOT/backend/scripts/knowledge_ops.py" "${1#--knowledge-updates-}"
 fi
 
+# Owner commands for hosted knowledge review pull requests (docs/owner-guide/knowledge-review-pull-requests.md).
+# Test-only variables: MANIJERO_KNOWLEDGE_REVIEW_HOME, MANIJERO_GH_CLI, and MANIJERO_HOSTED_REVIEW_REPO.
+if [[ "${1:-}" == "--knowledge-review-open" || "${1:-}" == "--knowledge-review-protect" ]]; then
+  REPO_ROOT="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")/.." && pwd)"
+  if (( $# > 1 )); then
+    printf 'Run %s on its own, with nothing after it.\n' "$1" >&2
+    exit 2
+  fi
+  LOCAL_RAG_PYTHON="$REPO_ROOT/backend/.venv/bin/python"
+  if [[ ! -x "$LOCAL_RAG_PYTHON" ]] && ! "$REPO_ROOT/scripts/python-env.sh" dev --if-present >/dev/null 2>&1; then
+    printf 'The backend tools are not set up yet. Run ./scripts/init.sh --local-rag-setup, then try again.\n'
+    printf 'Result: the knowledge review command did not run because the backend tools are not set up.\n'
+    exit 2
+  fi
+  exec "$LOCAL_RAG_PYTHON" "$REPO_ROOT/backend/scripts/hosted_review.py" "${1#--knowledge-review-}"
+fi
+
 # Owner command: smoke-test the Desktop and Android emulator apps against the running local answer
 # service (docs/owner-guide/local-checks.md). Like --local-rag-*, it runs before the local.properties write; AGP
 # reads ANDROID_HOME instead. backend/app/local_smoke.py checks the service, Java, and the emulator.
@@ -541,7 +558,7 @@ AS_OF="${MANIJERO_AS_OF:-2026-10-13}"
 
 usage() {
   cat <<'EOF'
-Usage: ./scripts/init.sh [--check|--fast|--verify|--feature <id>|--backend-tests [targets]|--setup-python [dev|hybrid|docparse]|--backend|--mock|--mock-status|--mock-stop|--local-rag-setup|--local-rag-status|--local-rag-start|--local-rag-service-status|--local-rag-load-test|--local-rag-stop|--container-build|--container-start|--container-status|--container-stop|--monitoring-start|--monitoring-status|--monitoring-stop|--pilot-token-save|--demo-rehearsal|--golden-review|--golden-decide|--trap-review|--trap-decide|--glossary-review|--glossary-decide|--grounding-judge-setup|--grounding-judge-report|--usability-record|--local-smoke|--qa-check|--environments-status|--qa-settings-setup|--qa-deploy|--qa-update|--qa-rollback|--qa-status|--qa-stop|--qa-alerts-setup|--qa-alerts-start|--qa-alerts-stop|--qa-alerts-status|--qa-alerts-test|--knowledge-updates-on|--knowledge-updates-run|--knowledge-updates-status|--knowledge-updates-off|--reranker-download|--reranker-measure|--reranker-on|--reranker-off|--android|--android-run|--desktop|--android-qa|--desktop-qa|--help]
+Usage: ./scripts/init.sh [--check|--fast|--verify|--feature <id>|--backend-tests [targets]|--setup-python [dev|hybrid|docparse]|--backend|--mock|--mock-status|--mock-stop|--local-rag-setup|--local-rag-status|--local-rag-start|--local-rag-service-status|--local-rag-load-test|--local-rag-stop|--container-build|--container-start|--container-status|--container-stop|--monitoring-start|--monitoring-status|--monitoring-stop|--pilot-token-save|--demo-rehearsal|--golden-review|--golden-decide|--trap-review|--trap-decide|--glossary-review|--glossary-decide|--grounding-judge-setup|--grounding-judge-report|--usability-record|--local-smoke|--qa-check|--environments-status|--qa-settings-setup|--qa-deploy|--qa-update|--qa-rollback|--qa-status|--qa-stop|--qa-alerts-setup|--qa-alerts-start|--qa-alerts-stop|--qa-alerts-status|--qa-alerts-test|--knowledge-updates-on|--knowledge-updates-run|--knowledge-updates-status|--knowledge-updates-off|--knowledge-review-open|--knowledge-review-protect|--reranker-download|--reranker-measure|--reranker-on|--reranker-off|--android|--android-run|--desktop|--android-qa|--desktop-qa|--help]
 
   --check                   Check Java and the Gradle wrapper, then print standard commands (default)
   --fast                    Shared host tests, contract examples, backend unit tests, and the five
@@ -638,6 +655,10 @@ Usage: ./scripts/init.sh [--check|--fast|--verify|--feature <id>|--backend-tests
   --knowledge-updates-run   Run the whole knowledge update cycle now (one hour at most)
   --knowledge-updates-status  Say whether the daily run is on and how the last run went
   --knowledge-updates-off   Turn the daily run off (the history is kept)
+  --knowledge-review-open   Open one GitHub pull request for each ready knowledge review package;
+                            you read and merge it on GitHub, and nothing is published on merge
+  --knowledge-review-protect  Protect main on GitHub: pull requests only, fast and full must pass,
+                            no force pushes (asks before changing anything)
   --android                 Build the Android debug APK
   --android-run             Build, start an emulator if needed, install, and launch the app
   --desktop                 Launch the Desktop app

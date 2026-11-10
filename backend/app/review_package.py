@@ -1755,6 +1755,74 @@ def render_decisions_markdown(decisions: Mapping[str, Any]) -> str:
 # --- Controlled merge -------------------------------------------------------
 
 
+def build_after_state(
+    package: Mapping[str, Any],
+    catalog_bytes: bytes,
+    passages_bytes: bytes,
+    cases_path: Optional[Path],
+    as_of: date,
+) -> Tuple[str, str]:
+    """Apply one package's proposal to the given baseline bytes.
+
+    Returns the ordered catalog and passage-set texts the proposal describes.
+    It refuses a proposal without the required reviewed case set, a case file
+    whose digest differs from the package, an after-state whose hashes do not
+    match the package, and an after-state that fails catalog or passage
+    validation. It writes nothing.
+    """
+
+    proposal = package["proposal"]["input"]
+    evaluation = package["proposal"].get("evaluation", {})
+    cases_sha = evaluation.get("cases_sha256")
+    if evaluation.get("orphaned_case_ids"):
+        raise ReviewPackageError("approval_blocked")
+    if cases_sha is None:
+        if _proposal_has_changes(proposal):
+            raise ReviewPackageError("cases_required")
+    else:
+        if cases_path is None:
+            raise ReviewPackageError("cases_required")
+        cases_bytes = _read_bytes(cases_path, "invalid_evaluation_cases")
+        if _sha256(cases_bytes) != cases_sha:
+            raise ReviewPackageError("evaluation_cases_drift")
+
+    try:
+        catalog = json.loads(catalog_bytes.decode("utf-8"))
+        passages = json.loads(passages_bytes.decode("utf-8"))
+    except (UnicodeDecodeError, json.JSONDecodeError) as error:
+        raise ReviewPackageError("invalid_catalog") from error
+    try:
+        after_catalog = _apply_section(catalog, "sources", proposal["catalog"])
+        after_passages = _apply_section(passages, "passages", proposal["passages"])
+    except ReviewPackageError:
+        raise
+    except (KeyError, TypeError, IndexError, AttributeError) as error:
+        raise ReviewPackageError("invalid_review_package") from error
+    after_catalog_text = _ordered_json(after_catalog)
+    after_passages_text = _ordered_json(after_passages)
+    if _sha256(after_catalog_text.encode("utf-8")) != package["proposal"]["after"]["catalog_sha256"]:
+        raise ReviewPackageError("canonical_drift")
+    if _sha256(after_passages_text.encode("utf-8")) != package["proposal"]["after"]["passages_sha256"]:
+        raise ReviewPackageError("canonical_drift")
+
+    if validate_catalog(after_catalog, as_of).issues:
+        raise ReviewPackageError("invalid_catalog")
+    if not validate_passage_set(after_passages).ok:
+        raise ReviewPackageError("invalid_passage_set")
+    after_catalog_ids = {source["id"] for source in after_catalog["sources"]}
+    if any(
+        passage.get("source_id") not in after_catalog_ids
+        for passage in after_passages["passages"]
+    ):
+        raise ReviewPackageError("invalid_passage_set")
+    if cases_sha is not None:
+        try:
+            load_evaluation_cases(cases_path, after_catalog, after_passages)
+        except ImpactAnalysisError as error:
+            raise ReviewPackageError("evaluation_cases_drift") from error
+    return after_catalog_text, after_passages_text
+
+
 def merge(
     package_dir: Path,
     catalog_path: Path,
@@ -1816,55 +1884,9 @@ def merge(
     if as_of < date.fromisoformat(package["prepared_on"]):
         raise ReviewPackageError("invalid_review_decisions")
 
-    proposal = package["proposal"]["input"]
-    evaluation = package["proposal"].get("evaluation", {})
-    cases_sha = evaluation.get("cases_sha256")
-    if evaluation.get("orphaned_case_ids"):
-        raise ReviewPackageError("approval_blocked")
-    if cases_sha is None:
-        if _proposal_has_changes(proposal):
-            raise ReviewPackageError("cases_required")
-    else:
-        if cases_path is None:
-            raise ReviewPackageError("cases_required")
-        cases_bytes = _read_bytes(cases_path, "invalid_evaluation_cases")
-        if _sha256(cases_bytes) != cases_sha:
-            raise ReviewPackageError("evaluation_cases_drift")
-
-    try:
-        catalog = load_catalog(catalog_path)
-        passages = load_passage_set(passages_path)
-    except Exception as error:  # noqa: BLE001
-        raise ReviewPackageError("invalid_catalog") from error
-    try:
-        after_catalog = _apply_section(catalog, "sources", proposal["catalog"])
-        after_passages = _apply_section(passages, "passages", proposal["passages"])
-    except ReviewPackageError:
-        raise
-    except (KeyError, TypeError, IndexError, AttributeError) as error:
-        raise ReviewPackageError("invalid_review_package") from error
-    after_catalog_text = _ordered_json(after_catalog)
-    after_passages_text = _ordered_json(after_passages)
-    if _sha256(after_catalog_text.encode("utf-8")) != package["proposal"]["after"]["catalog_sha256"]:
-        raise ReviewPackageError("canonical_drift")
-    if _sha256(after_passages_text.encode("utf-8")) != package["proposal"]["after"]["passages_sha256"]:
-        raise ReviewPackageError("canonical_drift")
-
-    if validate_catalog(after_catalog, as_of).issues:
-        raise ReviewPackageError("invalid_catalog")
-    if not validate_passage_set(after_passages).ok:
-        raise ReviewPackageError("invalid_passage_set")
-    after_catalog_ids = {source["id"] for source in after_catalog["sources"]}
-    if any(
-        passage.get("source_id") not in after_catalog_ids
-        for passage in after_passages["passages"]
-    ):
-        raise ReviewPackageError("invalid_passage_set")
-    if cases_sha is not None:
-        try:
-            load_evaluation_cases(cases_path, after_catalog, after_passages)
-        except ImpactAnalysisError as error:
-            raise ReviewPackageError("evaluation_cases_drift") from error
+    after_catalog_text, after_passages_text = build_after_state(
+        package, catalog_bytes, passages_bytes, cases_path, as_of
+    )
 
     _atomic_write_text(catalog_path, after_catalog_text)
     _atomic_write_text(passages_path, after_passages_text)
