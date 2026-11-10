@@ -84,7 +84,7 @@ Validator repair, 2026-11-10 (verdict `revise`):
 - Push and `gh pr create` failures append fixed-code lines to `<home>/logs/hosted-review.log` (`0600`), with no path, token, or stderr.
 - Body source/passage matches now count expected-answered rows only, labelled "(answered cases)", so abstention rows cannot inflate them.
 - Probe: documented GET → `matches=True`; payload has `ref_name` and no `ref`, keeps `deletion`; old `ref` shape → `False`.
-- `./scripts/init.sh --feature hosted_review_pull_requests` → `122 passed in 4.00s`; per file 27 / 6 / 46 / 43.
+- `./scripts/init.sh --feature hosted_review_pull_requests` → `122 passed`; per file 27 / 6 / 46 / 43.
 - `./scripts/init.sh --fast` → all 10 offline checks passed; backend `3409 passed, 9 skipped`.
 
 ## Validator checklist
