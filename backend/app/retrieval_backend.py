@@ -10,7 +10,10 @@ configuration and is loaded lazily on the first request:
 * ``MANIJERO_VECTOR_STORE`` — the derived Chroma store directory (required);
 * ``MANIJERO_EMBEDDING_ARTIFACT`` — the verified local model directory (required);
 * ``MANIJERO_EMBEDDING_CONFIG`` — the model pin (default: the repository pin);
-* ``MANIJERO_HYBRID_CONFIG`` — fusion parameters (default: the repository file).
+* ``MANIJERO_HYBRID_CONFIG`` — fusion parameters (default: the repository file);
+* ``MANIJERO_RERANKER`` — unset or ``off`` (the default) adds nothing; ``on`` wraps the
+  ranking above with the local reranker (``app.reranker``, imported only then), together
+  with ``MANIJERO_RERANKER_ARTIFACT``.
 
 Even when hybrid is configured, a request uses hybrid ranking only while the
 store is fresh for the current pin, campaign, and admitted documents; otherwise
@@ -67,8 +70,23 @@ class Bm25Backend:
 
 
 def backend_from_environment(environ: Mapping[str, str]) -> RetrievalBackend:
-    """Build the configured backend without loading any model or store."""
+    """Build the configured backend without loading any model or store.
 
+    ``MANIJERO_RERANKER`` unset or ``off`` keeps the ranking below untouched and never
+    imports the reranker module; any other value hands the backend to that module, which
+    wraps it only for ``on`` with a valid pin, settings, and artifact path.
+    """
+
+    base = _ranking_backend(environ)
+    state = (environ.get("MANIJERO_RERANKER") or "off").strip()
+    if state == "off":
+        return base
+    from app.reranker import backend_from_environment as reranker_backend
+
+    return reranker_backend(environ, base)
+
+
+def _ranking_backend(environ: Mapping[str, str]) -> RetrievalBackend:
     mode = (environ.get("MANIJERO_RETRIEVAL_MODE") or MODE_BM25).strip()
     if mode == MODE_BM25:
         return Bm25Backend()

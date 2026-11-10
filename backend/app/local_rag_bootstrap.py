@@ -80,6 +80,7 @@ OLLAMA_CLI_ENV = "MANIJERO_OLLAMA_CLI"  # tests only
 CAMPAIGN_KEY = "MANIJERO_ACTIVE_CAMPAIGN"
 ANSWER_TRACE_KEY = "MANIJERO_ANSWER_TRACE"
 ANSWER_CACHE_KEY = "MANIJERO_ANSWER_CACHE"
+RERANKER_KEY = "MANIJERO_RERANKER"
 DEFAULT_CAMPAIGN = "2026"  # the same default as ./scripts/init.sh --backend
 ENVIRONMENT_KEY = "MANIJERO_ENVIRONMENT"
 PROFILE_KEY = "MANIJERO_DEPLOYMENT_PROFILE"
@@ -287,6 +288,7 @@ class LocalPaths:
     settings: Path
     models: Path
     bge_m3: Path
+    reranker: Path
     work: Path
     embedding_index: Path
     releases: Path
@@ -312,6 +314,7 @@ def local_paths(home: Optional[Path] = None) -> LocalPaths:
         settings=root / "settings.env",
         models=models,
         bge_m3=models / "bge-m3",
+        reranker=models / "bge-reranker-v2-m3",
         work=work,
         embedding_index=work / "embedding-index.json",
         releases=root / "knowledge-releases",
@@ -327,6 +330,7 @@ class Settings:
     environment: Optional[str] = None  # None: the file does not say (an older local file)
     deployment_profile: Optional[str] = None
     answer_cache: bool = True
+    reranker: Optional[str] = None  # "on" or "off" when the file says so; None: the repository default
 
     @property
     def names_environment(self) -> bool:
@@ -359,6 +363,10 @@ SETTINGS_TEMPLATE = """\
 # Optional: the assistant reuses a verified answer to a repeated question for up to 24 hours,
 # kept only in memory. Write off to turn it off. On by default.
 # {cache_key}=on
+
+# Optional: a second, more careful reading of the passages found (off unless you switch it on
+# with ./scripts/init.sh --reranker-on; ./scripts/init.sh --reranker-off writes off). Write on or off.
+# {reranker_key}=off
 """.format(
     setup=SETUP_COMMAND,
     status=STATUS_COMMAND,
@@ -372,6 +380,7 @@ SETTINGS_TEMPLATE = """\
     campaign=DEFAULT_CAMPAIGN,
     trace_key=ANSWER_TRACE_KEY,
     cache_key=ANSWER_CACHE_KEY,
+    reranker_key=RERANKER_KEY,
 )
 
 _LOCAL_VALUES = {ENVIRONMENT_KEY: LOCAL_ENVIRONMENT, PROFILE_KEY: LOCAL_PROFILE}
@@ -402,7 +411,9 @@ def read_settings(path: Path) -> Optional[Settings]:
         if "=" not in line:
             raise _line_error(target, number, "it must look like NAME=value")
         key, value = (part.strip() for part in line.split("=", 1))
-        if key not in (CAMPAIGN_KEY, ANSWER_TRACE_KEY, ANSWER_CACHE_KEY, ENVIRONMENT_KEY, PROFILE_KEY):
+        if key not in (
+            CAMPAIGN_KEY, ANSWER_TRACE_KEY, ANSWER_CACHE_KEY, RERANKER_KEY, ENVIRONMENT_KEY, PROFILE_KEY
+        ):
             raise _line_error(target, number, "it is not a setting this tool knows")
         if key in values:
             raise _line_error(target, number, "this setting appears twice")
@@ -415,6 +426,11 @@ def read_settings(path: Path) -> Optional[Settings]:
         if key == ANSWER_CACHE_KEY:
             if value not in ("on", "off"):
                 raise _line_error(target, number, "the answer cache must be on or off")
+            values[key] = value
+            continue
+        if key == RERANKER_KEY:
+            if value not in ("on", "off"):
+                raise _line_error(target, number, "the reranker must be on or off")
             values[key] = value
             continue
         if key in _LOCAL_VALUES:
@@ -437,9 +453,32 @@ def read_settings(path: Path) -> Optional[Settings]:
         active_campaign=values[CAMPAIGN_KEY],
         answer_trace=values.get(ANSWER_TRACE_KEY) == "on",
         answer_cache=values.get(ANSWER_CACHE_KEY) != "off",
+        reranker=values.get(RERANKER_KEY),
         environment=values.get(ENVIRONMENT_KEY),
         deployment_profile=values.get(PROFILE_KEY),
     )
+
+
+def write_setting(path: Path, key: str, value: str) -> None:
+    """Set ``key=value``: replace that key's line, or append it; every other byte stays.
+
+    The file must already have passed :func:`read_settings`, so ``key`` appears at most once.
+    """
+
+    target = Path(path)
+    current = target.read_bytes().decode("utf-8")  # bytes, so no line ending is translated
+    lines = current.splitlines(keepends=True)
+    for position, raw in enumerate(lines):
+        stripped = raw.strip()
+        if stripped and not stripped.startswith("#") and stripped.split("=", 1)[0].strip() == key:
+            ending = raw[len(raw.rstrip("\r\n")):]
+            lines[position] = "{}={}{}".format(key, value, ending)
+            break
+    else:
+        if lines and not lines[-1].endswith("\n"):
+            lines[-1] += "\n"
+        lines.append("{}={}\n".format(key, value))
+    target.write_bytes("".join(lines).encode("utf-8"))
 
 
 def create_settings(path: Path) -> bool:
@@ -614,6 +653,8 @@ class Context:
     dev_python: str
     hybrid_python: str
     ollama_models: Path
+    reranker_pin: Path = REPOSITORY_ROOT / "backend" / "config" / "bge_reranker_v2_m3.json"
+    reranker_settings: Path = REPOSITORY_ROOT / "backend" / "config" / "reranker.json"
 
     @property
     def python_env_script(self) -> Path:

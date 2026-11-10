@@ -93,6 +93,12 @@ Durable MUST/MUST NOT rules for backend answer path, retrieval, generation, eval
   cases recorded with the change. Reason: the 2026-10-31 comparison on the
   14-case author-only sample measured no answer-level difference.
 
+## Reranking
+
+- **MUST**: a reranker MUST compose after BM25 or hybrid only through `Retriever.with_ranker` (wrapping the current ranker), MUST only re-order passages the retriever admitted (never add, drop, or admit one), and MUST keep the lexical gate. Any scorer exception, wrong count, or non-finite score MUST return the unreranked order, log only a fixed reason code, and mark retrieval degraded for the answer cache. Reason: [`reranker_evaluation`](../specs/reranker_evaluation.md).
+- **MUST**: the reranker MUST be off by default and MUST NOT be imported (nor `torch`/`transformers`) while `MANIJERO_RERANKER` is unset or `off`; it runs only in the local service, never in the container image, QA, or the pilot. Its model MUST be pinned like the embedding model: an immutable revision plus a size and one digest per file (SHA-256 for large-file-storage files, git-blob SHA-1 for small text files), at most 5 GB, downloaded only by the owner command and verified before use.
+- **MUST**: `default_state` in `backend/config/reranker.json` MUST flip to `on` only with a recorded owner measurement (`./scripts/init.sh --reranker-measure`) whose verdict is `ON`: at least 2 more golden questions find their right source than today's hybrid search, no trap question gets worse, no golden question that passes today breaks, and at most 2 extra seconds per answer. Reason: owner decision 3, 2026-11-10.
+
 ## Abstention
 
 - **MUST**: questions matching a declared `pac_coverage.md` omission abstain before

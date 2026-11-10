@@ -33,6 +33,8 @@ In the order you usually need them:
 12. [Knowledge updates](knowledge-updates.md): turn on the daily run that finds, reads, and checks new official
     documents and prepares a review for you; nothing goes live without your approval.
 12. [Trap set review](trap-set-review.md): approve or reject the drafted trick questions.
+13. [Reranker](reranker.md): download an optional second reading model, measure it against today's
+    search, and switch it on or off (it ships off).
 
 An "Owner walkthrough" section near the end of a guide holds one-time acceptance steps whose
 `Result:` lines you report to the developer.
