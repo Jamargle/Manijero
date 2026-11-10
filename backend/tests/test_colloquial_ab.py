@@ -107,6 +107,27 @@ def test_missing_variant_duplicate_parent_and_bad_question_are_named_by_id() -> 
     assert "coll-001: question_shape" in lines
 
 
+def test_rejected_variant_keeps_structure_but_is_exempt_from_content_rules() -> None:
+    catalog, passages, cases, coverage, golden, digest = _real()
+    document = ab.read_variants(VARIANTS)
+    omissions = coverage["omissions"]
+    rejected = json.loads(json.dumps(document))
+    entry = rejected["variants"][0]
+    entry["review_state"] = "rejected"
+    entry["decision"] = {
+        "decision": "rejected",
+        "reviewed_by": "Reviewer",
+        "reviewed_on": "2026-11-01",
+    }
+    entry["colloquial_terms"] = ["palabra que no está"]
+
+    assert ab.check_variants(rejected, golden, cases, digest, omissions) == []
+
+    rejected["variants"][0]["parent_id"] = "golden-999"
+    lines = ab.check_variants(rejected, golden, cases, digest, omissions)
+    assert "coll-001: parent_id is not a golden item" in lines
+
+
 # --- one variant against its parent --------------------------------------------------------
 
 

@@ -38,7 +38,7 @@ answer tools.
 | `Result: the colloquial variant review did not run. Run ./scripts/init.sh --local-rag-setup.` | The local answer tools are not set up. | Follow [Set up the local answer tools](local-answer-service.md#set-up-the-local-answer-tools), then repeat. |
 | `Result: nothing was recorded. Write approve or reject, your name in quotes, and at least one variant number ...` | The decision, the name, or the numbers are missing or invalid. | Copy the example in the line and repeat. |
 | `Result: nothing was recorded. These variant numbers are not in the list: ...` | A number or id does not exist. | Run the review again and use the numbers shown. |
-| `Result: nothing was recorded. Colloquial variant <n> cannot be approved as written. ...` | The variant breaks a safety rule. | Reject it, or send the line to the developer. |
+| `Result: nothing was recorded. Colloquial variant <n> cannot be approved as written. ...` | The variant breaks a safety rule, such as a word that does not appear or a number. | Reject it if the wording is wrong: a rejected variant is never scored and is exempt from the content check. Ask the developer to reword it only if you want it available later. |
 | `Result: nothing was recorded. The colloquial variant list does not match the approved golden questions. ...` | The test questions changed. | Ask the developer to update the list, then repeat. |
 | `Result: the colloquial variant list could not be read ...` | The file is damaged. | Send the line to the developer; nothing changed. |
 

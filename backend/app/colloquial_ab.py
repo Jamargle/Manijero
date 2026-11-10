@@ -439,7 +439,11 @@ def check_variants(
     golden_digest: str,
     omissions: Sequence[str] = (),
 ) -> List[str]:
-    """Every scenario-1/2 failure; each line names an id (or ``$``) and a rule."""
+    """Every scenario-1/2 failure; each line names an id (or ``$``) and a rule.
+
+    Structural and coverage rules apply to every entry; the scenario-2 content rules apply only
+    to approved and draft variants, because a rejected variant is never scored.
+    """
 
     if not isinstance(document, dict) or set(document) != {
         "schema_version",
@@ -513,10 +517,13 @@ def check_variants(
     protected.update(
         {"golden:" + item["id"]: tokenize(item["question"]) for item in golden["items"]}
     )
+    # A rejected variant keeps the structural checks above but is never scored, so the
+    # scenario-2 content rules (and duplicate wording) apply only to approved and draft entries.
+    active = [entry for entry in trusted if entry["review_state"] != "rejected"]
     variant_tokens = {
-        entry["id"]: tokenize(entry["question"]) for entry in trusted
+        entry["id"]: tokenize(entry["question"]) for entry in active
     }
-    for entry in trusted:
+    for entry in active:
         parent = items.get(entry["parent_id"])
         if parent is None:
             continue

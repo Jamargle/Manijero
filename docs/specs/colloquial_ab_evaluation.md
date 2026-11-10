@@ -38,7 +38,7 @@ Given the 49 approved golden items · When `colloquial_ab.py check` runs · Then
 
 ### 2. A variant is a new plain wording of the same information need
 
-Given any variant · When checked · Then it fails, nonzero and naming the id and rule, unless: 1–200 characters, single line, no `screen_question` hit, no digit-bearing token absent from the parent question, no URL; its tokenized text differs from the parent and from every other variant, reviewed case, and golden item. For an answered parent: `out_of_scope_topic` is `None` and 1–4 `colloquial_terms` each occur as contiguous tokens in the variant and not in the parent. For an abstained parent: if the basis is a declared omission, the same omission still matches.
+Given any approved or draft variant · When checked · Then it fails, nonzero and naming the id and rule, unless: 1–200 characters, single line, no `screen_question` hit, no digit-bearing token absent from the parent question, no URL; its tokenized text differs from the parent and from every other variant, reviewed case, and golden item. For an answered parent: `out_of_scope_topic` is `None` and 1–4 `colloquial_terms` each occur as contiguous tokens in the variant and not in the parent. For an abstained parent: if the basis is a declared omission, the same omission still matches. A `rejected` variant keeps the structural checks of scenario 1 but is exempt from these content rules, because it is never scored.
 
 ### 3. The owner lists and decides; only a decision counts
 
