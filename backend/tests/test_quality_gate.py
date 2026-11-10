@@ -119,6 +119,17 @@ def test_baseline_rejects_unknown_keys_and_bad_types(tmp_path: Path) -> None:
         assert caught.value.code == "baseline_invalid"
 
 
+def test_baseline_rejects_non_finite_mrr(tmp_path: Path) -> None:
+    for non_finite in (float("nan"), float("inf"), float("-inf")):
+        metrics = _metrics()
+        metrics["reviewed_retrieval"]["mrr"] = non_finite
+        with pytest.raises(qg.GateAbort) as caught:
+            qg.load_baseline(
+                _write(tmp_path / "baseline.json", _baseline(metrics=metrics))
+            )
+        assert caught.value.code == "baseline_invalid"
+
+
 def test_stale_on_digest_settings_as_of_or_campaign() -> None:
     assert qg.settings_match(qg.SETTINGS)
     assert not qg.settings_match({**qg.SETTINGS, "as_of": "2026-10-14"})

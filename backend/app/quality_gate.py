@@ -13,6 +13,7 @@ gating; a missing, empty, or incomplete block fails closed instead of comparing.
 from __future__ import annotations
 
 import json
+import math
 import os
 from datetime import date
 from pathlib import Path
@@ -172,7 +173,11 @@ def _validate_metrics(metrics: Any) -> None:
             raise GateAbort("baseline_invalid")
         for key, value in block.items():
             if key == "mrr":
-                if not isinstance(value, (int, float)) or isinstance(value, bool):
+                if (
+                    not isinstance(value, (int, float))
+                    or isinstance(value, bool)
+                    or not math.isfinite(float(value))
+                ):
                     raise GateAbort("baseline_invalid")
             elif not isinstance(value, int) or isinstance(value, bool):
                 raise GateAbort("baseline_invalid")

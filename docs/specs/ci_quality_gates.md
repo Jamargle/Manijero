@@ -85,7 +85,7 @@ Given `./scripts/init.sh --verify` · Then `--fast` completes first, the gate ru
 3. After approval, `record --reviewer "<owner>" --reason "<plain reason>" --accept-regression` rewrites the committed JSON; `record` prints the same plain deltas.
 4. The developer commits that file with the change. Any later `check` enforces it; deleting the review block makes `check` refuse (`baseline_unreviewed`) instead of passing silently.
 
-The first baseline records the owner's 2026-11-10 decision as its review block (`reviewed_by: "owner"`, `reviewed_on: "2026-11-10"`, the rule above as reason); its measured numbers are recorded in the appendix evidence. The implementer must not invent another reviewer and must not change that block later without a new explicit `record`.
+The first baseline records the owner's 2026-11-10 batch decision as its review block with `reviewed_by: "Jose"` (Jose is the owner), `reviewed_on: "2026-11-10"`, and a reason that says the orchestrator recorded the measured fixture numbers through `record` on the owner's behalf under those batch decisions and that the owner has not personally reviewed the measured numbers. The numbers are recorded in the appendix evidence. The implementer must not invent another reviewer and must not change that block later without a new explicit `record`.
 
 ### Baseline shape
 

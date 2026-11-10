@@ -39,7 +39,7 @@
     }
   },
   "review": {
-    "reason": "initial measured fixture baseline approved with the batch 2 owner decisions (2026-11-10)",
+    "reason": "initial measured fixture baseline recorded by the orchestrator on owner Jose's behalf under the 2026-11-10 batch owner decisions; Jose has not personally reviewed the measured numbers",
     "reviewed_by": "Jose",
     "reviewed_on": "2026-11-10"
   },
