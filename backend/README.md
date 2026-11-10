@@ -2804,6 +2804,27 @@ decision (atomic rewrite; bad input records nothing; one `Result:` line each; ra
   items to the cases (`review.role = author_only`) and `additional_areas` to the coverage, and adds
   `golden: {approved, draft, rejected}`. Without the flag the output is unchanged.
 
+### Trap question queue
+
+`knowledge/trap_set.json` (`trap-set-v1`, loader `app/trap_set.py`) holds 20-30 agent-drafted trap
+questions (prompt injection, false premise, cooperative practice, personal advice, typo). No gate,
+release, review, demo, load, or judge code reads it. Owner steps are in
+[`docs/owner-guide/trap-set-review.md`](../docs/owner-guide/trap-set-review.md): `./scripts/init.sh --trap-review`
+and `--trap-decide approve|reject "<name>" <number-or-id>...`, same behavior as the golden commands
+(errors in `build/trap-review/last-error.log`).
+
+- Developer check (exit 0/1, one line per failure): `python backend/scripts/trap_review.py check
+  --catalog knowledge/source_catalog.json --passages knowledge/passages.json --cases
+  knowledge/pac_answer_eval.json --golden knowledge/golden_set.json --traps knowledge/trap_set.json`.
+  It proves anchors and facts are exact quotes, each abstention is routed before retrieval (screen or
+  scope guard), names an instrument reference absent from every passage, or is a cooperative
+  practice, and enforces the category rules.
+- Scoring: `evaluate_pac_answers.py ... --traps knowledge/trap_set.json` scores only `approved`
+  items. Trap rows add `category`, `actual_abstention_reason` (read from the pinned message; `null`
+  when answered, `unknown` when unmatched), `abstention_reason_match`, and `must_not_say_found`; the
+  report adds `traps: {approved, draft, rejected, by_category}`. Report-only, no threshold.
+- Downstream features read it only through `trap_set.load_traps` and `trap_set.approved_cases`.
+
 ### Question glossary
 
 `backend/config/question_glossary.json` (`question-glossary-v1`, runtime `app/question_glossary.py`)

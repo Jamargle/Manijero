@@ -271,6 +271,13 @@ def _question_key(item_or_case: Dict[str, Any]) -> Tuple[str, str]:
     return text, lands
 
 
+# Public names of the shared helpers, for the sibling trap set (no behavior change).
+question_key = _question_key
+is_date = _is_date
+land_context_ok = _land_context_ok
+str_list = _str_list
+
+
 def basis_is_valid(item: Dict[str, Any], basis: str, omissions: Sequence[str], base_cases: Sequence[Dict[str, Any]]) -> bool:
     """A declared omission, or the id of a reviewed abstained case of the item's own area."""
 

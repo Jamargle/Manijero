@@ -32,6 +32,7 @@ In the order you usually need them:
     produce its counts report (scores unchecked against human review).
 12. [Knowledge updates](knowledge-updates.md): turn on the daily run that finds, reads, and checks new official
     documents and prepares a review for you; nothing goes live without your approval.
+12. [Trap set review](trap-set-review.md): approve or reject the drafted trick questions.
 
 An "Owner walkthrough" section near the end of a guide holds one-time acceptance steps whose
 `Result:` lines you report to the developer.
