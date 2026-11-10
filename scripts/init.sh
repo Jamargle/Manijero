@@ -427,6 +427,30 @@ if [[ "${1:-}" == "--grounding-judge-setup" || "${1:-}" == "--grounding-judge-re
     --report "$REPO_ROOT/build/grounding-judge/report.json"
 fi
 
+# Owner commands: the optional local reranker (docs/owner-guide/reranker.md). --reranker-download downloads the
+# reranker model and checks it against the reviewed copy; --reranker-measure compares it with today's hybrid search
+# on the golden and trap questions and prints the on/off verdict; --reranker-on and --reranker-off write the setting.
+# None takes an argument; each ends with one Result: line and runs before the local.properties write. They run in
+# the hybrid environment (the one --local-rag-setup builds), which today's search needs.
+if [[ "${1:-}" == "--reranker-download" || "${1:-}" == "--reranker-measure" || "${1:-}" == "--reranker-on" || "${1:-}" == "--reranker-off" ]]; then
+  REPO_ROOT="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")/.." && pwd)"
+  RERANKER_COMMAND="${1#--reranker-}"
+  if (( $# > 1 )); then
+    printf 'Run %s on its own, with nothing after it.\n' "$1" >&2
+    exit 2
+  fi
+  RERANKER_PYTHON="$REPO_ROOT/backend/.venv-hybrid/bin/python"
+  if [[ ! -x "$RERANKER_PYTHON" ]] && ! "$REPO_ROOT/scripts/python-env.sh" hybrid --if-present >/dev/null 2>&1; then
+    printf 'The local answer tools are not set up yet. Run ./scripts/init.sh --local-rag-setup to set them up.\n'
+    printf 'Result: the reranker command did not run. Run ./scripts/init.sh --local-rag-setup.\n'
+    exit 1
+  fi
+  case "$RERANKER_COMMAND" in
+    on|off) exec "$RERANKER_PYTHON" "$REPO_ROOT/backend/scripts/reranker.py" switch "$RERANKER_COMMAND" ;;
+    *) exec "$RERANKER_PYTHON" "$REPO_ROOT/backend/scripts/reranker.py" "$RERANKER_COMMAND" ;;
+  esac
+fi
+
 # Owner command: save one usability-session participant's results under an anonymous code
 # (docs/owner-guide/usability-session.md, docs/usability-session/). It never reads or writes the apps or the
 # service; the results file lives outside the checkout.
@@ -495,7 +519,7 @@ AS_OF="${MANIJERO_AS_OF:-2026-10-13}"
 
 usage() {
   cat <<'EOF'
-Usage: ./scripts/init.sh [--check|--fast|--verify|--feature <id>|--backend-tests [targets]|--setup-python [dev|hybrid|docparse]|--backend|--mock|--mock-status|--mock-stop|--local-rag-setup|--local-rag-status|--local-rag-start|--local-rag-service-status|--local-rag-load-test|--local-rag-stop|--container-build|--container-start|--container-status|--container-stop|--monitoring-start|--monitoring-status|--monitoring-stop|--pilot-token-save|--demo-rehearsal|--golden-review|--golden-decide|--trap-review|--trap-decide|--glossary-review|--glossary-decide|--grounding-judge-setup|--grounding-judge-report|--usability-record|--local-smoke|--qa-check|--environments-status|--qa-settings-setup|--qa-deploy|--qa-update|--qa-rollback|--qa-status|--qa-stop|--qa-alerts-setup|--qa-alerts-start|--qa-alerts-stop|--qa-alerts-status|--qa-alerts-test|--android|--android-run|--desktop|--android-qa|--desktop-qa|--help]
+Usage: ./scripts/init.sh [--check|--fast|--verify|--feature <id>|--backend-tests [targets]|--setup-python [dev|hybrid|docparse]|--backend|--mock|--mock-status|--mock-stop|--local-rag-setup|--local-rag-status|--local-rag-start|--local-rag-service-status|--local-rag-load-test|--local-rag-stop|--container-build|--container-start|--container-status|--container-stop|--monitoring-start|--monitoring-status|--monitoring-stop|--pilot-token-save|--demo-rehearsal|--golden-review|--golden-decide|--trap-review|--trap-decide|--glossary-review|--glossary-decide|--grounding-judge-setup|--grounding-judge-report|--reranker-download|--reranker-measure|--reranker-on|--reranker-off|--usability-record|--local-smoke|--qa-check|--environments-status|--qa-settings-setup|--qa-deploy|--qa-update|--qa-rollback|--qa-status|--qa-stop|--qa-alerts-setup|--qa-alerts-start|--qa-alerts-stop|--qa-alerts-status|--qa-alerts-test|--android|--android-run|--desktop|--android-qa|--desktop-qa|--help]
 
   --check                   Check Java and the Gradle wrapper, then print standard commands (default)
   --fast                    Shared host tests, contract examples, backend unit tests, and the five
@@ -558,6 +582,12 @@ Usage: ./scripts/init.sh [--check|--fast|--verify|--feature <id>|--backend-tests
   --grounding-judge-report  Draft the reviewed and golden questions with the local drafting model, have
                             the second model check each sentence, and write build/grounding-judge/report.json
                             (counts only; scores are unchecked against human review)
+  --reranker-download       One time: download the optional second reading model (about 2.3 GB) and
+                            check it against the reviewed copy (see docs/owner-guide/reranker.md)
+  --reranker-measure        Compare it with today's search on the golden and trap questions and print
+                            one Result: line with the on/off verdict (counts only; nothing is switched)
+  --reranker-on             Switch the reranker on (refused unless the model checks out)
+  --reranker-off            Switch the reranker off
   --usability-record        Save one usability-session participant's results under an anonymous
                             code (P1, P2...) and print a plain summary (see docs/owner-guide/usability-session.md)
   --local-smoke             With the local answer service running, ask it one fixed question through

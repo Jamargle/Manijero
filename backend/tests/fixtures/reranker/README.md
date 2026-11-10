@@ -1,0 +1,1 @@
+Synthetic reranker fixtures for the offline tests. Every file here is made up: the "weights" are text, the revision is invented, and nothing is a real model or a real approval. `pin.json` pins `artifact/`.

@@ -31,6 +31,8 @@ In the order you usually need them:
 11. [Grounding judge](grounding-judge.md): download the second model that checks drafted sentences and
     produce its counts report (scores unchecked against human review).
 12. [Trap set review](trap-set-review.md): approve or reject the drafted trick questions.
+13. [Reranker](reranker.md): download an optional second reading model, measure it against today's
+    search, and switch it on or off (it ships off).
 
 An "Owner walkthrough" section near the end of a guide holds one-time acceptance steps whose
 `Result:` lines you report to the developer.

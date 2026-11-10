@@ -1091,6 +1091,26 @@ cosine, so hybrid candidate lists contain all four. The process peaked at
 general accuracy; keep BM25 as the default unless a larger reviewed comparison
 supports a change.
 
+## Optional local reranker (off by default)
+
+`backend/app/reranker.py` re-orders the passages the retriever already admitted with a local cross-encoder
+(`BAAI/bge-reranker-v2-m3`, pinned in `backend/config/bge_reranker_v2_m3.json`: revision plus size and one digest
+per file, SHA-256 or git-blob SHA-1). Settings: `backend/config/reranker.json` (`default_state`, `candidate_depth`,
+`max_tokens`, `batch_size`). It only wraps BM25 or hybrid when `MANIJERO_RERANKER=on` and
+`MANIJERO_RERANKER_ARTIFACT` names the verified model folder; any problem keeps the unreranked order.
+
+```sh
+backend/.venv/bin/python backend/scripts/reranker.py check-pin   # offline: is the pin complete? (exit 1 if unpinned)
+./scripts/init.sh --reranker-download   # owner: download and verify the model (~2.3 GB) into ~/manijero/local/models
+./scripts/init.sh --reranker-measure    # owner: today's hybrid search vs the reranker, one Result: line with the verdict
+./scripts/init.sh --reranker-on         # owner: write MANIJERO_RERANKER=on (refused unless the model verifies)
+```
+
+`--reranker-measure` runs the approved golden and trap items twice through the in-process `/ask` path (extractive
+drafting, answer cache off, today's date), requires a fresh Chroma store (else it names `--local-rag-setup`), and
+computes the owner rule in `app/reranker_measure.py`. It is evidence for the owner's on/off decision, not a quality
+claim. Owner guide: [`docs/owner-guide/reranker.md`](../docs/owner-guide/reranker.md).
+
 ## Offline grounded answer generation
 
 `app/generation.py` turns retrieval candidates into a plain-Spanish answer whose

@@ -40,6 +40,7 @@ from typing import Any, Callable, Iterator, List, Mapping, Optional, Protocol, S
 
 from app import knowledge_release as kr
 from app import local_rag_bootstrap as bootstrap
+from app import reranker
 from app.local_generation import LocalModelRecord, loopback_opener
 
 START_COMMAND = "./scripts/init.sh --local-rag-start"
@@ -329,7 +330,46 @@ def launch_environment(
         environment["MANIJERO_ANSWER_TRACE"] = "on"
     if not settings.answer_cache:
         environment["MANIJERO_ANSWER_CACHE"] = "off"
+    state, ready = reranker_state(ctx, settings, deep=True)
+    if state == reranker.STATE_ON and ready:
+        environment[reranker.STATE_ENV] = reranker.STATE_ON
+        environment[reranker.ARTIFACT_ENV] = str(ctx.paths.reranker)
     return environment
+
+
+def reranker_state(ctx: bootstrap.Context, settings: bootstrap.Settings, deep: bool) -> Tuple[str, bool]:
+    """``(effective state, model ready)``: the owner's line first, else the repository default.
+
+    ``deep`` hashes every model file (used when the service starts); otherwise it only checks
+    that each pinned file exists with its pinned size. The model is never looked at while the
+    state is off. An unreadable pin or settings file counts as off or not ready, never an error.
+    """
+
+    try:
+        default = reranker.load_reranker_settings(ctx.reranker_settings).default_state
+    except reranker.RerankerError:
+        default = reranker.STATE_OFF
+    state = reranker.effective_state(settings.reranker, default)
+    if state != reranker.STATE_ON:
+        return state, False
+    try:
+        spec = reranker.load_reranker_spec(ctx.reranker_pin)
+    except reranker.RerankerError:
+        return state, False
+    if deep:
+        return state, spec.verify_artifact(ctx.paths.reranker).ok
+    return state, reranker.artifact_present(ctx.paths.reranker, spec)
+
+
+def reranker_line(ctx: bootstrap.Context, settings: bootstrap.Settings) -> str:
+    """The one ``Reranker:`` line of the service status."""
+
+    state, ready = reranker_state(ctx, settings, deep=False)
+    if state != reranker.STATE_ON:
+        return _line("NOTE", "Reranker", "off.")
+    if ready:
+        return _line("NOTE", "Reranker", "on.")
+    return _line("NOTE", "Reranker", "switched on but the model is missing; answering without it.")
 
 
 # --- Output helpers -----------------------------------------------------------------------
@@ -477,6 +517,12 @@ def report_running(ctx: bootstrap.Context, ports: ServicePorts, record: ServiceR
     checks = service_checks(ctx, ports, record)
     for check in checks:
         out(check.line)
+    try:
+        current = bootstrap.read_settings(ctx.paths.settings)
+    except bootstrap.SettingsError:
+        current = None
+    if current is not None:
+        out(reranker_line(ctx, current))
     for line in address_lines(record.port):
         out(line)
     out("Log file: {}".format(record.log))
