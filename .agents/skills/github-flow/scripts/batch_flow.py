@@ -80,10 +80,23 @@ def git(*args: str, cwd: Optional[Path] = None, check: bool = True) -> str:
 # --- pure helpers (unit-tested) --------------------------------------------------------------
 
 
-def next_batch_number(branch_names: Sequence[str]) -> int:
+def next_batch_number(branch_names: Sequence[str], used_numbers: Sequence[int] = ()) -> int:
+    """One past the highest batch seen in integration branches or in already used (archived) batch numbers.
+
+    Merged integration branches are often deleted, so the branch names alone can repeat a batch number."""
     numbers = [int(match.group(1)) for name in branch_names
                if (match := re.search(r"integration/\d{4}-\d{2}-\d{2}-batch-(\d+)$", name.strip()))]
-    return max(numbers, default=0) + 1
+    return max(numbers + list(used_numbers), default=0) + 1
+
+
+def archived_batch_numbers(names: Sequence[str]) -> List[int]:
+    """Batch numbers from archived batch records named batch-<n>.json."""
+    return [int(match.group(1)) for name in names if (match := re.fullmatch(r"batch-(\d+)\.json", name))]
+
+
+def open_pull_request(pull_requests: Sequence[dict]) -> Optional[dict]:
+    """The open PR to reuse for a batch branch; a merged or closed PR is finished and never reused."""
+    return next((item for item in pull_requests if str(item.get("state", "")).upper() == "OPEN"), None)
 
 
 def choose_feature(selector_status: str, taken: Sequence[str]) -> Optional[str]:
@@ -391,7 +404,8 @@ def current_or_new_batch() -> dict:
     git("merge", "--ff-only", "origin/" + BASE_BRANCH)
     base_sha = git("rev-parse", "HEAD")
     branches = git("branch", "-a", "--format=%(refname:short)").splitlines()
-    number = next_batch_number(branches)
+    archived = archived_batch_numbers([path.name for path in STATE_FILE.parent.glob("batch-*.json")])
+    number = next_batch_number(branches, archived)
     today = datetime.date.today().isoformat()
     state = {
         "number": number,
@@ -662,9 +676,10 @@ def cmd_integrate(partial: bool) -> int:
 
     git("push", "-u", "origin", state["branch"], cwd=worktree)
     existing = json.loads(run(["gh", "pr", "list", "--state", "all", "--head", state["branch"], "--base", BASE_BRANCH,
-                               "--json", "number,url"]).stdout or "[]")
-    if existing:
-        state["pr"], state["pr_url"] = existing[0]["number"], existing[0]["url"]
+                               "--json", "number,url,state"]).stdout or "[]")
+    reusable = open_pull_request(existing)
+    if reusable:
+        state["pr"], state["pr_url"] = reusable["number"], reusable["url"]
     else:
         catalog = features_by_id(worktree)
         details = {}
