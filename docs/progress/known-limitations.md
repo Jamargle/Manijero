@@ -10,7 +10,10 @@ Do not over-claim.
   they show the plain-Spanish failure notice and `Reintentar`. The supported legal scope is the
   narrow reviewed corpus in [`knowledge/pac_coverage.md`](../../knowledge/pac_coverage.md).
 - Offline retrieval, generation, abstention, clarification, and safety metrics use synthetic
-  fixtures and are report-only. The reviewed `/ask` evaluation is a 17-case sample over the three
+  fixtures and are report-only, except the `./scripts/init.sh --verify` gate: it blocks when
+  hit@1/3/5 or abstention correctness falls, or MRR drops, against the committed owner-reviewed
+  baseline over those fixtures and the 17-case sample. The reviewed `/ask` evaluation is a 17-case
+  sample over the three
   approved topics and eight boundaries, reviewed only by the project author. Its exact result is
   17/17 expected states, 12/12 expected-answer cases answered, 9/12 with the expected source and
   passage, 10/12 with the expected critical literal, and 5/5 expected abstentions with 0 unexpected answers. Known gaps stay

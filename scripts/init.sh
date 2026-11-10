@@ -567,8 +567,8 @@ Usage: ./scripts/init.sh [--check|--fast|--verify|--feature <id>|--backend-tests
   --fast                    Shared host tests, contract examples, backend unit tests, and the five
                             offline evaluators, run concurrently (no Android SDK or Desktop build
                             needed). Fails if any single check fails.
-  --verify                  Full gate: --fast, then the Android host tests and the Android/Desktop
-                            builds (--full is an alias)
+  --verify                  Full gate: --fast, the quality gate over the reviewed metrics baseline,
+                            then the Android host tests and the Android/Desktop builds (--full is an alias)
   --feature <id>            Run the focused verification published in docs/specs/<id>.md
   --backend-tests [target]  Run the backend pytest suite, or only the given targets, from backend/
   --setup-python [profile]  Build or reuse the shared backend virtualenv (dev, or hybrid for
@@ -901,6 +901,32 @@ run_fast() {
   printf '\n== Fast tier: shared host tests, contract examples, backend tests, and offline evaluators ==\n'
   run_offline_checks
   printf '\nFast tier passed.\n'
+}
+
+# Tier 2 (inside --verify): compare the agreed retrieval and abstention metrics with the
+# committed, owner-reviewed baseline. Read-only, offline, and deterministic; it runs once
+# after --fast and before the builds, and its non-zero exit fails the tier.
+run_quality_gate() {
+  local candidate py=""
+  # A worktree created after the shared environment was built only needs the link.
+  if [[ -z "${MANIJERO_PYTHON:-}" && ! -e "$REPO_ROOT/backend/.venv" ]]; then
+    "$REPO_ROOT/scripts/python-env.sh" dev --if-present >/dev/null 2>&1 || true
+  fi
+  for candidate in "${MANIJERO_PYTHON:-}" "$REPO_ROOT/backend/.venv/bin/python" "$REPO_ROOT/.venv/bin/python" python3 python; do
+    [[ -n "$candidate" ]] || continue
+    if { [[ -x "$candidate" ]] || command -v "$candidate" >/dev/null 2>&1; } && \
+      PYTHONPATH="$REPO_ROOT/backend" "$candidate" -c 'import fastapi, httpx; import app.main' >/dev/null 2>&1; then
+      py="$candidate"
+      break
+    fi
+  done
+  if [[ -z "$py" ]]; then
+    printf 'The quality gate needs the backend environment (FastAPI and httpx).\n' >&2
+    backend_pytest_hint >&2
+    return 1
+  fi
+  printf '\n== Quality gate: reviewed baseline for the retrieval and abstention metrics ==\n'
+  "$py" "$REPO_ROOT/backend/scripts/check_quality_gate.py" check
 }
 
 # Prints the shell commands a feature spec publishes between the verify markers.
@@ -1246,6 +1272,7 @@ EOF
     ;;
   --verify|--full)
     run_fast
+    run_quality_gate
     printf '\n== Full tier: Android host tests and the Android/Desktop builds ==\n'
     # --quiet keeps task chatter out of the transcript; errors and test failures still print.
     if [[ -n "${MANIJERO_VERBOSE:-}" ]]; then

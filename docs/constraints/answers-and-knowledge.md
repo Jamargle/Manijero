@@ -166,6 +166,12 @@ Durable MUST/MUST NOT rules for backend answer path, retrieval, generation, eval
   `build/eval-reports/`, and says faithfulness is `not_judged` with a reason (never `0`) unless judged.
   Reason: `evaluation_metrics_report` ([spec](../specs/evaluation_metrics_report.md)); unjudged or
   author-reviewed numbers must not become a false gate.
+- **MUST**: the commit-time quality gate MUST compare only the two synthetic fixture groups and the
+  17-case reviewed sample with a committed baseline whose review names reviewer, date, and reason;
+  hit@1/3/5 and abstention are zero-tolerance, MRR MUST NOT fall, and golden/trap/numeric/judge
+  numbers MUST NEVER block. It MUST run read-only only inside `./scripts/init.sh --verify`, fail
+  closed on an unreviewed, invalid, or stale baseline, and only `record` may write, with a named
+  reviewer and reason. Reason: `ci_quality_gates` ([spec](../specs/ci_quality_gates.md)).
 - **MUST**: a validity regression case MUST rest only on reviewed catalog or passage metadata. When
   the reviewed corpus lacks the source, the case MUST expect abstention, and a precondition test
   MUST fail once such a source appears so the case is revisited. Reason: `validity_regression_cases`.
