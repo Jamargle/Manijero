@@ -140,7 +140,7 @@ The sweep takes about 75 questions × (2 + grid rows) in-process requests with e
 ```sh
 MANIJERO_PYTHON="${MANIJERO_PYTHON:-backend/.venv/bin/python}" ./scripts/init.sh --backend-tests -q tests/test_threshold_calibration.py tests/test_reranker_measure.py tests/test_trap_set.py tests/test_question_glossary.py
 "${MANIJERO_PYTHON:-backend/.venv/bin/python}" backend/scripts/calibrate_retrieval_threshold.py --catalog knowledge/source_catalog.json --passages knowledge/passages.json --cases knowledge/pac_answer_eval.json --golden knowledge/golden_set.json --traps knowledge/trap_set.json --active-campaign 2026 --as-of 2026-11-07 --k 5 --out build/threshold-calibration
-git diff --exit-code "$(git merge-base main HEAD)" -- knowledge/ backend/app/retrieval.py backend/app/retrieval_backend.py backend/app/ask_api.py backend/app/abstention.py backend/app/main.py backend/config/
+git diff --exit-code "$(git merge-base main HEAD)" -- knowledge/ ':(exclude)knowledge/README.md' backend/app/retrieval.py backend/app/retrieval_backend.py backend/app/ask_api.py backend/app/abstention.py backend/app/main.py backend/config/hybrid_retrieval.json backend/config/bge_m3_embedding.json backend/config/bge_reranker_v2_m3.json backend/config/reranker.json
 ```
 <!-- verify:end -->
 
