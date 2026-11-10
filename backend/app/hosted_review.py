@@ -872,6 +872,14 @@ def _committed_ruleset() -> Tuple[Dict[str, Any], Optional[str]]:
             "The saved {} ruleset does not protect main. First thing to do: update the "
             "committed ruleset file, or tell a developer.".format(RULESET_NAME)
         )
+    if any(
+        not isinstance(rule, dict) or not isinstance(rule.get("type"), str)
+        for rule in document["rules"]
+    ):
+        return {}, (
+            "The saved {} ruleset file is not valid. First thing to do: tell a developer; "
+            "the details are in the review log.".format(RULESET_NAME)
+        )
     return document, None
 
 
