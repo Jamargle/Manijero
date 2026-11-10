@@ -2922,6 +2922,29 @@ backend/.venv/bin/python backend/scripts/evaluate_metrics.py run --as-of 2026-11
 - Tests: `tests/test_eval_metrics.py` and `tests/test_evaluate_metrics_command.py` use synthetic rows and
   in-process clients with sockets blocked; no network, backend, or model is needed.
 
+### Quality gate (inside `--verify`)
+
+Developer-only and read-only ([spec](../docs/specs/ci_quality_gates.md)). `./scripts/init.sh --verify`
+runs `scripts/check_quality_gate.py check` once after `--fast` and before the builds; `--fast` alone never
+runs it. It compares the two synthetic fixture groups and the 17 reviewed cases with
+`backend/config/quality_gate_baseline.json` (`eval-quality-gate-baseline-v1`): exit `0` on equality or
+improvement, `1` when hit@1/3/5 or abstention falls or MRR drops at 4 decimals, and `2` without comparing
+when the baseline is unreviewed, invalid, or stale (input digests or settings changed). The baseline's
+`review` block (reviewer, date, reason) is the only approval read; golden, trap, numeric, and judge
+numbers never block.
+
+After the owner approves a change, `record` is the only writer (it refuses an empty reviewer or reason,
+and a drop without `--accept-regression`), lists each changed metric (`old -> new`), and writes the file
+canonically:
+
+```sh
+backend/.venv/bin/python backend/scripts/check_quality_gate.py record \
+  --reviewer "<owner>" --reason "<plain reason>" [--reviewed-on YYYY-MM-DD] [--accept-regression]
+```
+
+Commit the file with the change. `check` writes nothing, reads no golden/trap/judge file, opens no socket,
+and restores the answer-affecting environment variables it clears.
+
 ### Demo rehearsal
 
 `./scripts/init.sh --demo-rehearsal` (owner steps in [`docs/owner-guide/local-checks.md`](../docs/owner-guide/local-checks.md),

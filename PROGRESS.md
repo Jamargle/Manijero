@@ -59,7 +59,10 @@ default; measured on the owner's Mac, host decision pending), `knowledge_reindex
 (rehearsed locally only; no host step executed), `local_rag_bootstrap` (one guided setup
 command and a status check, walked through on the owner's Mac), `mock_answer_server` (Desktop and
 emulator walkthroughs not yet run), and `local_service_connection` (test builds only);
-`private_pilot_distribution` is `on_hold` by owner decision (2026-11-01). `local_load_test` and `rag_demo_rehearsal` are `passing` pending owner walkthroughs, and `seed_corpus_expansion` is `in_progress` pending owner approval. The 7 `not_started` features are the remaining MasterPlanV3 work, ordered
+`private_pilot_distribution` is `on_hold` by owner decision (2026-11-01). `local_load_test` and
+`rag_demo_rehearsal` are `passing` pending owner walkthroughs, `seed_corpus_expansion` is `in_progress`
+pending owner approval, and `ci_quality_gates` is `passing` pending independent validation. The 6
+`not_started` features are the remaining MasterPlanV3 work, ordered
 local environment first, then the QA environment for remote real-device testing; prod is not planned yet. `feature_list.json` and the selector remain the status authority;
 this page does not duplicate the feature-id list.
 
@@ -110,8 +113,10 @@ before making any claim in its area.
 
 - Answers need the local service and an explicit campaign; legal scope is only the narrow reviewed
   corpus in [`knowledge/pac_coverage.md`](knowledge/pac_coverage.md).
-- All answer metrics are report-only: synthetic fixtures plus a 17-case author-reviewed sample with
-  visible gaps (17/17 states, 9/12 expected source and passage); no general-accuracy or legal-review claim.
+- The metrics report stays report-only; the reviewed baseline gate inside `./scripts/init.sh --verify`
+  blocks only hit@1/3/5, abstention, and MRR drops over the synthetic fixtures and the 17-case
+  author-reviewed sample with visible gaps (17/17 states, 9/12 expected source and passage). It proves
+  "these agreed numbers did not get worse"; no general-accuracy or legal-review claim.
 - The question-scope guard is lexical: questions on declared omissions (aid amounts, individual cases,
   reclamaciones) abstain before retrieval, but an unlisted paraphrase can still reach retrieval.
 - The 72 screenshot baselines are host-rendered pixel checks, not device, accessibility, usability, or iOS
@@ -186,4 +191,4 @@ Tiers, cheapest first; `./scripts/init.sh` holds the exact commands.
 - Output is compact: one line per passing check and the tail of a failing log; full logs stay in `build/verify-logs/` (`MANIJERO_VERBOSE=1` prints them inline, `MANIJERO_FAIL_TAIL=<n>` sets the tail length).
 - The offline checks pin `--as-of 2026-10-13` so runs are deterministic; override with `MANIJERO_AS_OF=YYYY-MM-DD`.
 
-Evaluator flags, report-only caveats, and a feature's own commands live in its spec; the metrics stay report-only (see the limitations above).
+Evaluator flags, report-only caveats, and a feature's own commands live in its spec; the reviewed-baseline metric gate in `--verify` is the only regression gate, and every other metric stays report-only (see the limitations above).

@@ -1,0 +1,55 @@
+{
+  "inputs": {
+    "abstention_fixture": {
+      "catalog": "60385e539cab5d4699aa50701c5e24dee1349ddcd14db377e0c6498eea6287d7",
+      "passages": "b58592ec1480a487be14bfbc45e3660fe7f612884734d319f1e2fc94d05676fb",
+      "questions": "7ba3b4b855c638875b30688e002beb234e29af2cb5ed6794efae807891b7a11c"
+    },
+    "retrieval_fixture": {
+      "catalog": "dea0b069f614fc8d01f85fa12109614d761b07c9c146cf9f55bac9a942241740",
+      "passages": "082141bcafbdc86cbb9750f0825ca523bfa6e194117cb52e1347f2a4d3d374b3",
+      "questions": "8187b14fefb2fa3421bf30341778326a515fe678bb811b0fdc72713db6caee22"
+    },
+    "reviewed_sample": {
+      "cases": "b5e8671ac757ec2171fc928ff4b66956e1b60a5de4fd761be1692dab4e0027a0"
+    }
+  },
+  "metrics": {
+    "fixtures_abstention": {
+      "correct": 10,
+      "questions": 10
+    },
+    "fixtures_retrieval": {
+      "hits_at_1": 6,
+      "hits_at_3": 6,
+      "hits_at_5": 6,
+      "mrr": 0.8571,
+      "questions": 7
+    },
+    "reviewed_abstention": {
+      "correct": 5,
+      "expected": 5
+    },
+    "reviewed_retrieval": {
+      "hits_at_1": 9,
+      "hits_at_3": 11,
+      "hits_at_5": 11,
+      "mrr": 0.8333,
+      "questions": 12
+    }
+  },
+  "review": {
+    "reason": "initial measured fixture baseline approved with the batch 2 owner decisions (2026-11-10)",
+    "reviewed_by": "Jose",
+    "reviewed_on": "2026-11-10"
+  },
+  "schema_version": "eval-quality-gate-baseline-v1",
+  "settings": {
+    "active_campaign": "2026",
+    "as_of": "2026-10-13",
+    "drafting": "extractive",
+    "glossary": "off",
+    "k": 5,
+    "retrieval": "bm25"
+  }
+}

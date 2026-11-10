@@ -99,6 +99,17 @@ Inspected 2026-11-10 (planner, read-only):
 
 <!-- Implementer appends dated entries here: commands and one-line results only. -->
 
+### 2026-11-10 — implementer
+
+- Baseline `backend/config/quality_gate_baseline.json` recorded by `record --reviewer "Jose" --reviewed-on 2026-11-10 --reason "initial measured fixture baseline approved with the batch 2 owner decisions (2026-11-10)"`: fixtures 6/7 hit@1, 6/7 hit@3, 6/7 hit@5, MRR 0.8571; fixtures abstention 10/10; reviewed sample 9/12 hit@1, 11/12 hit@3, 11/12 hit@5, MRR 0.8333; reviewed sample abstention 5/5.
+- `./scripts/init.sh --feature ci_quality_gates`: 24 passed; exactly one pass `Result:` line; fixtures, `knowledge/`, and the baseline unchanged.
+- `./scripts/init.sh --fast`: all 10 offline checks passed (backend 3424 passed, 9 skipped); no `Result: quality gate` line.
+- `./scripts/init.sh --verify`: quality gate ran once after `--fast` and before the builds, printed the pass line, then `Full tier passed`; 74.9 s total, gate ~0.2 s.
+- Temp baseline with reviewed hit@1 raised to 10/12: `check --baseline ...` exit 1, `Result: quality gate failed: reviewed sample hit@1 fell from 10/12 to 9/12. ...`.
+- Temp baseline with a changed `as_of` and one with no review block: exit 2 `baseline_stale` / `baseline_unreviewed`, no comparison (also covered by command tests).
+- `record` with no reviewer: exit 2 `Result: baseline not recorded: the reviewer must be named.`; accepted temp change: `reviewed sample hit@1: 10/12 -> 9/12`, `reviewed sample MRR: 0.8433 -> 0.8333`, `Result: baseline recorded: 2 metrics changed...`, exit 0.
+- Command tests block sockets, assert two runs print the same line, confirm byte-identical `knowledge/`, fixtures, and baseline, restored env keys, and that no golden/trap/judge file is read.
+
 ## Validator checklist
 
 - [ ] Scope matches the contract; `.github/workflows/gate.yml`, branch protection, and every non-goal file are untouched.
