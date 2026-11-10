@@ -2892,6 +2892,36 @@ the `/ask` path imports the judge, and the judge never changes an answer.
   against human review; no accuracy claim is made. Stdout never carries question, answer, sentence, or passage text.
 - Tests: `tests/test_grounding_judge.py` uses fake generator, judge, and opener with sockets blocked.
 
+### Metrics report
+
+Offline, report-only ([spec](../docs/specs/evaluation_metrics_report.md)). `app/eval_metrics.py` and
+`scripts/evaluate_metrics.py` run the 17 reviewed `/ask` cases, the 49 approved golden items, and the 26
+approved trap items once each through the in-process app with answer inspection on, and write
+`build/eval-reports/<version_id>/metrics.json` (`eval-metrics-report-v1`). No screen, route, `/ask`, or
+contract change.
+
+```sh
+backend/.venv/bin/python backend/scripts/evaluate_metrics.py run --as-of 2026-11-10 --no-judge
+```
+
+- Flags: `--as-of` (required), `--glossary off|on` (default `off`), `--label` (default `repository`),
+  `--no-judge`, and explicit `--catalog --passages --cases --golden --traps` (defaults: `knowledge/`).
+- Blocks: retrieval hit@1/3/5 and MRR from the response inspection's top-5 ranks (a missing expected
+  passage is a miss), abstention correctness (trap items also need an acceptable reason), a separate
+  clarification block, numeric/date critical facts found verbatim, and faithfulness only when the pinned
+  local judge runs. Every block is overall, by case set, by golden question type, and by trap category;
+  values are `null` (`n/a` on the result line) when no case applies.
+- Faithfulness is `judged` with `supported_share`, verdict counts, pins, `drafts_from: local_generator`,
+  and `judge_review: unchecked_against_human_review`, or `not_judged` with a reason (`skipped`, a judge
+  abort code, `no_judged_sentences`, `judge_report_unreadable`) — never `0`.
+- Report only: no pass/fail threshold, no CI gate, no metric-dependent exit code. `knowledge/` is never
+  written; the command clears answer-affecting env keys, forces the answer cache off, restores them, and
+  writes nothing outside the reports root. Failures print one `Result:` line and exit `2` with no report.
+- `version_id` hashes the five input files, the glossary digest (or `off`), the settings, and the schema
+  versions, so the same inputs produce byte-identical files.
+- Tests: `tests/test_eval_metrics.py` and `tests/test_evaluate_metrics_command.py` use synthetic rows and
+  in-process clients with sockets blocked; no network, backend, or model is needed.
+
 ### Demo rehearsal
 
 `./scripts/init.sh --demo-rehearsal` (owner steps in [`docs/owner-guide/local-checks.md`](../docs/owner-guide/local-checks.md),

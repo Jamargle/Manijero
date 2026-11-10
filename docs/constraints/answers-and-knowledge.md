@@ -153,6 +153,11 @@ Durable MUST/MUST NOT rules for backend answer path, retrieval, generation, eval
   labelled unchecked against human review with no accuracy claim, and its tests MUST NOT need Ollama.
   Reason: `semantic_grounding_judge` ([spec](../specs/semantic_grounding_judge.md)); a second model's
   opinion is an unverified signal, not proof that an answer is correct.
+- **MUST**: the evaluation metrics report (`backend/app/eval_metrics.py`) MUST stay report-only: no
+  metric may change an exit code or gate, it counts only reviewed or `approved` items, writes only under
+  `build/eval-reports/`, and says faithfulness is `not_judged` with a reason (never `0`) unless judged.
+  Reason: `evaluation_metrics_report` ([spec](../specs/evaluation_metrics_report.md)); unjudged or
+  author-reviewed numbers must not become a false gate.
 - **MUST**: a validity regression case MUST rest only on reviewed catalog or passage metadata. When
   the reviewed corpus lacks the source, the case MUST expect abstention, and a precondition test
   MUST fail once such a source appears so the case is revisited. Reason: `validity_regression_cases`.
