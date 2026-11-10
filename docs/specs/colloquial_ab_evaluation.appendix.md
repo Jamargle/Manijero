@@ -103,7 +103,17 @@ Inspected 2026-11-10 on branch `feature/colloquial_ab_evaluation` (base f7d851c,
 
 ## Feature evidence
 
-<!-- Implementer appends here: date, each command with its one-line result, manual checks in one or two lines. No pasted logs. -->
+2026-11-10, branch `feature/colloquial_ab_evaluation`:
+
+- Focused verification block: `65 passed` (`test_colloquial_ab.py`, `test_colloquial_ab_command.py`, `test_question_glossary.py`, `test_eval_metrics.py`).
+- Full backend suite: `3424 passed, 9 skipped`.
+- `colloquial_ab.py check` on the committed set: `49 variants OK (approved=0, draft=49, rejected=0); 49 approved golden parents, 49 covered, 0 orphans`, exit 0.
+- Developer rehearsal only, on a Git-ignored copy with all 49 variants marked approved (not owner decisions): `prepare` with the pinned `mistral-small3.2:24b-instruct-2506-q4_K_M` (digest `5a408ab5…b895b`) rewrote 49, 0 empty, 0 rejected, 0 skipped. `run`: hit@5 24/37 no rewriting, 26/37 glossary, 34/37 glossary+model; changed queries 27 and 49; traps worse 2 and 2 (`trap-013`, `trap-016`); verdicts both `not adoptable (a trap got worse)`; `version_id 244592b70f8d5526`; no default or setting changed.
+- Second real `run` over the same cache: byte-identical report (`cmp` exit 0) and the same `Result:` line.
+- `prepare` on the committed all-draft set: abort `no_approved_variants`, exit 2, nothing written.
+- `git diff --quiet -- knowledge/` and the same against `backend/config/question_glossary.json`: both empty.
+- Owner decisions are still pending: 0 approved, 49 drafts. The rehearsal report is developer evidence, not an owner-approved measurement, and is never committed.
+- Acceptance is validator-final (owner decision 5); the command walkthrough is `test_command_walkthrough_list_decide_missing_env_and_recovery`, which passed inside the focused block.
 
 ## Validator checklist
 

@@ -2867,6 +2867,31 @@ at most 4 terms. Owner steps: [`docs/owner-guide/question-glossary-review.md`](.
   when an entry breaks the rules or a case that passes without the glossary fails with it.
 - Release gates never apply it; `evaluate_pac_answers.py` uses the served app, so it does.
 
+### Colloquial A/B comparison
+
+Offline, report-only ([spec](../docs/specs/colloquial_ab_evaluation.md); owner steps in
+[`docs/owner-guide/colloquial-variants-review.md`](../docs/owner-guide/colloquial-variants-review.md)).
+`backend/config/colloquial_variants.json` (`colloquial-variants-v1`, runtime `app/colloquial_ab.py`)
+holds one agent-drafted rewording of each approved golden question (`coll-0NN` for `golden-0NN`);
+only `approved` variants are scored. The owner lists and decides them with `--colloquial-review` /
+`--colloquial-decide`, exactly like the glossary.
+
+- Three arms: no rewriting (`None`), the approved glossary, and the glossary plus official terms
+  from the pinned local model (`mistral-small3.2:24b-instruct-2506-q4_K_M`, loopback only).
+  Corpus, campaign, `as-of`, `k`, drafting, cache state, and case order are identical; only the
+  query-expansion object differs, and nothing else on `/ask` changes.
+- `prepare` needs the pinned loopback model and writes `build/colloquial-ab/rewrites/<key>.json`
+  (ids, accepted terms, status only; no question or answer text). `run` is offline over that cache
+  and writes `build/colloquial-ab/reports/<version_id>/report.json`; `list` writes
+  `build/colloquial-ab/variants.txt`. Everything is outside `knowledge/` and Git-ignored.
+- Rule: a candidate is `adoptable` only when fixed-denominator hit@5 is strictly greater than no
+  rewriting and no approved trap got worse; incomplete review or no changed query is never
+  adoptable. Arm C vs B is information only. The command writes no default, setting, or gate.
+- Developer check (exit 0/1, ids only): `python backend/scripts/colloquial_ab.py check --catalog
+  knowledge/source_catalog.json --passages knowledge/passages.json --cases
+  knowledge/pac_answer_eval.json --golden knowledge/golden_set.json --traps
+  knowledge/trap_set.json --variants backend/config/colloquial_variants.json`.
+
 ### Grounding judge
 
 Offline, evaluation-only, report-only ([spec](../docs/specs/semantic_grounding_judge.md); owner steps in

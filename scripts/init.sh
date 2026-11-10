@@ -418,6 +418,26 @@ if [[ "${1:-}" == "--glossary-review" || "${1:-}" == "--glossary-decide" ]]; the
   exec "$LOCAL_RAG_PYTHON" "$REPO_ROOT/backend/scripts/glossary_review.py" decide -- "$@"
 fi
 
+# Owner commands: review the colloquial variants (docs/owner-guide/colloquial-variants-review.md).
+# --colloquial-review lists the variants that wait for a decision; --colloquial-decide
+# approve|reject "<name>" <number-or-id>... records a named reviewer's decision. Both end with
+# one Result: line and run before the local.properties write.
+if [[ "${1:-}" == "--colloquial-review" || "${1:-}" == "--colloquial-decide" ]]; then
+  REPO_ROOT="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")/.." && pwd)"
+  COLLOQUIAL_COMMAND="${1#--colloquial-}"
+  shift
+  LOCAL_RAG_PYTHON="$REPO_ROOT/backend/.venv/bin/python"
+  if [[ ! -x "$LOCAL_RAG_PYTHON" ]] && ! "$REPO_ROOT/scripts/python-env.sh" dev --if-present >/dev/null 2>&1; then
+    printf 'The local answer tools are not set up yet. Run ./scripts/init.sh --local-rag-setup to set them up.\n'
+    printf 'Result: the colloquial variant review did not run. Run ./scripts/init.sh --local-rag-setup.\n'
+    exit 1
+  fi
+  if [[ "$COLLOQUIAL_COMMAND" == "review" ]]; then
+    exec "$LOCAL_RAG_PYTHON" "$REPO_ROOT/backend/scripts/colloquial_ab.py" list "$@"
+  fi
+  exec "$LOCAL_RAG_PYTHON" "$REPO_ROOT/backend/scripts/colloquial_ab.py" decide -- "$@"
+fi
+
 # Owner commands: the offline grounding judge (docs/owner-guide/grounding-judge.md). --grounding-judge-setup
 # downloads the pinned judge model and checks its digest; --grounding-judge-report drafts the reviewed and
 # golden questions with the local drafting model, has the judge model check each sentence, and writes
@@ -599,6 +619,11 @@ Usage: ./scripts/init.sh [--check|--fast|--verify|--feature <id>|--backend-tests
   --glossary-decide approve|reject "<name>" <number-or-id>...
                             Record your decision for the listed word pairs (nothing is recorded if
                             anything is wrong)
+  --colloquial-review       List the everyday rewordings of the golden questions that wait for
+                            your decision; the full list goes to build/colloquial-ab/variants.txt
+  --colloquial-decide approve|reject "<name>" <number-or-id>...
+                            Record your decision for the listed colloquial variants (nothing is
+                            recorded if anything is wrong)
   --grounding-judge-setup   One time: download the small second model that checks drafted sentences
                             (needs Ollama; about 4.7 GB) and verify it is the reviewed one
   --grounding-judge-report  Draft the reviewed and golden questions with the local drafting model, have
