@@ -24,126 +24,1503 @@
     "on_hold"
   ],
   "features": [
-    {"id": "chat_home", "area": "client", "title": "Chat starting screen", "status": "accepted", "depends_on": [], "spec": "docs/specs/chat_home.md", "validation": "docs/validations/chat_home.md"},
-    {"id": "suggested_questions", "area": "client", "title": "Example questions", "status": "accepted", "depends_on": ["chat_home"], "spec": "docs/specs/suggested_questions.md", "validation": "docs/validations/suggested_questions.md"},
-    {"id": "visual_foundation", "area": "client", "title": "Apply the shared visual foundation", "status": "accepted", "depends_on": [], "spec": "docs/specs/visual_foundation.md", "validation": "docs/validations/visual_foundation.md"},
-    {"id": "answer_api_contract", "area": "backend-contract", "title": "Structured answer contract", "status": "accepted", "depends_on": [], "spec": "docs/specs/answer_api_contract.md", "validation": "docs/validations/answer_api_contract.md"},
-    {"id": "backend_health", "area": "backend", "title": "Service health response", "status": "accepted", "depends_on": [], "spec": "docs/specs/backend_health.md", "validation": "docs/validations/backend_health.md"},
-    {"id": "source_catalog_validation", "area": "knowledge", "title": "Approved source catalog validation", "status": "accepted", "depends_on": ["answer_api_contract"], "spec": "docs/specs/source_catalog_validation.md", "validation": "docs/validations/source_catalog_validation.md"},
-    {"id": "source_retrieval", "area": "backend", "title": "Search reviewed source passages", "status": "accepted", "depends_on": ["source_catalog_validation"], "spec": "docs/specs/source_retrieval.md", "validation": "docs/validations/source_retrieval.md"},
-    {"id": "grounded_answer_generation", "area": "backend", "title": "Generate an evidence-grounded answer", "status": "accepted", "depends_on": ["answer_api_contract", "source_retrieval"], "spec": "docs/specs/grounded_answer_generation.md", "validation": "docs/validations/grounded_answer_generation.md"},
-    {"id": "safe_abstention", "area": "backend", "title": "Abstain when evidence is inadequate", "status": "accepted", "depends_on": ["grounded_answer_generation"], "spec": "docs/specs/safe_abstention.md", "validation": "docs/validations/safe_abstention.md"},
-    {"id": "chat_question_submission", "area": "client", "title": "Submit a chat question", "status": "accepted", "depends_on": ["chat_home", "answer_api_contract", "backend_health"], "spec": "docs/specs/chat_question_submission.md", "validation": "docs/validations/chat_question_submission.md"},
-    {"id": "response_states", "area": "client", "title": "Show answer and abstention states", "status": "accepted", "depends_on": ["chat_question_submission", "safe_abstention", "visual_foundation"], "spec": "docs/specs/response_states.md", "validation": "docs/validations/response_states.md"},
-    {"id": "answer_source_cards", "area": "client", "title": "Inspect cited sources", "status": "accepted", "depends_on": ["response_states", "visual_foundation"], "spec": "docs/specs/answer_source_cards.md", "validation": "docs/validations/answer_source_cards.md"},
-    {"id": "network_error_recovery", "area": "client", "title": "Recover from service errors", "status": "accepted", "depends_on": ["chat_question_submission", "visual_foundation"], "spec": "docs/specs/network_error_recovery.md", "validation": "docs/validations/network_error_recovery.md"},
-    {"id": "local_land_store", "area": "lands", "title": "Persist multiple lands locally", "status": "accepted", "depends_on": [], "spec": "docs/specs/local_land_store.md", "validation": "docs/validations/local_land_store.md"},
-    {"id": "add_land", "area": "lands", "title": "Add a land", "status": "accepted", "depends_on": ["local_land_store"], "spec": "docs/specs/add_land.md", "validation": "docs/validations/add_land.md"},
-    {"id": "land_list", "area": "lands", "title": "Find a saved land", "status": "accepted", "depends_on": ["local_land_store", "add_land", "visual_foundation"], "spec": "docs/specs/land_list.md", "validation": "docs/validations/land_list.md"},
-    {"id": "edit_land", "area": "lands", "title": "Edit a land", "status": "accepted", "depends_on": ["land_list", "visual_foundation"], "spec": "docs/specs/edit_land.md", "validation": "docs/validations/edit_land.md"},
-    {"id": "remove_land", "area": "lands", "title": "Remove a land", "status": "accepted", "depends_on": ["land_list", "visual_foundation"], "spec": "docs/specs/remove_land.md", "validation": "docs/validations/remove_land.md"},
-    {"id": "minimal_land_context", "area": "lands-chat", "title": "Use minimal land context", "status": "accepted", "depends_on": ["land_list", "chat_question_submission", "answer_api_contract"], "spec": "docs/specs/minimal_land_context.md", "validation": "docs/validations/minimal_land_context.md"},
-    {"id": "land_clarification", "area": "lands-chat", "title": "Ask which land applies", "status": "accepted", "depends_on": ["minimal_land_context", "source_retrieval"], "spec": "docs/specs/land_clarification.md", "validation": "docs/validations/land_clarification.md"},
-    {"id": "answer_land_scope", "area": "lands-chat", "title": "Show which land context was used", "status": "accepted", "depends_on": ["land_clarification", "answer_source_cards"], "spec": "docs/specs/answer_land_scope.md", "validation": "docs/validations/answer_land_scope.md"},
-    {"id": "land_data_disclosure", "area": "privacy", "title": "Explain land data handling", "status": "accepted", "depends_on": ["local_land_store", "minimal_land_context"], "spec": "docs/specs/land_data_disclosure.md", "validation": "docs/validations/land_data_disclosure.md"},
-    {"id": "chat_accessibility", "area": "accessibility", "title": "Read and operate the chat comfortably", "status": "accepted", "depends_on": ["chat_home", "response_states", "answer_source_cards", "visual_foundation"], "spec": "docs/specs/chat_accessibility.md", "validation": "docs/validations/chat_accessibility.md"},
-    {"id": "land_form_accessibility", "area": "accessibility", "title": "Complete a land form accessibly", "status": "accepted", "depends_on": ["add_land", "edit_land"], "spec": "docs/specs/land_form_accessibility.md", "validation": "docs/validations/land_form_accessibility.md"},
-    {"id": "land_safety_evaluation", "area": "evaluation", "title": "Evaluate land-aware answer safety", "status": "accepted", "depends_on": ["safe_abstention", "land_clarification"], "spec": "docs/specs/land_safety_evaluation.md", "validation": "docs/validations/land_safety_evaluation.md"},
-    {"id": "android_mvp_build", "area": "release", "title": "Build the Android MVP artifact", "status": "accepted", "depends_on": ["suggested_questions", "network_error_recovery", "land_list", "edit_land", "remove_land", "land_data_disclosure", "chat_accessibility", "land_form_accessibility", "land_safety_evaluation", "answer_land_scope"], "spec": "docs/specs/android_mvp_build.md", "validation": "docs/validations/android_mvp_build.md"},
-    {"id": "desktop_mvp_build", "area": "release", "title": "Build the Desktop MVP artifact", "status": "accepted", "depends_on": ["suggested_questions", "network_error_recovery", "land_list", "edit_land", "remove_land", "land_data_disclosure", "chat_accessibility", "land_form_accessibility", "land_safety_evaluation", "answer_land_scope"], "spec": "docs/specs/desktop_mvp_build.md", "validation": "docs/validations/desktop_mvp_build.md"},
-    {"id": "backend_ask_endpoint", "area": "backend", "title": "Serve safe answers from the local POST /ask endpoint", "status": "accepted", "depends_on": ["answer_api_contract", "backend_health", "source_catalog_validation", "source_retrieval", "grounded_answer_generation", "safe_abstention", "land_clarification"], "spec": "docs/specs/backend_ask_endpoint.md", "validation": "docs/validations/backend_ask_endpoint.md"},
-    {"id": "backend_pac_corpus", "area": "knowledge", "title": "Curate the initial Andalusia PAC answer corpus", "status": "accepted", "depends_on": ["source_catalog_validation", "source_retrieval"], "spec": "docs/specs/backend_pac_corpus.md", "validation": "docs/validations/backend_pac_corpus.md"},
-    {"id": "backend_campaign_validity", "area": "backend", "title": "Scope answer sources by date and campaign", "status": "accepted", "depends_on": ["backend_ask_endpoint", "backend_pac_corpus"], "spec": "docs/specs/backend_campaign_validity.md", "validation": "docs/validations/backend_campaign_validity.md"},
-    {"id": "backend_answer_evaluation", "area": "evaluation", "title": "Measure the reviewed PAC answer slice", "status": "accepted", "depends_on": ["backend_ask_endpoint", "backend_pac_corpus", "backend_campaign_validity", "land_safety_evaluation"], "spec": "docs/specs/backend_answer_evaluation.md", "validation": "docs/validations/backend_answer_evaluation.md"},
-    {"id": "platform_ask_wiring", "area": "client", "title": "Connect Android and Desktop to the local /ask service", "status": "accepted", "depends_on": ["chat_question_submission", "backend_ask_endpoint", "backend_campaign_validity"], "spec": "docs/specs/platform_ask_wiring.md", "validation": "docs/validations/platform_ask_wiring.md"},
-    {"id": "backend_citation_hardening", "area": "backend", "title": "Enforce citation numbering for every generated answer", "status": "accepted", "depends_on": ["grounded_answer_generation", "backend_pac_corpus"], "spec": "docs/specs/backend_citation_hardening.md", "validation": "docs/validations/backend_citation_hardening.md"},
-    {"id": "land_setup_fields_decision", "area": "lands", "title": "Decide the minimum land setup fields", "status": "accepted", "depends_on": ["add_land", "minimal_land_context"], "spec": "docs/specs/land_setup_fields_decision.md", "validation": "docs/validations/land_setup_fields_decision.md"},
-    {"id": "land_backup_decision", "area": "privacy", "title": "Decide the local land backup and recovery stance", "status": "accepted", "depends_on": ["local_land_store", "land_data_disclosure"], "spec": "docs/specs/land_backup_decision.md", "validation": "docs/validations/land_backup_decision.md"},
-    {"id": "desktop_land_layout_decision", "area": "client", "title": "Decide whether land screens need a capped wide-window layout", "status": "accepted", "depends_on": ["desktop_mvp_build", "land_list", "edit_land"], "spec": "docs/specs/desktop_land_layout_decision.md", "validation": "docs/validations/desktop_land_layout_decision.md"},
-    {"id": "desktop_wide_land_layout", "area": "client", "title": "Apply the approved wide-window layout to land screens", "status": "accepted", "depends_on": ["desktop_land_layout_decision", "land_list", "edit_land", "remove_land", "land_data_disclosure"], "spec": "docs/specs/desktop_wide_land_layout.md", "validation": "docs/validations/desktop_wide_land_layout.md"},
-    {"id": "shared_design_system", "area": "client", "title": "Shared light and dark design system", "status": "accepted", "depends_on": ["visual_foundation"], "spec": "docs/specs/shared_design_system.md", "validation": "docs/validations/shared_design_system.md"},
-    {"id": "coverage_and_help", "area": "client", "title": "Coverage limits and human help", "status": "accepted", "depends_on": ["land_data_disclosure", "backend_pac_corpus"], "spec": "docs/specs/coverage_and_help.md", "validation": "docs/validations/coverage_and_help.md"},
-    {"id": "design_token_refresh", "area": "client", "title": "Refresh the shared palette and design tokens", "status": "accepted", "depends_on": ["shared_design_system"], "spec": "docs/specs/design_token_refresh.md", "validation": "docs/validations/design_token_refresh.md"},
-    {"id": "screenshot_regression_tests", "area": "testing", "title": "Add screenshot regression tests with human-approved baselines", "status": "accepted", "depends_on": ["design_token_refresh"], "spec": "docs/specs/screenshot_regression_tests.md", "validation": "docs/validations/screenshot_regression_tests.md"},
-    {"id": "brand_vectors", "area": "client", "title": "Add the brand mark, icon set, and empty-state illustration", "status": "accepted", "depends_on": ["design_token_refresh", "screenshot_regression_tests"], "spec": "docs/specs/brand_vectors.md", "validation": "docs/validations/brand_vectors.md"},
-    {"id": "ui_component_library", "area": "client", "title": "Build the shared visual component library", "status": "accepted", "depends_on": ["brand_vectors"], "spec": "docs/specs/ui_component_library.md", "validation": "docs/validations/ui_component_library.md"},
-    {"id": "app_chrome_navigation", "area": "client", "title": "Add the app bar and adaptive navigation shell", "status": "accepted", "depends_on": ["ui_component_library"], "spec": "docs/specs/app_chrome_navigation.md", "validation": "docs/validations/app_chrome_navigation.md"},
-    {"id": "land_measurement_fields", "area": "lands", "title": "Add zone, variety, surface, and tree-count land fields", "status": "accepted", "depends_on": ["design_token_refresh", "ui_component_library"], "spec": "docs/specs/land_measurement_fields.md", "validation": "docs/validations/land_measurement_fields.md"},
-    {"id": "land_search_and_summary", "area": "lands", "title": "Search saved lands and summarize annotated measures", "status": "accepted", "depends_on": ["land_measurement_fields"], "spec": "docs/specs/land_search_and_summary.md", "validation": "docs/validations/land_search_and_summary.md"},
-    {"id": "chat_screen_refresh", "area": "client", "title": "Refresh the assistant screen", "status": "accepted", "depends_on": ["app_chrome_navigation", "ui_component_library"], "spec": "docs/specs/chat_screen_refresh.md", "validation": "docs/validations/chat_screen_refresh.md"},
-    {"id": "lands_screens_refresh", "area": "client", "title": "Refresh the land screens", "status": "accepted", "depends_on": ["app_chrome_navigation", "land_search_and_summary"], "spec": "docs/specs/lands_screens_refresh.md", "validation": "docs/validations/lands_screens_refresh.md"},
-    {"id": "help_privacy_refresh", "area": "client", "title": "Refresh the help and privacy screens", "status": "accepted", "depends_on": ["ui_component_library", "land_measurement_fields"], "spec": "docs/specs/help_privacy_refresh.md", "validation": "docs/validations/help_privacy_refresh.md"},
-    {"id": "ui_refresh_accessibility_audit", "area": "accessibility", "title": "Audit the refreshed UI for accessibility and evidence", "status": "accepted", "depends_on": ["design_token_refresh", "brand_vectors", "ui_component_library", "app_chrome_navigation", "land_measurement_fields", "land_search_and_summary", "chat_screen_refresh", "lands_screens_refresh", "help_privacy_refresh"], "spec": "docs/specs/ui_refresh_accessibility_audit.md", "validation": "docs/validations/ui_refresh_accessibility_audit.md"},
-    {"id": "official_source_monitoring", "area": "knowledge", "title": "Monitor approved official sources", "status": "accepted", "depends_on": [], "spec": "docs/specs/official_source_monitoring.md", "validation": "docs/validations/official_source_monitoring.md"},
-    {"id": "official_document_candidate_ingestion", "area": "knowledge", "title": "Fetch and parse source candidates", "status": "accepted", "depends_on": ["official_source_monitoring", "official_source_discovery"], "spec": "docs/specs/official_document_candidate_ingestion.md", "validation": "docs/validations/official_document_candidate_ingestion.md"},
-    {"id": "official_source_discovery", "area": "knowledge", "title": "Discover candidate publications from official registries", "status": "accepted", "depends_on": ["official_source_monitoring", "source_catalog_validation"], "spec": "docs/specs/official_source_discovery.md", "validation": "docs/validations/official_source_discovery.md"},
-    {"id": "legal_change_impact_analysis", "area": "knowledge", "title": "Analyze legal source changes", "status": "accepted", "depends_on": ["official_document_candidate_ingestion", "backend_pac_corpus"], "spec": "docs/specs/legal_change_impact_analysis.md", "validation": "docs/validations/legal_change_impact_analysis.md"},
-    {"id": "knowledge_update_review_pr", "area": "operations", "title": "Prepare human-reviewed knowledge updates", "status": "accepted", "depends_on": ["legal_change_impact_analysis", "backend_answer_evaluation"], "spec": "docs/specs/knowledge_update_review_pr.md", "validation": "docs/validations/knowledge_update_review_pr.md"},
-    {"id": "knowledge_update_scheduler", "area": "operations", "title": "Run and monitor scheduled source scans", "status": "accepted", "depends_on": ["official_source_monitoring", "official_source_discovery", "hosted_pilot_operations"], "spec": "docs/specs/knowledge_update_scheduler.md", "validation": "docs/validations/knowledge_update_scheduler.md"},
-    {"id": "local_bge_m3_embeddings", "area": "backend", "title": "Add local multilingual embeddings", "status": "accepted", "depends_on": ["source_catalog_validation", "backend_pac_corpus", "pac_evidence_expansion"], "spec": "docs/specs/local_bge_m3_embeddings.md", "validation": "docs/validations/local_bge_m3_embeddings.md"},
-    {"id": "chroma_hybrid_retrieval", "area": "backend", "title": "Add persistent vector and hybrid retrieval", "status": "accepted", "depends_on": ["local_bge_m3_embeddings", "source_retrieval", "backend_campaign_validity", "pac_evidence_expansion"], "spec": "docs/specs/chroma_hybrid_retrieval.md", "validation": "docs/validations/chroma_hybrid_retrieval.md"},
-    {"id": "gemini_generation_provider", "area": "backend", "title": "Integrate gated Gemini answer generation", "status": "accepted", "depends_on": ["grounded_answer_generation", "backend_answer_evaluation", "hosting_provider_review", "pilot_privacy_readiness"], "spec": "docs/specs/gemini_generation_provider.md", "validation": "docs/validations/gemini_generation_provider.md"},
-    {"id": "local_generation_provider", "area": "backend", "title": "Draft answers with a local open-weight model", "status": "accepted", "depends_on": ["grounded_answer_generation", "backend_answer_evaluation", "gemini_generation_provider"], "spec": "docs/specs/local_generation_provider.md", "validation": "docs/validations/local_generation_provider.md"},
-    {"id": "knowledge_reindex_release", "area": "operations", "title": "Rebuild and release approved knowledge", "status": "accepted", "depends_on": ["knowledge_update_review_pr", "chroma_hybrid_retrieval", "backend_answer_evaluation", "hosted_pilot_operations"], "spec": "docs/specs/knowledge_reindex_release.md", "validation": "docs/validations/knowledge_reindex_release.md"},
-    {"id": "recover_removed_lands", "area": "lands", "title": "Restore removed lands or delete them permanently", "status": "accepted", "depends_on": ["remove_land"], "spec": "docs/specs/recover_removed_lands.md", "validation": "docs/validations/recover_removed_lands.md"},
-    {"id": "local_land_auto_backup", "area": "lands", "title": "Keep recoverable on-device land backups", "status": "accepted", "depends_on": ["local_land_store", "recover_removed_lands"], "spec": "docs/specs/local_land_auto_backup.md", "validation": "docs/validations/local_land_auto_backup.md"},
-    {"id": "portable_land_backup", "area": "lands", "title": "Export and restore lands across Android and Desktop", "status": "accepted", "depends_on": ["local_land_store", "recover_removed_lands", "local_land_auto_backup"], "spec": "docs/specs/portable_land_backup.md", "validation": "docs/validations/portable_land_backup.md"},
-    {"id": "hosting_provider_review", "area": "operations", "title": "Review hosting, tunnel, and Gemini provider terms", "status": "accepted", "depends_on": ["backend_ask_endpoint", "backend_campaign_validity"], "spec": "docs/specs/hosting_provider_review.md", "validation": "docs/validations/hosting_provider_review.md"},
-    {"id": "hosted_pilot_operations", "area": "operations", "title": "Prepare and operate a private hosted pilot service", "status": "accepted", "depends_on": ["hosting_provider_review", "backend_ask_endpoint", "backend_campaign_validity"], "spec": "docs/specs/hosted_pilot_operations.md", "validation": "docs/validations/hosted_pilot_operations.md"},
-    {"id": "pilot_privacy_readiness", "area": "privacy", "title": "Prepare pilot privacy, retention, and review gates", "status": "accepted", "depends_on": ["land_data_disclosure", "platform_ask_wiring", "hosted_pilot_operations", "hosting_provider_review"], "spec": "docs/specs/pilot_privacy_readiness.md", "validation": "docs/validations/pilot_privacy_readiness.md"},
-    {"id": "question_scope_guard", "area": "backend", "title": "Abstain on purpose for questions outside the approved coverage (aid amounts, individual cases, excluded topics) before retrieval can answer them", "status": "accepted", "depends_on": [], "spec": "docs/specs/question_scope_guard.md", "validation": "docs/validations/question_scope_guard.md"},
-    {"id": "private_pilot_distribution", "area": "release", "title": "Distribute private Android and Desktop pilot builds", "status": "on_hold", "depends_on": ["android_mvp_build", "desktop_mvp_build", "hosting_provider_review", "hosted_pilot_operations", "pilot_privacy_readiness", "local_generation_provider"], "spec": "docs/specs/private_pilot_distribution.md", "validation": "docs/validations/private_pilot_distribution.md"},
-    {"id": "pac_evidence_expansion", "area": "evaluation", "title": "Strengthen evidence within the reviewed PAC scope", "status": "accepted", "depends_on": ["backend_answer_evaluation", "backend_pac_corpus", "backend_citation_hardening"], "spec": "docs/specs/pac_evidence_expansion.md", "validation": "docs/validations/pac_evidence_expansion.md"},
-    {"id": "local_rag_bootstrap", "area": "operations", "title": "Set up every local RAG artifact (embedding model, passage index, Chroma store, Ollama model, knowledge release) with one guided command and a plain-language status check", "status": "accepted", "depends_on": ["local_bge_m3_embeddings", "chroma_hybrid_retrieval", "local_generation_provider", "knowledge_reindex_release"], "spec": "docs/specs/local_rag_bootstrap.md", "validation": "docs/validations/local_rag_bootstrap.md"},
-    {"id": "local_full_rag_stack", "area": "operations", "title": "Start, stop, and check the full local RAG service (hybrid retrieval and local drafting) with one command each, no terminal expertise needed", "status": "accepted", "depends_on": ["local_rag_bootstrap", "backend_ask_endpoint"], "spec": "docs/specs/local_full_rag_stack.md", "validation": "docs/validations/local_full_rag_stack.md"},
-    {"id": "backend_container_image", "area": "operations", "title": "Build a reproducible backend container image with the packaged knowledge release, built and run by one command", "status": "accepted", "depends_on": ["local_full_rag_stack"], "spec": "docs/specs/backend_container_image.md", "validation": "docs/validations/backend_container_image.md"},
-    {"id": "mock_answer_server", "area": "testing", "title": "Serve contract example answers from a local mock service so the apps run without the Python backend", "status": "accepted", "depends_on": ["answer_api_contract", "platform_ask_wiring"], "spec": "docs/specs/mock_answer_server.md", "validation": "docs/validations/mock_answer_server.md"},
-    {"id": "local_service_connection", "area": "client", "title": "Set and check the answer-service address and readiness from Android and Desktop test builds", "status": "accepted", "depends_on": ["platform_ask_wiring", "backend_health"], "spec": "docs/specs/local_service_connection.md", "validation": "docs/validations/local_service_connection.md"},
-    {"id": "client_pilot_credentials", "area": "client", "title": "Send a configured pilot bearer token from Android and Desktop and test them against the local pilot profile", "status": "accepted", "depends_on": ["platform_ask_wiring", "hosted_pilot_operations", "local_service_connection"], "spec": "docs/specs/client_pilot_credentials.md", "validation": "docs/validations/client_pilot_credentials.md"},
-    {"id": "local_end_to_end_smoke", "area": "testing", "title": "Smoke-test Android and Desktop against the running local RAG service end to end", "status": "accepted", "depends_on": ["local_full_rag_stack", "local_service_connection"], "spec": "docs/specs/local_end_to_end_smoke.md", "validation": "docs/validations/local_end_to_end_smoke.md"},
-    {"id": "welcome_first_use", "area": "client", "title": "Explain what the assistant can do, its limits, and data handling on first use", "status": "accepted", "depends_on": ["chat_screen_refresh", "help_privacy_refresh", "coverage_and_help"], "spec": "docs/specs/welcome_first_use.md", "validation": "docs/validations/welcome_first_use.md"},
-    {"id": "answer_pipeline_trace", "area": "backend", "title": "Record a privacy-safe per-question trace of retrieval, ranking, drafting, and verification for local debug use", "status": "accepted", "depends_on": ["backend_ask_endpoint", "chroma_hybrid_retrieval", "local_generation_provider", "pilot_privacy_readiness"], "spec": "docs/specs/answer_pipeline_trace.md", "validation": "docs/validations/answer_pipeline_trace.md"},
-    {"id": "rag_inspector_view", "area": "client", "title": "Show retrieved passages, scores, and verification steps for an answer in a developer view", "status": "accepted", "depends_on": ["answer_pipeline_trace", "local_service_connection", "answer_source_cards"], "spec": "docs/specs/rag_inspector_view.md", "validation": "docs/validations/rag_inspector_view.md"},
-    {"id": "rag_demo_rehearsal", "area": "evaluation", "title": "Rehearse a scripted RAG demo: grounded answer, trap abstention, land clarification, and a reviewed knowledge update", "status": "accepted", "depends_on": ["rag_inspector_view", "local_end_to_end_smoke", "knowledge_update_review_pr"], "spec": "docs/specs/rag_demo_rehearsal.md", "validation": "docs/validations/rag_demo_rehearsal.md"},
-    {"id": "environment_profiles", "area": "operations", "title": "Define local, QA, and prod environment profiles, each with one commented settings file, generated credentials, and its own knowledge release (prod left unconfigured)", "status": "accepted", "depends_on": ["hosted_pilot_operations", "local_full_rag_stack"], "spec": "docs/specs/environment_profiles.md", "validation": "docs/validations/environment_profiles.md"},
-    {"id": "backend_health_metrics", "area": "operations", "title": "Expose privacy-safe metrics for critical backend health: readiness, answer outcomes, latency, errors, generation fallbacks, rate-limit hits, active knowledge release, and source-update freshness", "status": "accepted", "depends_on": ["backend_ask_endpoint", "hosted_pilot_operations", "knowledge_reindex_release", "knowledge_update_scheduler", "local_generation_provider"], "spec": "docs/specs/backend_health_metrics.md", "validation": "docs/validations/backend_health_metrics.md"},
-    {"id": "monitoring_dashboard", "area": "operations", "title": "Show a free, self-hosted browser dashboard that explains backend health in plain language for the local and QA environments, starting with the service", "status": "accepted", "depends_on": ["backend_health_metrics", "environment_profiles"], "spec": "docs/specs/monitoring_dashboard.md", "validation": "docs/validations/monitoring_dashboard.md"},
-    {"id": "client_environment_builds", "area": "client", "title": "Build Android and Desktop test apps that target the local or QA environment", "status": "accepted", "depends_on": ["local_service_connection", "client_pilot_credentials", "environment_profiles"], "spec": "docs/specs/client_environment_builds.md", "validation": "docs/validations/client_environment_builds.md"},
-    {"id": "qa_server_deployment", "area": "operations", "title": "Deploy, update, and roll back the QA service with guided one-command steps on a server reachable over HTTPS so real devices can connect remotely", "status": "accepted", "depends_on": ["environment_profiles", "backend_container_image", "local_end_to_end_smoke", "backend_health_metrics"], "spec": "docs/specs/qa_server_deployment.md", "validation": "docs/validations/qa_server_deployment.md"},
-    {"id": "qa_service_alerts", "area": "operations", "title": "Alert the owner in plain language, on a channel they already use, when the QA service is down, not ready, or erroring", "status": "accepted", "depends_on": ["qa_server_deployment", "monitoring_dashboard"], "spec": "docs/specs/qa_service_alerts.md", "validation": "docs/validations/qa_service_alerts.md"},
-    {"id": "qa_real_device_check", "area": "testing", "title": "Check the QA Desktop app against the live QA service end to end with one command (Android device check out of scope)", "status": "accepted", "depends_on": ["qa_server_deployment", "client_environment_builds"], "spec": "docs/specs/qa_real_device_check.md", "validation": "docs/validations/qa_real_device_check.md"},
-    {"id": "qa_knowledge_deployment", "area": "operations", "title": "Publish approved knowledge to QA with one confirmed command: merge, reindex, evaluation gate, publish, and one-command rollback", "status": "not_started", "depends_on": ["qa_server_deployment", "ci_quality_gates", "structured_chunk_index"], "spec": "docs/specs/qa_knowledge_deployment.md", "validation": "docs/validations/qa_knowledge_deployment.md"},
-    {"id": "answer_deadline_notices", "area": "backend", "title": "Add code-owned deadline notices: cooperative internal deadlines and already-expired deadlines", "status": "accepted", "depends_on": ["backend_campaign_validity", "backend_citation_hardening"], "spec": "docs/specs/answer_deadline_notices.md", "validation": "docs/validations/answer_deadline_notices.md"},
-    {"id": "input_guardrails", "area": "backend", "title": "Screen questions for out-of-domain topics, prompt injection, and personal data before retrieval", "status": "accepted", "depends_on": ["backend_ask_endpoint", "pilot_privacy_readiness"], "spec": "docs/specs/input_guardrails.md", "validation": "docs/validations/input_guardrails.md"},
-    {"id": "numeric_grounding_check", "area": "backend", "title": "Reject drafts whose numbers, dates, or deadlines do not appear in the cited passages", "status": "accepted", "depends_on": ["local_generation_provider", "backend_citation_hardening"], "spec": "docs/specs/numeric_grounding_check.md", "validation": "docs/validations/numeric_grounding_check.md"},
-    {"id": "answer_cache", "area": "backend", "title": "Reuse answers keyed by question, land context, knowledge release, and model version", "status": "accepted", "depends_on": ["local_generation_provider", "knowledge_reindex_release", "pilot_privacy_readiness"], "spec": "docs/specs/answer_cache.md", "validation": "docs/validations/answer_cache.md"},
-    {"id": "feedback_endpoint", "area": "backend-contract", "title": "Accept privacy-minimal answer feedback through POST /feedback", "status": "accepted", "depends_on": ["backend_ask_endpoint", "pilot_privacy_readiness"], "spec": "docs/specs/feedback_endpoint.md", "validation": "docs/validations/feedback_endpoint.md"},
-    {"id": "answer_feedback_ui", "area": "client", "title": "Mark an answer as useful or not useful", "status": "accepted", "depends_on": ["feedback_endpoint", "chat_screen_refresh"], "spec": "docs/specs/answer_feedback_ui.md", "validation": "docs/validations/answer_feedback_ui.md"},
-    {"id": "contract_fuzz_tests", "area": "testing", "title": "Check the service against openapi.yaml with generated contract tests", "status": "accepted", "depends_on": ["backend_ask_endpoint", "answer_api_contract"], "spec": "docs/specs/contract_fuzz_tests.md", "validation": "docs/validations/contract_fuzz_tests.md"},
-    {"id": "local_load_test", "area": "testing", "title": "Measure local answer latency and throughput under expected pilot load", "status": "accepted", "depends_on": ["local_full_rag_stack"], "spec": "docs/specs/local_load_test.md", "validation": "docs/validations/local_load_test.md"},
-    {"id": "seed_corpus_expansion", "area": "knowledge", "title": "Review and add the remaining seed documents (RD 1047/2022, RD 1049/2022, RD 1054/2022, Order 24/03/2023 with correction, FEGA extension, Law 39/2015)", "status": "accepted", "depends_on": ["pac_evidence_expansion", "knowledge_update_review_pr"], "spec": "docs/specs/seed_corpus_expansion.md", "validation": "docs/validations/seed_corpus_expansion.md"},
-    {"id": "domain_procedure_map", "area": "knowledge", "title": "Map olive-grove procedures into a reviewed topic taxonomy for coverage, questions, and source scouting", "status": "accepted", "depends_on": ["backend_pac_corpus", "coverage_and_help"], "spec": "docs/specs/domain_procedure_map.md", "validation": "docs/validations/domain_procedure_map.md"},
-    {"id": "legal_document_parser", "area": "knowledge", "title": "Parse official PDFs into clean Markdown with tables and local Spanish OCR", "status": "accepted", "depends_on": ["official_document_candidate_ingestion"], "spec": "docs/specs/legal_document_parser.md", "validation": "docs/validations/legal_document_parser.md"},
-    {"id": "legal_structure_chunker", "area": "knowledge", "title": "Split documents by article, chapter, and annex with contextual prefixes and validity metadata", "status": "accepted", "depends_on": ["legal_document_parser", "source_catalog_validation"], "spec": "docs/specs/legal_structure_chunker.md", "validation": "docs/validations/legal_structure_chunker.md"},
-    {"id": "structured_chunk_index", "area": "knowledge", "title": "Index reviewed structured chunks for BM25 and vector search and rebuild them from the catalog with one command", "status": "accepted", "depends_on": ["legal_structure_chunker", "chroma_hybrid_retrieval", "knowledge_reindex_release"], "spec": "docs/specs/structured_chunk_index.md", "validation": "docs/validations/structured_chunk_index.md"},
-    {"id": "corpus_security_rules", "area": "knowledge", "title": "Enforce corpus security: prompt-injection document fixtures and exclusion of nominal listings", "status": "accepted", "depends_on": ["official_document_candidate_ingestion", "legal_change_impact_analysis"], "spec": "docs/specs/corpus_security_rules.md", "validation": "docs/validations/corpus_security_rules.md"},
-    {"id": "validity_checker", "area": "knowledge", "title": "Detect repeals, consolidation states, and expiry dates; retire automatically and propose additions for review", "status": "accepted", "depends_on": ["legal_change_impact_analysis", "official_source_discovery"], "spec": "docs/specs/validity_checker.md", "validation": "docs/validations/validity_checker.md"},
-    {"id": "official_page_change_monitor", "area": "knowledge", "title": "Detect changes on FEGA, MAPA, and Junta PAC pages by hash and text diff", "status": "accepted", "depends_on": ["official_source_monitoring"], "spec": "docs/specs/official_page_change_monitor.md", "validation": "docs/validations/official_page_change_monitor.md"},
-    {"id": "relevance_classifier", "area": "knowledge", "title": "Classify discovered candidates for relevance and topic with the local model, treating text as data", "status": "accepted", "depends_on": ["official_source_discovery", "local_generation_provider", "domain_procedure_map"], "spec": "docs/specs/relevance_classifier.md", "validation": "docs/validations/relevance_classifier.md"},
-    {"id": "local_notice_pipeline", "area": "knowledge", "title": "Turn anonymized cooperative notices into vocabulary and candidate questions locally", "status": "accepted", "depends_on": ["local_generation_provider", "pilot_privacy_readiness"], "spec": "docs/specs/local_notice_pipeline.md", "validation": "docs/validations/local_notice_pipeline.md"},
-    {"id": "question_rewriting", "area": "backend", "title": "Rewrite colloquial olive-grower wording to official terms with a reviewed glossary", "status": "accepted", "depends_on": ["backend_ask_endpoint", "domain_procedure_map", "local_notice_pipeline"], "spec": "docs/specs/question_rewriting.md", "validation": "docs/validations/question_rewriting.md"},
-    {"id": "knowledge_ops_orchestrator", "area": "operations", "title": "Run the whole knowledge update cycle as one budgeted, retryable job: discover, classify, ingest, check validity, analyze impact, prepare review", "status": "accepted", "depends_on": ["knowledge_update_scheduler", "relevance_classifier", "validity_checker", "official_page_change_monitor", "knowledge_update_review_pr"], "spec": "docs/specs/knowledge_ops_orchestrator.md", "validation": "docs/validations/knowledge_ops_orchestrator.md"},
-    {"id": "hosted_review_pull_requests", "area": "operations", "title": "Open knowledge update reviews as GitHub pull requests with evaluation results and merge protection", "status": "passing", "depends_on": ["knowledge_update_review_pr", "knowledge_ops_orchestrator"], "spec": "docs/specs/hosted_review_pull_requests.md", "validation": "docs/validations/hosted_review_pull_requests.md"},
-    {"id": "golden_dataset_expansion", "area": "evaluation", "title": "Grow the reviewed golden set to 40–60 source-anchored questions across segments and question types", "status": "accepted", "depends_on": ["seed_corpus_expansion", "backend_answer_evaluation"], "spec": "docs/specs/golden_dataset_expansion.md", "validation": "docs/validations/golden_dataset_expansion.md"},
-    {"id": "adversarial_trap_set", "area": "evaluation", "title": "Add 15 or more trap and adversarial cases: injection, false premise, cooperative practice, personal advice, typos", "status": "accepted", "depends_on": ["golden_dataset_expansion"], "spec": "docs/specs/adversarial_trap_set.md", "validation": "docs/validations/adversarial_trap_set.md"},
-    {"id": "validity_regression_cases", "area": "evaluation", "title": "Add validity cases: repealed RD 1077/2014, expired deadline, and voluntary digital notebook", "status": "accepted", "depends_on": ["validity_checker", "seed_corpus_expansion"], "spec": "docs/specs/validity_regression_cases.md", "validation": "docs/validations/validity_regression_cases.md"},
-    {"id": "retrieval_threshold_calibration", "area": "backend", "title": "Calibrate the retrieval abstention threshold on the golden and trap sets", "status": "not_started", "depends_on": ["golden_dataset_expansion", "adversarial_trap_set", "safe_abstention"], "spec": "docs/specs/retrieval_threshold_calibration.md", "validation": "docs/validations/retrieval_threshold_calibration.md"},
-    {"id": "semantic_grounding_judge", "area": "evaluation", "title": "Check sentence-level support of drafts with a local judge model different from the generator", "status": "accepted", "depends_on": ["golden_dataset_expansion", "local_generation_provider"], "spec": "docs/specs/semantic_grounding_judge.md", "validation": "docs/validations/semantic_grounding_judge.md"},
-    {"id": "reranker_evaluation", "area": "backend", "title": "Measure a local reranker and enable it only if retrieval improves", "status": "accepted", "depends_on": ["golden_dataset_expansion", "chroma_hybrid_retrieval", "adversarial_trap_set"], "spec": "docs/specs/reranker_evaluation.md", "validation": "docs/validations/reranker_evaluation.md"},
-    {"id": "evaluation_metrics_report", "area": "evaluation", "title": "Report hit@k, MRR, faithfulness, abstention, and numeric accuracy per version", "status": "not_started", "depends_on": ["golden_dataset_expansion", "adversarial_trap_set", "semantic_grounding_judge"], "spec": "docs/specs/evaluation_metrics_report.md", "validation": "docs/validations/evaluation_metrics_report.md"},
-    {"id": "colloquial_ab_evaluation", "area": "evaluation", "title": "Compare retrieval with no rewriting, glossary rewriting, and glossary plus model rewriting", "status": "not_started", "depends_on": ["question_rewriting", "golden_dataset_expansion", "evaluation_metrics_report"], "spec": "docs/specs/colloquial_ab_evaluation.md", "validation": "docs/validations/colloquial_ab_evaluation.md"},
-    {"id": "ci_quality_gates", "area": "testing", "title": "Block pull requests when agreed evaluation metrics regress", "status": "not_started", "depends_on": ["evaluation_metrics_report"], "spec": "docs/specs/ci_quality_gates.md", "validation": "docs/validations/ci_quality_gates.md"},
-    {"id": "nightly_evaluation", "area": "testing", "title": "Run the complete evaluation nightly with cached answers and a report", "status": "not_started", "depends_on": ["ci_quality_gates", "answer_cache"], "spec": "docs/specs/nightly_evaluation.md", "validation": "docs/validations/nightly_evaluation.md"},
-    {"id": "usability_session", "area": "evaluation", "title": "Run and record a usability session with low-confidence users: setup, two lands, a land-dependent question, and sources", "status": "accepted", "depends_on": ["local_end_to_end_smoke", "welcome_first_use"], "spec": "docs/specs/usability_session.md", "validation": "docs/validations/usability_session.md"}
+    {
+      "id": "chat_home",
+      "area": "client",
+      "title": "Chat starting screen",
+      "status": "accepted",
+      "depends_on": [],
+      "spec": "docs/specs/chat_home.md",
+      "validation": "docs/validations/chat_home.md"
+    },
+    {
+      "id": "suggested_questions",
+      "area": "client",
+      "title": "Example questions",
+      "status": "accepted",
+      "depends_on": [
+        "chat_home"
+      ],
+      "spec": "docs/specs/suggested_questions.md",
+      "validation": "docs/validations/suggested_questions.md"
+    },
+    {
+      "id": "visual_foundation",
+      "area": "client",
+      "title": "Apply the shared visual foundation",
+      "status": "accepted",
+      "depends_on": [],
+      "spec": "docs/specs/visual_foundation.md",
+      "validation": "docs/validations/visual_foundation.md"
+    },
+    {
+      "id": "answer_api_contract",
+      "area": "backend-contract",
+      "title": "Structured answer contract",
+      "status": "accepted",
+      "depends_on": [],
+      "spec": "docs/specs/answer_api_contract.md",
+      "validation": "docs/validations/answer_api_contract.md"
+    },
+    {
+      "id": "backend_health",
+      "area": "backend",
+      "title": "Service health response",
+      "status": "accepted",
+      "depends_on": [],
+      "spec": "docs/specs/backend_health.md",
+      "validation": "docs/validations/backend_health.md"
+    },
+    {
+      "id": "source_catalog_validation",
+      "area": "knowledge",
+      "title": "Approved source catalog validation",
+      "status": "accepted",
+      "depends_on": [
+        "answer_api_contract"
+      ],
+      "spec": "docs/specs/source_catalog_validation.md",
+      "validation": "docs/validations/source_catalog_validation.md"
+    },
+    {
+      "id": "source_retrieval",
+      "area": "backend",
+      "title": "Search reviewed source passages",
+      "status": "accepted",
+      "depends_on": [
+        "source_catalog_validation"
+      ],
+      "spec": "docs/specs/source_retrieval.md",
+      "validation": "docs/validations/source_retrieval.md"
+    },
+    {
+      "id": "grounded_answer_generation",
+      "area": "backend",
+      "title": "Generate an evidence-grounded answer",
+      "status": "accepted",
+      "depends_on": [
+        "answer_api_contract",
+        "source_retrieval"
+      ],
+      "spec": "docs/specs/grounded_answer_generation.md",
+      "validation": "docs/validations/grounded_answer_generation.md"
+    },
+    {
+      "id": "safe_abstention",
+      "area": "backend",
+      "title": "Abstain when evidence is inadequate",
+      "status": "accepted",
+      "depends_on": [
+        "grounded_answer_generation"
+      ],
+      "spec": "docs/specs/safe_abstention.md",
+      "validation": "docs/validations/safe_abstention.md"
+    },
+    {
+      "id": "chat_question_submission",
+      "area": "client",
+      "title": "Submit a chat question",
+      "status": "accepted",
+      "depends_on": [
+        "chat_home",
+        "answer_api_contract",
+        "backend_health"
+      ],
+      "spec": "docs/specs/chat_question_submission.md",
+      "validation": "docs/validations/chat_question_submission.md"
+    },
+    {
+      "id": "response_states",
+      "area": "client",
+      "title": "Show answer and abstention states",
+      "status": "accepted",
+      "depends_on": [
+        "chat_question_submission",
+        "safe_abstention",
+        "visual_foundation"
+      ],
+      "spec": "docs/specs/response_states.md",
+      "validation": "docs/validations/response_states.md"
+    },
+    {
+      "id": "answer_source_cards",
+      "area": "client",
+      "title": "Inspect cited sources",
+      "status": "accepted",
+      "depends_on": [
+        "response_states",
+        "visual_foundation"
+      ],
+      "spec": "docs/specs/answer_source_cards.md",
+      "validation": "docs/validations/answer_source_cards.md"
+    },
+    {
+      "id": "network_error_recovery",
+      "area": "client",
+      "title": "Recover from service errors",
+      "status": "accepted",
+      "depends_on": [
+        "chat_question_submission",
+        "visual_foundation"
+      ],
+      "spec": "docs/specs/network_error_recovery.md",
+      "validation": "docs/validations/network_error_recovery.md"
+    },
+    {
+      "id": "local_land_store",
+      "area": "lands",
+      "title": "Persist multiple lands locally",
+      "status": "accepted",
+      "depends_on": [],
+      "spec": "docs/specs/local_land_store.md",
+      "validation": "docs/validations/local_land_store.md"
+    },
+    {
+      "id": "add_land",
+      "area": "lands",
+      "title": "Add a land",
+      "status": "accepted",
+      "depends_on": [
+        "local_land_store"
+      ],
+      "spec": "docs/specs/add_land.md",
+      "validation": "docs/validations/add_land.md"
+    },
+    {
+      "id": "land_list",
+      "area": "lands",
+      "title": "Find a saved land",
+      "status": "accepted",
+      "depends_on": [
+        "local_land_store",
+        "add_land",
+        "visual_foundation"
+      ],
+      "spec": "docs/specs/land_list.md",
+      "validation": "docs/validations/land_list.md"
+    },
+    {
+      "id": "edit_land",
+      "area": "lands",
+      "title": "Edit a land",
+      "status": "accepted",
+      "depends_on": [
+        "land_list",
+        "visual_foundation"
+      ],
+      "spec": "docs/specs/edit_land.md",
+      "validation": "docs/validations/edit_land.md"
+    },
+    {
+      "id": "remove_land",
+      "area": "lands",
+      "title": "Remove a land",
+      "status": "accepted",
+      "depends_on": [
+        "land_list",
+        "visual_foundation"
+      ],
+      "spec": "docs/specs/remove_land.md",
+      "validation": "docs/validations/remove_land.md"
+    },
+    {
+      "id": "minimal_land_context",
+      "area": "lands-chat",
+      "title": "Use minimal land context",
+      "status": "accepted",
+      "depends_on": [
+        "land_list",
+        "chat_question_submission",
+        "answer_api_contract"
+      ],
+      "spec": "docs/specs/minimal_land_context.md",
+      "validation": "docs/validations/minimal_land_context.md"
+    },
+    {
+      "id": "land_clarification",
+      "area": "lands-chat",
+      "title": "Ask which land applies",
+      "status": "accepted",
+      "depends_on": [
+        "minimal_land_context",
+        "source_retrieval"
+      ],
+      "spec": "docs/specs/land_clarification.md",
+      "validation": "docs/validations/land_clarification.md"
+    },
+    {
+      "id": "answer_land_scope",
+      "area": "lands-chat",
+      "title": "Show which land context was used",
+      "status": "accepted",
+      "depends_on": [
+        "land_clarification",
+        "answer_source_cards"
+      ],
+      "spec": "docs/specs/answer_land_scope.md",
+      "validation": "docs/validations/answer_land_scope.md"
+    },
+    {
+      "id": "land_data_disclosure",
+      "area": "privacy",
+      "title": "Explain land data handling",
+      "status": "accepted",
+      "depends_on": [
+        "local_land_store",
+        "minimal_land_context"
+      ],
+      "spec": "docs/specs/land_data_disclosure.md",
+      "validation": "docs/validations/land_data_disclosure.md"
+    },
+    {
+      "id": "chat_accessibility",
+      "area": "accessibility",
+      "title": "Read and operate the chat comfortably",
+      "status": "accepted",
+      "depends_on": [
+        "chat_home",
+        "response_states",
+        "answer_source_cards",
+        "visual_foundation"
+      ],
+      "spec": "docs/specs/chat_accessibility.md",
+      "validation": "docs/validations/chat_accessibility.md"
+    },
+    {
+      "id": "land_form_accessibility",
+      "area": "accessibility",
+      "title": "Complete a land form accessibly",
+      "status": "accepted",
+      "depends_on": [
+        "add_land",
+        "edit_land"
+      ],
+      "spec": "docs/specs/land_form_accessibility.md",
+      "validation": "docs/validations/land_form_accessibility.md"
+    },
+    {
+      "id": "land_safety_evaluation",
+      "area": "evaluation",
+      "title": "Evaluate land-aware answer safety",
+      "status": "accepted",
+      "depends_on": [
+        "safe_abstention",
+        "land_clarification"
+      ],
+      "spec": "docs/specs/land_safety_evaluation.md",
+      "validation": "docs/validations/land_safety_evaluation.md"
+    },
+    {
+      "id": "android_mvp_build",
+      "area": "release",
+      "title": "Build the Android MVP artifact",
+      "status": "accepted",
+      "depends_on": [
+        "suggested_questions",
+        "network_error_recovery",
+        "land_list",
+        "edit_land",
+        "remove_land",
+        "land_data_disclosure",
+        "chat_accessibility",
+        "land_form_accessibility",
+        "land_safety_evaluation",
+        "answer_land_scope"
+      ],
+      "spec": "docs/specs/android_mvp_build.md",
+      "validation": "docs/validations/android_mvp_build.md"
+    },
+    {
+      "id": "desktop_mvp_build",
+      "area": "release",
+      "title": "Build the Desktop MVP artifact",
+      "status": "accepted",
+      "depends_on": [
+        "suggested_questions",
+        "network_error_recovery",
+        "land_list",
+        "edit_land",
+        "remove_land",
+        "land_data_disclosure",
+        "chat_accessibility",
+        "land_form_accessibility",
+        "land_safety_evaluation",
+        "answer_land_scope"
+      ],
+      "spec": "docs/specs/desktop_mvp_build.md",
+      "validation": "docs/validations/desktop_mvp_build.md"
+    },
+    {
+      "id": "backend_ask_endpoint",
+      "area": "backend",
+      "title": "Serve safe answers from the local POST /ask endpoint",
+      "status": "accepted",
+      "depends_on": [
+        "answer_api_contract",
+        "backend_health",
+        "source_catalog_validation",
+        "source_retrieval",
+        "grounded_answer_generation",
+        "safe_abstention",
+        "land_clarification"
+      ],
+      "spec": "docs/specs/backend_ask_endpoint.md",
+      "validation": "docs/validations/backend_ask_endpoint.md"
+    },
+    {
+      "id": "backend_pac_corpus",
+      "area": "knowledge",
+      "title": "Curate the initial Andalusia PAC answer corpus",
+      "status": "accepted",
+      "depends_on": [
+        "source_catalog_validation",
+        "source_retrieval"
+      ],
+      "spec": "docs/specs/backend_pac_corpus.md",
+      "validation": "docs/validations/backend_pac_corpus.md"
+    },
+    {
+      "id": "backend_campaign_validity",
+      "area": "backend",
+      "title": "Scope answer sources by date and campaign",
+      "status": "accepted",
+      "depends_on": [
+        "backend_ask_endpoint",
+        "backend_pac_corpus"
+      ],
+      "spec": "docs/specs/backend_campaign_validity.md",
+      "validation": "docs/validations/backend_campaign_validity.md"
+    },
+    {
+      "id": "backend_answer_evaluation",
+      "area": "evaluation",
+      "title": "Measure the reviewed PAC answer slice",
+      "status": "accepted",
+      "depends_on": [
+        "backend_ask_endpoint",
+        "backend_pac_corpus",
+        "backend_campaign_validity",
+        "land_safety_evaluation"
+      ],
+      "spec": "docs/specs/backend_answer_evaluation.md",
+      "validation": "docs/validations/backend_answer_evaluation.md"
+    },
+    {
+      "id": "platform_ask_wiring",
+      "area": "client",
+      "title": "Connect Android and Desktop to the local /ask service",
+      "status": "accepted",
+      "depends_on": [
+        "chat_question_submission",
+        "backend_ask_endpoint",
+        "backend_campaign_validity"
+      ],
+      "spec": "docs/specs/platform_ask_wiring.md",
+      "validation": "docs/validations/platform_ask_wiring.md"
+    },
+    {
+      "id": "backend_citation_hardening",
+      "area": "backend",
+      "title": "Enforce citation numbering for every generated answer",
+      "status": "accepted",
+      "depends_on": [
+        "grounded_answer_generation",
+        "backend_pac_corpus"
+      ],
+      "spec": "docs/specs/backend_citation_hardening.md",
+      "validation": "docs/validations/backend_citation_hardening.md"
+    },
+    {
+      "id": "land_setup_fields_decision",
+      "area": "lands",
+      "title": "Decide the minimum land setup fields",
+      "status": "accepted",
+      "depends_on": [
+        "add_land",
+        "minimal_land_context"
+      ],
+      "spec": "docs/specs/land_setup_fields_decision.md",
+      "validation": "docs/validations/land_setup_fields_decision.md"
+    },
+    {
+      "id": "land_backup_decision",
+      "area": "privacy",
+      "title": "Decide the local land backup and recovery stance",
+      "status": "accepted",
+      "depends_on": [
+        "local_land_store",
+        "land_data_disclosure"
+      ],
+      "spec": "docs/specs/land_backup_decision.md",
+      "validation": "docs/validations/land_backup_decision.md"
+    },
+    {
+      "id": "desktop_land_layout_decision",
+      "area": "client",
+      "title": "Decide whether land screens need a capped wide-window layout",
+      "status": "accepted",
+      "depends_on": [
+        "desktop_mvp_build",
+        "land_list",
+        "edit_land"
+      ],
+      "spec": "docs/specs/desktop_land_layout_decision.md",
+      "validation": "docs/validations/desktop_land_layout_decision.md"
+    },
+    {
+      "id": "desktop_wide_land_layout",
+      "area": "client",
+      "title": "Apply the approved wide-window layout to land screens",
+      "status": "accepted",
+      "depends_on": [
+        "desktop_land_layout_decision",
+        "land_list",
+        "edit_land",
+        "remove_land",
+        "land_data_disclosure"
+      ],
+      "spec": "docs/specs/desktop_wide_land_layout.md",
+      "validation": "docs/validations/desktop_wide_land_layout.md"
+    },
+    {
+      "id": "shared_design_system",
+      "area": "client",
+      "title": "Shared light and dark design system",
+      "status": "accepted",
+      "depends_on": [
+        "visual_foundation"
+      ],
+      "spec": "docs/specs/shared_design_system.md",
+      "validation": "docs/validations/shared_design_system.md"
+    },
+    {
+      "id": "coverage_and_help",
+      "area": "client",
+      "title": "Coverage limits and human help",
+      "status": "accepted",
+      "depends_on": [
+        "land_data_disclosure",
+        "backend_pac_corpus"
+      ],
+      "spec": "docs/specs/coverage_and_help.md",
+      "validation": "docs/validations/coverage_and_help.md"
+    },
+    {
+      "id": "design_token_refresh",
+      "area": "client",
+      "title": "Refresh the shared palette and design tokens",
+      "status": "accepted",
+      "depends_on": [
+        "shared_design_system"
+      ],
+      "spec": "docs/specs/design_token_refresh.md",
+      "validation": "docs/validations/design_token_refresh.md"
+    },
+    {
+      "id": "screenshot_regression_tests",
+      "area": "testing",
+      "title": "Add screenshot regression tests with human-approved baselines",
+      "status": "accepted",
+      "depends_on": [
+        "design_token_refresh"
+      ],
+      "spec": "docs/specs/screenshot_regression_tests.md",
+      "validation": "docs/validations/screenshot_regression_tests.md"
+    },
+    {
+      "id": "brand_vectors",
+      "area": "client",
+      "title": "Add the brand mark, icon set, and empty-state illustration",
+      "status": "accepted",
+      "depends_on": [
+        "design_token_refresh",
+        "screenshot_regression_tests"
+      ],
+      "spec": "docs/specs/brand_vectors.md",
+      "validation": "docs/validations/brand_vectors.md"
+    },
+    {
+      "id": "ui_component_library",
+      "area": "client",
+      "title": "Build the shared visual component library",
+      "status": "accepted",
+      "depends_on": [
+        "brand_vectors"
+      ],
+      "spec": "docs/specs/ui_component_library.md",
+      "validation": "docs/validations/ui_component_library.md"
+    },
+    {
+      "id": "app_chrome_navigation",
+      "area": "client",
+      "title": "Add the app bar and adaptive navigation shell",
+      "status": "accepted",
+      "depends_on": [
+        "ui_component_library"
+      ],
+      "spec": "docs/specs/app_chrome_navigation.md",
+      "validation": "docs/validations/app_chrome_navigation.md"
+    },
+    {
+      "id": "land_measurement_fields",
+      "area": "lands",
+      "title": "Add zone, variety, surface, and tree-count land fields",
+      "status": "accepted",
+      "depends_on": [
+        "design_token_refresh",
+        "ui_component_library"
+      ],
+      "spec": "docs/specs/land_measurement_fields.md",
+      "validation": "docs/validations/land_measurement_fields.md"
+    },
+    {
+      "id": "land_search_and_summary",
+      "area": "lands",
+      "title": "Search saved lands and summarize annotated measures",
+      "status": "accepted",
+      "depends_on": [
+        "land_measurement_fields"
+      ],
+      "spec": "docs/specs/land_search_and_summary.md",
+      "validation": "docs/validations/land_search_and_summary.md"
+    },
+    {
+      "id": "chat_screen_refresh",
+      "area": "client",
+      "title": "Refresh the assistant screen",
+      "status": "accepted",
+      "depends_on": [
+        "app_chrome_navigation",
+        "ui_component_library"
+      ],
+      "spec": "docs/specs/chat_screen_refresh.md",
+      "validation": "docs/validations/chat_screen_refresh.md"
+    },
+    {
+      "id": "lands_screens_refresh",
+      "area": "client",
+      "title": "Refresh the land screens",
+      "status": "accepted",
+      "depends_on": [
+        "app_chrome_navigation",
+        "land_search_and_summary"
+      ],
+      "spec": "docs/specs/lands_screens_refresh.md",
+      "validation": "docs/validations/lands_screens_refresh.md"
+    },
+    {
+      "id": "help_privacy_refresh",
+      "area": "client",
+      "title": "Refresh the help and privacy screens",
+      "status": "accepted",
+      "depends_on": [
+        "ui_component_library",
+        "land_measurement_fields"
+      ],
+      "spec": "docs/specs/help_privacy_refresh.md",
+      "validation": "docs/validations/help_privacy_refresh.md"
+    },
+    {
+      "id": "ui_refresh_accessibility_audit",
+      "area": "accessibility",
+      "title": "Audit the refreshed UI for accessibility and evidence",
+      "status": "accepted",
+      "depends_on": [
+        "design_token_refresh",
+        "brand_vectors",
+        "ui_component_library",
+        "app_chrome_navigation",
+        "land_measurement_fields",
+        "land_search_and_summary",
+        "chat_screen_refresh",
+        "lands_screens_refresh",
+        "help_privacy_refresh"
+      ],
+      "spec": "docs/specs/ui_refresh_accessibility_audit.md",
+      "validation": "docs/validations/ui_refresh_accessibility_audit.md"
+    },
+    {
+      "id": "official_source_monitoring",
+      "area": "knowledge",
+      "title": "Monitor approved official sources",
+      "status": "accepted",
+      "depends_on": [],
+      "spec": "docs/specs/official_source_monitoring.md",
+      "validation": "docs/validations/official_source_monitoring.md"
+    },
+    {
+      "id": "official_document_candidate_ingestion",
+      "area": "knowledge",
+      "title": "Fetch and parse source candidates",
+      "status": "accepted",
+      "depends_on": [
+        "official_source_monitoring",
+        "official_source_discovery"
+      ],
+      "spec": "docs/specs/official_document_candidate_ingestion.md",
+      "validation": "docs/validations/official_document_candidate_ingestion.md"
+    },
+    {
+      "id": "official_source_discovery",
+      "area": "knowledge",
+      "title": "Discover candidate publications from official registries",
+      "status": "accepted",
+      "depends_on": [
+        "official_source_monitoring",
+        "source_catalog_validation"
+      ],
+      "spec": "docs/specs/official_source_discovery.md",
+      "validation": "docs/validations/official_source_discovery.md"
+    },
+    {
+      "id": "legal_change_impact_analysis",
+      "area": "knowledge",
+      "title": "Analyze legal source changes",
+      "status": "accepted",
+      "depends_on": [
+        "official_document_candidate_ingestion",
+        "backend_pac_corpus"
+      ],
+      "spec": "docs/specs/legal_change_impact_analysis.md",
+      "validation": "docs/validations/legal_change_impact_analysis.md"
+    },
+    {
+      "id": "knowledge_update_review_pr",
+      "area": "operations",
+      "title": "Prepare human-reviewed knowledge updates",
+      "status": "accepted",
+      "depends_on": [
+        "legal_change_impact_analysis",
+        "backend_answer_evaluation"
+      ],
+      "spec": "docs/specs/knowledge_update_review_pr.md",
+      "validation": "docs/validations/knowledge_update_review_pr.md"
+    },
+    {
+      "id": "knowledge_update_scheduler",
+      "area": "operations",
+      "title": "Run and monitor scheduled source scans",
+      "status": "accepted",
+      "depends_on": [
+        "official_source_monitoring",
+        "official_source_discovery",
+        "hosted_pilot_operations"
+      ],
+      "spec": "docs/specs/knowledge_update_scheduler.md",
+      "validation": "docs/validations/knowledge_update_scheduler.md"
+    },
+    {
+      "id": "local_bge_m3_embeddings",
+      "area": "backend",
+      "title": "Add local multilingual embeddings",
+      "status": "accepted",
+      "depends_on": [
+        "source_catalog_validation",
+        "backend_pac_corpus",
+        "pac_evidence_expansion"
+      ],
+      "spec": "docs/specs/local_bge_m3_embeddings.md",
+      "validation": "docs/validations/local_bge_m3_embeddings.md"
+    },
+    {
+      "id": "chroma_hybrid_retrieval",
+      "area": "backend",
+      "title": "Add persistent vector and hybrid retrieval",
+      "status": "accepted",
+      "depends_on": [
+        "local_bge_m3_embeddings",
+        "source_retrieval",
+        "backend_campaign_validity",
+        "pac_evidence_expansion"
+      ],
+      "spec": "docs/specs/chroma_hybrid_retrieval.md",
+      "validation": "docs/validations/chroma_hybrid_retrieval.md"
+    },
+    {
+      "id": "gemini_generation_provider",
+      "area": "backend",
+      "title": "Integrate gated Gemini answer generation",
+      "status": "accepted",
+      "depends_on": [
+        "grounded_answer_generation",
+        "backend_answer_evaluation",
+        "hosting_provider_review",
+        "pilot_privacy_readiness"
+      ],
+      "spec": "docs/specs/gemini_generation_provider.md",
+      "validation": "docs/validations/gemini_generation_provider.md"
+    },
+    {
+      "id": "local_generation_provider",
+      "area": "backend",
+      "title": "Draft answers with a local open-weight model",
+      "status": "accepted",
+      "depends_on": [
+        "grounded_answer_generation",
+        "backend_answer_evaluation",
+        "gemini_generation_provider"
+      ],
+      "spec": "docs/specs/local_generation_provider.md",
+      "validation": "docs/validations/local_generation_provider.md"
+    },
+    {
+      "id": "knowledge_reindex_release",
+      "area": "operations",
+      "title": "Rebuild and release approved knowledge",
+      "status": "accepted",
+      "depends_on": [
+        "knowledge_update_review_pr",
+        "chroma_hybrid_retrieval",
+        "backend_answer_evaluation",
+        "hosted_pilot_operations"
+      ],
+      "spec": "docs/specs/knowledge_reindex_release.md",
+      "validation": "docs/validations/knowledge_reindex_release.md"
+    },
+    {
+      "id": "recover_removed_lands",
+      "area": "lands",
+      "title": "Restore removed lands or delete them permanently",
+      "status": "accepted",
+      "depends_on": [
+        "remove_land"
+      ],
+      "spec": "docs/specs/recover_removed_lands.md",
+      "validation": "docs/validations/recover_removed_lands.md"
+    },
+    {
+      "id": "local_land_auto_backup",
+      "area": "lands",
+      "title": "Keep recoverable on-device land backups",
+      "status": "accepted",
+      "depends_on": [
+        "local_land_store",
+        "recover_removed_lands"
+      ],
+      "spec": "docs/specs/local_land_auto_backup.md",
+      "validation": "docs/validations/local_land_auto_backup.md"
+    },
+    {
+      "id": "portable_land_backup",
+      "area": "lands",
+      "title": "Export and restore lands across Android and Desktop",
+      "status": "accepted",
+      "depends_on": [
+        "local_land_store",
+        "recover_removed_lands",
+        "local_land_auto_backup"
+      ],
+      "spec": "docs/specs/portable_land_backup.md",
+      "validation": "docs/validations/portable_land_backup.md"
+    },
+    {
+      "id": "hosting_provider_review",
+      "area": "operations",
+      "title": "Review hosting, tunnel, and Gemini provider terms",
+      "status": "accepted",
+      "depends_on": [
+        "backend_ask_endpoint",
+        "backend_campaign_validity"
+      ],
+      "spec": "docs/specs/hosting_provider_review.md",
+      "validation": "docs/validations/hosting_provider_review.md"
+    },
+    {
+      "id": "hosted_pilot_operations",
+      "area": "operations",
+      "title": "Prepare and operate a private hosted pilot service",
+      "status": "accepted",
+      "depends_on": [
+        "hosting_provider_review",
+        "backend_ask_endpoint",
+        "backend_campaign_validity"
+      ],
+      "spec": "docs/specs/hosted_pilot_operations.md",
+      "validation": "docs/validations/hosted_pilot_operations.md"
+    },
+    {
+      "id": "pilot_privacy_readiness",
+      "area": "privacy",
+      "title": "Prepare pilot privacy, retention, and review gates",
+      "status": "accepted",
+      "depends_on": [
+        "land_data_disclosure",
+        "platform_ask_wiring",
+        "hosted_pilot_operations",
+        "hosting_provider_review"
+      ],
+      "spec": "docs/specs/pilot_privacy_readiness.md",
+      "validation": "docs/validations/pilot_privacy_readiness.md"
+    },
+    {
+      "id": "question_scope_guard",
+      "area": "backend",
+      "title": "Abstain on purpose for questions outside the approved coverage (aid amounts, individual cases, excluded topics) before retrieval can answer them",
+      "status": "accepted",
+      "depends_on": [],
+      "spec": "docs/specs/question_scope_guard.md",
+      "validation": "docs/validations/question_scope_guard.md"
+    },
+    {
+      "id": "private_pilot_distribution",
+      "area": "release",
+      "title": "Distribute private Android and Desktop pilot builds",
+      "status": "on_hold",
+      "depends_on": [
+        "android_mvp_build",
+        "desktop_mvp_build",
+        "hosting_provider_review",
+        "hosted_pilot_operations",
+        "pilot_privacy_readiness",
+        "local_generation_provider"
+      ],
+      "spec": "docs/specs/private_pilot_distribution.md",
+      "validation": "docs/validations/private_pilot_distribution.md"
+    },
+    {
+      "id": "pac_evidence_expansion",
+      "area": "evaluation",
+      "title": "Strengthen evidence within the reviewed PAC scope",
+      "status": "accepted",
+      "depends_on": [
+        "backend_answer_evaluation",
+        "backend_pac_corpus",
+        "backend_citation_hardening"
+      ],
+      "spec": "docs/specs/pac_evidence_expansion.md",
+      "validation": "docs/validations/pac_evidence_expansion.md"
+    },
+    {
+      "id": "local_rag_bootstrap",
+      "area": "operations",
+      "title": "Set up every local RAG artifact (embedding model, passage index, Chroma store, Ollama model, knowledge release) with one guided command and a plain-language status check",
+      "status": "accepted",
+      "depends_on": [
+        "local_bge_m3_embeddings",
+        "chroma_hybrid_retrieval",
+        "local_generation_provider",
+        "knowledge_reindex_release"
+      ],
+      "spec": "docs/specs/local_rag_bootstrap.md",
+      "validation": "docs/validations/local_rag_bootstrap.md"
+    },
+    {
+      "id": "local_full_rag_stack",
+      "area": "operations",
+      "title": "Start, stop, and check the full local RAG service (hybrid retrieval and local drafting) with one command each, no terminal expertise needed",
+      "status": "accepted",
+      "depends_on": [
+        "local_rag_bootstrap",
+        "backend_ask_endpoint"
+      ],
+      "spec": "docs/specs/local_full_rag_stack.md",
+      "validation": "docs/validations/local_full_rag_stack.md"
+    },
+    {
+      "id": "backend_container_image",
+      "area": "operations",
+      "title": "Build a reproducible backend container image with the packaged knowledge release, built and run by one command",
+      "status": "accepted",
+      "depends_on": [
+        "local_full_rag_stack"
+      ],
+      "spec": "docs/specs/backend_container_image.md",
+      "validation": "docs/validations/backend_container_image.md"
+    },
+    {
+      "id": "mock_answer_server",
+      "area": "testing",
+      "title": "Serve contract example answers from a local mock service so the apps run without the Python backend",
+      "status": "accepted",
+      "depends_on": [
+        "answer_api_contract",
+        "platform_ask_wiring"
+      ],
+      "spec": "docs/specs/mock_answer_server.md",
+      "validation": "docs/validations/mock_answer_server.md"
+    },
+    {
+      "id": "local_service_connection",
+      "area": "client",
+      "title": "Set and check the answer-service address and readiness from Android and Desktop test builds",
+      "status": "accepted",
+      "depends_on": [
+        "platform_ask_wiring",
+        "backend_health"
+      ],
+      "spec": "docs/specs/local_service_connection.md",
+      "validation": "docs/validations/local_service_connection.md"
+    },
+    {
+      "id": "client_pilot_credentials",
+      "area": "client",
+      "title": "Send a configured pilot bearer token from Android and Desktop and test them against the local pilot profile",
+      "status": "accepted",
+      "depends_on": [
+        "platform_ask_wiring",
+        "hosted_pilot_operations",
+        "local_service_connection"
+      ],
+      "spec": "docs/specs/client_pilot_credentials.md",
+      "validation": "docs/validations/client_pilot_credentials.md"
+    },
+    {
+      "id": "local_end_to_end_smoke",
+      "area": "testing",
+      "title": "Smoke-test Android and Desktop against the running local RAG service end to end",
+      "status": "accepted",
+      "depends_on": [
+        "local_full_rag_stack",
+        "local_service_connection"
+      ],
+      "spec": "docs/specs/local_end_to_end_smoke.md",
+      "validation": "docs/validations/local_end_to_end_smoke.md"
+    },
+    {
+      "id": "welcome_first_use",
+      "area": "client",
+      "title": "Explain what the assistant can do, its limits, and data handling on first use",
+      "status": "accepted",
+      "depends_on": [
+        "chat_screen_refresh",
+        "help_privacy_refresh",
+        "coverage_and_help"
+      ],
+      "spec": "docs/specs/welcome_first_use.md",
+      "validation": "docs/validations/welcome_first_use.md"
+    },
+    {
+      "id": "answer_pipeline_trace",
+      "area": "backend",
+      "title": "Record a privacy-safe per-question trace of retrieval, ranking, drafting, and verification for local debug use",
+      "status": "accepted",
+      "depends_on": [
+        "backend_ask_endpoint",
+        "chroma_hybrid_retrieval",
+        "local_generation_provider",
+        "pilot_privacy_readiness"
+      ],
+      "spec": "docs/specs/answer_pipeline_trace.md",
+      "validation": "docs/validations/answer_pipeline_trace.md"
+    },
+    {
+      "id": "rag_inspector_view",
+      "area": "client",
+      "title": "Show retrieved passages, scores, and verification steps for an answer in a developer view",
+      "status": "accepted",
+      "depends_on": [
+        "answer_pipeline_trace",
+        "local_service_connection",
+        "answer_source_cards"
+      ],
+      "spec": "docs/specs/rag_inspector_view.md",
+      "validation": "docs/validations/rag_inspector_view.md"
+    },
+    {
+      "id": "rag_demo_rehearsal",
+      "area": "evaluation",
+      "title": "Rehearse a scripted RAG demo: grounded answer, trap abstention, land clarification, and a reviewed knowledge update",
+      "status": "accepted",
+      "depends_on": [
+        "rag_inspector_view",
+        "local_end_to_end_smoke",
+        "knowledge_update_review_pr"
+      ],
+      "spec": "docs/specs/rag_demo_rehearsal.md",
+      "validation": "docs/validations/rag_demo_rehearsal.md"
+    },
+    {
+      "id": "environment_profiles",
+      "area": "operations",
+      "title": "Define local, QA, and prod environment profiles, each with one commented settings file, generated credentials, and its own knowledge release (prod left unconfigured)",
+      "status": "accepted",
+      "depends_on": [
+        "hosted_pilot_operations",
+        "local_full_rag_stack"
+      ],
+      "spec": "docs/specs/environment_profiles.md",
+      "validation": "docs/validations/environment_profiles.md"
+    },
+    {
+      "id": "backend_health_metrics",
+      "area": "operations",
+      "title": "Expose privacy-safe metrics for critical backend health: readiness, answer outcomes, latency, errors, generation fallbacks, rate-limit hits, active knowledge release, and source-update freshness",
+      "status": "accepted",
+      "depends_on": [
+        "backend_ask_endpoint",
+        "hosted_pilot_operations",
+        "knowledge_reindex_release",
+        "knowledge_update_scheduler",
+        "local_generation_provider"
+      ],
+      "spec": "docs/specs/backend_health_metrics.md",
+      "validation": "docs/validations/backend_health_metrics.md"
+    },
+    {
+      "id": "monitoring_dashboard",
+      "area": "operations",
+      "title": "Show a free, self-hosted browser dashboard that explains backend health in plain language for the local and QA environments, starting with the service",
+      "status": "accepted",
+      "depends_on": [
+        "backend_health_metrics",
+        "environment_profiles"
+      ],
+      "spec": "docs/specs/monitoring_dashboard.md",
+      "validation": "docs/validations/monitoring_dashboard.md"
+    },
+    {
+      "id": "client_environment_builds",
+      "area": "client",
+      "title": "Build Android and Desktop test apps that target the local or QA environment",
+      "status": "accepted",
+      "depends_on": [
+        "local_service_connection",
+        "client_pilot_credentials",
+        "environment_profiles"
+      ],
+      "spec": "docs/specs/client_environment_builds.md",
+      "validation": "docs/validations/client_environment_builds.md"
+    },
+    {
+      "id": "qa_server_deployment",
+      "area": "operations",
+      "title": "Deploy, update, and roll back the QA service with guided one-command steps on a server reachable over HTTPS so real devices can connect remotely",
+      "status": "accepted",
+      "depends_on": [
+        "environment_profiles",
+        "backend_container_image",
+        "local_end_to_end_smoke",
+        "backend_health_metrics"
+      ],
+      "spec": "docs/specs/qa_server_deployment.md",
+      "validation": "docs/validations/qa_server_deployment.md"
+    },
+    {
+      "id": "qa_service_alerts",
+      "area": "operations",
+      "title": "Alert the owner in plain language, on a channel they already use, when the QA service is down, not ready, or erroring",
+      "status": "accepted",
+      "depends_on": [
+        "qa_server_deployment",
+        "monitoring_dashboard"
+      ],
+      "spec": "docs/specs/qa_service_alerts.md",
+      "validation": "docs/validations/qa_service_alerts.md"
+    },
+    {
+      "id": "qa_real_device_check",
+      "area": "testing",
+      "title": "Check the QA Desktop app against the live QA service end to end with one command (Android device check out of scope)",
+      "status": "accepted",
+      "depends_on": [
+        "qa_server_deployment",
+        "client_environment_builds"
+      ],
+      "spec": "docs/specs/qa_real_device_check.md",
+      "validation": "docs/validations/qa_real_device_check.md"
+    },
+    {
+      "id": "qa_knowledge_deployment",
+      "area": "operations",
+      "title": "Publish approved knowledge to QA with one confirmed command: merge, reindex, evaluation gate, publish, and one-command rollback",
+      "status": "not_started",
+      "depends_on": [
+        "qa_server_deployment",
+        "ci_quality_gates",
+        "structured_chunk_index"
+      ],
+      "spec": "docs/specs/qa_knowledge_deployment.md",
+      "validation": "docs/validations/qa_knowledge_deployment.md"
+    },
+    {
+      "id": "answer_deadline_notices",
+      "area": "backend",
+      "title": "Add code-owned deadline notices: cooperative internal deadlines and already-expired deadlines",
+      "status": "accepted",
+      "depends_on": [
+        "backend_campaign_validity",
+        "backend_citation_hardening"
+      ],
+      "spec": "docs/specs/answer_deadline_notices.md",
+      "validation": "docs/validations/answer_deadline_notices.md"
+    },
+    {
+      "id": "input_guardrails",
+      "area": "backend",
+      "title": "Screen questions for out-of-domain topics, prompt injection, and personal data before retrieval",
+      "status": "accepted",
+      "depends_on": [
+        "backend_ask_endpoint",
+        "pilot_privacy_readiness"
+      ],
+      "spec": "docs/specs/input_guardrails.md",
+      "validation": "docs/validations/input_guardrails.md"
+    },
+    {
+      "id": "numeric_grounding_check",
+      "area": "backend",
+      "title": "Reject drafts whose numbers, dates, or deadlines do not appear in the cited passages",
+      "status": "accepted",
+      "depends_on": [
+        "local_generation_provider",
+        "backend_citation_hardening"
+      ],
+      "spec": "docs/specs/numeric_grounding_check.md",
+      "validation": "docs/validations/numeric_grounding_check.md"
+    },
+    {
+      "id": "answer_cache",
+      "area": "backend",
+      "title": "Reuse answers keyed by question, land context, knowledge release, and model version",
+      "status": "accepted",
+      "depends_on": [
+        "local_generation_provider",
+        "knowledge_reindex_release",
+        "pilot_privacy_readiness"
+      ],
+      "spec": "docs/specs/answer_cache.md",
+      "validation": "docs/validations/answer_cache.md"
+    },
+    {
+      "id": "feedback_endpoint",
+      "area": "backend-contract",
+      "title": "Accept privacy-minimal answer feedback through POST /feedback",
+      "status": "accepted",
+      "depends_on": [
+        "backend_ask_endpoint",
+        "pilot_privacy_readiness"
+      ],
+      "spec": "docs/specs/feedback_endpoint.md",
+      "validation": "docs/validations/feedback_endpoint.md"
+    },
+    {
+      "id": "answer_feedback_ui",
+      "area": "client",
+      "title": "Mark an answer as useful or not useful",
+      "status": "accepted",
+      "depends_on": [
+        "feedback_endpoint",
+        "chat_screen_refresh"
+      ],
+      "spec": "docs/specs/answer_feedback_ui.md",
+      "validation": "docs/validations/answer_feedback_ui.md"
+    },
+    {
+      "id": "contract_fuzz_tests",
+      "area": "testing",
+      "title": "Check the service against openapi.yaml with generated contract tests",
+      "status": "accepted",
+      "depends_on": [
+        "backend_ask_endpoint",
+        "answer_api_contract"
+      ],
+      "spec": "docs/specs/contract_fuzz_tests.md",
+      "validation": "docs/validations/contract_fuzz_tests.md"
+    },
+    {
+      "id": "local_load_test",
+      "area": "testing",
+      "title": "Measure local answer latency and throughput under expected pilot load",
+      "status": "accepted",
+      "depends_on": [
+        "local_full_rag_stack"
+      ],
+      "spec": "docs/specs/local_load_test.md",
+      "validation": "docs/validations/local_load_test.md"
+    },
+    {
+      "id": "seed_corpus_expansion",
+      "area": "knowledge",
+      "title": "Review and add the remaining seed documents (RD 1047/2022, RD 1049/2022, RD 1054/2022, Order 24/03/2023 with correction, FEGA extension, Law 39/2015)",
+      "status": "accepted",
+      "depends_on": [
+        "pac_evidence_expansion",
+        "knowledge_update_review_pr"
+      ],
+      "spec": "docs/specs/seed_corpus_expansion.md",
+      "validation": "docs/validations/seed_corpus_expansion.md"
+    },
+    {
+      "id": "domain_procedure_map",
+      "area": "knowledge",
+      "title": "Map olive-grove procedures into a reviewed topic taxonomy for coverage, questions, and source scouting",
+      "status": "accepted",
+      "depends_on": [
+        "backend_pac_corpus",
+        "coverage_and_help"
+      ],
+      "spec": "docs/specs/domain_procedure_map.md",
+      "validation": "docs/validations/domain_procedure_map.md"
+    },
+    {
+      "id": "legal_document_parser",
+      "area": "knowledge",
+      "title": "Parse official PDFs into clean Markdown with tables and local Spanish OCR",
+      "status": "accepted",
+      "depends_on": [
+        "official_document_candidate_ingestion"
+      ],
+      "spec": "docs/specs/legal_document_parser.md",
+      "validation": "docs/validations/legal_document_parser.md"
+    },
+    {
+      "id": "legal_structure_chunker",
+      "area": "knowledge",
+      "title": "Split documents by article, chapter, and annex with contextual prefixes and validity metadata",
+      "status": "accepted",
+      "depends_on": [
+        "legal_document_parser",
+        "source_catalog_validation"
+      ],
+      "spec": "docs/specs/legal_structure_chunker.md",
+      "validation": "docs/validations/legal_structure_chunker.md"
+    },
+    {
+      "id": "structured_chunk_index",
+      "area": "knowledge",
+      "title": "Index reviewed structured chunks for BM25 and vector search and rebuild them from the catalog with one command",
+      "status": "accepted",
+      "depends_on": [
+        "legal_structure_chunker",
+        "chroma_hybrid_retrieval",
+        "knowledge_reindex_release"
+      ],
+      "spec": "docs/specs/structured_chunk_index.md",
+      "validation": "docs/validations/structured_chunk_index.md"
+    },
+    {
+      "id": "corpus_security_rules",
+      "area": "knowledge",
+      "title": "Enforce corpus security: prompt-injection document fixtures and exclusion of nominal listings",
+      "status": "accepted",
+      "depends_on": [
+        "official_document_candidate_ingestion",
+        "legal_change_impact_analysis"
+      ],
+      "spec": "docs/specs/corpus_security_rules.md",
+      "validation": "docs/validations/corpus_security_rules.md"
+    },
+    {
+      "id": "validity_checker",
+      "area": "knowledge",
+      "title": "Detect repeals, consolidation states, and expiry dates; retire automatically and propose additions for review",
+      "status": "accepted",
+      "depends_on": [
+        "legal_change_impact_analysis",
+        "official_source_discovery"
+      ],
+      "spec": "docs/specs/validity_checker.md",
+      "validation": "docs/validations/validity_checker.md"
+    },
+    {
+      "id": "official_page_change_monitor",
+      "area": "knowledge",
+      "title": "Detect changes on FEGA, MAPA, and Junta PAC pages by hash and text diff",
+      "status": "accepted",
+      "depends_on": [
+        "official_source_monitoring"
+      ],
+      "spec": "docs/specs/official_page_change_monitor.md",
+      "validation": "docs/validations/official_page_change_monitor.md"
+    },
+    {
+      "id": "relevance_classifier",
+      "area": "knowledge",
+      "title": "Classify discovered candidates for relevance and topic with the local model, treating text as data",
+      "status": "accepted",
+      "depends_on": [
+        "official_source_discovery",
+        "local_generation_provider",
+        "domain_procedure_map"
+      ],
+      "spec": "docs/specs/relevance_classifier.md",
+      "validation": "docs/validations/relevance_classifier.md"
+    },
+    {
+      "id": "local_notice_pipeline",
+      "area": "knowledge",
+      "title": "Turn anonymized cooperative notices into vocabulary and candidate questions locally",
+      "status": "accepted",
+      "depends_on": [
+        "local_generation_provider",
+        "pilot_privacy_readiness"
+      ],
+      "spec": "docs/specs/local_notice_pipeline.md",
+      "validation": "docs/validations/local_notice_pipeline.md"
+    },
+    {
+      "id": "question_rewriting",
+      "area": "backend",
+      "title": "Rewrite colloquial olive-grower wording to official terms with a reviewed glossary",
+      "status": "accepted",
+      "depends_on": [
+        "backend_ask_endpoint",
+        "domain_procedure_map",
+        "local_notice_pipeline"
+      ],
+      "spec": "docs/specs/question_rewriting.md",
+      "validation": "docs/validations/question_rewriting.md"
+    },
+    {
+      "id": "knowledge_ops_orchestrator",
+      "area": "operations",
+      "title": "Run the whole knowledge update cycle as one budgeted, retryable job: discover, classify, ingest, check validity, analyze impact, prepare review",
+      "status": "accepted",
+      "depends_on": [
+        "knowledge_update_scheduler",
+        "relevance_classifier",
+        "validity_checker",
+        "official_page_change_monitor",
+        "knowledge_update_review_pr"
+      ],
+      "spec": "docs/specs/knowledge_ops_orchestrator.md",
+      "validation": "docs/validations/knowledge_ops_orchestrator.md"
+    },
+    {
+      "id": "hosted_review_pull_requests",
+      "area": "operations",
+      "title": "Open knowledge update reviews as GitHub pull requests with evaluation results and merge protection",
+      "status": "accepted",
+      "depends_on": [
+        "knowledge_update_review_pr",
+        "knowledge_ops_orchestrator"
+      ],
+      "spec": "docs/specs/hosted_review_pull_requests.md",
+      "validation": "docs/validations/hosted_review_pull_requests.md"
+    },
+    {
+      "id": "golden_dataset_expansion",
+      "area": "evaluation",
+      "title": "Grow the reviewed golden set to 40–60 source-anchored questions across segments and question types",
+      "status": "accepted",
+      "depends_on": [
+        "seed_corpus_expansion",
+        "backend_answer_evaluation"
+      ],
+      "spec": "docs/specs/golden_dataset_expansion.md",
+      "validation": "docs/validations/golden_dataset_expansion.md"
+    },
+    {
+      "id": "adversarial_trap_set",
+      "area": "evaluation",
+      "title": "Add 15 or more trap and adversarial cases: injection, false premise, cooperative practice, personal advice, typos",
+      "status": "accepted",
+      "depends_on": [
+        "golden_dataset_expansion"
+      ],
+      "spec": "docs/specs/adversarial_trap_set.md",
+      "validation": "docs/validations/adversarial_trap_set.md"
+    },
+    {
+      "id": "validity_regression_cases",
+      "area": "evaluation",
+      "title": "Add validity cases: repealed RD 1077/2014, expired deadline, and voluntary digital notebook",
+      "status": "accepted",
+      "depends_on": [
+        "validity_checker",
+        "seed_corpus_expansion"
+      ],
+      "spec": "docs/specs/validity_regression_cases.md",
+      "validation": "docs/validations/validity_regression_cases.md"
+    },
+    {
+      "id": "retrieval_threshold_calibration",
+      "area": "backend",
+      "title": "Calibrate the retrieval abstention threshold on the golden and trap sets",
+      "status": "not_started",
+      "depends_on": [
+        "golden_dataset_expansion",
+        "adversarial_trap_set",
+        "safe_abstention"
+      ],
+      "spec": "docs/specs/retrieval_threshold_calibration.md",
+      "validation": "docs/validations/retrieval_threshold_calibration.md"
+    },
+    {
+      "id": "semantic_grounding_judge",
+      "area": "evaluation",
+      "title": "Check sentence-level support of drafts with a local judge model different from the generator",
+      "status": "accepted",
+      "depends_on": [
+        "golden_dataset_expansion",
+        "local_generation_provider"
+      ],
+      "spec": "docs/specs/semantic_grounding_judge.md",
+      "validation": "docs/validations/semantic_grounding_judge.md"
+    },
+    {
+      "id": "reranker_evaluation",
+      "area": "backend",
+      "title": "Measure a local reranker and enable it only if retrieval improves",
+      "status": "accepted",
+      "depends_on": [
+        "golden_dataset_expansion",
+        "chroma_hybrid_retrieval",
+        "adversarial_trap_set"
+      ],
+      "spec": "docs/specs/reranker_evaluation.md",
+      "validation": "docs/validations/reranker_evaluation.md"
+    },
+    {
+      "id": "evaluation_metrics_report",
+      "area": "evaluation",
+      "title": "Report hit@k, MRR, faithfulness, abstention, and numeric accuracy per version",
+      "status": "not_started",
+      "depends_on": [
+        "golden_dataset_expansion",
+        "adversarial_trap_set",
+        "semantic_grounding_judge"
+      ],
+      "spec": "docs/specs/evaluation_metrics_report.md",
+      "validation": "docs/validations/evaluation_metrics_report.md"
+    },
+    {
+      "id": "colloquial_ab_evaluation",
+      "area": "evaluation",
+      "title": "Compare retrieval with no rewriting, glossary rewriting, and glossary plus model rewriting",
+      "status": "not_started",
+      "depends_on": [
+        "question_rewriting",
+        "golden_dataset_expansion",
+        "evaluation_metrics_report"
+      ],
+      "spec": "docs/specs/colloquial_ab_evaluation.md",
+      "validation": "docs/validations/colloquial_ab_evaluation.md"
+    },
+    {
+      "id": "ci_quality_gates",
+      "area": "testing",
+      "title": "Block pull requests when agreed evaluation metrics regress",
+      "status": "not_started",
+      "depends_on": [
+        "evaluation_metrics_report"
+      ],
+      "spec": "docs/specs/ci_quality_gates.md",
+      "validation": "docs/validations/ci_quality_gates.md"
+    },
+    {
+      "id": "nightly_evaluation",
+      "area": "testing",
+      "title": "Run the complete evaluation nightly with cached answers and a report",
+      "status": "not_started",
+      "depends_on": [
+        "ci_quality_gates",
+        "answer_cache"
+      ],
+      "spec": "docs/specs/nightly_evaluation.md",
+      "validation": "docs/validations/nightly_evaluation.md"
+    },
+    {
+      "id": "usability_session",
+      "area": "evaluation",
+      "title": "Run and record a usability session with low-confidence users: setup, two lands, a land-dependent question, and sources",
+      "status": "accepted",
+      "depends_on": [
+        "local_end_to_end_smoke",
+        "welcome_first_use"
+      ],
+      "spec": "docs/specs/usability_session.md",
+      "validation": "docs/validations/usability_session.md"
+    }
   ]
 }
