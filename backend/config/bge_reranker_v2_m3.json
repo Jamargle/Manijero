@@ -1,0 +1,39 @@
+{
+  "schema_version": "reranker-model-v1",
+  "model_id": "BAAI/bge-reranker-v2-m3",
+  "model_revision": "953dc6f6f85a1b2dbfca4c34a2796e7dde08d41e",
+  "source_url": "https://huggingface.co/BAAI/bge-reranker-v2-m3",
+  "license": "Apache-2.0",
+  "files": [
+    {
+      "path": "config.json",
+      "git_blob_sha1": "9f62673cb00ec41dcec8947b9ed16f6f2eb23ba2",
+      "size": 795
+    },
+    {
+      "path": "model.safetensors",
+      "sha256": "d9e3e081faff1eefb84019509b2f5558fd74c1a05a2c7db22f74174fcedb5286",
+      "size": 2271071852
+    },
+    {
+      "path": "sentencepiece.bpe.model",
+      "sha256": "cfc8146abe2a0488e9e2a0c56de7952f7c11ab059eca145a0a727afce0db2865",
+      "size": 5069051
+    },
+    {
+      "path": "special_tokens_map.json",
+      "git_blob_sha1": "b1879d702821e753ffe4245048eee415d54a9385",
+      "size": 964
+    },
+    {
+      "path": "tokenizer.json",
+      "sha256": "69564b696052886ed0ac63fa393e928384e0f8caada38c1f4864a9bfbf379c15",
+      "size": 17098273
+    },
+    {
+      "path": "tokenizer_config.json",
+      "git_blob_sha1": "328a00a9a560aadcf2a3064f917517359eb3cc26",
+      "size": 1173
+    }
+  ]
+}

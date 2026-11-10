@@ -93,6 +93,12 @@ Durable MUST/MUST NOT rules for backend answer path, retrieval, generation, eval
   cases recorded with the change. Reason: the 2026-10-31 comparison on the
   14-case author-only sample measured no answer-level difference.
 
+## Reranking
+
+- **MUST**: a reranker MUST compose after BM25 or hybrid only through `Retriever.with_ranker` (wrapping the current ranker), MUST only re-order passages the retriever admitted (never add, drop, or admit one), and MUST keep the lexical gate. Any scorer exception, wrong count, or non-finite score MUST return the unreranked order, log only a fixed reason code, and mark retrieval degraded for the answer cache. Reason: [`reranker_evaluation`](../specs/reranker_evaluation.md).
+- **MUST**: the reranker MUST be off by default and MUST NOT be imported (nor `torch`/`transformers`) while `MANIJERO_RERANKER` is unset or `off`; it runs only in the local service, never in the container image, QA, or the pilot. Its model MUST be pinned like the embedding model: an immutable revision plus a size and one digest per file (SHA-256 for large-file-storage files, git-blob SHA-1 for small text files), at most 5 GB, downloaded only by the owner command and verified before use.
+- **MUST**: `default_state` in `backend/config/reranker.json` MUST flip to `on` only with a recorded owner measurement (`./scripts/init.sh --reranker-measure`) whose verdict is `ON`: at least 2 more golden questions find their right source than today's hybrid search, no trap question gets worse, no golden question that passes today breaks, and at most 2 extra seconds per answer. Reason: owner decision 3, 2026-11-10.
+
 ## Abstention
 
 - **MUST**: questions matching a declared `pac_coverage.md` omission abstain before
@@ -135,6 +141,12 @@ Durable MUST/MUST NOT rules for backend answer path, retrieval, generation, eval
   decide command, and an answered item's anchor MUST quote an approved, current passage verbatim.
   Reason: `golden_dataset_expansion` ([spec](../specs/golden_dataset_expansion.md)); agent-drafted
   questions are unverified expectations until a person approves them.
+- **MUST**: a trap item (`knowledge/trap_set.json`) MUST NOT be scored or read by any gate, release,
+  review, demo, or load command until a named decision is recorded, and an abstained trap's
+  expectation MUST be provable from code routing (input screen or scope guard), an instrument
+  reference absent from every reviewed passage, or a cooperative practice, never from a legal claim.
+  Reason: `adversarial_trap_set` ([spec](../specs/adversarial_trap_set.md)); a trap that asserts law
+  would turn an unverified agent expectation into a false safety guarantee.
 - **MUST**: the grounding judge (`backend/app/grounding_judge.py`) MUST stay evaluation-only (never in
   `/ask` or any gate), MUST use a pinned model of a different family than the generator, MUST fail
   closed to "not judged" (an unjudged sentence never counts as supported), MUST report its scores
@@ -205,6 +217,7 @@ Durable MUST/MUST NOT rules for backend answer path, retrieval, generation, eval
   tests MUST stay offline (sockets blocked, fakes only). Reason: `knowledge_update_scheduler` — a
   merged repository schedule would make real requests to official sites without an operator choice,
   and committed state would bypass human-reviewed canonical changes.
+- **MUST NOT**: an orchestrated knowledge update run (`knowledge_ops`) publish, merge, record a decision, reindex, release, or write `knowledge/`, or build a review package; it stops at `review-ready.json` (`published: false`) and the owner approves before anything goes live. Its launchd agent `org.manijero.knowledge-ops` is an operator-installed host unit, not a repository schedule, and its summary, ledger, and metrics carry counts, fixed codes, candidate ids, and times only. Reason: `knowledge_ops_orchestrator` — a scheduled job must not turn an unreviewed official publication into an answer.
 - **MUST**: change-impact analysis MUST stay read-only over approved knowledge and MUST NOT retire,
   replace, re-approve, or re-date a source, passage, evaluation case, index, or answer. Every
   potentially affected candidate MUST remain review-required, and an ambiguous publication,

@@ -13,6 +13,7 @@ from fastapi.testclient import TestClient
 from app.main import app
 from app.ask_api import get_as_of_date, get_active_campaign, get_corpus_documents, get_retrieval_k, CorpusDocuments
 from app.golden_set import GoldenSetError
+from app.trap_set import TrapSetError
 from app.source_catalog import load_catalog
 from app.retrieval import load_passage_set
 from app.answer_eval import (
@@ -36,6 +37,12 @@ def main() -> int:
         default=None,
         help="also score the approved items of a golden set file (drafts and rejected never count)",
     )
+    parser.add_argument(
+        "--traps",
+        type=Path,
+        default=None,
+        help="also score the approved items of a trap set file (drafts and rejected never count)",
+    )
     args = parser.parse_args()
     try:
         catalog = load_catalog(args.catalog)
@@ -51,6 +58,16 @@ def main() -> int:
                 raise AnswerEvalError("--golden: an approved item id collides with a reviewed case")
             cases = cases + approved
             coverage = dict(coverage, areas=coverage["areas"] + golden["additional_areas"])
+        traps = None
+        if args.traps is not None:
+            from app import trap_set
+
+            traps = trap_set.load_traps(args.traps, catalog, passages, cases, coverage, golden)
+            approved_traps = trap_set.approved_cases(traps)
+            if {c["id"] for c in approved_traps} & {c["id"] for c in cases}:
+                raise AnswerEvalError("--traps: an approved item id collides with another case")
+            cases = cases + approved_traps
+            coverage = dict(coverage, areas=coverage["areas"] + traps["additional_areas"])
         docs = CorpusDocuments(catalog=catalog, passages=passages)
         app.dependency_overrides[get_corpus_documents] = lambda: docs
         app.dependency_overrides[get_as_of_date] = lambda: args.as_of
@@ -65,15 +82,18 @@ def main() -> int:
             passages,
             args.k,
             coverage=coverage,
+            row_extra=None if traps is None else trap_set.row_extra,
         )
         if golden is not None:
             report["golden"] = golden_set.state_counts(golden)
+        if traps is not None:
+            report["traps"] = trap_set.report_block(traps, report["case_rows"])
         report.update({"active_campaign": args.active_campaign, "as_of": args.as_of.isoformat(), "k": args.k,
                        "quality_metrics_are_report_only": True})
         print(json.dumps(report, ensure_ascii=False, sort_keys=True, separators=(",", ":")))
         return 0
     except Exception as exc:
-        print(f"error: {exc if isinstance(exc, (AnswerEvalError, GoldenSetError)) else 'evaluation input or runtime failure'}", file=sys.stderr)
+        print(f"error: {exc if isinstance(exc, (AnswerEvalError, GoldenSetError, TrapSetError)) else 'evaluation input or runtime failure'}", file=sys.stderr)
         return 2
     finally:
         app.dependency_overrides.clear()

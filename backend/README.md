@@ -1091,6 +1091,26 @@ cosine, so hybrid candidate lists contain all four. The process peaked at
 general accuracy; keep BM25 as the default unless a larger reviewed comparison
 supports a change.
 
+## Optional local reranker (off by default)
+
+`backend/app/reranker.py` re-orders the passages the retriever already admitted with a local cross-encoder
+(`BAAI/bge-reranker-v2-m3`, pinned in `backend/config/bge_reranker_v2_m3.json`: revision plus size and one digest
+per file, SHA-256 or git-blob SHA-1). Settings: `backend/config/reranker.json` (`default_state`, `candidate_depth`,
+`max_tokens`, `batch_size`). It only wraps BM25 or hybrid when `MANIJERO_RERANKER=on` and
+`MANIJERO_RERANKER_ARTIFACT` names the verified model folder; any problem keeps the unreranked order.
+
+```sh
+backend/.venv/bin/python backend/scripts/reranker.py check-pin   # offline: is the pin complete? (exit 1 if unpinned)
+./scripts/init.sh --reranker-download   # owner: download and verify the model (~2.3 GB) into ~/manijero/local/models
+./scripts/init.sh --reranker-measure    # owner: today's hybrid search vs the reranker, one Result: line with the verdict
+./scripts/init.sh --reranker-on         # owner: write MANIJERO_RERANKER=on (refused unless the model verifies)
+```
+
+`--reranker-measure` runs the approved golden and trap items twice through the in-process `/ask` path (extractive
+drafting, answer cache off, today's date), requires a fresh Chroma store (else it names `--local-rag-setup`), and
+computes the owner rule in `app/reranker_measure.py`. It is evidence for the owner's on/off decision, not a quality
+claim. Owner guide: [`docs/owner-guide/reranker.md`](../docs/owner-guide/reranker.md).
+
 ## Offline grounded answer generation
 
 `app/generation.py` turns retrieval candidates into a plain-Spanish answer whose
@@ -1584,6 +1604,42 @@ run. There is no external dead-man's switch: if the timer itself stops firing,
 only `status`, `systemctl list-timers`, or the next run reveals it. No SLA,
 alert delivery, coverage, or freshness claim. Scheduled runs do not ingest
 documents, analyze change impact, prepare review packages, reindex, or deploy.
+
+## Knowledge update runs (one scheduled, budgeted cycle)
+
+`app/knowledge_ops.py` (entry point `scripts/knowledge_ops.py`, behind `./scripts/init.sh
+--knowledge-updates-on|-run|-status|-off`, owner steps in
+[`docs/owner-guide/knowledge-updates.md`](../docs/owner-guide/knowledge-updates.md)) runs the cycle
+discover (`run_updates` with trigger `knowledge_ops`, then `page_monitor.run`), classify, ingest,
+analyze impact, check validity, prepare review. Validity needs the impact report, so impact runs first.
+Each step calls the accepted entry point unchanged in its own child process
+(`scripts/knowledge_ops.py step <name> --run-dir <dir>`); the child writes `steps/<name>.json` with `ok`
+or a fixed failure code, whether it is retryable, and counts. A launchd user agent
+`org.manijero.knowledge-ops` starts a run every day at 10:20 (no `MANIJERO_*` or secret in the plist).
+
+**Budget and retries.** One hour for the whole run on an injected clock; a child still running at the
+limit is terminated, then killed after 10 s. A step is tried 3 times (waits 60 s, then 300 s, never more
+than the time left); bad configuration or input is tried once. A failed step is reported with its code,
+one sentence, the first thing to do, and the log path; steps that need it are `not_run`; independent steps
+still run. A page-monitor failure alone keeps the discovered candidates usable for later steps.
+
+**State** (`~/manijero/knowledge-ops`, `0700`, files `0600`): `source-monitor.json` and `page-monitor.json`
+(copied from `deploy/*.json.example`; the page addresses are unconfirmed), `source-updates/`, `ingestion/`,
+`knowledge-ops-ledger.jsonl` (`knowledge-ops-ledger-v1`: `run_started`, `run_finished` with outcome
+`review_ready|failed|stopped_at_time_limit`), `knowledge-ops.lock`, `latest-summary.txt`, `logs/`, and per
+run `runs/<run_id>/` with `steps/`, `reports/`, `summary.txt` (15 lines at most, counts only), and
+`review/REVIEW.md` plus `review-ready.json` (`published: false`, `requires_owner_approval: true`, report
+digests). The run never writes `knowledge/`, never publishes, and never builds a review package: a person
+writes the `knowledge-update-proposal-v1` and runs `knowledge_review.py prepare`. Exit codes: `0` ready,
+`1` failed or stopped, `2` prerequisite missing, `3` a run is already in progress.
+
+**Dashboard.** With `--local-rag-start` and the folder present, `/metrics` carries
+`manijero_knowledge_ops_{configured,readable,last_run_outcome,last_run_finished_timestamp_seconds}` and the
+health dashboard shows a "Knowledge updates" box (30 h threshold in `monitoring/thresholds.json`).
+
+**Limits.** Runs only while the Mac is awake (a missed run is reported by `status`); not rehearsed against
+the live official sites; each run re-classifies every pending candidate with the local model; no freshness
+or coverage claim.
 
 ## Manual official-document candidate ingestion
 
@@ -2767,6 +2823,27 @@ decision (atomic rewrite; bad input records nothing; one `Result:` line each; ra
 - Scoring: `evaluate_pac_answers.py ... --golden knowledge/golden_set.json` adds only `approved`
   items to the cases (`review.role = author_only`) and `additional_areas` to the coverage, and adds
   `golden: {approved, draft, rejected}`. Without the flag the output is unchanged.
+
+### Trap question queue
+
+`knowledge/trap_set.json` (`trap-set-v1`, loader `app/trap_set.py`) holds 20-30 agent-drafted trap
+questions (prompt injection, false premise, cooperative practice, personal advice, typo). No gate,
+release, review, demo, load, or judge code reads it. Owner steps are in
+[`docs/owner-guide/trap-set-review.md`](../docs/owner-guide/trap-set-review.md): `./scripts/init.sh --trap-review`
+and `--trap-decide approve|reject "<name>" <number-or-id>...`, same behavior as the golden commands
+(errors in `build/trap-review/last-error.log`).
+
+- Developer check (exit 0/1, one line per failure): `python backend/scripts/trap_review.py check
+  --catalog knowledge/source_catalog.json --passages knowledge/passages.json --cases
+  knowledge/pac_answer_eval.json --golden knowledge/golden_set.json --traps knowledge/trap_set.json`.
+  It proves anchors and facts are exact quotes, each abstention is routed before retrieval (screen or
+  scope guard), names an instrument reference absent from every passage, or is a cooperative
+  practice, and enforces the category rules.
+- Scoring: `evaluate_pac_answers.py ... --traps knowledge/trap_set.json` scores only `approved`
+  items. Trap rows add `category`, `actual_abstention_reason` (read from the pinned message; `null`
+  when answered, `unknown` when unmatched), `abstention_reason_match`, and `must_not_say_found`; the
+  report adds `traps: {approved, draft, rejected, by_category}`. Report-only, no threshold.
+- Downstream features read it only through `trap_set.load_traps` and `trap_set.approved_cases`.
 
 ### Question glossary
 

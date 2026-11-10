@@ -538,6 +538,18 @@ class Retriever:
 
         return self._ranker is not None
 
+    @property
+    def current_ranker(self) -> Optional[CandidateRanker]:
+        """The composed ranker, or ``None`` for plain BM25 (read-only; lets a wrapper compose)."""
+
+        return self._ranker
+
+    def passage_text(self, passage_id: str) -> Optional[str]:
+        """The text of one admitted passage, or ``None`` for an id this instance did not admit."""
+
+        record = self._records_by_id.get(passage_id)
+        return None if record is None else record.excerpt
+
     def with_ranker(self, ranker: CandidateRanker) -> "Retriever":
         """Return a retriever over the same admitted passages that uses ``ranker``.
 

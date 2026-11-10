@@ -1,6 +1,25 @@
 {
-  "service": {"window": "5m"},
-  "speed": {"window": "15m", "quantile": 0.9, "warning_seconds": 10, "problem_seconds": 30},
-  "errors": {"window": "15m", "warning_percent": 2, "problem_percent": 10},
-  "abstentions": {"window": "1h", "warning_percent": 50, "problem_percent": 80, "minimum_answers": 5}
+  "service": {
+    "window": "5m"
+  },
+  "speed": {
+    "window": "15m",
+    "quantile": 0.9,
+    "warning_seconds": 10,
+    "problem_seconds": 30
+  },
+  "errors": {
+    "window": "15m",
+    "warning_percent": 2,
+    "problem_percent": 10
+  },
+  "abstentions": {
+    "window": "1h",
+    "warning_percent": 50,
+    "problem_percent": 80,
+    "minimum_answers": 5
+  },
+  "knowledge_updates": {
+    "window_hours": 30
+  }
 }

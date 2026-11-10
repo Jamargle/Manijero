@@ -12,6 +12,9 @@ first, so the final check still covers the whole file). A file that differs from
 is deleted and the run fails with a fixed code; the pin is never edited. Files that
 already match the pin are never fetched again.
 
+The pin may be the embedding pin (SHA-256 per file) or the reranker pin (SHA-256 for large
+files, git-blob SHA-1 for small text files); the digest kind travels with each file.
+
 Errors carry fixed codes only: ``download_failed``, ``size_mismatch``,
 ``checksum_mismatch``, ``redirect_refused``, ``unsafe_path``.
 """
@@ -28,14 +31,16 @@ import urllib.parse
 import urllib.request
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Any, Callable, List, Optional, Tuple
+from typing import Any, Callable, List, Optional, Tuple, Union
 
 from app.embeddings import (
-    ArtifactFile,
     EmbeddingModelSpec,
     safe_relative_path,
     verify_artifact,
 )
+from app.reranker import DIGEST_SHA256, RerankerSpec, new_hasher
+
+PinSpec = Union[EmbeddingModelSpec, RerankerSpec]
 
 CHUNK_BYTES = 1 << 20
 TIMEOUT_SECONDS = 60.0
@@ -66,11 +71,12 @@ class PendingFile:
 
     path: str
     size: int
-    sha256: str
+    digest: str
     missing_bytes: int
+    digest_kind: str = DIGEST_SHA256
 
 
-def file_url(spec: EmbeddingModelSpec, path: str) -> str:
+def file_url(spec: PinSpec, path: str) -> str:
     """The upstream URL of one pinned file, derived only from the pin."""
 
     base = spec.source_url.rstrip("/")
@@ -79,14 +85,14 @@ def file_url(spec: EmbeddingModelSpec, path: str) -> str:
     )
 
 
-def pending_files(spec: EmbeddingModelSpec, target_dir: Path) -> Tuple[PendingFile, ...]:
+def pending_files(spec: PinSpec, target_dir: Path) -> Tuple[PendingFile, ...]:
     """Return the pinned files that do not yet match, in pin order.
 
     ``missing_bytes`` counts what is still to download: the pinned size minus the bytes of
     a resumable ``.part`` file.
     """
 
-    report = verify_artifact(Path(target_dir), spec)
+    report = _verify(spec, Path(target_dir))
     issue_paths = {issue.path for issue in report.issues}
     everything = "artifact_dir" in issue_paths
     pending: List[PendingFile] = []
@@ -98,15 +104,16 @@ def pending_files(spec: EmbeddingModelSpec, target_dir: Path) -> Tuple[PendingFi
             PendingFile(
                 path=artifact_file.path,
                 size=artifact_file.size,
-                sha256=artifact_file.sha256,
+                digest=_expected_digest(artifact_file),
                 missing_bytes=artifact_file.size - resumable,
+                digest_kind=getattr(artifact_file, "digest_kind", DIGEST_SHA256),
             )
         )
     return tuple(pending)
 
 
 def fetch_pinned_files(
-    spec: EmbeddingModelSpec,
+    spec: PinSpec,
     target_dir: Path,
     opener: Any = None,
     progress: Optional[Progress] = None,
@@ -123,6 +130,17 @@ def fetch_pinned_files(
     for item in pending:
         _fetch_one(spec, Path(target_dir), item, active_opener, progress, timeout)
     return pending
+
+
+def _verify(spec: PinSpec, target_dir: Path) -> Any:
+    if isinstance(spec, RerankerSpec):
+        return spec.verify_artifact(target_dir)
+    return verify_artifact(target_dir, spec)
+
+
+def _expected_digest(artifact_file: Any) -> str:
+    digest = getattr(artifact_file, "digest", None)
+    return digest if digest is not None else artifact_file.sha256
 
 
 def https_opener() -> urllib.request.OpenerDirector:
@@ -164,7 +182,7 @@ def _target_path(target_dir: Path, path: str) -> Optional[Path]:
     return target_dir / relative
 
 
-def _resumable_bytes(target_dir: Path, artifact_file: ArtifactFile) -> int:
+def _resumable_bytes(target_dir: Path, artifact_file: Any) -> int:
     target = _target_path(target_dir, artifact_file.path)
     if target is None:
         return 0
@@ -177,7 +195,7 @@ def _resumable_bytes(target_dir: Path, artifact_file: ArtifactFile) -> int:
 
 
 def _fetch_one(
-    spec: EmbeddingModelSpec,
+    spec: PinSpec,
     target_dir: Path,
     item: PendingFile,
     opener: Any,
@@ -196,7 +214,7 @@ def _fetch_one(
         part.unlink()
         offset = 0
 
-    digest = hashlib.sha256()
+    digest = new_hasher(item.digest_kind, item.size)
     if offset:
         _hash_existing(part, digest)
     if offset < item.size:
@@ -208,7 +226,7 @@ def _fetch_one(
             raise DownloadError(SIZE_MISMATCH, item.path)
         # The connection ended early: keep the part so the next run resumes it.
         raise DownloadError(DOWNLOAD_FAILED, item.path)
-    if digest.hexdigest() != item.sha256:
+    if digest.hexdigest() != item.digest:
         _discard(part)
         raise DownloadError(CHECKSUM_MISMATCH, item.path)
     os.replace(part, target)
@@ -244,7 +262,7 @@ def _stream(
         mode = "ab"
         if offset and status != 206:
             # The server ignored the range and sent the whole file: start over.
-            offset, digest, mode = 0, hashlib.sha256(), "wb"
+            offset, digest, mode = 0, new_hasher(item.digest_kind, item.size), "wb"
         elif offset and not _content_range_starts_at(response, offset):
             _discard(part)
             raise DownloadError(DOWNLOAD_FAILED, item.path)

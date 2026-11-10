@@ -274,6 +274,28 @@ if [[ "${1:-}" == "--qa-alerts-setup" || "${1:-}" == "--qa-alerts-start" || "${1
   exec "$LOCAL_RAG_PYTHON" "$REPO_ROOT/backend/scripts/qa_alerts.py" "${1#--qa-alerts-}"
 fi
 
+# Owner commands for the scheduled knowledge update cycle (a launchd run every day at 10:20 on this Mac,
+# docs/owner-guide/knowledge-updates.md). Test-only variables: MANIJERO_KNOWLEDGE_OPS_HOME,
+# MANIJERO_KNOWLEDGE_OPS_STEP_CLI, MANIJERO_KNOWLEDGE_OPS_NO_WAIT, MANIJERO_LAUNCHCTL_CLI, and MANIJERO_LAUNCH_AGENTS_DIR.
+if [[ "${1:-}" == "--knowledge-updates-on" || "${1:-}" == "--knowledge-updates-off" || "${1:-}" == "--knowledge-updates-run" || "${1:-}" == "--knowledge-updates-status" ]]; then
+  REPO_ROOT="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")/.." && pwd)"
+  if (( $# > 1 )); then
+    printf 'Run %s on its own, with nothing after it.\n' "$1" >&2
+    exit 2
+  fi
+  LOCAL_RAG_PYTHON="$REPO_ROOT/backend/.venv/bin/python"
+  if [[ ! -x "$LOCAL_RAG_PYTHON" ]] && ! "$REPO_ROOT/scripts/python-env.sh" dev --if-present >/dev/null 2>&1; then
+    if [[ "$1" == "--knowledge-updates-off" ]]; then
+      printf 'Result: knowledge updates were not on, so there was nothing to turn off.\n'
+      exit 0
+    fi
+    printf 'The backend tools are not set up yet. Run ./scripts/init.sh --local-rag-setup, then try again.\n'
+    printf 'Result: knowledge updates did not run because the backend tools are not set up.\n'
+    exit 2
+  fi
+  exec "$LOCAL_RAG_PYTHON" "$REPO_ROOT/backend/scripts/knowledge_ops.py" "${1#--knowledge-updates-}"
+fi
+
 # Owner command: smoke-test the Desktop and Android emulator apps against the running local answer
 # service (docs/owner-guide/local-checks.md). Like --local-rag-*, it runs before the local.properties write; AGP
 # reads ANDROID_HOME instead. backend/app/local_smoke.py checks the service, Java, and the emulator.
@@ -358,6 +380,25 @@ if [[ "${1:-}" == "--golden-review" || "${1:-}" == "--golden-decide" ]]; then
   exec "$LOCAL_RAG_PYTHON" "$REPO_ROOT/backend/scripts/golden_review.py" decide -- "$@"
 fi
 
+# Owner commands: review the trap questions (docs/owner-guide/trap-set-review.md). --trap-review lists the
+# waiting drafts; --trap-decide approve|reject "<name>" <number-or-id>... records a named
+# reviewer's decision. Both end with one Result: line and run before the local.properties write.
+if [[ "${1:-}" == "--trap-review" || "${1:-}" == "--trap-decide" ]]; then
+  REPO_ROOT="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")/.." && pwd)"
+  TRAP_COMMAND="${1#--trap-}"
+  shift
+  LOCAL_RAG_PYTHON="$REPO_ROOT/backend/.venv/bin/python"
+  if [[ ! -x "$LOCAL_RAG_PYTHON" ]] && ! "$REPO_ROOT/scripts/python-env.sh" dev --if-present >/dev/null 2>&1; then
+    printf 'The local answer tools are not set up yet. Run ./scripts/init.sh --local-rag-setup to set them up.\n'
+    printf 'Result: the trap review did not run. Run ./scripts/init.sh --local-rag-setup.\n'
+    exit 1
+  fi
+  if [[ "$TRAP_COMMAND" == "review" ]]; then
+    exec "$LOCAL_RAG_PYTHON" "$REPO_ROOT/backend/scripts/trap_review.py" list "$@"
+  fi
+  exec "$LOCAL_RAG_PYTHON" "$REPO_ROOT/backend/scripts/trap_review.py" decide -- "$@"
+fi
+
 # Owner commands: review the question glossary (docs/owner-guide/question-glossary-review.md). --glossary-review
 # lists the word pairs that wait for a decision; --glossary-decide approve|reject "<name>" <number-or-id>...
 # records a named reviewer's decision. Both end with one Result: line and run before the local.properties write.
@@ -406,6 +447,30 @@ if [[ "${1:-}" == "--grounding-judge-setup" || "${1:-}" == "--grounding-judge-re
     --active-campaign 2026 \
     --as-of "$(date +%Y-%m-%d)" \
     --report "$REPO_ROOT/build/grounding-judge/report.json"
+fi
+
+# Owner commands: the optional local reranker (docs/owner-guide/reranker.md). --reranker-download downloads the
+# reranker model and checks it against the reviewed copy; --reranker-measure compares it with today's hybrid search
+# on the golden and trap questions and prints the on/off verdict; --reranker-on and --reranker-off write the setting.
+# None takes an argument; each ends with one Result: line and runs before the local.properties write. They run in
+# the hybrid environment (the one --local-rag-setup builds), which today's search needs.
+if [[ "${1:-}" == "--reranker-download" || "${1:-}" == "--reranker-measure" || "${1:-}" == "--reranker-on" || "${1:-}" == "--reranker-off" ]]; then
+  REPO_ROOT="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")/.." && pwd)"
+  RERANKER_COMMAND="${1#--reranker-}"
+  if (( $# > 1 )); then
+    printf 'Run %s on its own, with nothing after it.\n' "$1" >&2
+    exit 2
+  fi
+  RERANKER_PYTHON="$REPO_ROOT/backend/.venv-hybrid/bin/python"
+  if [[ ! -x "$RERANKER_PYTHON" ]] && ! "$REPO_ROOT/scripts/python-env.sh" hybrid --if-present >/dev/null 2>&1; then
+    printf 'The local answer tools are not set up yet. Run ./scripts/init.sh --local-rag-setup to set them up.\n'
+    printf 'Result: the reranker command did not run. Run ./scripts/init.sh --local-rag-setup.\n'
+    exit 1
+  fi
+  case "$RERANKER_COMMAND" in
+    on|off) exec "$RERANKER_PYTHON" "$REPO_ROOT/backend/scripts/reranker.py" switch "$RERANKER_COMMAND" ;;
+    *) exec "$RERANKER_PYTHON" "$REPO_ROOT/backend/scripts/reranker.py" "$RERANKER_COMMAND" ;;
+  esac
 fi
 
 # Owner command: save one usability-session participant's results under an anonymous code
@@ -476,7 +541,7 @@ AS_OF="${MANIJERO_AS_OF:-2026-10-13}"
 
 usage() {
   cat <<'EOF'
-Usage: ./scripts/init.sh [--check|--fast|--verify|--feature <id>|--backend-tests [targets]|--setup-python [dev|hybrid|docparse]|--backend|--mock|--mock-status|--mock-stop|--local-rag-setup|--local-rag-status|--local-rag-start|--local-rag-service-status|--local-rag-load-test|--local-rag-stop|--container-build|--container-start|--container-status|--container-stop|--monitoring-start|--monitoring-status|--monitoring-stop|--pilot-token-save|--demo-rehearsal|--golden-review|--golden-decide|--glossary-review|--glossary-decide|--grounding-judge-setup|--grounding-judge-report|--usability-record|--local-smoke|--qa-check|--environments-status|--qa-settings-setup|--qa-deploy|--qa-update|--qa-rollback|--qa-status|--qa-stop|--qa-alerts-setup|--qa-alerts-start|--qa-alerts-stop|--qa-alerts-status|--qa-alerts-test|--android|--android-run|--desktop|--android-qa|--desktop-qa|--help]
+Usage: ./scripts/init.sh [--check|--fast|--verify|--feature <id>|--backend-tests [targets]|--setup-python [dev|hybrid|docparse]|--backend|--mock|--mock-status|--mock-stop|--local-rag-setup|--local-rag-status|--local-rag-start|--local-rag-service-status|--local-rag-load-test|--local-rag-stop|--container-build|--container-start|--container-status|--container-stop|--monitoring-start|--monitoring-status|--monitoring-stop|--pilot-token-save|--demo-rehearsal|--golden-review|--golden-decide|--trap-review|--trap-decide|--glossary-review|--glossary-decide|--grounding-judge-setup|--grounding-judge-report|--usability-record|--local-smoke|--qa-check|--environments-status|--qa-settings-setup|--qa-deploy|--qa-update|--qa-rollback|--qa-status|--qa-stop|--qa-alerts-setup|--qa-alerts-start|--qa-alerts-stop|--qa-alerts-status|--qa-alerts-test|--knowledge-updates-on|--knowledge-updates-run|--knowledge-updates-status|--knowledge-updates-off|--reranker-download|--reranker-measure|--reranker-on|--reranker-off|--android|--android-run|--desktop|--android-qa|--desktop-qa|--help]
 
   --check                   Check Java and the Gradle wrapper, then print standard commands (default)
   --fast                    Shared host tests, contract examples, backend unit tests, and the five
@@ -524,6 +589,11 @@ Usage: ./scripts/init.sh [--check|--fast|--verify|--feature <id>|--backend-tests
   --golden-decide approve|reject "<name>" <number-or-id>...
                             Record your decision for the listed golden questions (nothing is
                             recorded if anything is wrong)
+  --trap-review             List the trap questions that wait for your decision, with what a safe
+                            answer must do; the full list goes to build/trap-review/drafts.txt
+  --trap-decide approve|reject "<name>" <number-or-id>...
+                            Record your decision for the listed trap questions (nothing is
+                            recorded if anything is wrong)
   --glossary-review         List the colloquial -> official word pairs that wait for your decision;
                             the full list goes to build/glossary-review/pairs.txt
   --glossary-decide approve|reject "<name>" <number-or-id>...
@@ -534,6 +604,12 @@ Usage: ./scripts/init.sh [--check|--fast|--verify|--feature <id>|--backend-tests
   --grounding-judge-report  Draft the reviewed and golden questions with the local drafting model, have
                             the second model check each sentence, and write build/grounding-judge/report.json
                             (counts only; scores are unchecked against human review)
+  --reranker-download       One time: download the optional second reading model (about 2.3 GB) and
+                            check it against the reviewed copy (see docs/owner-guide/reranker.md)
+  --reranker-measure        Compare it with today's search on the golden and trap questions and print
+                            one Result: line with the on/off verdict (counts only; nothing is switched)
+  --reranker-on             Switch the reranker on (refused unless the model checks out)
+  --reranker-off            Switch the reranker off
   --usability-record        Save one usability-session participant's results under an anonymous
                             code (P1, P2...) and print a plain summary (see docs/owner-guide/usability-session.md)
   --local-smoke             With the local answer service running, ask it one fixed question through
@@ -558,6 +634,10 @@ Usage: ./scripts/init.sh [--check|--fast|--verify|--feature <id>|--backend-tests
   --qa-alerts-stop          Turn the QA alert check off (Telegram details are kept)
   --qa-alerts-status        Say whether the alert check is on and what its last run found
   --qa-alerts-test          Send one test alert to Telegram
+  --knowledge-updates-on    Turn on the daily knowledge update run (10:20, stops at "ready for review")
+  --knowledge-updates-run   Run the whole knowledge update cycle now (one hour at most)
+  --knowledge-updates-status  Say whether the daily run is on and how the last run went
+  --knowledge-updates-off   Turn the daily run off (the history is kept)
   --android                 Build the Android debug APK
   --android-run             Build, start an emulator if needed, install, and launch the app
   --desktop                 Launch the Desktop app
