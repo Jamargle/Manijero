@@ -37,6 +37,22 @@ def test_next_batch_number_follows_the_highest_integration_branch() -> None:
     assert bf.next_batch_number(["main"]) == 1
 
 
+def test_next_batch_number_skips_numbers_of_archived_batches_whose_branch_is_gone() -> None:
+    archived = bf.archived_batch_numbers(["batch-1.json", "batch-8.json", "current.json", "batch-x.json", "batch7-next-1.log"])
+    assert archived == [1, 8]
+    assert bf.next_batch_number(["main", "integration/2026-11-08-batch-1"], archived) == 9
+    assert bf.next_batch_number(["main"], []) == 1
+
+
+def test_open_pull_request_never_reuses_a_merged_or_closed_pr() -> None:
+    merged = {"number": 202, "url": "u202", "state": "MERGED"}
+    closed = {"number": 203, "url": "u203", "state": "CLOSED"}
+    opened = {"number": 206, "url": "u206", "state": "OPEN"}
+    assert bf.open_pull_request([merged, closed]) is None
+    assert bf.open_pull_request([merged, opened]) == opened
+    assert bf.open_pull_request([]) is None
+
+
 def test_choose_feature_takes_the_first_ready_feature_not_in_the_batch() -> None:
     status = "\n".join([
         "SUMMARY total=4",
