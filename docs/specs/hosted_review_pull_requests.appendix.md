@@ -66,6 +66,17 @@ Inspected (planner, 2026-11-10):
 
 <!-- Implementer appends here: date, each command with its one-line result, manual checks in one or two lines. No pasted logs. -->
 
+Implementer session, 2026-11-10, worktree `feature/hosted_review_pull_requests` (base `91adc1f`).
+
+- Planning commit: `e4d3bad docs: plan hosted_review_pull_requests`.
+- `./scripts/init.sh --feature hosted_review_pull_requests` → `117 passed in 3.98s`; focused tier passed (log `build/verify-logs/feature-hosted_review_pull_requests.log`).
+- Per file: `test_hosted_review.py` 22 passed; `test_hosted_review_commands.py` 6 passed; `test_knowledge_update_review.py` 46 passed (extraction unchanged); `test_knowledge_ops.py` 43 passed (Next-step text only).
+- `./scripts/init.sh --fast` → all 10 offline checks passed; backend `3404 passed, 9 skipped`; contract examples, harness tests, source catalog, retrieval/generation/abstention/clarification/land-safety OK.
+- Walkthrough: every owner-guide command through `scripts/init.sh`, with a temporary clone, local bare `origin`, fake `gh`, and the real offline evaluator. Pushed branch carries exactly `knowledge/source_catalog.json`, `knowledge/passages.json`, `knowledge/reviews/<id>/package.json`, and `REVIEW.md`; both after hashes equal the package; owner checkout byte-unchanged. Body starts with the two fixed lines and shows `| Cases | 4 | 4 |`. Re-run reports OPEN, MERGED, CLOSED without a second create. Recovery after missing `gh` opens exactly one PR.
+- Protect walkthrough: weak ruleset → describes, asks, one PUT keeps bypass actors; matching → `already protected`, no PUT; `no` → nothing sent, exit 1; missing ruleset → nothing created, exit 2.
+- Unit checks: after-state equals package after hashes; 60,000-char body cut with pointer; ≤20 changed ids; damaged/unsafe/stale/drift packages create nothing while a good package continues; missing `gh` (`127`) and failed `gh auth` stop with exit 2 and recovery; damaged `pull-request.json`; recorded `gh` argv has no merge/auto/review/admin and `git push` has no force/delete.
+- Honest limits: live push/PR/ruleset not exercised; zero required approvals means GitHub enforces no second reviewer; committed evidence carries names typed at `prepare`. `PROGRESS.md` untouched (integrator owns it).
+
 ## Validator checklist
 
 - [ ] Scope matches the contract; non-goals respected (no merge, auto-merge, force push, deletion, CLI/schema/release change).
