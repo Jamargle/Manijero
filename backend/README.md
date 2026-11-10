@@ -1369,6 +1369,21 @@ Tests:
 cd backend && python -m pytest
 ```
 
+## Retrieval threshold calibration (report only)
+
+`backend/scripts/calibrate_retrieval_threshold.py` sweeps a minimum BM25 score over the approved golden
+and trap items through the in-process `/ask` path and writes `report.json` and `table.md`
+under `--out` (default `build/threshold-calibration/`); exit 2 invalid input, exit 1 stopped.
+
+```sh
+backend/.venv/bin/python backend/scripts/calibrate_retrieval_threshold.py \
+  --catalog knowledge/source_catalog.json --passages knowledge/passages.json \
+  --cases knowledge/pac_answer_eval.json --golden knowledge/golden_set.json \
+  --traps knowledge/trap_set.json --active-campaign 2026 --as-of 2026-11-07 --k 5
+```
+
+The recommendation is for owner approval only; see [the spec](../docs/specs/retrieval_threshold_calibration.md).
+
 ## Manual official-source monitoring
 
 `app/source_monitor.py` polls only explicitly configured HTTPS endpoints on the

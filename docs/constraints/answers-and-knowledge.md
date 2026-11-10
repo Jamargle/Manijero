@@ -115,6 +115,7 @@ Durable MUST/MUST NOT rules for backend answer path, retrieval, generation, eval
   figures into the "I cannot answer" path would reintroduce exactly that failure,
   and generated abstention prose could contradict the pinned counsel to consult
   the Oficina Comarcal Agraria or the cooperative.
+- **MUST**: the `/ask` lexical floor in `Retriever._search` (`score > 0.0`; none left means `no_evidence`) MUST NOT change except through a separate feature adopting a value the owner approved from a recorded `calibrate_retrieval_threshold.py` report; that sweep's minimum-score ranker is evaluation-only and MUST NOT be composed into `/ask`. Reason: [`retrieval_threshold_calibration`](../specs/retrieval_threshold_calibration.md).
 - **MUST**: `/ask` screens every question with the deterministic
   `backend/app/input_guardrails.py` rules before retrieval. A hit returns only its pinned
   message (`personal_data`, `prompt_injection`, `out_of_domain`), and a `personal_data` hit is
