@@ -27,10 +27,11 @@ FILES = [
 DENYLIST = ("question", "answer_text", "land", "client_id", "token", "notes", "name=", "passage")
 FUNCTIONS = {
     "sum", "max", "min", "increase", "histogram_quantile", "min_over_time", "absent", "by", "on",
-    "and", "or", "unless",
+    "and", "or", "unless", "time",
 }
-LABEL_WORDS = {"env", "le", "route", "code", "status"}
+LABEL_WORDS = {"env", "le", "route", "code", "status", "outcome"}
 CHECKS = ("service", "speed", "errors", "abstentions")
+KNOWLEDGE = "knowledge_updates"
 
 
 def load(name: str) -> Any:
@@ -114,6 +115,8 @@ def test_rule_bounds_match_the_thresholds_file() -> None:
     for name, window in (("manijero:ask_requests_15m", speed["window"]), ("manijero:answers_1h", abstentions["window"])):
         assert "[{}]".format(window) in expressions[name]
     assert "[{}]".format(thresholds["service"]["window"]) in expressions["manijero:status_service"]
+    stale_seconds = thresholds[KNOWLEDGE]["window_hours"] * 3600
+    assert "> {})".format(stale_seconds) in expressions["manijero:status_knowledge_updates"]
 
 
 def test_every_rule_reads_only_manijero_series_and_up() -> None:
@@ -140,29 +143,33 @@ def test_panels_target_only_status_rules_for_local_and_qa() -> None:
     found = {}
     for panel in panels():
         (target,) = panel["targets"]
-        match = re.fullmatch(r'(manijero:status_[a-z]+)\{env="(local|qa)"\}', target["expr"])
+        match = re.fullmatch(r'(manijero:status_[a-z_]+)\{env="(local|qa)"\}', target["expr"])
         assert match, target["expr"]
         assert match.group(1) in rules()
         found[(match.group(1), match.group(2))] = panel
     assert set(found) == {
         ("manijero:status_" + check, env) for check in CHECKS for env in ("local", "qa")
-    }
+    } | {("manijero:status_" + KNOWLEDGE, "local")}
 
 
 def test_every_state_has_a_state_word_a_meaning_and_a_first_step() -> None:
-    codes = {"service": {0, 1, 2, 3, 4}, "speed": {-1, 0, 1, 2, 4}, "errors": {-1, 0, 1, 2, 4}, "abstentions": {-1, 0, 1, 2, 4}}
+    codes = {"service": {0, 1, 2, 3, 4}, "speed": {-1, 0, 1, 2, 4}, "errors": {-1, 0, 1, 2, 4}, "abstentions": {-1, 0, 1, 2, 4},
+             KNOWLEDGE: {-1, 0, 1, 2, 4}}
     words = {"-1": "Not enough data.", "0": "OK.", "1": "Warning.", "2": "Problem.", "3": "Problem.", "4": "Not set up yet."}
     for panel in panels():
-        check = re.search(r"status_([a-z]+)", panel["targets"][0]["expr"]).group(1)  # type: ignore[union-attr]
+        check = re.search(r"status_([a-z_]+)", panel["targets"][0]["expr"]).group(1)  # type: ignore[union-attr]
         texts = mapping_texts(panel)
         assert {int(code) for code in texts} == codes[check], panel["title"]
         for code, text in texts.items():
-            assert text.startswith(words[code]), (panel["title"], code)
+            expected = "No information yet." if check == KNOWLEDGE and code == "-1" else words[code]
+            assert text.startswith(expected), (panel["title"], code)
             assert len(text.split()) >= 6
-            if code in ("1", "2", "3"):
+            if code in ("1", "2", "3") or (check == KNOWLEDGE and code in ("-1", "4")):
                 assert "First thing to do:" in text, (panel["title"], code)
+            if check == KNOWLEDGE and code != "0":
+                assert "./scripts/init.sh --knowledge-updates-status" in text, (panel["title"], code)
             if code == "0":
-                assert "Nothing to do." in text
+                assert "Nothing to do" in text
         special = panel["fieldConfig"]["defaults"]["mappings"][1]
         assert special["type"] == "special" and "No information yet." in special["options"]["result"]["text"]
         assert monitoring.STATUS_COMMAND in special["options"]["result"]["text"]
@@ -182,6 +189,8 @@ def test_panel_texts_state_the_thresholds_file_numbers() -> None:
     assert "Fewer than {} answers".format(abstentions["minimum_answers"]) in by_title["Local: Abstention rate"]["-1"]
     assert "outside the covered topics" in by_title["Local: Abstention rate"]["2"]
     assert "Nothing to do until the QA service is deployed." in by_title["QA: Service"]["4"]
+    assert "{} hours".format(thresholds[KNOWLEDGE]["window_hours"]) in by_title["Knowledge updates"]["0"]
+    assert "{} hours".format(thresholds[KNOWLEDGE]["window_hours"]) in by_title["Knowledge updates"]["1"]
 
 
 def test_denylist_finds_nothing_in_expressions_labels_or_provisioning() -> None:

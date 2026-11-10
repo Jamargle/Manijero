@@ -222,6 +222,7 @@ def create_app(
             problems=verdict.problems,
             release=_release_label(),
             source_updates=health_metrics.read_source_updates(),
+            knowledge_ops=health_metrics.read_knowledge_ops(),
         )
         return Response(content=body, media_type=health_metrics.CONTENT_TYPE)
 

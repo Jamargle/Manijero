@@ -559,3 +559,20 @@ def test_example_monitor_config_is_valid():
     config = json.loads((ROOT / "backend" / "deploy" / "source-monitor.json.example").read_text(encoding="utf-8"))
     assert set(config) == {"sources"}
     assert [s["id"] for s in source_monitor.validate_sources(config["sources"])] == ["boe-api", "boja-rss"]
+
+
+def test_knowledge_ops_is_an_accepted_trigger_and_is_recorded(setup, upstream):
+    state, config = setup
+    report = scheduler.run_updates(state, config, trigger="knowledge_ops", now=NOW, sleep=Sleep())
+    assert scheduler.TRIGGERS == ("manual", "systemd", "knowledge_ops")
+    assert report["trigger"] == "knowledge_ops" and report["outcome"] == "success"
+    assert {r["trigger"] for r in scheduler.read_ledger(state / scheduler.LEDGER_NAME)} == {"knowledge_ops"}
+    with pytest.raises(scheduler.SchedulerConfigError):
+        scheduler.run_updates(state, config, trigger="cron", now=NOW, sleep=Sleep())
+
+
+def test_example_page_monitor_config_is_valid():
+    from app import page_monitor
+
+    config = json.loads((ROOT / "backend" / "deploy" / "page-monitor.json.example").read_text(encoding="utf-8"))
+    assert [s["id"] for s in page_monitor.validate_config(config, strict_urls=False)] == ["fega-pac", "mapa-pac", "junta-pac"]

@@ -313,6 +313,25 @@ def test_the_launch_environment_carries_the_answer_cache_only_when_off(ready: bo
     assert {key: value for key, value in off.items() if key != "MANIJERO_ANSWER_CACHE"} == default
 
 
+def test_the_launch_environment_names_the_knowledge_ops_folder_only_when_it_exists(
+    ready: boot.Env, tmp_path: Path
+) -> None:
+    _, model = lrb.load_pins(ready.ctx, boot.NOW.date())
+    release_id = kr.current_release_id(ready.paths.releases)
+    folder = tmp_path / "ko-home"
+    inherited = {"PATH": "/bin", "MANIJERO_KNOWLEDGE_OPS_HOME": str(folder), "MANIJERO_KNOWLEDGE_OPS_STATE_DIR": "/elsewhere"}
+
+    absent = svc.launch_environment(ready.ctx, lrb.Settings("2026"), model, release_id, inherited)
+    folder.mkdir()
+    present = svc.launch_environment(ready.ctx, lrb.Settings("2026"), model, release_id, inherited)
+    bare = svc.launch_environment(ready.ctx, lrb.Settings("2026"), model, release_id, {"PATH": "/bin"})
+
+    assert "MANIJERO_KNOWLEDGE_OPS_STATE_DIR" not in absent and "MANIJERO_KNOWLEDGE_OPS_STATE_DIR" not in bare
+    assert present["MANIJERO_KNOWLEDGE_OPS_STATE_DIR"] == str(folder)  # taken from the folder, never inherited
+    assert "MANIJERO_KNOWLEDGE_OPS_HOME" not in present
+    assert {k: v for k, v in present.items() if k != "MANIJERO_KNOWLEDGE_OPS_STATE_DIR"} == absent
+
+
 def test_the_launch_environment_states_development_and_has_no_environment_or_credential_key(
     ready: boot.Env,
 ) -> None:

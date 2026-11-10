@@ -376,10 +376,11 @@ class Launchctl(Protocol):
 
 
 class SystemLaunchctl:
-    """``launchctl`` for the one label ``org.manijero.qa-alerts`` and nothing else."""
+    """``launchctl`` for one label (default ``org.manijero.qa-alerts``) and nothing else."""
 
-    def __init__(self, uid: int, cli: Optional[str] = None) -> None:
+    def __init__(self, uid: int, cli: Optional[str] = None, label: str = LABEL) -> None:
         self._domain = "gui/{}".format(uid)
+        self._label = label
         self._cli = cli or os.environ.get(LAUNCHCTL_ENV, "").strip() or "launchctl"
 
     def _executable(self) -> Optional[str]:
@@ -406,13 +407,13 @@ class SystemLaunchctl:
         return completed.returncode == 0
 
     def is_loaded(self) -> bool:
-        return self._run(["print", "{}/{}".format(self._domain, LABEL)])
+        return self._run(["print", "{}/{}".format(self._domain, self._label)])
 
     def bootstrap(self, plist: Path) -> bool:
         return self._run(["bootstrap", self._domain, str(plist)])
 
     def bootout(self) -> bool:
-        return self._run(["bootout", "{}/{}".format(self._domain, LABEL)])
+        return self._run(["bootout", "{}/{}".format(self._domain, self._label)])
 
 
 # --- Ports ----------------------------------------------------------------------------------

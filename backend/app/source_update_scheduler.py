@@ -32,7 +32,7 @@ DISCOVERY_STATE_NAME = "official-discovery-state.json"
 MAX_LEDGER_BYTES = 10 * 1024 * 1024
 
 JOBS = ("monitor", "boe", "boja")
-TRIGGERS = ("manual", "systemd")
+TRIGGERS = ("manual", "systemd", "knowledge_ops")
 MAX_ATTEMPTS = {"monitor": 3, "boe": 3, "boja": 2}
 # Backoff before attempt 2 and attempt 3.
 BACKOFF_SECONDS = (60, 300)
