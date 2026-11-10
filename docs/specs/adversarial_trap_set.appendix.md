@@ -127,15 +127,12 @@ Other checks:
 - Not run: `--verify` (no Android/Desktop, Gradle, or packaging change). Pre-feature byte comparison of the evaluator was not run against a checked-out baseline; the no-flag path is covered by the key-set and row-equality tests and the existing `test_pac_answer_eval.py`.
 - Owner walkthrough not done (owner step).
 
-## Handoff
+2026-11-10, orchestrator (after the owner walkthrough).
 
-Status: `passing`; validator returned accept pending owner walkthrough (2026-11-08). Next: owner walkthrough, then an evidence-only update sets `accepted` (no second validator). All 26 traps are drafts.
-
-After the validator accepts and the owner finishes `Owner walkthrough: trap set review` in `docs/owner-guide/trap-set-review.md`:
-
-1. Commit the decided `knowledge/trap_set.json` on the branch.
-2. Rerun the `check` command and the `--traps` evaluator from the spec's verify block (or `./scripts/init.sh --feature adversarial_trap_set`).
-3. Record the approved/rejected counts, each owner `Result:` line, and the `traps.by_category` numbers in `docs/validations/adversarial_trap_set.md`.
+- Owner `Jose` approved all 26 traps (rejected 0); the file diff holds only decision blocks. Committed as `7280eac`.
+- `./scripts/init.sh --trap-review`: `Result: no trap questions wait for your decision (26 approved, 0 rejected).`
+- `./scripts/init.sh --feature adversarial_trap_set`: passed; 121 tests passed; `trap check: 26 items OK`; state approved=26.
+- `--traps` evaluator, per category cases / state agreement / unexpected answers / reason matches / must-not-say hits: prompt_injection 7/7/0/7/0, false_premise 5/5/0/3/0, personal_advice 5/5/0/5/0, cooperative_practice 5/2/3/1/0, typo 4/4/0/0/0. Same as the throwaway baseline above.
 
 ## Validator checklist
 
@@ -155,5 +152,5 @@ After the validator accepts and the owner finishes `Owner walkthrough: trap set 
 
 ## Open questions
 
-1. Owner acceptance: the planner default mirrors the golden set (validator accept plus an owner walkthrough, with only owner-approved traps counted). The owner should confirm this, or decide that validator accept is final. Implementation is the same either way.
-2. Personal-data traps use invented identifiers in a committed file, as the `input_guardrails` tests already do. The owner may prefer to drop that subcategory and keep `personal_advice` to scope-guard routes only.
+1. Resolved 2026-11-10: the owner walkthrough was the final approval. Owner acceptance: the planner default mirrors the golden set (validator accept plus an owner walkthrough, with only owner-approved traps counted). The owner should confirm this, or decide that validator accept is final. Implementation is the same either way.
+2. Resolved 2026-11-10: the owner keeps the invented-number traps (they only check abstention or out-of-scope). Personal-data traps use invented identifiers in a committed file, as the `input_guardrails` tests already do. The owner may prefer to drop that subcategory and keep `personal_advice` to scope-guard routes only.
