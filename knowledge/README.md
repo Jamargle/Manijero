@@ -58,6 +58,7 @@ measurement, not evidence about legal coverage or real user questions.
 | `legal-chunk-set.schema.json` | The readable contract for one derived chunk set and its run manifest (`legal-chunk-set-v1`, `legal-chunk-manifest-v1`), including the reviewed-validity block. It is not canonical knowledge. |
 | `knowledge-update-review.schema.json` | The readable contract for one local human-review package (`knowledge-update-review-package-v1`), including the after-state evaluation-case binding and merge readiness. It is not canonical knowledge. |
 | `knowledge-update-review-decisions.schema.json` | The readable contract for the review decision history (`knowledge-update-review-decisions-v1`) that the controlled merge verifies. It is not canonical knowledge. |
+| `reviews/<package-id>/` | Committed evidence for one hosted review pull request: the review package (`package.json`) and its readable `REVIEW.md`. Written only on a `knowledge-review/<package-id>` branch by `--knowledge-review-open`; not canonical knowledge. |
 
 | `../backend/app/source_catalog.py` | The executable catalog validator. Must stay in sync with the schema. |
 | `../backend/app/procedure_map.py` | The executable procedure-map validator and coverage report. Must stay in sync with the schema. |
@@ -185,7 +186,10 @@ a shortcut to make a fixture pass.
 5. Run the validator (see below) and make sure it exits `0`.
 6. Open a pull request. A named human reviewer other than the author approves
    the addition before it is merged. Any change to an approved document's
-   provenance or validity is re-reviewed the same way.
+   provenance or validity is re-reviewed the same way. A ready review package
+   can be sent as one pull request with
+   `./scripts/init.sh --knowledge-review-open` (see the
+   [owner guide](../docs/owner-guide/knowledge-review-pull-requests.md)).
 
 No entry may be added by an automated discovery process without that human
 review step.
@@ -228,8 +232,7 @@ over quarantined candidates into a draft directory (`package.json` and
 directory. Scheduled dispatch of monitoring and discovery now exists only as an
 inert owned-host systemd template (`backend/README.md`, "Scheduled source
 updates"); its candidates remain `pending` and it never writes this directory.
-Passage extraction into a reviewed corpus,
-hosting-platform pull-request integration, and reindex/release remain separate
+Passage extraction into a reviewed corpus and reindex/release remain separate
 features. A monitor hash, a discovery record, or an extracted quarantine
 document is not approval and does not establish that a source is current or
 legally applicable.
@@ -293,12 +296,20 @@ Approval must come from one of the package's requested reviewers, and the
 commands refuse known automation identities (`ci`, `cd`, `ci/cd`, `actions`,
 `github-actions`, `workflow`, `pipeline`, `automation-*`, `service-account`,
 `preparer`, bot names). Those names are not authenticated: a local plain record
-cannot prove who typed a decision. This review workflow is implemented at the
-local package and controlled-merge boundary. It is **not** a hosted pull
-request and this repository does not configure or verify hosting-provider merge
-protection; direct filesystem writes can bypass the command. The implementation
-contract is [`knowledge_update_review_pr`](../docs/specs/knowledge_update_review_pr.md);
-the operator procedure, exit codes, and limits are in `backend/README.md`.
+cannot prove who typed a decision. A ready package can also be opened as one
+GitHub pull request with `./scripts/init.sh --knowledge-review-open`: the command
+pushes the after-state catalog/passages and `knowledge/reviews/<id>/` evidence to
+a `knowledge-review/<id>` branch, opens one PR to `main`, and never merges,
+auto-merges, or force-pushes. `./scripts/init.sh --knowledge-review-protect`
+enables the committed `protected-main` ruleset (required `fast` and `full`, no
+required approvals). The live push/PR/ruleset path has not been exercised by an
+agent; with zero required approvals GitHub enforces no second reviewer, and the
+committed evidence carries the names typed at `prepare`. Direct filesystem writes
+can still bypass both paths. Implementation contracts are
+[`knowledge_update_review_pr`](../docs/specs/knowledge_update_review_pr.md) and
+[`hosted_review_pull_requests`](../docs/specs/hosted_review_pull_requests.md);
+operator procedure and limits are in `backend/README.md` and the
+[owner guide](../docs/owner-guide/knowledge-review-pull-requests.md).
 
 ## Running the validator
 

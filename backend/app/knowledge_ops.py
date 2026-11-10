@@ -1030,7 +1030,9 @@ def step_review(ctx: StepContext) -> Dict[str, int]:
     lines += ["", "## Next step", "",
               "These reports only list what changed; they do not decide it. To turn a change into a review "
               "package, a developer writes the proposal file and runs `backend/scripts/knowledge_review.py prepare` "
-              "(see the Knowledge update runs section of backend/README.md). Nothing goes live until you approve it."]
+              "(see the Knowledge update runs section of backend/README.md). When a package is ready, "
+              "`./scripts/init.sh --knowledge-review-open` opens it as a GitHub pull request for your "
+              "approval. Nothing goes live until you approve it."]
     review_dir = ctx.run_dir / "review"
     _private_dir(review_dir)
     _write_private(review_dir / "REVIEW.md", "\n".join(lines) + "\n")

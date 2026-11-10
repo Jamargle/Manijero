@@ -32,8 +32,10 @@ In the order you usually need them:
     produce its counts report (scores unchecked against human review).
 12. [Knowledge updates](knowledge-updates.md): turn on the daily run that finds, reads, and checks new official
     documents and prepares a review for you; nothing goes live without your approval.
-12. [Trap set review](trap-set-review.md): approve or reject the drafted trick questions.
-13. [Reranker](reranker.md): download an optional second reading model, measure it against today's
+13. [Knowledge review pull requests](knowledge-review-pull-requests.md): protect `main`, open a ready
+    review as a pull request, read it in the browser, and merge it yourself.
+14. [Trap set review](trap-set-review.md): approve or reject the drafted trick questions.
+15. [Reranker](reranker.md): download an optional second reading model, measure it against today's
     search, and switch it on or off (it ships off).
 14. [Colloquial variants review](colloquial-variants-review.md): approve or reject the everyday
     rewordings of the test questions that an offline comparison may score.

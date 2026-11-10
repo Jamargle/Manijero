@@ -265,9 +265,14 @@ Durable MUST/MUST NOT rules for backend answer path, retrieval, generation, eval
   leave canonical knowledge byte-identical; and merge MUST NOT reindex, release, or deploy. Canonical
   after hashes and writes MUST preserve the field order of entries the proposal does not rewrite, so a
   no-op merge is byte-identical; a newly added or rewritten entry may take the proposal's own
-  serialization.
-  Reason: `knowledge_update_review_pr` keeps approval with a person and separates a bounded reviewed
-  merge from publication; an unreviewed case set or a reordered file would hide corpus drift.
+  serialization. A canonical change MAY also land through one `knowledge-review/<package-id>`
+  pull request opened from a ready package by `--knowledge-review-open`, only with `fast` and
+  `full` passing and merged by the owner on GitHub; that command MUST NOT merge, enable
+  auto-merge, force-push, or delete a branch, and `--knowledge-review-protect` only enables the
+  committed `protected-main` ruleset after a `yes` confirmation (owner decision 2026-11-10).
+  Reason: `knowledge_update_review_pr` and `hosted_review_pull_requests` keep approval with a
+  person and separate a bounded reviewed merge from publication; an unreviewed case set or a
+  reordered file would hide corpus drift.
 - **MUST**: a knowledge release MUST be built only from canonical artifacts bound to human-approval
   evidence (a `merge.json` whose hashes equal the candidate bytes, or an explicitly recorded reviewed
   Git baseline), MUST rebuild indexes from them and record artifact, runtime, and model versions, and

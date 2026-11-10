@@ -2119,14 +2119,14 @@ operator's workspace. `merge` is the only function that writes canonical
 artifacts, and only after a named requested reviewer other than the author
 approves and every required check still passes.
 
-**This is a local draft, not a hosting-platform pull request.** The package is
-an inspectable directory (`package.json`, `REVIEW.md`, and after review
-`decisions.json`, `DECISION.md`, `merge.json`) that an operator can attach to a
-real repository PR. This repository has no Git/hosting API integration, so
-GitHub branch protection is **not** enforced here; the controlled `merge`
-command independently verifies the recorded approval. Direct filesystem writes
-to `knowledge/` remain possible for anyone with access, so keep the workspace
-and canonical files access-controlled and reviewable in Git.
+**This is a local draft until the owner opens it as a hosted pull request.** The
+package is an inspectable directory (`package.json`, `REVIEW.md`, and after
+review `decisions.json`, `DECISION.md`, `merge.json`) under an operator
+workspace. A ready package can be sent to GitHub from that workspace with
+`--knowledge-review-open` (below); the controlled `merge` command remains the
+local path. Direct filesystem writes to `knowledge/` remain possible for anyone
+with access, so keep the workspace and canonical files access-controlled and
+reviewable in Git.
 
 ### Prepare
 
@@ -2255,10 +2255,40 @@ owns index rebuilds, artifact/model versions, rollback, and the plainly stated c
 boundary. An approved bounded update is not
 legal-coverage or answer-quality certification.
 
+### Hosted review pull requests
+
+`app/hosted_review.py` and `backend/scripts/hosted_review.py` send ready packages
+to GitHub. The owner runs `./scripts/init.sh --knowledge-review-open` or
+`--knowledge-review-protect`.
+
+`open` fetches `origin/main`, builds the after-state in a temporary worktree, and
+commits only `knowledge/source_catalog.json`, `knowledge/passages.json` (bytes
+equal to the package's after hashes), and
+`knowledge/reviews/<package-id>/{package.json,REVIEW.md}` on
+`knowledge-review/<package-id>`. It pushes without force, runs one
+`gh pr create --base main`, and puts the fixed merge/release and report-only
+lines, before/after PAC evaluation counts, the check summary, and `REVIEW.md`
+in the body. It never merges, auto-merges, force-pushes, deletes a branch, or
+writes the owner's checkout. Only ready packages whose baseline matches
+`origin/main`, whose bound case file is unchanged, and whose after-state
+validates are sent. A recorded `pull-request.json` makes re-runs report
+`already open`, `merged on GitHub`, or `closed without merging`; an unrecorded
+remote branch is refused.
+
+`protect` reads the existing `protected-main` ruleset, states the change, asks
+for `yes`, and sends one update from
+`backend/deploy/github/protected-main-ruleset.json` (required `fast` and `full`,
+zero approvals, force pushes blocked, existing bypass actors and unrelated rules kept); it never
+creates a missing ruleset. Tests and checks use a fake `gh` and a local bare
+remote. See the [owner guide](../docs/owner-guide/knowledge-review-pull-requests.md).
+
 ### Limits
 
-- The local package is not a hosted PR, so host-enforced merge protection and
-  reviewer assignment do not exist; the `merge` command is the procedural gate.
+- `open` sends only `ready_for_review` packages, cannot protect `main` by
+  itself, and needs `git`, a GitHub `origin`, and a logged-in `gh`.
+- The live push, PR creation, and ruleset update are unexercised by agents.
+  With zero required approvals GitHub enforces no second reviewer, and the
+  committed evidence carries the names typed at `prepare`.
 - Reviewer identity and decisions are plain local records, not cryptographic
   signatures. The commands refuse known automation identities and
   self-approval, require an approver from the package's `requested_reviewers`,
