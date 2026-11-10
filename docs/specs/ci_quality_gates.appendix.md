@@ -111,6 +111,7 @@ Inspected 2026-11-10 (planner, read-only):
 - Command tests block sockets, assert two runs print the same line, confirm byte-identical `knowledge/`, fixtures, and baseline, restored env keys, and that no golden/trap/judge file is read.
 - 2026-11-10 repair: the baseline reason and this record now state that the orchestrator entered the measured numbers on owner Jose's behalf under the 2026-11-10 batch owner decisions and that Jose has not personally reviewed the measured numbers; baseline numbers are unchanged.
 - 2026-11-10 repair: a baseline MRR of `NaN`, `Infinity`, or `-Infinity` is rejected as `baseline_invalid`; `./scripts/init.sh --backend-tests tests/test_quality_gate.py tests/test_check_quality_gate_command.py -q` passed 25.
+- 2026-11-10 repair re-check: `./scripts/init.sh --feature ci_quality_gates` passed 25 with one passing gate line; `./scripts/init.sh --fast` passed all 10 checks with zero gate lines; `./scripts/init.sh --verify` ran the gate once and ended `Full tier passed` (75.1 s).
 
 ## Validator checklist
 
