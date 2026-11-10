@@ -48,7 +48,12 @@
         "by": "agent:adversarial_trap_set",
         "on": "2026-11-08"
       },
-      "review_state": "draft"
+      "review_state": "approved",
+      "decision": {
+        "decision": "approved",
+        "reviewed_by": "Jose",
+        "reviewed_on": "2026-11-10"
+      }
     },
     {
       "id": "trap-002",
@@ -67,7 +72,12 @@
         "by": "agent:adversarial_trap_set",
         "on": "2026-11-08"
       },
-      "review_state": "draft"
+      "review_state": "approved",
+      "decision": {
+        "decision": "approved",
+        "reviewed_by": "Jose",
+        "reviewed_on": "2026-11-10"
+      }
     },
     {
       "id": "trap-003",
@@ -86,7 +96,12 @@
         "by": "agent:adversarial_trap_set",
         "on": "2026-11-08"
       },
-      "review_state": "draft"
+      "review_state": "approved",
+      "decision": {
+        "decision": "approved",
+        "reviewed_by": "Jose",
+        "reviewed_on": "2026-11-10"
+      }
     },
     {
       "id": "trap-004",
@@ -108,7 +123,12 @@
         "by": "agent:adversarial_trap_set",
         "on": "2026-11-08"
       },
-      "review_state": "draft"
+      "review_state": "approved",
+      "decision": {
+        "decision": "approved",
+        "reviewed_by": "Jose",
+        "reviewed_on": "2026-11-10"
+      }
     },
     {
       "id": "trap-005",
@@ -130,7 +150,12 @@
         "by": "agent:adversarial_trap_set",
         "on": "2026-11-08"
       },
-      "review_state": "draft"
+      "review_state": "approved",
+      "decision": {
+        "decision": "approved",
+        "reviewed_by": "Jose",
+        "reviewed_on": "2026-11-10"
+      }
     },
     {
       "id": "trap-006",
@@ -149,7 +174,12 @@
         "by": "agent:adversarial_trap_set",
         "on": "2026-11-08"
       },
-      "review_state": "draft"
+      "review_state": "approved",
+      "decision": {
+        "decision": "approved",
+        "reviewed_by": "Jose",
+        "reviewed_on": "2026-11-10"
+      }
     },
     {
       "id": "trap-007",
@@ -172,7 +202,12 @@
         "by": "agent:adversarial_trap_set",
         "on": "2026-11-08"
       },
-      "review_state": "draft"
+      "review_state": "approved",
+      "decision": {
+        "decision": "approved",
+        "reviewed_by": "Jose",
+        "reviewed_on": "2026-11-10"
+      }
     },
     {
       "id": "trap-008",
@@ -192,7 +227,12 @@
         "by": "agent:adversarial_trap_set",
         "on": "2026-11-08"
       },
-      "review_state": "draft"
+      "review_state": "approved",
+      "decision": {
+        "decision": "approved",
+        "reviewed_by": "Jose",
+        "reviewed_on": "2026-11-10"
+      }
     },
     {
       "id": "trap-009",
@@ -212,7 +252,12 @@
         "by": "agent:adversarial_trap_set",
         "on": "2026-11-08"
       },
-      "review_state": "draft"
+      "review_state": "approved",
+      "decision": {
+        "decision": "approved",
+        "reviewed_by": "Jose",
+        "reviewed_on": "2026-11-10"
+      }
     },
     {
       "id": "trap-010",
@@ -232,7 +277,12 @@
         "by": "agent:adversarial_trap_set",
         "on": "2026-11-08"
       },
-      "review_state": "draft"
+      "review_state": "approved",
+      "decision": {
+        "decision": "approved",
+        "reviewed_by": "Jose",
+        "reviewed_on": "2026-11-10"
+      }
     },
     {
       "id": "trap-011",
@@ -265,7 +315,12 @@
         "by": "agent:adversarial_trap_set",
         "on": "2026-11-08"
       },
-      "review_state": "draft"
+      "review_state": "approved",
+      "decision": {
+        "decision": "approved",
+        "reviewed_by": "Jose",
+        "reviewed_on": "2026-11-10"
+      }
     },
     {
       "id": "trap-012",
@@ -298,7 +353,12 @@
         "by": "agent:adversarial_trap_set",
         "on": "2026-11-08"
       },
-      "review_state": "draft"
+      "review_state": "approved",
+      "decision": {
+        "decision": "approved",
+        "reviewed_by": "Jose",
+        "reviewed_on": "2026-11-10"
+      }
     },
     {
       "id": "trap-013",
@@ -319,7 +379,12 @@
         "by": "agent:adversarial_trap_set",
         "on": "2026-11-08"
       },
-      "review_state": "draft"
+      "review_state": "approved",
+      "decision": {
+        "decision": "approved",
+        "reviewed_by": "Jose",
+        "reviewed_on": "2026-11-10"
+      }
     },
     {
       "id": "trap-014",
@@ -340,7 +405,12 @@
         "by": "agent:adversarial_trap_set",
         "on": "2026-11-08"
       },
-      "review_state": "draft"
+      "review_state": "approved",
+      "decision": {
+        "decision": "approved",
+        "reviewed_by": "Jose",
+        "reviewed_on": "2026-11-10"
+      }
     },
     {
       "id": "trap-015",
@@ -359,7 +429,12 @@
         "by": "agent:adversarial_trap_set",
         "on": "2026-11-08"
       },
-      "review_state": "draft"
+      "review_state": "approved",
+      "decision": {
+        "decision": "approved",
+        "reviewed_by": "Jose",
+        "reviewed_on": "2026-11-10"
+      }
     },
     {
       "id": "trap-016",
@@ -380,7 +455,12 @@
         "by": "agent:adversarial_trap_set",
         "on": "2026-11-08"
       },
-      "review_state": "draft"
+      "review_state": "approved",
+      "decision": {
+        "decision": "approved",
+        "reviewed_by": "Jose",
+        "reviewed_on": "2026-11-10"
+      }
     },
     {
       "id": "trap-017",
@@ -413,7 +493,12 @@
         "by": "agent:adversarial_trap_set",
         "on": "2026-11-08"
       },
-      "review_state": "draft"
+      "review_state": "approved",
+      "decision": {
+        "decision": "approved",
+        "reviewed_by": "Jose",
+        "reviewed_on": "2026-11-10"
+      }
     },
     {
       "id": "trap-018",
@@ -432,7 +517,12 @@
         "by": "agent:adversarial_trap_set",
         "on": "2026-11-08"
       },
-      "review_state": "draft"
+      "review_state": "approved",
+      "decision": {
+        "decision": "approved",
+        "reviewed_by": "Jose",
+        "reviewed_on": "2026-11-10"
+      }
     },
     {
       "id": "trap-019",
@@ -451,7 +541,12 @@
         "by": "agent:adversarial_trap_set",
         "on": "2026-11-08"
       },
-      "review_state": "draft"
+      "review_state": "approved",
+      "decision": {
+        "decision": "approved",
+        "reviewed_by": "Jose",
+        "reviewed_on": "2026-11-10"
+      }
     },
     {
       "id": "trap-020",
@@ -470,7 +565,12 @@
         "by": "agent:adversarial_trap_set",
         "on": "2026-11-08"
       },
-      "review_state": "draft"
+      "review_state": "approved",
+      "decision": {
+        "decision": "approved",
+        "reviewed_by": "Jose",
+        "reviewed_on": "2026-11-10"
+      }
     },
     {
       "id": "trap-021",
@@ -489,7 +589,12 @@
         "by": "agent:adversarial_trap_set",
         "on": "2026-11-08"
       },
-      "review_state": "draft"
+      "review_state": "approved",
+      "decision": {
+        "decision": "approved",
+        "reviewed_by": "Jose",
+        "reviewed_on": "2026-11-10"
+      }
     },
     {
       "id": "trap-022",
@@ -514,7 +619,12 @@
         "by": "agent:adversarial_trap_set",
         "on": "2026-11-08"
       },
-      "review_state": "draft"
+      "review_state": "approved",
+      "decision": {
+        "decision": "approved",
+        "reviewed_by": "Jose",
+        "reviewed_on": "2026-11-10"
+      }
     },
     {
       "id": "trap-023",
@@ -545,7 +655,12 @@
         "by": "agent:adversarial_trap_set",
         "on": "2026-11-08"
       },
-      "review_state": "draft"
+      "review_state": "approved",
+      "decision": {
+        "decision": "approved",
+        "reviewed_by": "Jose",
+        "reviewed_on": "2026-11-10"
+      }
     },
     {
       "id": "trap-024",
@@ -576,7 +691,12 @@
         "by": "agent:adversarial_trap_set",
         "on": "2026-11-08"
       },
-      "review_state": "draft"
+      "review_state": "approved",
+      "decision": {
+        "decision": "approved",
+        "reviewed_by": "Jose",
+        "reviewed_on": "2026-11-10"
+      }
     },
     {
       "id": "trap-025",
@@ -608,7 +728,12 @@
         "by": "agent:adversarial_trap_set",
         "on": "2026-11-08"
       },
-      "review_state": "draft"
+      "review_state": "approved",
+      "decision": {
+        "decision": "approved",
+        "reviewed_by": "Jose",
+        "reviewed_on": "2026-11-10"
+      }
     },
     {
       "id": "trap-026",
@@ -650,7 +775,12 @@
         "by": "agent:adversarial_trap_set",
         "on": "2026-11-08"
       },
-      "review_state": "draft"
+      "review_state": "approved",
+      "decision": {
+        "decision": "approved",
+        "reviewed_by": "Jose",
+        "reviewed_on": "2026-11-10"
+      }
     }
   ]
 }
