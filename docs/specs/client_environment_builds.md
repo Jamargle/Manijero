@@ -21,7 +21,7 @@ The owner or a developer runs one command to build a test app for QA. It is clea
 ## Non-goals
 
 - Deploying or choosing the QA host, TLS, or domain (`qa_server_deployment`); checking a real device against QA (`qa_real_device_check`).
-- A prod build, Android product flavors, signing, a signed or notarized Desktop installer, or distribution (`private_pilot_distribution`, on hold).
+- A prod build, Android product flavors, signing, a signed or notarized Desktop installer, or distribution (`private_pilot_distribution`, removed 2026-11-11; spec archived).
 - Any in-app UI or Spanish copy change: no environment badge, no change to `Conexión`, `Ayuda`, or the top bar.
 - Generating, rotating, or showing tokens; changing `--pilot-token-save` or the local token source (`pilot-token.local` stays the local token).
 - Backend, `contracts/`, `knowledge/`, `environment_profiles.py`, or iOS changes.

@@ -6,7 +6,7 @@
 - **Status at planning:** `not_started`; depends on accepted `grounded_answer_generation`,
   `backend_answer_evaluation`, and `gemini_generation_provider` (accepted on the integration branch
   `integration/chroma-hybrid-and-gemini-gate-2026-10-31`, not yet on `main`).
-  `private_pilot_distribution` depends on this feature.
+  `private_pilot_distribution` depended on this feature; it was removed by owner decision (2026-11-11).
 - **Source behavior (owner decisions 2026-10-31, `hosting_provider_review.md` "Owner decisions",
   issue #143):** no spending; Gemini is postponed. Answer drafting is tried with a free open-weight
   model run locally through Ollama, using the replaceable generation slot from

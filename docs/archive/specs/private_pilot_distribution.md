@@ -1,5 +1,7 @@
 # Feature Spec: `private_pilot_distribution`
 
+> Removed from `feature_list.json` by owner decision (2026-11-11): no distribution is planned for now. Kept for reference.
+
 ## Source metadata
 
 - **Feature:** `private_pilot_distribution` — Distribute private Android and Desktop pilot builds (`release`).
