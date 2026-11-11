@@ -349,6 +349,10 @@ def test_the_owner_walkthrough(owner: Owner) -> None:
     assert [call[:2] for call in owner.gh_calls()].count(["pr", "create"]) == 1
 
     branch = "knowledge-review/{}".format(owner.package["package_id"])
+    author = owner.bare("log", "-1", "--format=%an <%ae>", branch).stdout.strip()
+    committer = owner.bare("log", "-1", "--format=%cn <%ce>", branch).stdout.strip()
+    assert author == "Manijero knowledge review <knowledge-review@manijero.invalid>"
+    assert committer == "Fixture Owner <owner@example.invalid>"
     changed = owner.bare("diff", "--name-only", "main..{}".format(branch)).stdout.split()
     assert sorted(changed) == [
         "knowledge/passages.json",
