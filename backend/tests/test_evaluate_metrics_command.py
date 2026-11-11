@@ -491,13 +491,13 @@ def test_the_cache_check_adds_one_block_and_leaves_the_scored_pass_unchanged(
     assert checked["version"]["answer_cache_check"] is True and "answer_cache_check" not in plain["version"]
     block = checked["answer_cache_check"]
     assert set(block) == {"asked", "served_from_cache", "reused_unchanged", "differed"}
-    assert block["asked"] == 92 and block["differed"] == 0
+    assert block["asked"] == 17 + _approved_golden_count() + 26 and block["differed"] == 0
     assert 0 < block["reused_unchanged"] <= block["served_from_cache"] <= block["asked"]
     assert block["reused_unchanged"] == block["served_from_cache"]  # every cache hit equalled the scored answer
     for key in ("metrics", "faithfulness", "cases", "case_counts"):
         assert checked[key] == plain[key]  # the scored pass is cache-off and unchanged
     line = _result_lines(output)[0]
-    assert line.endswith("; cached answers: %d of 92 reused unchanged (0 differed)." % block["reused_unchanged"])
+    assert line.endswith("; cached answers: %d of %d reused unchanged (0 differed)." % (block["reused_unchanged"], 17 + _approved_golden_count() + 26))
     assert _result_lines(plain_output)[0].endswith("Report only, no gate. Report: metrics.json.")
     assert "cached answers" not in _result_lines(plain_output)[0]
 
@@ -507,11 +507,12 @@ def test_a_cached_answer_that_differs_from_the_scored_one_is_counted(
 ) -> None:
     original = SCRIPT_MODULE._ask
     calls = {"count": 0}
+    scored = 17 + _approved_golden_count() + 26
 
     def tampered(client: Any, case: Any) -> Any:
         calls["count"] += 1
         response = original(client, case)
-        if calls["count"] == 93:  # the replay of the first case
+        if calls["count"] == scored + 1:  # the replay of the first case
             response = dict(response, answer=response["answer"] + " cambiada")
         return response
 
@@ -521,8 +522,8 @@ def test_a_cached_answer_that_differs_from_the_scored_one_is_counted(
 
     assert code == 0  # report only: a difference never changes the exit code
     block = _report(root)["answer_cache_check"]
-    assert block["asked"] == 92 and block["differed"] == 1
-    assert block["reused_unchanged"] <= block["served_from_cache"] and block["reused_unchanged"] <= 91
+    assert block["asked"] == 17 + _approved_golden_count() + 26 and block["differed"] == 1
+    assert block["reused_unchanged"] <= block["served_from_cache"] and block["reused_unchanged"] <= scored - 1
     assert "(1 differed)." in _result_lines(output)[0]
 
 
