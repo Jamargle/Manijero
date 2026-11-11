@@ -37,6 +37,28 @@ Cuatro documentos revisados no se añadieron y dos se retuvieron; el motivo de c
 | `fega_res_2026_05_20` | `not_added` | `https://www.fega.gob.es/es/noticias/node-16804` | News item announcing a deadline of 15/06/2026 that has passed; the extension is consolidated in the already-approved RD 537/2026. |
 | `ley_39_2015` | `added` | `https://www.boe.es/buscar/doc.php?id=BOE-A-2015-10565` | Original text; art. 41.1 and 109.2 wording also appears unchanged in the consolidated copy last updated 06/11/2024. |
 
+## Norma de comercialización del aceite de oliva (2026-11-11)
+
+Este paquete propone añadir una fuente adicional que **no forma parte de la
+solicitud única PAC**: la Resolución de 4 de noviembre de 2026, de la Dirección
+General de Producciones y Mercados Agrarios (MAPA), publicada en el BOE el 6 de
+noviembre de 2026 (`res_20261104_aceite_oliva`), que determina para la campaña
+2026/2027 el porcentaje de retirada previsto en el artículo 5 de la Orden
+APA/1145/2026.
+
+El paquete propone también dos pasajes literales, pendientes de revisión:
+
+- obligación de cada almazara de mantener almacenado el 12% de su producción
+  declarada mensualmente, en instalaciones propias o ajenas;
+- inicio de la retirada en la producción declarada de noviembre de 2026 y
+  permanencia en retirada hasta el 30 de septiembre de 2027.
+
+Nada de esto está revisado ni aprobado hasta que se revise y se fusione el
+paquete. Si se aprueba, el corpus global quedará en 7 fuentes y 9 pasajes, pero
+la cobertura PAC seguirá siendo la de esta página: la norma de comercialización
+tiene su propio tema en `procedure_map.json` y no amplía los temas, casos ni
+exclusiones PAC.
+
 ## Evaluación de respuestas revisada
 
 La evidencia de extremo a extremo de estos tres temas vive en
@@ -50,11 +72,12 @@ Los resultados son informativos: no hay umbral numérico ni puerta de calidad.
 ### Preguntas de oro revisadas
 
 [`knowledge/golden_set.json`](golden_set.json) reúne preguntas de oro redactadas por un
-agente, ancladas a los siete pasajes aprobados o marcadas como abstención deliberada. Las
+agente, ancladas a los pasajes aprobados o marcadas como abstención deliberada. Las
 que están en estado `draft` **no cuentan** en `pac_answer_eval.json`, en ninguna puerta ni en
 ninguna puntuación hasta que una persona con nombre las apruebe. Solo se puntúan las
-aprobadas, con `--golden`. Revisión del propietario (Jose, 2026-11-08): 46 aprobadas,
-0 rechazadas.
+aprobadas, con `--golden`. Revisión del propietario (Jose, 2026-11-08): 49 aprobadas,
+0 rechazadas; 4 preguntas nuevas sobre la norma de comercialización del aceite de
+oliva quedan en `draft` a la espera de revisión.
 
 ### Matriz de cobertura
 

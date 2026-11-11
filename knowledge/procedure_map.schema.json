@@ -13,8 +13,8 @@
     },
     "topics": {
       "type": "array",
-      "minItems": 16,
-      "description": "Ordered seed topics. The executable validator pins the exact ordered ids from MasterPlanV3 section 7.3 and rejects a missing or unknown topic; adding a topic is a reviewed schema, validator, and data change.",
+      "minItems": 17,
+      "description": "Ordered seed topics. The executable validator pins the exact ordered ids and rejects a missing or unknown topic; adding a topic is a reviewed schema, validator, and data change.",
       "items": {
         "$ref": "#/$defs/topic"
       }

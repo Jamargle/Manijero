@@ -33,9 +33,9 @@ measurement, not evidence about legal coverage or real user questions.
 
 | File | Purpose |
 |---|---|
-| `source_catalog.json` | The canonical, Git-tracked catalog. Contains six reviewed official sources for the bounded 2026 PAC slice. |
-| `passages.json` | The canonical, Git-tracked passage set. Contains seven approved literal passages; see `pac_coverage.md` for its boundary. |
-| `procedure_map.json` | The canonical, Git-tracked olive-grove procedure map. Contains the 16 seed topics, all `proposed`, with only the PAC topic declaring `partial` reviewed evidence. |
+| `source_catalog.json` | The canonical, Git-tracked catalog. Contains seven official sources: six for the bounded 2026 PAC slice and one for the olive-oil marketing rule. |
+| `passages.json` | The canonical, Git-tracked passage set. Contains nine literal passages: seven for the bounded PAC slice and two for the olive-oil marketing rule; see `pac_coverage.md` for the PAC boundary. |
+| `procedure_map.json` | The canonical, Git-tracked olive-grove procedure map. Contains the 17 seed topics, all `proposed`, with the PAC topic declaring `partial` reviewed evidence and the new olive-oil marketing topic declaring `partial` coverage of its two passages. |
 | `source_catalog.schema.json` | The readable versioned field contract (`source-catalog-v1`). |
 | `procedure_map.schema.json` | The readable versioned procedure-map contract (`procedure-map-v1`). It is a taxonomy index, not legal knowledge or an answer source. |
 | `passages.schema.json` | The readable versioned passage contract (`passage-set-v1`). |
@@ -73,12 +73,16 @@ measurement, not evidence about legal coverage or real user questions.
 | `../backend/scripts/evaluate_generation.py` | The offline grounded-generation report command-line wrapper. |
 | `../backend/scripts/evaluate_land_safety.py` | The offline land-safety report command-line wrapper. |
 
-`source_catalog.json` contains the six independently reviewed official sources
-for the bounded Andalusia PAC 2026 slice. It does not mean the corpus is broad
-or supports questions outside the published coverage.
+`source_catalog.json` contains seven official sources: six reviewed for the
+bounded Andalusia PAC 2026 slice and one for the olive-oil marketing rule of
+campaign 2026/2027, whose review and approval are recorded in the package under
+`knowledge/reviews/`. It does not mean the corpus is broad or supports questions
+outside the published coverage.
 
-`passages.json` contains seven manually curated literal passages approved by
-Diego. There is no automatic ingestion or chunking pipeline; the passage format
+`passages.json` contains nine manually curated literal passages: seven already
+approved for the bounded PAC slice and two for the olive-oil marketing rule; the
+review and approval of the latter two are recorded in the same package. There is
+no automatic ingestion or chunking pipeline; the passage format
 is also exercised by synthetic fixtures under `backend/tests/fixtures/`. The
 canonical passages support only the questions listed in `pac_coverage.md`.
 

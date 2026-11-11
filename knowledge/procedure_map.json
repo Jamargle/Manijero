@@ -285,6 +285,30 @@
         "source_ids": [],
         "passage_ids": []
       }
+    },
+    {
+      "id": "comercializacion-aceite-oliva",
+      "title": "Comercialización del aceite de oliva",
+      "summary": "Norma de comercialización de la campaña en curso, incluida la obligación de retirada y almacenamiento que recae sobre las almazaras.",
+      "search_terms": [
+        "comercialización del aceite de oliva",
+        "retirada de aceite de oliva",
+        "almazaras",
+        "norma de comercialización",
+        "almacenamiento de aceite"
+      ],
+      "review_status": "proposed",
+      "coverage": {
+        "state": "partial",
+        "source_ids": [
+          "res_20261104_aceite_oliva"
+        ],
+        "passage_ids": [
+          "pasaje-almacenamiento-aceite-oliva-2026-2027",
+          "pasaje-inicio-fin-retirada-aceite-oliva-2026-2027"
+        ],
+        "gap_note": "Hay evidencia revisada sobre el porcentaje de retirada y el periodo de almacenamiento; faltan otros aspectos de la comercialización y su aplicación por operador."
+      }
     }
   ]
 }

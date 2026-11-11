@@ -41,6 +41,9 @@ SEED_TOPIC_IDS: Tuple[str, ...] = (
     "productos-fitosanitarios",
     "seguros-agrarios",
     "produccion-ecologica",
+    # Added on 2026-11-11 with the owner-approved scope expansion that records the
+    # olive-oil marketing rule (BOE-A-2026-23330) as a reviewed-corpus topic.
+    "comercializacion-aceite-oliva",
 )
 
 SEED_TOPIC_ID_SET = frozenset(SEED_TOPIC_IDS)
