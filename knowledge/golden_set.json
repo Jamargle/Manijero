@@ -15,6 +15,11 @@
       "id": "rectificacion-errores",
       "kind": "topic",
       "label": "Rectificación de errores materiales de la Administración"
+    },
+    {
+      "id": "comercializacion-aceite-oliva",
+      "kind": "topic",
+      "label": "Comercialización del aceite de oliva y obligación de retirada"
     }
   ],
   "items": [
@@ -1843,6 +1848,130 @@
         "reviewed_by": "Jose",
         "reviewed_on": "2026-11-08"
       }
+    },
+    {
+      "id": "golden-050",
+      "question_type": "procedure",
+      "segment": "transversal",
+      "area": "comercializacion-aceite-oliva",
+      "question": "¿Qué porcentaje de su producción declarada mensualmente tiene que almacenar cada almazara?",
+      "land_context": {
+        "mode": "general",
+        "lands": []
+      },
+      "expected_status": "answered",
+      "expected_source_ids": [
+        "res_20261104_aceite_oliva"
+      ],
+      "expected_passage_ids": [
+        "pasaje-almacenamiento-aceite-oliva-2026-2027"
+      ],
+      "critical_facts": [
+        "12% de su producción declarada mensualmente"
+      ],
+      "anchor": {
+        "source_id": "res_20261104_aceite_oliva",
+        "passage_id": "pasaje-almacenamiento-aceite-oliva-2026-2027",
+        "text": "tener almacenado el 12% de su producción declarada mensualmente"
+      },
+      "drafted": {
+        "by": "agent:knowledge_update_review",
+        "on": "2026-11-11"
+      },
+      "review_state": "draft"
+    },
+    {
+      "id": "golden-051",
+      "question_type": "procedure",
+      "segment": "transversal",
+      "area": "comercializacion-aceite-oliva",
+      "question": "¿Puede la almazara almacenar el aceite retirado en instalaciones de terceros?",
+      "land_context": {
+        "mode": "general",
+        "lands": []
+      },
+      "expected_status": "answered",
+      "expected_source_ids": [
+        "res_20261104_aceite_oliva"
+      ],
+      "expected_passage_ids": [
+        "pasaje-almacenamiento-aceite-oliva-2026-2027"
+      ],
+      "critical_facts": [
+        "en instalaciones propias o ajenas"
+      ],
+      "anchor": {
+        "source_id": "res_20261104_aceite_oliva",
+        "passage_id": "pasaje-almacenamiento-aceite-oliva-2026-2027",
+        "text": "en instalaciones propias o ajenas"
+      },
+      "drafted": {
+        "by": "agent:knowledge_update_review",
+        "on": "2026-11-11"
+      },
+      "review_state": "draft"
+    },
+    {
+      "id": "golden-052",
+      "question_type": "procedure",
+      "segment": "transversal",
+      "area": "comercializacion-aceite-oliva",
+      "question": "¿A partir de qué producción se empieza a aplicar la retirada de aceite de oliva?",
+      "land_context": {
+        "mode": "general",
+        "lands": []
+      },
+      "expected_status": "answered",
+      "expected_source_ids": [
+        "res_20261104_aceite_oliva"
+      ],
+      "expected_passage_ids": [
+        "pasaje-inicio-fin-retirada-aceite-oliva-2026-2027"
+      ],
+      "critical_facts": [
+        "correspondiente al mes de noviembre"
+      ],
+      "anchor": {
+        "source_id": "res_20261104_aceite_oliva",
+        "passage_id": "pasaje-inicio-fin-retirada-aceite-oliva-2026-2027",
+        "text": "comenzará a aplicarse sobre la producción declarada correspondiente al mes de noviembre"
+      },
+      "drafted": {
+        "by": "agent:knowledge_update_review",
+        "on": "2026-11-11"
+      },
+      "review_state": "draft"
+    },
+    {
+      "id": "golden-053",
+      "question_type": "deadline",
+      "segment": "transversal",
+      "area": "comercializacion-aceite-oliva",
+      "question": "¿Hasta qué fecha debe permanecer retirado del mercado el aceite de oliva?",
+      "land_context": {
+        "mode": "general",
+        "lands": []
+      },
+      "expected_status": "answered",
+      "expected_source_ids": [
+        "res_20261104_aceite_oliva"
+      ],
+      "expected_passage_ids": [
+        "pasaje-inicio-fin-retirada-aceite-oliva-2026-2027"
+      ],
+      "critical_facts": [
+        "hasta el 30 de septiembre de 2027"
+      ],
+      "anchor": {
+        "source_id": "res_20261104_aceite_oliva",
+        "passage_id": "pasaje-inicio-fin-retirada-aceite-oliva-2026-2027",
+        "text": "permanecer retirado del mercado hasta el 30 de septiembre de 2027"
+      },
+      "drafted": {
+        "by": "agent:knowledge_update_review",
+        "on": "2026-11-11"
+      },
+      "review_state": "draft"
     }
   ]
 }

@@ -88,8 +88,8 @@ def test_canonical_map_lists_the_seed_topics_in_order() -> None:
 
     assert report.ok, report.format_issues()
     assert tuple(entry["id"] for entry in document["topics"]) == SEED_TOPIC_IDS
-    assert len(SEED_TOPIC_IDS) == 16
-    assert len(set(SEED_TOPIC_IDS)) == 16
+    assert len(SEED_TOPIC_IDS) == 17
+    assert len(set(SEED_TOPIC_IDS)) == 17
 
 
 def test_canonical_map_ships_every_topic_as_proposed() -> None:
@@ -99,12 +99,13 @@ def test_canonical_map_ships_every_topic_as_proposed() -> None:
     assert all("reviewed_by" not in entry for entry in document["topics"])
 
 
-def test_canonical_map_declares_only_the_pac_topic_as_partial() -> None:
+def test_canonical_map_declares_partial_coverage_only_where_reviewed() -> None:
     document = canonical_document()
     states = {entry["id"]: entry["coverage"]["state"] for entry in document["topics"]}
 
     assert states["solicitud-unica-pac"] == "partial"
-    assert sorted(states.values()) == ["partial"] + ["uncovered"] * 15
+    assert states["comercializacion-aceite-oliva"] == "partial"
+    assert sorted(states.values()) == ["partial", "partial"] + ["uncovered"] * 15
 
 
 def test_canonical_pac_topic_references_the_accepted_slice() -> None:
@@ -112,8 +113,27 @@ def test_canonical_pac_topic_references_the_accepted_slice() -> None:
     source_ids = pac["coverage"]["source_ids"]
     passage_ids = pac["coverage"]["passage_ids"]
 
-    assert set(source_ids) == set(CATALOG_IDS)
-    assert set(passage_ids) == set(PASSAGE_SOURCES)
+    # The PAC topic references the original PAC-only slice; the olive-oil
+    # marketing rule belongs to its own topic and must not be folded in here.
+    assert set(source_ids) == set(CATALOG_IDS) - {"res_20261104_aceite_oliva"}
+    assert set(passage_ids) == set(PASSAGE_SOURCES) - {
+        "pasaje-almacenamiento-aceite-oliva-2026-2027",
+        "pasaje-inicio-fin-retirada-aceite-oliva-2026-2027",
+    }
+    for passage_id in passage_ids:
+        assert PASSAGE_SOURCES[passage_id] in source_ids
+
+
+def test_canonical_olive_oil_topic_references_its_own_slice() -> None:
+    topic_entry = topic(canonical_document(), "comercializacion-aceite-oliva")
+    source_ids = topic_entry["coverage"]["source_ids"]
+    passage_ids = topic_entry["coverage"]["passage_ids"]
+
+    assert source_ids == ["res_20261104_aceite_oliva"]
+    assert passage_ids == [
+        "pasaje-almacenamiento-aceite-oliva-2026-2027",
+        "pasaje-inicio-fin-retirada-aceite-oliva-2026-2027",
+    ]
     for passage_id in passage_ids:
         assert PASSAGE_SOURCES[passage_id] in source_ids
 
@@ -143,9 +163,9 @@ def test_coverage_gaps_are_reported_not_rejected() -> None:
     report = validate(canonical_document())
 
     assert report.ok
-    assert report.coverage.partial == 1
+    assert report.coverage.partial == 2
     assert report.coverage.uncovered == 15
-    assert report.coverage.proposed == 16
+    assert report.coverage.proposed == 17
     assert report.coverage.reviewed == 0
 
 
@@ -496,15 +516,19 @@ def test_cli_reports_the_valid_map_and_every_topic() -> None:
 
     assert result.returncode == 0, result.stderr
     assert "valid procedure map:" in result.stdout
-    assert "16 topics: 16 proposed, 0 reviewed" in result.stdout
-    assert "1 partial, 15 uncovered" in result.stdout
-    assert "6 mapped source(s), 7 mapped passage(s)" in result.stdout
+    assert "17 topics: 17 proposed, 0 reviewed" in result.stdout
+    assert "2 partial, 15 uncovered" in result.stdout
+    assert "7 mapped source(s), 9 mapped passage(s)" in result.stdout
     assert "unreferenced source ids: none" in result.stdout
     assert "unreferenced passage ids: none" in result.stdout
     assert "topic solicitud-unica-pac: proposed, partial, 6 source(s), 7 passage(s)" in (
         result.stdout
     )
-    assert sum(1 for line in result.stdout.splitlines() if line.startswith("topic ")) == 16
+    assert (
+        "topic comercializacion-aceite-oliva: proposed, partial, 1 source(s), 2 passage(s)"
+        in result.stdout
+    )
+    assert sum(1 for line in result.stdout.splitlines() if line.startswith("topic ")) == 17
 
 
 def test_cli_without_reference_files_still_validates() -> None:

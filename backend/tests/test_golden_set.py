@@ -237,7 +237,9 @@ def test_additional_areas_must_be_new_topics(corpus, doc):
     doc["additional_areas"].append({"id": "canal-presentacion", "kind": "topic", "label": "x"})
     assert any("ids must be new" in f for f in failures_of(corpus, doc))
     doc["additional_areas"][-1] = {"id": "nueva", "kind": "boundary", "label": "x"}
-    assert failures_of(corpus, doc) == ["$.additional_areas[3]: invalid area"]
+    assert failures_of(corpus, doc) == [
+        f"$.additional_areas[{len(doc['additional_areas']) - 1}]: invalid area"
+    ]
 
 
 def test_distribution_rules_are_reported(corpus, doc):

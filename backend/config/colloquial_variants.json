@@ -1,6 +1,6 @@
 {
   "schema_version": "colloquial-variants-v1",
-  "golden_sha256": "a7776aac53e13715c3ada5fc95da1f830f4b1bdff9713ee65cad8f8cb2db9d1b",
+  "golden_sha256": "5f0b42f8e1c49da41baee788c4263dbaeca78f6158ca572cb1be4925f8bc8242",
   "variants": [
     {
       "id": "coll-001",

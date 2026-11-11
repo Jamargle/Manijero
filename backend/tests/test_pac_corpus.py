@@ -23,15 +23,15 @@ def test_canonical_artifacts_are_valid_and_have_approved_coverage():
 
     assert validate_catalog(catalog, date(2026, 10, 17)).ok
     assert validate_passage_set(passages).ok
-    assert len(catalog["sources"]) == 6
-    assert len(passages["passages"]) == 7
+    assert len(catalog["sources"]) == 7
+    assert len(passages["passages"]) == 9
     assert "Diego" in coverage
     assert "2026-10-17" in coverage
     assert "Aprobada" in coverage
     retriever = Retriever.from_documents(
         catalog, passages, date(2026, 10, 17), active_campaign="2026"
     )
-    assert retriever.indexed_passage_count == 7
+    assert retriever.indexed_passage_count == 9
     results = retriever.search("¿Cuál es el plazo de presentación?")
     assert len(results) > 0
 

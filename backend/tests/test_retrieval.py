@@ -847,7 +847,7 @@ def test_fixtures_are_labelled_synthetic_and_contain_no_real_legal_claim() -> No
 def test_canonical_source_catalog_is_unchanged_and_reviewed() -> None:
     document = load_catalog(CANONICAL_CATALOG)
 
-    assert len(document["sources"]) == 6
+    assert len(document["sources"]) == 7
     assert all(source["review_status"] == "approved" for source in document["sources"])
     assert CATALOG_SCHEMA_FILE.exists()
 
