@@ -56,10 +56,11 @@ class Program:
         if self._git:
             environment.update(
                 {
+                    # Keep the author as the automation identity, but let the operator's
+                    # Git identity be the committer: protected main requires verified
+                    # signatures, and GitHub verifies them under the committer's account.
                     "GIT_AUTHOR_NAME": hosted.GIT_NAME,
                     "GIT_AUTHOR_EMAIL": hosted.GIT_EMAIL,
-                    "GIT_COMMITTER_NAME": hosted.GIT_NAME,
-                    "GIT_COMMITTER_EMAIL": hosted.GIT_EMAIL,
                     "GIT_TERMINAL_PROMPT": "0",
                 }
             )
