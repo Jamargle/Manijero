@@ -81,10 +81,13 @@ class EnvironmentBuildGuardTest {
     @Test
     fun `init offers one named command per host and keeps the local modes`() {
         val init = root.resolve("scripts/init.sh").readText()
+        val androidCommands = root.resolve("scripts/lib/android.sh").readText()
         assertTrue("--android-qa" in init && "--desktop-qa" in init)
-        assertTrue("-PmanijeroEnvironment=qa" in init)
-        assertTrue(Regex("""--android\)\s*\n\s*\./gradlew :androidApp:assembleDebug\n""").containsMatchIn(init))
-        assertTrue(Regex("""--desktop\)\s*\n\s*\./gradlew :desktopApp:run\n""").containsMatchIn(init))
+        assertTrue("-PmanijeroEnvironment=qa" in androidCommands)
+        assertTrue(Regex("""build_android\(\) \{\n\s*\./gradlew :androidApp:assembleDebug\n""").containsMatchIn(androidCommands))
+        assertTrue(Regex("""run_desktop\(\) \{\n\s*\./gradlew :desktopApp:run\n""").containsMatchIn(androidCommands))
+        assertTrue(Regex("""\n\s*build_android\n""").containsMatchIn(init))
+        assertTrue(Regex("""\n\s*run_desktop\n""").containsMatchIn(init))
     }
 
     @Test
