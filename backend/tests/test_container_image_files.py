@@ -130,7 +130,8 @@ def svc_launch_keys() -> List[str]:
         ollama_models=Path("/models"),
     )
     _, record = boot.lrb.load_pins(ctx, boot.NOW.date())
-    return list(svc.launch_environment(ctx, boot.lrb.Settings("2026"), record, RELEASE_ID, {}))
+    # A stated HOME keeps the optional run folders of the machine running the test out of the keys.
+    return list(svc.launch_environment(ctx, boot.lrb.Settings("2026"), record, RELEASE_ID, {"HOME": "/home-for-keys"}))
 
 
 def test_the_image_environment_passes_the_real_hybrid_and_local_provider_gates() -> None:

@@ -21,5 +21,8 @@
   },
   "knowledge_updates": {
     "window_hours": 30
+  },
+  "nightly_evaluation": {
+    "stale_hours": 30
   }
 }

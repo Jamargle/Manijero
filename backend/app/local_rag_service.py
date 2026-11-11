@@ -38,7 +38,7 @@ from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any, Callable, Iterator, List, Mapping, Optional, Protocol, Sequence, Tuple
 
-from app import knowledge_ops
+from app import knowledge_ops, nightly_eval
 from app import knowledge_release as kr
 from app import local_rag_bootstrap as bootstrap
 from app import reranker
@@ -335,6 +335,10 @@ def launch_environment(
     if knowledge_ops_home.is_dir():
         # Read-only recency for the health dashboard; only passed once the owner turned updates on.
         environment[knowledge_ops.STATE_DIR_ENV] = str(knowledge_ops_home)
+    nightly_eval_home = nightly_eval.nightly_eval_home(inherited)
+    if nightly_eval_home.is_dir():
+        # Read-only scores for the health dashboard; only passed once the owner turned the nightly run on.
+        environment[nightly_eval.STATE_DIR_ENV] = str(nightly_eval_home)
     state, ready = reranker_state(ctx, settings, deep=True)
     if state == reranker.STATE_ON and ready:
         environment[reranker.STATE_ENV] = reranker.STATE_ON

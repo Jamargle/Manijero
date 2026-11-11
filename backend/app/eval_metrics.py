@@ -332,10 +332,15 @@ def version_block(
     active_campaign: str,
     label: str,
     schema_versions: Mapping[str, str],
+    answer_cache_check: bool = False,
 ) -> Dict[str, Any]:
-    """The exact inputs and settings a report is keyed by."""
+    """The exact inputs and settings a report is keyed by.
 
-    return {
+    ``answer_cache_check`` is added only when the check ran, so a default report keeps its
+    ``version_id`` byte for byte.
+    """
+
+    block: Dict[str, Any] = {
         "as_of": as_of,
         "active_campaign": active_campaign,
         "label": label,
@@ -349,6 +354,9 @@ def version_block(
         "glossary": glossary,
         "schema_versions": dict(schema_versions),
     }
+    if answer_cache_check:
+        block["answer_cache_check"] = True
+    return block
 
 
 def version_id(version: Mapping[str, Any]) -> str:
@@ -453,12 +461,13 @@ def build_report(
     report_id: str,
     rows: Sequence[Mapping[str, Any]],
     faithfulness: Mapping[str, Any],
+    answer_cache_check: Optional[Mapping[str, int]] = None,
 ) -> Dict[str, Any]:
     counts = {name: 0 for name in CASE_SETS}
     for row in rows:
         counts[row["case_set"]] += 1
     counts["total"] = len(rows)
-    return {
+    document: Dict[str, Any] = {
         "schema_version": SCHEMA_VERSION,
         "version": dict(version),
         "version_id": report_id,
@@ -468,6 +477,27 @@ def build_report(
         "cases": [canonical_row(row) for row in rows],
         "limits": list(LIMITS),
         "report_only": True,
+    }
+    if answer_cache_check is not None:
+        document["answer_cache_check"] = {
+            key: int(answer_cache_check[key]) for key in CACHE_CHECK_KEYS
+        }
+    return document
+
+
+CACHE_CHECK_KEYS = ("asked", "served_from_cache", "reused_unchanged", "differed")
+
+
+def answer_cache_check_block(
+    asked: int, served_from_cache: int, reused_unchanged: int, differed: int
+) -> Dict[str, int]:
+    """Counts only: how many replays the cache served, and how many matched the scored answer."""
+
+    return {
+        "asked": asked,
+        "served_from_cache": served_from_cache,
+        "reused_unchanged": reused_unchanged,
+        "differed": differed,
     }
 
 
@@ -489,13 +519,24 @@ def result_line(report: Mapping[str, Any], report_path: Path) -> str:
         )
     else:
         judged_text = f"not judged ({faithfulness['reason']})"
+    check = report.get("answer_cache_check")
+    ending = "."
+    if isinstance(check, Mapping):
+        ending = (
+            "; cached answers: {reused} of {asked} reused unchanged "
+            "({differed} differed).".format(
+                reused=check["reused_unchanged"],
+                asked=check["asked"],
+                differed=check["differed"],
+            )
+        )
     return (
         "Result: evaluated {total} questions ({reviewed} reviewed, {golden} golden, "
         "{trap} trap) for version {report_id}: hit@1 {hit1}, hit@3 {hit3}, hit@5 {hit5}, "
         "MRR {mrr} over {questions} questions with an expected passage; abstention correct "
         "{correct} of {expected}; numbers and dates correct {numeric_correct} of "
         "{numeric_facts}; faithfulness: {faithfulness}. Report only, no gate. "
-        "Report: {path}.".format(
+        "Report: {path}{ending}".format(
             total=counts["total"],
             reviewed=counts["reviewed"],
             golden=counts["golden"],
@@ -512,6 +553,7 @@ def result_line(report: Mapping[str, Any], report_path: Path) -> str:
             numeric_facts=numeric["facts"],
             faithfulness=judged_text,
             path=display_path(Path(report_path)),
+            ending=ending,
         )
     )
 

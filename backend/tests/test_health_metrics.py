@@ -18,7 +18,7 @@ from fastapi.testclient import TestClient
 
 import app.ask_api as ask_api
 import app.gemini_generation as gemini_module
-from app import health_metrics, knowledge_ops
+from app import health_metrics, knowledge_ops, nightly_eval
 from app import source_update_scheduler as scheduler
 from app.ask_api import (
     CorpusDocuments,
@@ -58,7 +58,7 @@ SOLICITUD_FRAGMENT = "se presenta una vez al año"
 # Independent copy of the contract: label names and their fixed values.
 ALLOWED_LABEL_NAMES = {
     "profile", "version", "provider", "route", "code", "rating", "reason", "status", "outcome",
-    "problem", "release_id", "state", "job", "le",
+    "problem", "release_id", "state", "job", "le", "metric",
 }
 ALLOWED_LABEL_VALUES: dict[str, set[str]] = {
     "profile": {"development", "pilot"},
@@ -84,6 +84,7 @@ ALLOWED_LABEL_VALUES: dict[str, set[str]] = {
     "state": {"served", "refused", "repository"},
     "job": {"monitor", "boe", "boja"},
     "le": {"0.05", "0.1", "0.25", "0.5", "1", "2.5", "5", "10", "30", "60", "+Inf"},
+    "metric": {"hit_at_1", "hit_at_3", "hit_at_5", "mrr", "abstention", "numeric", "faithfulness", "cache_reuse"},
 }
 EXPECTED_FAMILIES = {
     "service_info", "generation_provider_info", "process_start_time_seconds", "ready",
@@ -93,7 +94,9 @@ EXPECTED_FAMILIES = {
     "source_updates_readable", "source_updates_healthy", "source_update_stale",
     "source_update_last_success_timestamp_seconds", "knowledge_ops_configured",
     "knowledge_ops_readable", "knowledge_ops_last_run_outcome",
-    "knowledge_ops_last_run_finished_timestamp_seconds",
+    "knowledge_ops_last_run_finished_timestamp_seconds", "nightly_eval_configured",
+    "nightly_eval_readable", "nightly_eval_last_run_outcome",
+    "nightly_eval_last_run_finished_timestamp_seconds", "nightly_eval_score", "nightly_eval_score_dropped",
 }
 
 
@@ -104,6 +107,7 @@ EXPECTED_FAMILIES = {
 def _clean_environment(monkeypatch: pytest.MonkeyPatch) -> None:
     monkeypatch.delenv(health_metrics.SOURCE_UPDATE_STATE_DIR_ENV, raising=False)
     monkeypatch.delenv(health_metrics.KNOWLEDGE_OPS_STATE_DIR_ENV, raising=False)
+    monkeypatch.delenv(health_metrics.NIGHTLY_EVAL_STATE_DIR_ENV, raising=False)
     monkeypatch.delenv(ask_api.KNOWLEDGE_RELEASE_ROOT_ENV, raising=False)
     monkeypatch.setattr(ask_api, "_LAST_RELEASE_OUTCOME", None)
 
@@ -874,3 +878,101 @@ def test_knowledge_ops_a_folder_with_no_run_yet_has_only_zero_outcomes(
         page = scrape(client)
     assert page.value("knowledge_ops_readable") == 1
     assert all(page.value("knowledge_ops_last_run_outcome", outcome=o) == 0 for o in health_metrics.KNOWLEDGE_OPS_OUTCOMES)
+
+
+# --- nightly evaluation entry --------------------------------------------------------------------
+
+
+def _nightly_ledger(folder: Path, *, outcome: str | None = "evaluated", finished: bool = True,
+                    age_hours: float = 1.0, drops: tuple[str, ...] = ()) -> None:
+    start = datetime.now(timezone.utc) - timedelta(hours=age_hours)
+    common = {"schema_version": nightly_eval.LEDGER_SCHEMA, "run_id": "run-20261101T000000Z-00000000",
+              "trigger": "schedule", "started_at": start.isoformat()}
+    records = [{**common, "event": "run_started", "as_of": "2026-11-01"}]
+    if finished:
+        record = {**common, "event": "run_finished", "finished_at": (start + timedelta(minutes=5)).isoformat(),
+                  "outcome": outcome, "alert": "not_needed"}
+        if outcome == "evaluated":
+            record.update(scores={"hit_at_1": 0.7321, "mrr": 0.7768, "faithfulness": None},
+                          drops=[{"metric": key, "old": 0.9, "new": 0.5} for key in drops])
+        records.append(record)
+    folder.mkdir(parents=True, exist_ok=True)
+    (folder / nightly_eval.LEDGER_NAME).write_text("".join(json.dumps(r) + "\n" for r in records), encoding="utf-8")
+
+
+def test_nightly_eval_unconfigured_reports_only_the_configured_zero() -> None:
+    with TestClient(build_app()) as client:
+        page = scrape(client)
+    assert page.value("nightly_eval_configured") == 0
+    assert not {name for name in page.sample_names() if "nightly_eval" in name} - {"manijero_nightly_eval_configured"}
+
+
+def test_nightly_eval_reports_outcome_time_scores_and_drops(monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> None:
+    folder = tmp_path / "nightly-folder-SECRET"
+    _nightly_ledger(folder, drops=("mrr",))
+    monkeypatch.setenv(health_metrics.NIGHTLY_EVAL_STATE_DIR_ENV, str(folder))
+    with TestClient(build_app()) as client:
+        page = scrape(client)
+    assert page.value("nightly_eval_configured") == 1 and page.value("nightly_eval_readable") == 1
+    for known in health_metrics.NIGHTLY_EVAL_OUTCOMES:
+        assert page.value("nightly_eval_last_run_outcome", outcome=known) == (1 if known == "evaluated" else 0)
+    assert page.value("nightly_eval_last_run_finished_timestamp_seconds") > 0
+    assert page.value("nightly_eval_score", metric="hit_at_1") == 0.7321
+    assert page.value("nightly_eval_score", metric="mrr") == 0.7768
+    assert page.values("nightly_eval_score", metric="faithfulness") == []  # not measured: no sample
+    assert page.value("nightly_eval_score_dropped", metric="mrr") == 1
+    assert page.value("nightly_eval_score_dropped", metric="hit_at_1") == 0
+    assert {labels["metric"] for name, labels, _ in page.samples if "metric" in labels} <= ALLOWED_LABEL_VALUES["metric"]
+    assert "SECRET" not in page.text
+
+
+@pytest.mark.parametrize("outcome", ["failed", "stopped_at_time_limit"])
+def test_nightly_eval_a_failed_run_has_no_scores(monkeypatch: pytest.MonkeyPatch, tmp_path: Path, outcome: str) -> None:
+    _nightly_ledger(tmp_path / "n", outcome=outcome)
+    monkeypatch.setenv(health_metrics.NIGHTLY_EVAL_STATE_DIR_ENV, str(tmp_path / "n"))
+    with TestClient(build_app()) as client:
+        page = scrape(client)
+    assert page.value("nightly_eval_last_run_outcome", outcome=outcome) == 1
+    assert page.values("nightly_eval_score") == [] and page.values("nightly_eval_score_dropped") == []
+
+
+def test_nightly_eval_an_unfinished_run_is_interrupted(monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> None:
+    _nightly_ledger(tmp_path / "n", finished=False, age_hours=5)
+    monkeypatch.setenv(health_metrics.NIGHTLY_EVAL_STATE_DIR_ENV, str(tmp_path / "n"))
+    with TestClient(build_app()) as client:
+        page = scrape(client)
+    assert page.value("nightly_eval_last_run_outcome", outcome="interrupted") == 1
+    assert page.values("nightly_eval_last_run_finished_timestamp_seconds") == []
+
+
+def test_nightly_eval_an_unreadable_or_missing_folder_is_not_readable(
+    monkeypatch: pytest.MonkeyPatch, tmp_path: Path
+) -> None:
+    broken = tmp_path / "broken-SECRET"
+    broken.mkdir()
+    (broken / nightly_eval.LEDGER_NAME).write_text("not json\n", encoding="utf-8")
+    for folder in (broken, tmp_path / "missing-SECRET"):
+        monkeypatch.setenv(health_metrics.NIGHTLY_EVAL_STATE_DIR_ENV, str(folder))
+        with TestClient(build_app()) as client:
+            page = scrape(client)
+        assert page.value("nightly_eval_configured") == 1 and page.value("nightly_eval_readable") == 0
+        assert page.values("nightly_eval_last_run_outcome") == [] and page.values("nightly_eval_score") == []
+        assert "SECRET" not in page.text
+
+
+def test_nightly_eval_a_folder_with_no_run_yet_has_only_zero_outcomes(
+    monkeypatch: pytest.MonkeyPatch, tmp_path: Path
+) -> None:
+    (tmp_path / "n").mkdir()
+    monkeypatch.setenv(health_metrics.NIGHTLY_EVAL_STATE_DIR_ENV, str(tmp_path / "n"))
+    with TestClient(build_app()) as client:
+        page = scrape(client)
+    assert page.value("nightly_eval_readable") == 1 and page.values("nightly_eval_score") == []
+    assert all(page.value("nightly_eval_last_run_outcome", outcome=o) == 0 for o in health_metrics.NIGHTLY_EVAL_OUTCOMES)
+
+
+def test_nightly_eval_metric_values_outside_the_allowlist_are_never_rendered() -> None:
+    page = health_metrics.HealthMetrics().render(
+        ready=True, nightly_eval={"readable": True, "outcome": "evaluated", "finished": 1.0,
+                                  "scores": {"hit_at_1": 0.5, "question-text": 0.1}, "dropped": {"question-text": 1}})
+    assert "question-text" not in page and 'metric="hit_at_1"' in page

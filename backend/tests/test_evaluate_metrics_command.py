@@ -463,3 +463,63 @@ def test_judge_stdout_not_printed(tmp_path: Path, capsys: pytest.CaptureFixture)
 
     assert "Checked case" not in output
     assert len(_result_lines(output)) == 1
+
+
+# --- nightly_evaluation: the answer cache check -------------------------------------------
+
+
+def test_the_cache_check_adds_one_block_and_leaves_the_scored_pass_unchanged(
+    tmp_path: Path, capsys: pytest.CaptureFixture
+) -> None:
+    _, plain_output, plain_root = _run(tmp_path, "--no-judge", capsys=capsys)
+    plain = _report(plain_root)
+    before = _tree_hashes(KNOWLEDGE)
+
+    code, output, root = _run(tmp_path, "--no-judge", "--answer-cache-check", capsys=capsys)
+
+    assert code == 0 and _tree_hashes(KNOWLEDGE) == before
+    reports = {path.parent.name: json.loads(path.read_text(encoding="utf-8")) for path in root.glob("*/metrics.json")}
+    checked = next(report for report in reports.values() if "answer_cache_check" in report)
+    assert len(reports) == 2 and checked["version_id"] != plain["version_id"]  # a different version, not an overwrite
+    assert checked["version"]["answer_cache_check"] is True and "answer_cache_check" not in plain["version"]
+    block = checked["answer_cache_check"]
+    assert set(block) == {"asked", "served_from_cache", "reused_unchanged", "differed"}
+    assert block["asked"] == 92 and block["differed"] == 0
+    assert 0 < block["reused_unchanged"] <= block["served_from_cache"] <= block["asked"]
+    assert block["reused_unchanged"] == block["served_from_cache"]  # every cache hit equalled the scored answer
+    for key in ("metrics", "faithfulness", "cases", "case_counts"):
+        assert checked[key] == plain[key]  # the scored pass is cache-off and unchanged
+    line = _result_lines(output)[0]
+    assert line.endswith("; cached answers: %d of 92 reused unchanged (0 differed)." % block["reused_unchanged"])
+    assert _result_lines(plain_output)[0].endswith("Report only, no gate. Report: metrics.json.")
+    assert "cached answers" not in _result_lines(plain_output)[0]
+
+
+def test_a_cached_answer_that_differs_from_the_scored_one_is_counted(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture
+) -> None:
+    original = SCRIPT_MODULE._ask
+    calls = {"count": 0}
+
+    def tampered(client: Any, case: Any) -> Any:
+        calls["count"] += 1
+        response = original(client, case)
+        if calls["count"] == 93:  # the replay of the first case
+            response = dict(response, answer=response["answer"] + " cambiada")
+        return response
+
+    monkeypatch.setattr(SCRIPT_MODULE, "_ask", tampered)
+
+    code, output, root = _run(tmp_path, "--no-judge", "--answer-cache-check", capsys=capsys)
+
+    assert code == 0  # report only: a difference never changes the exit code
+    block = _report(root)["answer_cache_check"]
+    assert block["asked"] == 92 and block["differed"] == 1
+    assert block["reused_unchanged"] <= block["served_from_cache"] and block["reused_unchanged"] <= 91
+    assert "(1 differed)." in _result_lines(output)[0]
+
+
+def test_the_cache_check_writes_only_the_report(tmp_path: Path, capsys: pytest.CaptureFixture) -> None:
+    _, _, root = _run(tmp_path, "--no-judge", "--answer-cache-check", capsys=capsys)
+
+    assert sorted(path.name for path in root.rglob("*") if path.is_file()) == ["metrics.json"]
