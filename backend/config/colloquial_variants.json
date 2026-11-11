@@ -984,8 +984,12 @@
         "by": "agent:knowledge_update_review",
         "on": "2026-11-11"
       },
-      "review_state": "draft",
-      "decision": null
+      "review_state": "approved",
+      "decision": {
+        "decision": "approved",
+        "reviewed_by": "Jose",
+        "reviewed_on": "2026-11-11"
+      }
     },
     {
       "id": "coll-051",
@@ -1000,8 +1004,12 @@
         "by": "agent:knowledge_update_review",
         "on": "2026-11-11"
       },
-      "review_state": "draft",
-      "decision": null
+      "review_state": "approved",
+      "decision": {
+        "decision": "approved",
+        "reviewed_by": "Jose",
+        "reviewed_on": "2026-11-11"
+      }
     },
     {
       "id": "coll-052",
@@ -1015,8 +1023,12 @@
         "by": "agent:knowledge_update_review",
         "on": "2026-11-11"
       },
-      "review_state": "draft",
-      "decision": null
+      "review_state": "approved",
+      "decision": {
+        "decision": "approved",
+        "reviewed_by": "Jose",
+        "reviewed_on": "2026-11-11"
+      }
     },
     {
       "id": "coll-053",
@@ -1030,8 +1042,12 @@
         "by": "agent:knowledge_update_review",
         "on": "2026-11-11"
       },
-      "review_state": "draft",
-      "decision": null
+      "review_state": "approved",
+      "decision": {
+        "decision": "approved",
+        "reviewed_by": "Jose",
+        "reviewed_on": "2026-11-11"
+      }
     }
   ]
 }
