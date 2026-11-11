@@ -261,7 +261,7 @@ def test_a_failed_run_is_never_the_comparison_base(lab: Lab) -> None:
     failed = lab.run("ask_failed")
     assert (failed.outcome, failed.code, failed.exit_code) == ("failed", "ask_failed", 1)
     finished = lab.records()[-1]
-    assert "scores" not in finished and finished["alert"] == "not_needed"
+    assert "scores" not in finished and finished["alert"] == "sent"  # a failed run is reported, never compared
     lab.run("hang")
     result = lab.run(("cccccccccccccccc", {**HIGH, "hit_at_3": 0.5}, {}))
     assert [d["metric"] for d in result.drops] == ["hit_at_3"] and result.drops[0]["old"] == 0.8
@@ -507,3 +507,52 @@ def test_the_knowledge_folder_is_untouched(lab: Lab) -> None:
     lab.run(good())
     lab.run(("bbbbbbbbbbbbbbbb", {**HIGH, "mrr": 0.1}, {}))
     assert fingerprint() == before
+
+
+def test_a_run_that_does_not_finish_sends_one_message(lab: Lab) -> None:
+    lab.store_credentials()
+    failed = lab.run("ask_failed", "schedule")
+    stopped = lab.run("hang", "schedule")
+    assert (failed.alert, stopped.alert) == ("sent", "sent") and failed.exit_code == 1
+    assert lab.telegram.sent == [
+        "Manijero nightly evaluation: the run did not finish (something failed, code ask_failed). No scores were "
+        "recorded. First step: open the health dashboard, then run ./scripts/init.sh --nightly-eval-status.",
+        "Manijero nightly evaluation: the run did not finish (stopped at the 3-hour limit, code time_limit). No scores "
+        "were recorded. First step: open the health dashboard, then run ./scripts/init.sh --nightly-eval-status.",
+    ]
+    assert "Alert: one message was sent to your phone." in failed.summary
+
+
+def test_a_failed_run_without_telegram_says_how_to_set_it_up(lab: Lab) -> None:
+    result = lab.run("internal_error")
+    assert result.alert == "not_set_up" and "./scripts/init.sh --qa-alerts-setup" in result.summary
+    assert lab.telegram.sent == []
+
+
+def test_a_missed_night_is_reported_by_the_next_run(lab: Lab) -> None:
+    lab.store_credentials()
+    lab.run(("aaaaaaaaaaaaaaaa", HIGH, {}), "schedule")
+    lab.clock.advance(2 * 24 * 3600)  # the Mac was off for two nights
+    result = lab.run(("bbbbbbbbbbbbbbbb", HIGH, {}), "schedule")
+    assert result.outcome == "evaluated" and result.drops == [] and result.alert == "sent"
+    message = lab.telegram.sent[-1]
+    assert message.startswith("Manijero nightly evaluation: It had not run since ") and "at least one night was missed" in message
+    assert "it ran and no score dropped." in message
+    assert "at least one night was missed" in result.summary
+
+
+def test_a_missed_night_and_a_drop_share_one_message(lab: Lab) -> None:
+    lab.store_credentials()
+    lab.run(("aaaaaaaaaaaaaaaa", HIGH, {}))
+    lab.clock.advance(2 * 24 * 3600)
+    result = lab.run(("bbbbbbbbbbbbbbbb", {**HIGH, "mrr": 0.1}, {}))
+    assert len(lab.telegram.sent) == 1 and "night was missed" in lab.telegram.sent[0]
+    assert "1 score(s) dropped since the last run" in lab.telegram.sent[0] and result.alert == "sent"
+
+
+def test_runs_less_than_thirty_hours_apart_are_not_missed(lab: Lab) -> None:
+    lab.store_credentials()
+    lab.run(("aaaaaaaaaaaaaaaa", HIGH, {}))
+    lab.clock.advance(28 * 3600)
+    result = lab.run(("bbbbbbbbbbbbbbbb", HIGH, {}))
+    assert result.alert == "not_needed" and lab.telegram.sent == []

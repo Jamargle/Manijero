@@ -394,6 +394,33 @@ def alert_text(drops: Sequence[Mapping[str, Any]], inputs_changed: bool) -> str:
         len(drops), parts, INPUTS_CHANGED if inputs_changed else "", FIRST_STEP)
 
 
+def failure_alert_text(outcome: str, code: Optional[str]) -> str:
+    return "Manijero nightly evaluation: the run did not finish ({}, code {}). No scores were recorded.{}".format(
+        OUTCOME_WORDS[outcome], code, FIRST_STEP)
+
+
+def missed_sentence(since: datetime, started: datetime) -> str:
+    return "It had not run since {} ({} hours), so at least one night was missed.".format(
+        _local(since), int((started - since).total_seconds() // 3600))
+
+
+def run_alert_text(outcome: str, code: Optional[str], record: Mapping[str, Any], missed: Optional[str]) -> Optional[str]:
+    """The one message for a run: a score drop, a run that did not finish, or a missed night; else ``None``."""
+
+    if outcome != "evaluated":
+        text = failure_alert_text(outcome, code)
+    elif record.get("drops"):
+        text = alert_text(record["drops"], record["inputs_changed"])
+    elif missed:
+        text = "Manijero nightly evaluation: it ran and no score dropped.{}".format(FIRST_STEP)
+    else:
+        return None
+    if missed:
+        prefix = "Manijero nightly evaluation: "
+        text = prefix + missed + " " + text[len(prefix):]
+    return text
+
+
 def send_alert(ports: Ports, text: str) -> str:
     """One message, at most 3 tries 10 s apart; returns the alert state to record."""
 
@@ -463,6 +490,8 @@ def run_once(ports: Ports, trigger: str) -> RunResult:
     with _Lock(ports.home):
         history = read_ledger(ports.home)
         started = _utc(ports.clock())
+        earlier = [_parse_time(r["started_at"]) for r in history if r["event"] == "run_started"]
+        missed = missed_sentence(max(earlier), started) if earlier and started - max(earlier) > MISSED_AFTER else None
         deadline = started + BUDGET
         run_id = new_run_id(started)
         as_of = started.astimezone(MADRID).date().isoformat()
@@ -489,10 +518,11 @@ def run_once(ports: Ports, trigger: str) -> RunResult:
             code = _failure_code(child)
 
         alert = "not_needed"
-        if record.get("drops"):
-            alert = send_alert(ports, alert_text(record["drops"], record["inputs_changed"]))
+        text = run_alert_text(outcome, code, record, missed)
+        if text is not None:
+            alert = send_alert(ports, text)
         finished = _utc(ports.clock())
-        summary = render_summary(started, finished, outcome, code, record, alert, log_path(ports.home))
+        summary = render_summary(started, finished, outcome, code, record, alert, log_path(ports.home), missed)
         _write_private(ports.home / LATEST_SUMMARY_NAME, summary)
         _append_ledger(ports.home, {**base, "event": "run_finished", "finished_at": finished.isoformat(),
                                     "outcome": outcome, "code": code, "alert": alert, **record})
@@ -535,8 +565,10 @@ def _alert_sentence(alert: str) -> Optional[str]:
 
 
 def render_summary(started: datetime, finished: datetime, outcome: str, code: Optional[str],
-                   record: Mapping[str, Any], alert: str, log: Path) -> str:
+                   record: Mapping[str, Any], alert: str, log: Path, missed: Optional[str] = None) -> str:
     lines = ["Nightly evaluation on {} (took {}).".format(_local(started), _took(started, finished))]
+    if missed:
+        lines.append(missed)
     if outcome == "evaluated":
         scores = record["scores"]
         lines += ["How it went: evaluated.",
@@ -553,6 +585,9 @@ def render_summary(started: datetime, finished: datetime, outcome: str, code: Op
         lines.append("How it went: {}.".format(OUTCOME_WORDS[outcome]))
         lines.append("Code: {}. No scores were recorded. First thing to do: run {} again; if it keeps "
                      "happening, tell a developer.".format(code, RUN_COMMAND))
+        sentence = _alert_sentence(alert)
+        if sentence:
+            lines.append(sentence)
         lines.append("Details for a developer: {}".format(log))
     return "\n".join(lines) + "\n"
 
