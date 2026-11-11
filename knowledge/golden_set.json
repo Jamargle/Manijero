@@ -1878,7 +1878,12 @@
         "by": "agent:knowledge_update_review",
         "on": "2026-11-11"
       },
-      "review_state": "draft"
+      "review_state": "approved",
+      "decision": {
+        "decision": "approved",
+        "reviewed_by": "Jose",
+        "reviewed_on": "2026-11-11"
+      }
     },
     {
       "id": "golden-051",
@@ -1909,7 +1914,12 @@
         "by": "agent:knowledge_update_review",
         "on": "2026-11-11"
       },
-      "review_state": "draft"
+      "review_state": "approved",
+      "decision": {
+        "decision": "approved",
+        "reviewed_by": "Jose",
+        "reviewed_on": "2026-11-11"
+      }
     },
     {
       "id": "golden-052",
@@ -1940,7 +1950,12 @@
         "by": "agent:knowledge_update_review",
         "on": "2026-11-11"
       },
-      "review_state": "draft"
+      "review_state": "approved",
+      "decision": {
+        "decision": "approved",
+        "reviewed_by": "Jose",
+        "reviewed_on": "2026-11-11"
+      }
     },
     {
       "id": "golden-053",
@@ -1971,7 +1986,12 @@
         "by": "agent:knowledge_update_review",
         "on": "2026-11-11"
       },
-      "review_state": "draft"
+      "review_state": "approved",
+      "decision": {
+        "decision": "approved",
+        "reviewed_by": "Jose",
+        "reviewed_on": "2026-11-11"
+      }
     }
   ]
 }
