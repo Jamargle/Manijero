@@ -43,6 +43,29 @@ QA runs the answer service from the image on this Mac and is for made-up test qu
 
 A line starting `PROBLEM` or a `Result:` that begins `QA was not ...` names its one fix; do it and run the command again. QA stops when the Mac sleeps or restarts: run `--qa-deploy` again (it restarts the same version). The warning `Test data only` is a rule, not a filter: never type real questions or land details into QA.
 
+## Send approved knowledge to QA
+
+After you merge a knowledge review pull request on GitHub (see [`knowledge-review-pull-requests.md`](knowledge-review-pull-requests.md)), QA does not change by itself. QA must be running (`--qa-status` all `OK`), Docker Desktop open, and `./scripts/init.sh --local-rag-setup` done once.
+
+1. Run `./scripts/init.sh --qa-knowledge-deploy`. It reads the merged `main` from GitHub, checks the new knowledge (this can take several minutes), shows which knowledge release QA will switch from and to, and asks for `yes`.
+2. Type `yes`. QA restarts (up to two minutes) and is checked again. Expect `Result: QA now answers from knowledge release <id> (main at <short code>)...`.
+3. If something looks wrong, run `./scripts/init.sh --qa-knowledge-rollback` and `yes`. Running it again goes forward again. `./scripts/init.sh --qa-status` shows the `Knowledge:` line.
+
+If QA's checks fail after the switch, the command puts the earlier knowledge back by itself and says so. Nothing is sent without `yes`, and your Manijero folder is not changed. The `Result:` lines you may see:
+
+| `Result:` starts | What to do |
+|---|---|
+| `QA now answers from knowledge release ...` | Done. Test it on your phone. |
+| `QA already has the approved knowledge from main` | Nothing to do: merge a review pull request first. |
+| `the approved knowledge was not sent to QA. <fix>` | Nothing changed. Do the one fix it names, then run the command again. |
+| `the approved knowledge was not sent to QA: <reason>. QA keeps ...` | The new knowledge failed a check. Send the log file shown to a developer. |
+| `the new knowledge failed the QA checks (...), so QA went back ...` | QA is safe on the earlier knowledge. Send the log file to a developer. |
+| `... QA was stopped and is off the internet` | Run `--qa-knowledge-rollback`, then `--qa-deploy`. |
+| `QA was rolled back to knowledge release ...` | The rollback worked. |
+| `there is no earlier QA knowledge to go back to` | Nothing to go back to yet. |
+
+The first time, the command takes the knowledge QA already runs inside its image as the earlier version. It never deploys by itself. Acceptance of this command is automated (`test_qa_knowledge_commands.py`); there is no owner walkthrough.
+
 ## Check the QA Desktop app
 
 With QA deployed, one command checks that the `Manijero QA` Desktop app reaches QA, shows an answer with sources to a made-up question, and gets its `Útil` rating accepted. It needs the QA access key (`--qa-settings-setup`), Java, and no clicking. Run `./scripts/init.sh --qa-check`; the first run can take a few minutes.
