@@ -216,9 +216,15 @@ def _tree_hashes(path: Path) -> dict[str, str]:
 # --- scenario 1: the approved sets ---------------------------------------------------------
 
 
-def test_real_sets_counts_17_49_26_and_report_written(
+def _approved_golden_count() -> int:
+    golden_doc = json.loads((KNOWLEDGE / "golden_set.json").read_text(encoding="utf-8"))
+    return sum(1 for item in golden_doc["items"] if item["review_state"] == "approved")
+
+
+def test_real_sets_counts_17_golden_26_and_report_written(
     tmp_path: Path, capsys: pytest.CaptureFixture
 ) -> None:
+    golden = _approved_golden_count()
     code, output, root = _run(tmp_path, "--no-judge", capsys=capsys)
 
     assert code == 0
@@ -226,18 +232,18 @@ def test_real_sets_counts_17_49_26_and_report_written(
     assert report["schema_version"] == "eval-metrics-report-v1"
     assert report["case_counts"] == {
         "reviewed": 17,
-        "golden": 49,
+        "golden": golden,
         "trap": 26,
-        "total": 92,
+        "total": 17 + golden + 26,
     }
-    assert len(report["cases"]) == 92
+    assert len(report["cases"]) == 17 + golden + 26
     assert report["version"]["k"] == 5
     assert report["version"]["retrieval_mode"] == "bm25"
     assert report["version_id"] == report["version_id"].lower()
     assert len(report["version_id"]) == 16
     lines = _result_lines(output)
     assert len(lines) == 1
-    assert "(17 reviewed, 49 golden, 26 trap)" in lines[0]
+    assert f"(17 reviewed, {golden} golden, 26 trap)" in lines[0]
     assert "faithfulness: not judged (skipped)" in lines[0]
     assert lines[0].endswith("Report only, no gate. Report: metrics.json.")
 
@@ -263,12 +269,13 @@ def test_drafts_and_rejected_items_never_counted(
 
     assert code == 0
     report = _report(root)
-    assert report["case_counts"]["golden"] == 47
-    assert report["case_counts"]["total"] == 90
+    golden = _approved_golden_count() - 2
+    assert report["case_counts"]["golden"] == golden
+    assert report["case_counts"]["total"] == 17 + golden + 26
     ids = {row["id"] for row in report["cases"]}
     assert draft["id"] not in ids
     assert rejected["id"] not in ids
-    assert "(17 reviewed, 47 golden, 26 trap)" in _result_lines(output)[0]
+    assert f"(17 reviewed, {golden} golden, 26 trap)" in _result_lines(output)[0]
 
 
 # --- scenario 7: deterministic and version-keyed -------------------------------------------

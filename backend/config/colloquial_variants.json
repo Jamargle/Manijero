@@ -1,6 +1,6 @@
 {
   "schema_version": "colloquial-variants-v1",
-  "golden_sha256": "5f0b42f8e1c49da41baee788c4263dbaeca78f6158ca572cb1be4925f8bc8242",
+  "golden_sha256": "f967fa268f6e47831f4750a7d120079eae069c8514a3186d4ba7c82b23ba904b",
   "variants": [
     {
       "id": "coll-001",
@@ -971,6 +971,67 @@
         "reviewed_by": "Jose",
         "reviewed_on": "2026-11-11"
       }
+    },
+    {
+      "id": "coll-050",
+      "parent_id": "golden-050",
+      "question": "¿Cuánto aceite tiene que guardar la almazara cada mes?",
+      "colloquial_terms": [
+        "guardar",
+        "cada mes"
+      ],
+      "drafted": {
+        "by": "agent:knowledge_update_review",
+        "on": "2026-11-11"
+      },
+      "review_state": "draft",
+      "decision": null
+    },
+    {
+      "id": "coll-051",
+      "parent_id": "golden-051",
+      "question": "¿Se puede guardar el aceite apartado en un almacén de otro?",
+      "colloquial_terms": [
+        "guardar",
+        "apartado",
+        "un almacén de otro"
+      ],
+      "drafted": {
+        "by": "agent:knowledge_update_review",
+        "on": "2026-11-11"
+      },
+      "review_state": "draft",
+      "decision": null
+    },
+    {
+      "id": "coll-052",
+      "parent_id": "golden-052",
+      "question": "¿Desde qué mes hay que apartar aceite?",
+      "colloquial_terms": [
+        "desde qué mes",
+        "apartar"
+      ],
+      "drafted": {
+        "by": "agent:knowledge_update_review",
+        "on": "2026-11-11"
+      },
+      "review_state": "draft",
+      "decision": null
+    },
+    {
+      "id": "coll-053",
+      "parent_id": "golden-053",
+      "question": "¿Hasta cuándo tengo que tener el aceite apartado sin venderlo?",
+      "colloquial_terms": [
+        "apartado",
+        "sin venderlo"
+      ],
+      "drafted": {
+        "by": "agent:knowledge_update_review",
+        "on": "2026-11-11"
+      },
+      "review_state": "draft",
+      "decision": null
     }
   ]
 }

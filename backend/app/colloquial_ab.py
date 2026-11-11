@@ -49,7 +49,7 @@ MODES = ("no_rewriting", "glossary", "glossary_plus_model")
 STATES = ("draft", "approved", "rejected")
 STATE_LABELS = {"draft": "waiting", "approved": "approved", "rejected": "rejected"}
 
-VARIANTS = 49
+VARIANTS = 53
 MAX_QUESTION_CHARS = 200
 MAX_VARIANT_TERMS = 4
 MAX_MODEL_TERMS = 4

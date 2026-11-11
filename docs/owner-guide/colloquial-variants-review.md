@@ -18,7 +18,7 @@ answer tools.
 1. **List the waiting variants.** Paste `./scripts/init.sh --colloquial-review`. For each variant
    you see its number, the everyday wording, and the test question it belongs to. The same list
    with every state is in `build/colloquial-ab/variants.txt`.
-   - Expected: `Result: 49 colloquial variants wait for your decision (0 approved, 0 rejected). ...`
+   - Expected: `Result: 4 colloquial variants wait for your decision (49 approved, 0 rejected). ...`
 2. **Record your decision.** Use the numbers shown, with your name in quotes:
 
    ```sh
