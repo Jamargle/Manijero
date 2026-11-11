@@ -632,7 +632,10 @@ def test_protect_updates_one_ruleset_and_keeps_bypass_actors(tmp_path):
     assert "ref" not in gh.put_body["conditions"]
     types = {rule["type"] for rule in gh.put_body["rules"]}
     assert types == {"pull_request", "required_status_checks", "non_fast_forward"}
+    pull_request = next(rule for rule in gh.put_body["rules"] if rule["type"] == "pull_request")
+    assert pull_request["parameters"]["require_extra_approval_for_unattributed_changes"] is False
     assert any("only pull requests can change main" in line for line in lines)
+    assert any("commits GitHub cannot link to an account" in line for line in lines)
     assert any("To undo later" in line for line in lines)
     assert result_line(lines) == "Result: main is now protected by protected-main."
     puts = [call for call in gh.calls if call[:2] == ["api", "--method"]]
@@ -676,6 +679,23 @@ def test_the_committed_ruleset_uses_the_documented_ref_name_shape():
     assert "ref" not in committed["conditions"]
     assert "refs/heads/main" in committed["conditions"]["ref_name"]["include"]
     assert hosted_review._committed_ruleset() == (committed, None)
+
+
+def test_the_committed_ruleset_needs_no_extra_approval_for_unattributed_commits():
+    committed = _committed()
+    pull_request = next(rule for rule in committed["rules"] if rule["type"] == "pull_request")
+    assert pull_request["parameters"]["require_extra_approval_for_unattributed_changes"] is False
+
+
+def test_a_live_extra_approval_rule_is_replaced_and_reported_as_a_mismatch():
+    committed = _committed()
+    live = _documented_live()
+    pull_request = next(rule for rule in live["rules"] if rule["type"] == "pull_request")
+    pull_request["parameters"]["require_extra_approval_for_unattributed_changes"] = True
+    assert not hosted_review.ruleset_matches(live, committed)
+    payload = hosted_review.ruleset_payload(live, committed)
+    updated = next(rule for rule in payload["rules"] if rule["type"] == "pull_request")
+    assert updated["parameters"]["require_extra_approval_for_unattributed_changes"] is False
 
 
 def test_a_committed_ruleset_without_main_is_refused(tmp_path, monkeypatch):
