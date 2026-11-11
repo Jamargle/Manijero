@@ -27,7 +27,7 @@ Every morning the owner can see on the dashboard how the assistant scored overni
 - A gate. No score changes an exit code, blocks a merge, a release, or a publish, or changes `/ask`, thresholds, retrieval, the corpus, or the `ci_quality_gates` baseline.
 - Caching answers across runs, on disk, or across processes. Changing the answer cache itself. Turning the cache on in the scored pass.
 - New evaluation sets, metrics, or judge models. A GitHub Actions schedule. QA or container runs. Downloading models (the judge only runs if `--grounding-judge-setup` already ran).
-- Alerts for anything other than a score drop (a failed or missed run appears on the dashboard and in status only). A new alert channel or Telegram setup flow.
+- A new alert channel or Telegram setup flow. (Changed by owner decision 2026-11-11: a run that does not finish, or one more than 30 hours after the previous run, now also sends the one Telegram message; see the owner guide.)
 - Any claim that the scores measure legal correctness or real-user accuracy.
 
 ## Job story

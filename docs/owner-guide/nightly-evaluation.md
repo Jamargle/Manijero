@@ -13,7 +13,7 @@ off at 00:00 misses that night's run.
    `Result: the nightly evaluation is on. It runs every night at 00:00 while this Mac is on.`
    Running it again says `already on` and changes nothing.
 2. **Run now (optional).** Paste `./scripts/init.sh --nightly-eval-run`. It prints a short summary
-   (10 lines at most) and ends with a `Result:` line. Telegram is told only when a score dropped.
+   (10 lines at most) and ends with a `Result:` line. Telegram is told when a score dropped, when the run did not finish, or when a night was missed.
 3. **Check.** Paste `./scripts/init.sh --nightly-eval-status`. Expect the last run, its scores, and
    `Result: the nightly evaluation is on and the last run was evaluated.`
 4. **Turn off.** Paste `./scripts/init.sh --nightly-eval-off`. Expect
@@ -22,9 +22,15 @@ off at 00:00 misses that night's run.
 The latest summary is also in `manijero/nightly-eval/latest-summary.txt`. The health dashboard shows
 a **Nightly evaluation** row (only while the local answer service runs).
 
-**Reading the alert.** One Telegram message per run, only when a score is lower than in the previous
-run, for example `Manijero nightly evaluation: 1 score(s) dropped since the last run: right source
-first 73.2% -> 60.0%.` If it adds `The questions or the knowledge changed`, the drop may be expected.
+**Reading the alert.** At most one Telegram message per run, sent when:
+- a score is lower than in the previous run, for example `Manijero nightly evaluation: 1 score(s)
+  dropped since the last run: right source first 73.2% -> 60.0%.` If it adds `The questions or the
+  knowledge changed`, the drop may be expected;
+- the run did not finish, for example `the run did not finish (stopped at the 3-hour limit, code
+  time_limit). No scores were recorded.`;
+- the previous run was more than 30 hours earlier, for example `It had not run since 2026-11-10 00:00
+  (54 hours), so at least one night was missed.` A missed night is only noticed by the next run, so a
+  Mac that stays off sends nothing until it runs again.
 Then run `./scripts/init.sh --nightly-eval-status`. The message uses the Telegram bot from
 [QA alerts](qa-alerts.md); if it was not sent, the status says which command to run.
 

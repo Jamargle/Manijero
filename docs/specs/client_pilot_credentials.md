@@ -21,7 +21,7 @@ The owner copies the pilot token they were given and runs one command. The test 
 
 - Any in-app token entry, display, status, or on-device token storage; any change to the `Conexión` screen.
 - Issuing, generating, rotating, or revoking server-side credentials (`pilot_ops.py upsert-client` stays as is), or generating the client token for an environment (`environment_profiles`).
-- Per-environment builds or flavours (`client_environment_builds`), signing, or distribution (`private_pilot_distribution`, on hold).
+- Per-environment builds or flavours (`client_environment_builds`), signing, or distribution (`private_pilot_distribution`, removed 2026-11-11; spec archived).
 - New user-facing copy for 401/429: those stay the accepted generic service-error notice.
 - Backend, `contracts/openapi.yaml` (no `securityScheme` added), or mock-server changes. A token on `/health` or `/ready`.
 - A command that removes or shows the saved token. iOS.
