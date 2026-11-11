@@ -24,12 +24,14 @@ import re
 import shutil
 import subprocess
 import urllib.error
+import urllib.parse
 import urllib.request
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Any, Callable, Dict, List, Mapping, Optional, Protocol, Sequence, Tuple
 
 from app import environment_profiles as profiles
+from app import knowledge_release as kr
 from app import local_container as lc
 from app import local_rag_bootstrap as bootstrap
 from app import local_rag_service as service
@@ -56,10 +58,17 @@ TAG_SWAP = lc.IMAGE_REPOSITORY + ":qa-swap"
 TEST_DATA_FLAG = "MANIJERO_QA_TEST_DATA_ONLY"
 CLIENTS_MOUNT = "/run/manijero/pilot-clients.json"
 LOCK_NAME = ".qa.lock"
+# QA's own knowledge releases (docs/specs/qa_knowledge_deployment.md): a folder in the QA home,
+# bind-mounted into the container, so new knowledge needs no image rebuild.
+KNOWLEDGE_ROOT_NAME = "knowledge-releases"
+KNOWLEDGE_MOUNT = "/opt/manijero/qa-knowledge-releases"
+LABEL_KNOWLEDGE = lc.LABEL_RELEASE  # the container label overrides the image's own value
+KNOWLEDGE_COMMAND = "./scripts/init.sh --qa-knowledge-deploy"
 
 PUBLIC_WAIT_SECONDS = 60.0
 PUBLIC_POLL_SECONDS = 3.0
 PUBLIC_TIMEOUT_SECONDS = 8.0
+MAX_METRICS_BYTES = 1_000_000
 TAILSCALE_TIMEOUT_SECONDS = 20.0
 
 # --- Tailscale CLI forms (documented current forms; the owner walkthrough confirms them) --------
@@ -151,10 +160,16 @@ class QaPorts:
     home: Path
     port: int
     address_file: Path
+    metrics_release: Optional[Callable[[str, str], Optional[str]]] = None  # (loopback url, token) -> release id
 
     @property
     def out(self) -> Callable[[str], None]:
         return self.tools.out
+
+    def served_release(self, base_url: str, token: str) -> Optional[str]:
+        """The knowledge release id ``/metrics`` reports (the QA key is sent to loopback only)."""
+
+        return (self.metrics_release or system_metrics_release)(base_url, token)
 
 
 def port_from_environment(environ: Mapping[str, str]) -> int:
@@ -309,10 +324,38 @@ def version_tag(labels: Mapping[str, str]) -> str:
     return lc.versioned_tag(labels.get(lc.LABEL_RELEASE, "unknown"), labels.get(lc.LABEL_REVISION, "unknown"))
 
 
-def run_argv(port: int, campaign: str, clients_file: Path) -> List[str]:
-    """The fixed ``docker run`` arguments: loopback publish, fixed environment, read-only keys."""
+def knowledge_root(home: Path) -> Path:
+    """QA's own release root, ``<QA home>/knowledge-releases``."""
 
-    return [
+    return Path(home) / KNOWLEDGE_ROOT_NAME
+
+
+def qa_release_id(home: Path) -> Optional[str]:
+    """The release QA publishes (its ``current``), or ``None`` when QA serves the image's release."""
+
+    root = knowledge_root(home)
+    if not (root / kr.RELEASES_DIR).is_dir():
+        return None
+    try:
+        return kr.current_release_id(root)
+    except kr.ReleaseError:
+        return None
+
+
+def run_argv(
+    port: int,
+    campaign: str,
+    clients_file: Path,
+    release_id: Optional[str] = None,
+    release_root: Optional[Path] = None,
+) -> List[str]:
+    """The fixed ``docker run`` arguments: loopback publish, fixed environment, read-only keys.
+
+    With ``release_id`` (and the folder ``release_root`` that holds it) the container also serves QA's own published knowledge release through a
+    bind mount; without it the image's built-in release is served, exactly as before.
+    """
+
+    argv = [
         "run", "--detach", "--init",
         "--name", CONTAINER_NAME,
         "--label", "{}=1".format(lc.MANAGED_LABEL),
@@ -324,6 +367,18 @@ def run_argv(port: int, campaign: str, clients_file: Path) -> List[str]:
         "--env", "{}=yes".format(TEST_DATA_FLAG),
         "--env", "{}={}".format(profiles.CLIENTS_FILE_KEY, CLIENTS_MOUNT),
         "--mount", "type=bind,source={},target={},readonly".format(clients_file, CLIENTS_MOUNT),
+    ]
+    if release_id is not None:
+        assert release_root is not None
+        argv += [
+            "--label", "{}={}".format(LABEL_KNOWLEDGE, release_id),
+            "--env", "MANIJERO_KNOWLEDGE_RELEASE_ROOT={}".format(KNOWLEDGE_MOUNT),
+            "--env", "MANIJERO_VECTOR_STORE={}/{}/{}/{}".format(
+                KNOWLEDGE_MOUNT, kr.RELEASES_DIR, release_id, kr.VECTOR_STORE_DIR
+            ),
+            "--mount", "type=bind,source={},target={}".format(release_root, KNOWLEDGE_MOUNT),
+        ]
+    return argv + [
         "--cap-drop", "ALL",
         "--security-opt", "no-new-privileges",
         "--restart", "no",
@@ -523,10 +578,20 @@ def _start(ports: QaPorts, facts: _Facts, log: bootstrap.RunLog, again: str) -> 
     """Replace the QA container by one running ``qa-current``; ``None`` when it is ready and smoked."""
 
     assert facts.settings is not None and facts.token is not None
+    return start_with(ports, facts.settings, facts.token, log, again)
+
+
+def start_with(
+    ports: QaPorts, settings: profiles.ProfileSettings, token: str, log: bootstrap.RunLog, again: str
+) -> Optional[Tuple[str, str]]:
+    """Replace the QA container; it serves QA's published knowledge release when one exists,
+    otherwise the image's own. ``None`` when it is ready and its self-check passed."""
+
     if not _remove_ours(ports, log):
         return ("The earlier QA container could not be cleared.", lc.FIX_OPEN_DOCKER)
     clients = profiles.credential_paths(ports.home, profiles.QA_CLIENT_ID).clients
-    argv = run_argv(ports.port, facts.settings.campaign, clients)
+    release_id = qa_release_id(ports.home)
+    argv = run_argv(ports.port, settings.campaign, clients, release_id, knowledge_root(ports.home))
     log.write("$ docker " + " ".join(argv))
     result = ports.docker.run(argv, lc.DOCKER_TIMEOUT_SECONDS)
     log.write(result.stdout)
@@ -536,7 +601,7 @@ def _start(ports: QaPorts, facts: _Facts, log: bootstrap.RunLog, again: str) -> 
     failure = _wait_ready(ports, log, again)
     if failure is not None:
         return failure
-    failures = ports.smoke(service.service_url(ports.port), facts.token)
+    failures = ports.smoke(service.service_url(ports.port), token)
     if failures:
         log.write("smoke: " + ",".join(failures))
         return ("The answer service started but its self-check failed ({}).".format(", ".join(failures)), again)
@@ -572,6 +637,20 @@ def _wait_public(ports: QaPorts, address: str) -> bool:
 
 def _log(ports: QaPorts, op: str) -> bootstrap.RunLog:
     return bootstrap.RunLog(ports.home / "logs", "qa-{}".format(op), ports.clock.now)
+
+
+# Public names of the helpers that :mod:`app.qa_knowledge` reuses.
+qa_container = _qa_container
+lock_path = _lock_path
+open_log = _log
+start_container = _start
+wait_public = _wait_public
+confirm = _confirm
+funnel_off = _funnel_off
+remove_ours = _remove_ours
+save_logs = _save_logs
+Problems = _Problems
+TailscaleFacts = _Tailscale
 
 
 # --- Deploy -------------------------------------------------------------------------------
@@ -860,6 +939,25 @@ def _read_address_file(path: Path) -> Optional[str]:
         return None
 
 
+def _knowledge_check(
+    ports: QaPorts, found: lc.ContainerInfo, image_labels: Mapping[str, str]
+) -> Tuple[bool, str, str]:
+    """Which knowledge release QA serves compared with the one published to QA (``ok``, line, fix)."""
+
+    published = qa_release_id(ports.home)
+    image_release = image_labels.get(lc.LABEL_RELEASE, "unknown")
+    if published is None:
+        return (True, _line(True, "Knowledge", "the release built into the image ({}).".format(image_release)), "")
+    served = found.labels.get(LABEL_KNOWLEDGE) or image_release
+    if served == published:
+        return (True, _line(True, "Knowledge", "release {} published to QA.".format(published)), "")
+    return (
+        False,
+        _line(False, "Knowledge", "QA serves {} but the published QA release is {}.".format(served, published)),
+        "Run {}.".format(KNOWLEDGE_COMMAND),
+    )
+
+
 def run_status(ctx: bootstrap.Context, ports: QaPorts) -> int:
     out = ports.out
     state = lc.docker_state(ports.docker)
@@ -890,6 +988,7 @@ def run_status(ctx: bootstrap.Context, ports: QaPorts) -> int:
             "",
         )
     )
+    checks.append(_knowledge_check(ports, found, labels))
     answers = ports.probe.health(ports.port) == service.SERVICE_NAME and ports.probe.ready(ports.port) == service.READY
     checks.append(
         (
@@ -1048,6 +1147,27 @@ def system_smoke(base_url: str, token: str) -> Sequence[str]:
     from app.pilot_ops import run_smoke
 
     return run_smoke(base_url, token=token).failures
+
+
+_METRIC_RELEASE = re.compile(r'^manijero_knowledge_release_info\{[^}]*\brelease_id="([0-9a-f]{16}|none)"', re.MULTILINE)
+
+
+def system_metrics_release(base_url: str, token: str) -> Optional[str]:
+    """The release id in ``/metrics`` (``knowledge_release_info``) on loopback with the QA key, or ``None``."""
+
+    parsed = urllib.parse.urlparse(base_url)
+    if parsed.scheme != "http" or parsed.hostname not in ("127.0.0.1", "localhost"):
+        return None
+    request = urllib.request.Request(
+        base_url.rstrip("/") + "/metrics", headers={"authorization": "Bearer " + token}, method="GET"
+    )
+    try:
+        with urllib.request.urlopen(request, timeout=PUBLIC_TIMEOUT_SECONDS) as response:  # noqa: S310 - loopback only
+            text = response.read(MAX_METRICS_BYTES).decode("utf-8", "replace")
+    except (OSError, ValueError, urllib.error.URLError):
+        return None
+    match = _METRIC_RELEASE.search(text)
+    return match.group(1) if match else None
 
 
 def system_public_probe(address: str) -> bool:

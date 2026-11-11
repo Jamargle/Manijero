@@ -1,7 +1,7 @@
 # Help text: --help and the standard-command list printed by --check.
 usage() {
   cat <<'EOF'
-Usage: ./scripts/init.sh [--check|--fast|--verify|--feature <id>|--backend-tests [targets]|--setup-python [dev|hybrid|docparse]|--backend|--mock|--mock-status|--mock-stop|--local-rag-setup|--local-rag-status|--local-rag-start|--local-rag-service-status|--local-rag-load-test|--local-rag-stop|--container-build|--container-start|--container-status|--container-stop|--monitoring-start|--monitoring-status|--monitoring-stop|--pilot-token-save|--demo-rehearsal|--golden-review|--golden-decide|--trap-review|--trap-decide|--glossary-review|--glossary-decide|--grounding-judge-setup|--grounding-judge-report|--usability-record|--local-smoke|--qa-check|--environments-status|--qa-settings-setup|--qa-deploy|--qa-update|--qa-rollback|--qa-status|--qa-stop|--qa-alerts-setup|--qa-alerts-start|--qa-alerts-stop|--qa-alerts-status|--qa-alerts-test|--knowledge-updates-on|--knowledge-updates-run|--knowledge-updates-status|--knowledge-updates-off|--knowledge-review-open|--knowledge-review-protect|--reranker-download|--reranker-measure|--reranker-on|--reranker-off|--android|--android-run|--desktop|--android-qa|--desktop-qa|--help]
+Usage: ./scripts/init.sh [--check|--fast|--verify|--feature <id>|--backend-tests [targets]|--setup-python [dev|hybrid|docparse]|--backend|--mock|--mock-status|--mock-stop|--local-rag-setup|--local-rag-status|--local-rag-start|--local-rag-service-status|--local-rag-load-test|--local-rag-stop|--container-build|--container-start|--container-status|--container-stop|--monitoring-start|--monitoring-status|--monitoring-stop|--pilot-token-save|--demo-rehearsal|--golden-review|--golden-decide|--trap-review|--trap-decide|--glossary-review|--glossary-decide|--grounding-judge-setup|--grounding-judge-report|--usability-record|--local-smoke|--qa-check|--environments-status|--qa-settings-setup|--qa-deploy|--qa-update|--qa-rollback|--qa-status|--qa-stop|--qa-knowledge-deploy|--qa-knowledge-rollback|--qa-alerts-setup|--qa-alerts-start|--qa-alerts-stop|--qa-alerts-status|--qa-alerts-test|--knowledge-updates-on|--knowledge-updates-run|--knowledge-updates-status|--knowledge-updates-off|--knowledge-review-open|--knowledge-review-protect|--reranker-download|--reranker-measure|--reranker-on|--reranker-off|--android|--android-run|--desktop|--android-qa|--desktop-qa|--help]
 
   --check                   Check Java and the Gradle wrapper, then print standard commands (default)
   --fast                    Shared host tests, contract examples, backend unit tests, and the five
@@ -92,6 +92,9 @@ Usage: ./scripts/init.sh [--check|--fast|--verify|--feature <id>|--backend-tests
   --qa-rollback             Put the earlier QA image back (run it again to roll forward)
   --qa-status               Say whether QA runs, answers, and is reachable
   --qa-stop                 Take QA off the internet and stop it
+  --qa-knowledge-deploy     Send the approved knowledge merged to main to QA, checked first,
+                            with an automatic way back if QA's checks fail
+  --qa-knowledge-rollback   Put QA's earlier knowledge back (run it again to roll forward)
                             (placeholder server address; nothing is deployed)
   --qa-alerts-setup         One time: store the Telegram bot token and find your chat
   --qa-alerts-start         Turn on the check that runs every 5 minutes and messages you on

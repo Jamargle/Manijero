@@ -2722,6 +2722,29 @@ the owner walkthrough confirms them on a real Mac. Test-only variables: `MANIJER
 `MANIJERO_DOCKER_CLI`, `MANIJERO_QA_PORT`, `MANIJERO_QA_HOME`, `MANIJERO_QA_ADDRESS_FILE`.
 Logs: `<QA home>/logs/qa-<operation>-<UTC>.log` (container output only; no tokens or question text).
 
+### QA knowledge deployment
+
+`./scripts/init.sh --qa-knowledge-deploy` and `--qa-knowledge-rollback` (owner steps in
+[`docs/owner-guide/qa.md`](../docs/owner-guide/qa.md)) run `scripts/qa_knowledge.py deploy|rollback`,
+implemented by `app/qa_knowledge.py` (operator-only; spec
+[`qa_knowledge_deployment`](../docs/specs/qa_knowledge_deployment.md)). Deploy fetches `origin/main` (read-only),
+builds in a temporary `git worktree` (always removed), and runs the worktree's `check_quality_gate.py check`,
+`manage_embeddings.py build`, and `knowledge_release.py prepare --with-vector-store --json` (the regression
+baseline is QA's current release; `--code-revision` and `--reviewed-baseline-revision` are the fetched SHA). If
+QA has no release root yet, it first adopts the release built into the image with `docker cp`. After `yes` it
+runs `knowledge_release.publish`, replaces `manijero-qa` with the same image, and checks it (ready within 120 s,
+smoke, `/metrics` `knowledge_release_info` equals the new id, public `/health`). A failed check calls
+`knowledge_release.rollback --to <old>` and restarts; if that fails too, Funnel goes off and QA stops.
+`qa_deployment.run_argv(..., release_id, release_root)` adds exactly the bind mount
+`<QA home>/knowledge-releases` at `/opt/manijero/qa-knowledge-releases`, `MANIJERO_KNOWLEDGE_RELEASE_ROOT`,
+`MANIJERO_VECTOR_STORE`, and the label `org.manijero.knowledge-release=<id>`; `--qa-deploy`, `--qa-update`,
+and `--qa-rollback` pass QA's current release, and `--qa-status` prints a `Knowledge:` line. The structured
+index stays off. Test-only variables (plus those of QA deployment): `MANIJERO_QA_KNOWLEDGE_REPO`,
+`MANIJERO_QA_KNOWLEDGE_DEV_PYTHON`, `MANIJERO_QA_KNOWLEDGE_HYBRID_PYTHON`,
+`MANIJERO_QA_KNOWLEDGE_EMBEDDING_CONFIG`, `MANIJERO_QA_KNOWLEDGE_TODAY`, `MANIJERO_QA_PUBLIC_PROBE_URL`
+(loopback only). Logs: `<QA home>/logs/qa-knowledge-<op>-<UTC>.log`. Limits: Docker, Tailscale, and GitHub are
+exercised only by fakes; whether Chroma can write to the bind-mounted store under Docker Desktop is unproven.
+
 ### QA Desktop check
 
 `./scripts/init.sh --qa-check` runs `scripts/qa_check.py`, implemented by `app/qa_check.py`
