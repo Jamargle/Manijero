@@ -1,0 +1,780 @@
+{
+  "schema_version": "colloquial-variants-v1",
+  "golden_sha256": "a7776aac53e13715c3ada5fc95da1f830f4b1bdff9713ee65cad8f8cb2db9d1b",
+  "variants": [
+    {
+      "id": "coll-001",
+      "parent_id": "golden-001",
+      "question": "¿Con qué programilla se echan las solicitudes de la PAC en Andalucía este año?",
+      "colloquial_terms": [
+        "programilla",
+        "la PAC"
+      ],
+      "drafted": {
+        "by": "agent:colloquial_ab_evaluation",
+        "on": "2026-11-10"
+      },
+      "review_state": "draft",
+      "decision": null
+    },
+    {
+      "id": "coll-002",
+      "parent_id": "golden-002",
+      "question": "¿Dónde se coge el programa para mandar los papeles?",
+      "colloquial_terms": [
+        "el programa",
+        "mandar",
+        "los papeles"
+      ],
+      "drafted": {
+        "by": "agent:colloquial_ab_evaluation",
+        "on": "2026-11-10"
+      },
+      "review_state": "draft",
+      "decision": null
+    },
+    {
+      "id": "coll-003",
+      "parent_id": "golden-003",
+      "question": "Tengo olivos de secano, ¿cómo mando el papeleo de la PAC?",
+      "colloquial_terms": [
+        "olivos",
+        "mando",
+        "el papeleo",
+        "la PAC"
+      ],
+      "drafted": {
+        "by": "agent:colloquial_ab_evaluation",
+        "on": "2026-11-10"
+      },
+      "review_state": "draft",
+      "decision": null
+    },
+    {
+      "id": "coll-004",
+      "parent_id": "golden-004",
+      "question": "¿Cómo llegan los avisos que manda la Administración?",
+      "colloquial_terms": [
+        "los avisos",
+        "manda"
+      ],
+      "drafted": {
+        "by": "agent:colloquial_ab_evaluation",
+        "on": "2026-11-10"
+      },
+      "review_state": "draft",
+      "decision": null
+    },
+    {
+      "id": "coll-005",
+      "parent_id": "golden-005",
+      "question": "Si estoy obligado a recibir avisos por internet, ¿dónde me los mandan?",
+      "colloquial_terms": [
+        "avisos",
+        "internet",
+        "mandan"
+      ],
+      "drafted": {
+        "by": "agent:colloquial_ab_evaluation",
+        "on": "2026-11-10"
+      },
+      "review_state": "draft",
+      "decision": null
+    },
+    {
+      "id": "coll-006",
+      "parent_id": "golden-006",
+      "question": "Si la Administración se equivoca en un papel, ¿lo puede arreglar?",
+      "colloquial_terms": [
+        "se equivoca",
+        "un papel",
+        "arreglar"
+      ],
+      "drafted": {
+        "by": "agent:colloquial_ab_evaluation",
+        "on": "2026-11-10"
+      },
+      "review_state": "draft",
+      "decision": null
+    },
+    {
+      "id": "coll-007",
+      "parent_id": "golden-007",
+      "question": "Si la Administración se equivoca al hacer una cuenta, ¿lo arreglan si se lo pido?",
+      "colloquial_terms": [
+        "se equivoca",
+        "una cuenta",
+        "arreglan"
+      ],
+      "drafted": {
+        "by": "agent:colloquial_ab_evaluation",
+        "on": "2026-11-10"
+      },
+      "review_state": "draft",
+      "decision": null
+    },
+    {
+      "id": "coll-008",
+      "parent_id": "golden-008",
+      "question": "¿A qué se llama un recinto del SIGPAC?",
+      "colloquial_terms": [
+        "se llama"
+      ],
+      "drafted": {
+        "by": "agent:colloquial_ab_evaluation",
+        "on": "2026-11-10"
+      },
+      "review_state": "draft",
+      "decision": null
+    },
+    {
+      "id": "coll-009",
+      "parent_id": "golden-009",
+      "question": "¿Cómo se identifica cada trozo del SIGPAC?",
+      "colloquial_terms": [
+        "se identifica",
+        "trozo"
+      ],
+      "drafted": {
+        "by": "agent:colloquial_ab_evaluation",
+        "on": "2026-11-10"
+      },
+      "review_state": "draft",
+      "decision": null
+    },
+    {
+      "id": "coll-010",
+      "parent_id": "golden-010",
+      "question": "¿Qué día se acaba el plazo para mandar la solicitud de la PAC en Andalucía este año?",
+      "colloquial_terms": [
+        "se acaba",
+        "mandar",
+        "la PAC"
+      ],
+      "drafted": {
+        "by": "agent:colloquial_ab_evaluation",
+        "on": "2026-11-10"
+      },
+      "review_state": "draft",
+      "decision": null
+    },
+    {
+      "id": "coll-011",
+      "parent_id": "golden-011",
+      "question": "Con una parcela de riego, ¿qué día se termina el plazo para mandar los papeles?",
+      "colloquial_terms": [
+        "riego",
+        "se termina",
+        "mandar",
+        "los papeles"
+      ],
+      "drafted": {
+        "by": "agent:colloquial_ab_evaluation",
+        "on": "2026-11-10"
+      },
+      "review_state": "draft",
+      "decision": null
+    },
+    {
+      "id": "coll-012",
+      "parent_id": "golden-012",
+      "question": "¿Por qué alargaron el tiempo para mandar la solicitud de este año?",
+      "colloquial_terms": [
+        "alargaron",
+        "el tiempo",
+        "mandar"
+      ],
+      "drafted": {
+        "by": "agent:colloquial_ab_evaluation",
+        "on": "2026-11-10"
+      },
+      "review_state": "draft",
+      "decision": null
+    },
+    {
+      "id": "coll-013",
+      "parent_id": "golden-013",
+      "question": "¿En qué región alargaron el tiempo para mandar la solicitud?",
+      "colloquial_terms": [
+        "región",
+        "alargaron",
+        "el tiempo",
+        "mandar"
+      ],
+      "drafted": {
+        "by": "agent:colloquial_ab_evaluation",
+        "on": "2026-11-10"
+      },
+      "review_state": "draft",
+      "decision": null
+    },
+    {
+      "id": "coll-014",
+      "parent_id": "golden-014",
+      "question": "¿Qué día es el último para meter más cosas en mi solicitud de este año?",
+      "colloquial_terms": [
+        "el último",
+        "meter",
+        "más cosas"
+      ],
+      "drafted": {
+        "by": "agent:colloquial_ab_evaluation",
+        "on": "2026-11-10"
+      },
+      "review_state": "draft",
+      "decision": null
+    },
+    {
+      "id": "coll-015",
+      "parent_id": "golden-015",
+      "question": "Quiero pasar una parcela de secano ya apuntada a otro cultivo, ¿qué día es el último?",
+      "colloquial_terms": [
+        "pasar",
+        "apuntada",
+        "otro cultivo",
+        "el último"
+      ],
+      "drafted": {
+        "by": "agent:colloquial_ab_evaluation",
+        "on": "2026-11-10"
+      },
+      "review_state": "draft",
+      "decision": null
+    },
+    {
+      "id": "coll-016",
+      "parent_id": "golden-016",
+      "question": "El plazo para cambiar la solicitud que se acaba el 15 de junio, ¿de qué año es?",
+      "colloquial_terms": [
+        "cambiar",
+        "se acaba",
+        "año"
+      ],
+      "drafted": {
+        "by": "agent:colloquial_ab_evaluation",
+        "on": "2026-11-10"
+      },
+      "review_state": "draft",
+      "decision": null
+    },
+    {
+      "id": "coll-017",
+      "parent_id": "golden-017",
+      "question": "Mi finca es ecológica: ¿se presenta y se cambia la solicitud el mismo día?",
+      "colloquial_terms": [
+        "se presenta",
+        "se cambia",
+        "el mismo día"
+      ],
+      "drafted": {
+        "by": "agent:colloquial_ab_evaluation",
+        "on": "2026-11-10"
+      },
+      "review_state": "draft",
+      "decision": null
+    },
+    {
+      "id": "coll-018",
+      "parent_id": "golden-018",
+      "question": "¿Qué dos días de este año tengo que apuntar, el de mandar y el de cambiar la solicitud?",
+      "colloquial_terms": [
+        "dos días",
+        "apuntar",
+        "mandar",
+        "cambiar"
+      ],
+      "drafted": {
+        "by": "agent:colloquial_ab_evaluation",
+        "on": "2026-11-10"
+      },
+      "review_state": "draft",
+      "decision": null
+    },
+    {
+      "id": "coll-019",
+      "parent_id": "golden-019",
+      "question": "¿El 15 de junio aún me dejan cambiar la solicitud de riego?",
+      "colloquial_terms": [
+        "aún me dejan",
+        "cambiar",
+        "riego"
+      ],
+      "drafted": {
+        "by": "agent:colloquial_ab_evaluation",
+        "on": "2026-11-10"
+      },
+      "review_state": "draft",
+      "decision": null
+    },
+    {
+      "id": "coll-020",
+      "parent_id": "golden-020",
+      "question": "No tengo ordenador ni conexión, ¿me obligan a mandar los papeles por internet?",
+      "colloquial_terms": [
+        "conexión",
+        "me obligan",
+        "mandar",
+        "los papeles"
+      ],
+      "drafted": {
+        "by": "agent:colloquial_ab_evaluation",
+        "on": "2026-11-10"
+      },
+      "review_state": "draft",
+      "decision": null
+    },
+    {
+      "id": "coll-021",
+      "parent_id": "golden-021",
+      "question": "¿Quién decide cuándo no hace falta mandar los papeles por internet?",
+      "colloquial_terms": [
+        "decide",
+        "mandar",
+        "los papeles"
+      ],
+      "drafted": {
+        "by": "agent:colloquial_ab_evaluation",
+        "on": "2026-11-10"
+      },
+      "review_state": "draft",
+      "decision": null
+    },
+    {
+      "id": "coll-022",
+      "parent_id": "golden-022",
+      "question": "¿Cuándo puede la autoridad dejar a una persona física sin usar internet?",
+      "colloquial_terms": [
+        "dejar",
+        "sin usar",
+        "internet"
+      ],
+      "drafted": {
+        "by": "agent:colloquial_ab_evaluation",
+        "on": "2026-11-10"
+      },
+      "review_state": "draft",
+      "decision": null
+    },
+    {
+      "id": "coll-023",
+      "parent_id": "golden-023",
+      "question": "¿Tengo derecho a la ayuda de la PAC por mi olivar?",
+      "colloquial_terms": [
+        "tengo derecho"
+      ],
+      "drafted": {
+        "by": "agent:colloquial_ab_evaluation",
+        "on": "2026-11-10"
+      },
+      "review_state": "draft",
+      "decision": null
+    },
+    {
+      "id": "coll-024",
+      "parent_id": "golden-024",
+      "question": "¿Puedo cobrar la ayuda con mi finca de riego?",
+      "colloquial_terms": [
+        "puedo cobrar",
+        "riego"
+      ],
+      "drafted": {
+        "by": "agent:colloquial_ab_evaluation",
+        "on": "2026-11-10"
+      },
+      "review_state": "draft",
+      "decision": null
+    },
+    {
+      "id": "coll-025",
+      "parent_id": "golden-025",
+      "question": "Trabajo en el campo y mi finca es ecológica, ¿me corresponde la ayuda?",
+      "colloquial_terms": [
+        "trabajo en el campo"
+      ],
+      "drafted": {
+        "by": "agent:colloquial_ab_evaluation",
+        "on": "2026-11-10"
+      },
+      "review_state": "draft",
+      "decision": null
+    },
+    {
+      "id": "coll-026",
+      "parent_id": "golden-026",
+      "question": "Tengo varias tierras, ¿qué día es el último para mandar la solicitud de este año?",
+      "colloquial_terms": [
+        "varias tierras",
+        "el último",
+        "mandar"
+      ],
+      "drafted": {
+        "by": "agent:colloquial_ab_evaluation",
+        "on": "2026-11-10"
+      },
+      "review_state": "draft",
+      "decision": null
+    },
+    {
+      "id": "coll-027",
+      "parent_id": "golden-027",
+      "question": "¿Qué día se acaba el plazo para cambiar la solicitud de todas mis tierras de regadío?",
+      "colloquial_terms": [
+        "se acaba",
+        "cambiar",
+        "tierras"
+      ],
+      "drafted": {
+        "by": "agent:colloquial_ab_evaluation",
+        "on": "2026-11-10"
+      },
+      "review_state": "draft",
+      "decision": null
+    },
+    {
+      "id": "coll-028",
+      "parent_id": "golden-028",
+      "question": "Tengo una tierra ecológica y otra normal, ¿qué día termina el plazo para mandar la solicitud?",
+      "colloquial_terms": [
+        "una tierra",
+        "normal",
+        "termina",
+        "mandar"
+      ],
+      "drafted": {
+        "by": "agent:colloquial_ab_evaluation",
+        "on": "2026-11-10"
+      },
+      "review_state": "draft",
+      "decision": null
+    },
+    {
+      "id": "coll-029",
+      "parent_id": "golden-029",
+      "question": "Para mi tierra de secano, ¿qué día es el último para pasar la parcela a otro cultivo?",
+      "colloquial_terms": [
+        "tierra",
+        "el último",
+        "pasar",
+        "otro cultivo"
+      ],
+      "drafted": {
+        "by": "agent:colloquial_ab_evaluation",
+        "on": "2026-11-10"
+      },
+      "review_state": "draft",
+      "decision": null
+    },
+    {
+      "id": "coll-030",
+      "parent_id": "golden-030",
+      "question": "¿Cómo mando los papeles de la PAC para todas mis tierras?",
+      "colloquial_terms": [
+        "mando",
+        "los papeles",
+        "la PAC"
+      ],
+      "drafted": {
+        "by": "agent:colloquial_ab_evaluation",
+        "on": "2026-11-10"
+      },
+      "review_state": "draft",
+      "decision": null
+    },
+    {
+      "id": "coll-031",
+      "parent_id": "golden-031",
+      "question": "¿Qué es eso del recinto del SIGPAC que sale en cada una de mis tierras?",
+      "colloquial_terms": [
+        "sale",
+        "tierras"
+      ],
+      "drafted": {
+        "by": "agent:colloquial_ab_evaluation",
+        "on": "2026-11-10"
+      },
+      "review_state": "draft",
+      "decision": null
+    },
+    {
+      "id": "coll-032",
+      "parent_id": "golden-032",
+      "question": "¿Cuánto me van a pagar por una hectárea de olivar de secano?",
+      "colloquial_terms": [
+        "me van a pagar"
+      ],
+      "drafted": {
+        "by": "agent:colloquial_ab_evaluation",
+        "on": "2026-11-10"
+      },
+      "review_state": "draft",
+      "decision": null
+    },
+    {
+      "id": "coll-033",
+      "parent_id": "golden-033",
+      "question": "¿Qué pasa si entrego los papeles tarde?",
+      "colloquial_terms": [
+        "entrego",
+        "los papeles",
+        "tarde"
+      ],
+      "drafted": {
+        "by": "agent:colloquial_ab_evaluation",
+        "on": "2026-11-10"
+      },
+      "review_state": "draft",
+      "decision": null
+    },
+    {
+      "id": "coll-034",
+      "parent_id": "golden-034",
+      "question": "Si no estoy de acuerdo con la respuesta, ¿puedo reclamar?",
+      "colloquial_terms": [
+        "de acuerdo",
+        "reclamar"
+      ],
+      "drafted": {
+        "by": "agent:colloquial_ab_evaluation",
+        "on": "2026-11-10"
+      },
+      "review_state": "draft",
+      "decision": null
+    },
+    {
+      "id": "coll-035",
+      "parent_id": "golden-035",
+      "question": "Si por fuerza mayor no puedo mandar los papeles, ¿qué hago?",
+      "colloquial_terms": [
+        "mandar",
+        "los papeles",
+        "hago"
+      ],
+      "drafted": {
+        "by": "agent:colloquial_ab_evaluation",
+        "on": "2026-11-10"
+      },
+      "review_state": "draft",
+      "decision": null
+    },
+    {
+      "id": "coll-036",
+      "parent_id": "golden-036",
+      "question": "¿Qué día hay que mandar la solicitud el año que viene?",
+      "colloquial_terms": [
+        "mandar",
+        "año que viene"
+      ],
+      "drafted": {
+        "by": "agent:colloquial_ab_evaluation",
+        "on": "2026-11-10"
+      },
+      "review_state": "draft",
+      "decision": null
+    },
+    {
+      "id": "coll-037",
+      "parent_id": "golden-037",
+      "question": "¿Qué pasa con el control por satélite de mi tierra?",
+      "colloquial_terms": [
+        "pasa",
+        "tierra"
+      ],
+      "drafted": {
+        "by": "agent:colloquial_ab_evaluation",
+        "on": "2026-11-10"
+      },
+      "review_state": "draft",
+      "decision": null
+    },
+    {
+      "id": "coll-038",
+      "parent_id": "golden-038",
+      "question": "¿Ya me han mandado la respuesta de mi expediente?",
+      "colloquial_terms": [
+        "me han mandado",
+        "la respuesta"
+      ],
+      "drafted": {
+        "by": "agent:colloquial_ab_evaluation",
+        "on": "2026-11-10"
+      },
+      "review_state": "draft",
+      "decision": null
+    },
+    {
+      "id": "coll-039",
+      "parent_id": "golden-039",
+      "question": "¿Qué día es el último para enviar la solicitud de la PAC de este año?",
+      "colloquial_terms": [
+        "el último",
+        "enviar",
+        "la PAC"
+      ],
+      "drafted": {
+        "by": "agent:colloquial_ab_evaluation",
+        "on": "2026-11-10"
+      },
+      "review_state": "draft",
+      "decision": null
+    },
+    {
+      "id": "coll-040",
+      "parent_id": "golden-040",
+      "question": "¿Qué día es el último para cambiar los papeles que ya envié?",
+      "colloquial_terms": [
+        "el último",
+        "cambiar",
+        "los papeles",
+        "envié"
+      ],
+      "drafted": {
+        "by": "agent:colloquial_ab_evaluation",
+        "on": "2026-11-10"
+      },
+      "review_state": "draft",
+      "decision": null
+    },
+    {
+      "id": "coll-041",
+      "parent_id": "golden-041",
+      "question": "¿Cómo se presentan los papeles de la PAC aquí en Andalucía?",
+      "colloquial_terms": [
+        "se presentan",
+        "los papeles",
+        "aquí"
+      ],
+      "drafted": {
+        "by": "agent:colloquial_ab_evaluation",
+        "on": "2026-11-10"
+      },
+      "review_state": "draft",
+      "decision": null
+    },
+    {
+      "id": "coll-042",
+      "parent_id": "golden-042",
+      "question": "¿Dónde hay que ir para que me ayuden con los papeles?",
+      "colloquial_terms": [
+        "hay que ir",
+        "me ayuden",
+        "los papeles"
+      ],
+      "drafted": {
+        "by": "agent:colloquial_ab_evaluation",
+        "on": "2026-11-10"
+      },
+      "review_state": "draft",
+      "decision": null
+    },
+    {
+      "id": "coll-043",
+      "parent_id": "golden-043",
+      "question": "¿Qué es el recinto del SIGPAC que aparece en mi documentación?",
+      "colloquial_terms": [
+        "aparece",
+        "mi documentación"
+      ],
+      "drafted": {
+        "by": "agent:colloquial_ab_evaluation",
+        "on": "2026-11-10"
+      },
+      "review_state": "draft",
+      "decision": null
+    },
+    {
+      "id": "coll-044",
+      "parent_id": "golden-044",
+      "question": "¿Me tienen que mandar un aviso por internet de lo que me envíen?",
+      "colloquial_terms": [
+        "mandar",
+        "un aviso",
+        "envíen"
+      ],
+      "drafted": {
+        "by": "agent:colloquial_ab_evaluation",
+        "on": "2026-11-10"
+      },
+      "review_state": "draft",
+      "decision": null
+    },
+    {
+      "id": "coll-045",
+      "parent_id": "golden-045",
+      "question": "Han metido la pata en un documento, ¿lo pueden corregir?",
+      "colloquial_terms": [
+        "metido la pata",
+        "un documento",
+        "corregir"
+      ],
+      "drafted": {
+        "by": "agent:colloquial_ab_evaluation",
+        "on": "2026-11-10"
+      },
+      "review_state": "draft",
+      "decision": null
+    },
+    {
+      "id": "coll-046",
+      "parent_id": "golden-046",
+      "question": "Tengo muchos años y no uso el ordenador, ¿puedo mandar los papeles sin conexión?",
+      "colloquial_terms": [
+        "muchos años",
+        "mandar",
+        "los papeles",
+        "conexión"
+      ],
+      "drafted": {
+        "by": "agent:colloquial_ab_evaluation",
+        "on": "2026-11-10"
+      },
+      "review_state": "draft",
+      "decision": null
+    },
+    {
+      "id": "coll-047",
+      "parent_id": "golden-047",
+      "question": "¿Sirve todavía el Real Decreto 1077/2014 para pedir la ayuda?",
+      "colloquial_terms": [
+        "sirve"
+      ],
+      "drafted": {
+        "by": "agent:colloquial_ab_evaluation",
+        "on": "2026-11-10"
+      },
+      "review_state": "draft",
+      "decision": null
+    },
+    {
+      "id": "coll-048",
+      "parent_id": "golden-048",
+      "question": "¿Aún puedo mandar los papeles de la PAC de este año en Andalucía?",
+      "colloquial_terms": [
+        "aún puedo",
+        "mandar",
+        "los papeles",
+        "la PAC"
+      ],
+      "drafted": {
+        "by": "agent:colloquial_ab_evaluation",
+        "on": "2026-11-10"
+      },
+      "review_state": "draft",
+      "decision": null
+    },
+    {
+      "id": "coll-049",
+      "parent_id": "golden-049",
+      "question": "¿Hace falta llevar el cuaderno de explotación en el móvil?",
+      "colloquial_terms": [
+        "hace falta",
+        "el móvil"
+      ],
+      "drafted": {
+        "by": "agent:colloquial_ab_evaluation",
+        "on": "2026-11-10"
+      },
+      "review_state": "draft",
+      "decision": null
+    }
+  ]
+}

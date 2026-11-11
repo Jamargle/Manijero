@@ -115,6 +115,7 @@ Durable MUST/MUST NOT rules for backend answer path, retrieval, generation, eval
   figures into the "I cannot answer" path would reintroduce exactly that failure,
   and generated abstention prose could contradict the pinned counsel to consult
   the Oficina Comarcal Agraria or the cooperative.
+- **MUST**: the `/ask` lexical floor in `Retriever._search` (`score > 0.0`; none left means `no_evidence`) MUST NOT change except through a separate feature adopting a value the owner approved from a recorded `calibrate_retrieval_threshold.py` report; that sweep's minimum-score ranker is evaluation-only and MUST NOT be composed into `/ask`. Reason: [`retrieval_threshold_calibration`](../specs/retrieval_threshold_calibration.md).
 - **MUST**: `/ask` screens every question with the deterministic
   `backend/app/input_guardrails.py` rules before retrieval. A hit returns only its pinned
   message (`personal_data`, `prompt_injection`, `out_of_domain`), and a `personal_data` hit is
@@ -136,6 +137,14 @@ Durable MUST/MUST NOT rules for backend answer path, retrieval, generation, eval
   enforcement is agreed separately. Reason: `land_safety_evaluation` established the reproducible
   synthetic baseline; a gate whose numbers came from synthetic fixtures, or a case whose critical
   fact nobody checked, would turn an unverified expectation into a false safety guarantee.
+- **MUST**: a colloquial A/B comparison MUST read only owner-approved variants, run the same
+  approved cases through the in-process decision with the same corpus, campaign, as-of date, `k`,
+  drafting, and cache state, and differ only in the query-expansion object (none, the approved
+  glossary, the glossary plus screened terms from the pinned local model). It MUST write outside
+  `knowledge/`, make no hosted model call, report fixed-denominator hit@5 and trap regressions as
+  report-only with the rule "strictly better than no rewriting and no approved trap worse", and
+  MUST NOT change a default, setting, or release gate. Reason: an unapproved or non-comparable
+  variant, or a comparison read as an adoption, would turn an agent draft into a quality claim.
 - **MUST**: a golden-set item (`knowledge/golden_set.json`) MUST NOT be scored or read by any gate,
   release, review, demo, or load command until a named reviewer's decision is recorded by the
   decide command, and an answered item's anchor MUST quote an approved, current passage verbatim.
@@ -153,6 +162,17 @@ Durable MUST/MUST NOT rules for backend answer path, retrieval, generation, eval
   labelled unchecked against human review with no accuracy claim, and its tests MUST NOT need Ollama.
   Reason: `semantic_grounding_judge` ([spec](../specs/semantic_grounding_judge.md)); a second model's
   opinion is an unverified signal, not proof that an answer is correct.
+- **MUST**: the evaluation metrics report (`backend/app/eval_metrics.py`) MUST stay report-only: no
+  metric may change an exit code or gate, it counts only reviewed or `approved` items, writes only under
+  `build/eval-reports/`, and says faithfulness is `not_judged` with a reason (never `0`) unless judged.
+  Reason: `evaluation_metrics_report` ([spec](../specs/evaluation_metrics_report.md)); unjudged or
+  author-reviewed numbers must not become a false gate.
+- **MUST**: the commit-time quality gate MUST compare only the two synthetic fixture groups and the
+  17-case reviewed sample with a committed baseline whose review names reviewer, date, and reason;
+  hit@1/3/5 and abstention are zero-tolerance, MRR MUST NOT fall, and golden/trap/numeric/judge
+  numbers MUST NEVER block. It MUST run read-only only inside `./scripts/init.sh --verify`, fail
+  closed on an unreviewed, invalid, or stale baseline, and only `record` may write, with a named
+  reviewer and reason. Reason: `ci_quality_gates` ([spec](../specs/ci_quality_gates.md)).
 - **MUST**: a validity regression case MUST rest only on reviewed catalog or passage metadata. When
   the reviewed corpus lacks the source, the case MUST expect abstention, and a precondition test
   MUST fail once such a source appears so the case is revisited. Reason: `validity_regression_cases`.
@@ -246,9 +266,14 @@ Durable MUST/MUST NOT rules for backend answer path, retrieval, generation, eval
   leave canonical knowledge byte-identical; and merge MUST NOT reindex, release, or deploy. Canonical
   after hashes and writes MUST preserve the field order of entries the proposal does not rewrite, so a
   no-op merge is byte-identical; a newly added or rewritten entry may take the proposal's own
-  serialization.
-  Reason: `knowledge_update_review_pr` keeps approval with a person and separates a bounded reviewed
-  merge from publication; an unreviewed case set or a reordered file would hide corpus drift.
+  serialization. A canonical change MAY also land through one `knowledge-review/<package-id>`
+  pull request opened from a ready package by `--knowledge-review-open`, only with `fast` and
+  `full` passing and merged by the owner on GitHub; that command MUST NOT merge, enable
+  auto-merge, force-push, or delete a branch, and `--knowledge-review-protect` only enables the
+  committed `protected-main` ruleset after a `yes` confirmation (owner decision 2026-11-10).
+  Reason: `knowledge_update_review_pr` and `hosted_review_pull_requests` keep approval with a
+  person and separate a bounded reviewed merge from publication; an unreviewed case set or a
+  reordered file would hide corpus drift.
 - **MUST**: a knowledge release MUST be built only from canonical artifacts bound to human-approval
   evidence (a `merge.json` whose hashes equal the candidate bytes, or an explicitly recorded reviewed
   Git baseline), MUST rebuild indexes from them and record artifact, runtime, and model versions, and

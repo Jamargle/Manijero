@@ -296,6 +296,23 @@ if [[ "${1:-}" == "--knowledge-updates-on" || "${1:-}" == "--knowledge-updates-o
   exec "$LOCAL_RAG_PYTHON" "$REPO_ROOT/backend/scripts/knowledge_ops.py" "${1#--knowledge-updates-}"
 fi
 
+# Owner commands for hosted knowledge review pull requests (docs/owner-guide/knowledge-review-pull-requests.md).
+# Test-only variables: MANIJERO_KNOWLEDGE_REVIEW_HOME, MANIJERO_GH_CLI, and MANIJERO_HOSTED_REVIEW_REPO.
+if [[ "${1:-}" == "--knowledge-review-open" || "${1:-}" == "--knowledge-review-protect" ]]; then
+  REPO_ROOT="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")/.." && pwd)"
+  if (( $# > 1 )); then
+    printf 'Run %s on its own, with nothing after it.\n' "$1" >&2
+    exit 2
+  fi
+  LOCAL_RAG_PYTHON="$REPO_ROOT/backend/.venv/bin/python"
+  if [[ ! -x "$LOCAL_RAG_PYTHON" ]] && ! "$REPO_ROOT/scripts/python-env.sh" dev --if-present >/dev/null 2>&1; then
+    printf 'The backend tools are not set up yet. Run ./scripts/init.sh --local-rag-setup, then try again.\n'
+    printf 'Result: the knowledge review command did not run because the backend tools are not set up.\n'
+    exit 2
+  fi
+  exec "$LOCAL_RAG_PYTHON" "$REPO_ROOT/backend/scripts/hosted_review.py" "${1#--knowledge-review-}"
+fi
+
 # Owner command: smoke-test the Desktop and Android emulator apps against the running local answer
 # service (docs/owner-guide/local-checks.md). Like --local-rag-*, it runs before the local.properties write; AGP
 # reads ANDROID_HOME instead. backend/app/local_smoke.py checks the service, Java, and the emulator.
@@ -416,6 +433,26 @@ if [[ "${1:-}" == "--glossary-review" || "${1:-}" == "--glossary-decide" ]]; the
     exec "$LOCAL_RAG_PYTHON" "$REPO_ROOT/backend/scripts/glossary_review.py" list "$@"
   fi
   exec "$LOCAL_RAG_PYTHON" "$REPO_ROOT/backend/scripts/glossary_review.py" decide -- "$@"
+fi
+
+# Owner commands: review the colloquial variants (docs/owner-guide/colloquial-variants-review.md).
+# --colloquial-review lists the variants that wait for a decision; --colloquial-decide
+# approve|reject "<name>" <number-or-id>... records a named reviewer's decision. Both end with
+# one Result: line and run before the local.properties write.
+if [[ "${1:-}" == "--colloquial-review" || "${1:-}" == "--colloquial-decide" ]]; then
+  REPO_ROOT="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")/.." && pwd)"
+  COLLOQUIAL_COMMAND="${1#--colloquial-}"
+  shift
+  LOCAL_RAG_PYTHON="$REPO_ROOT/backend/.venv/bin/python"
+  if [[ ! -x "$LOCAL_RAG_PYTHON" ]] && ! "$REPO_ROOT/scripts/python-env.sh" dev --if-present >/dev/null 2>&1; then
+    printf 'The local answer tools are not set up yet. Run ./scripts/init.sh --local-rag-setup to set them up.\n'
+    printf 'Result: the colloquial variant review did not run. Run ./scripts/init.sh --local-rag-setup.\n'
+    exit 1
+  fi
+  if [[ "$COLLOQUIAL_COMMAND" == "review" ]]; then
+    exec "$LOCAL_RAG_PYTHON" "$REPO_ROOT/backend/scripts/colloquial_ab.py" list "$@"
+  fi
+  exec "$LOCAL_RAG_PYTHON" "$REPO_ROOT/backend/scripts/colloquial_ab.py" decide -- "$@"
 fi
 
 # Owner commands: the offline grounding judge (docs/owner-guide/grounding-judge.md). --grounding-judge-setup
@@ -541,14 +578,14 @@ AS_OF="${MANIJERO_AS_OF:-2026-10-13}"
 
 usage() {
   cat <<'EOF'
-Usage: ./scripts/init.sh [--check|--fast|--verify|--feature <id>|--backend-tests [targets]|--setup-python [dev|hybrid|docparse]|--backend|--mock|--mock-status|--mock-stop|--local-rag-setup|--local-rag-status|--local-rag-start|--local-rag-service-status|--local-rag-load-test|--local-rag-stop|--container-build|--container-start|--container-status|--container-stop|--monitoring-start|--monitoring-status|--monitoring-stop|--pilot-token-save|--demo-rehearsal|--golden-review|--golden-decide|--trap-review|--trap-decide|--glossary-review|--glossary-decide|--grounding-judge-setup|--grounding-judge-report|--usability-record|--local-smoke|--qa-check|--environments-status|--qa-settings-setup|--qa-deploy|--qa-update|--qa-rollback|--qa-status|--qa-stop|--qa-alerts-setup|--qa-alerts-start|--qa-alerts-stop|--qa-alerts-status|--qa-alerts-test|--knowledge-updates-on|--knowledge-updates-run|--knowledge-updates-status|--knowledge-updates-off|--reranker-download|--reranker-measure|--reranker-on|--reranker-off|--android|--android-run|--desktop|--android-qa|--desktop-qa|--help]
+Usage: ./scripts/init.sh [--check|--fast|--verify|--feature <id>|--backend-tests [targets]|--setup-python [dev|hybrid|docparse]|--backend|--mock|--mock-status|--mock-stop|--local-rag-setup|--local-rag-status|--local-rag-start|--local-rag-service-status|--local-rag-load-test|--local-rag-stop|--container-build|--container-start|--container-status|--container-stop|--monitoring-start|--monitoring-status|--monitoring-stop|--pilot-token-save|--demo-rehearsal|--golden-review|--golden-decide|--trap-review|--trap-decide|--glossary-review|--glossary-decide|--grounding-judge-setup|--grounding-judge-report|--usability-record|--local-smoke|--qa-check|--environments-status|--qa-settings-setup|--qa-deploy|--qa-update|--qa-rollback|--qa-status|--qa-stop|--qa-alerts-setup|--qa-alerts-start|--qa-alerts-stop|--qa-alerts-status|--qa-alerts-test|--knowledge-updates-on|--knowledge-updates-run|--knowledge-updates-status|--knowledge-updates-off|--knowledge-review-open|--knowledge-review-protect|--reranker-download|--reranker-measure|--reranker-on|--reranker-off|--android|--android-run|--desktop|--android-qa|--desktop-qa|--help]
 
   --check                   Check Java and the Gradle wrapper, then print standard commands (default)
   --fast                    Shared host tests, contract examples, backend unit tests, and the five
                             offline evaluators, run concurrently (no Android SDK or Desktop build
                             needed). Fails if any single check fails.
-  --verify                  Full gate: --fast, then the Android host tests and the Android/Desktop
-                            builds (--full is an alias)
+  --verify                  Full gate: --fast, the quality gate over the reviewed metrics baseline,
+                            then the Android host tests and the Android/Desktop builds (--full is an alias)
   --feature <id>            Run the focused verification published in docs/specs/<id>.md
   --backend-tests [target]  Run the backend pytest suite, or only the given targets, from backend/
   --setup-python [profile]  Build or reuse the shared backend virtualenv (dev, or hybrid for
@@ -599,6 +636,11 @@ Usage: ./scripts/init.sh [--check|--fast|--verify|--feature <id>|--backend-tests
   --glossary-decide approve|reject "<name>" <number-or-id>...
                             Record your decision for the listed word pairs (nothing is recorded if
                             anything is wrong)
+  --colloquial-review       List the everyday rewordings of the golden questions that wait for
+                            your decision; the full list goes to build/colloquial-ab/variants.txt
+  --colloquial-decide approve|reject "<name>" <number-or-id>...
+                            Record your decision for the listed colloquial variants (nothing is
+                            recorded if anything is wrong)
   --grounding-judge-setup   One time: download the small second model that checks drafted sentences
                             (needs Ollama; about 4.7 GB) and verify it is the reviewed one
   --grounding-judge-report  Draft the reviewed and golden questions with the local drafting model, have
@@ -638,6 +680,10 @@ Usage: ./scripts/init.sh [--check|--fast|--verify|--feature <id>|--backend-tests
   --knowledge-updates-run   Run the whole knowledge update cycle now (one hour at most)
   --knowledge-updates-status  Say whether the daily run is on and how the last run went
   --knowledge-updates-off   Turn the daily run off (the history is kept)
+  --knowledge-review-open   Open one GitHub pull request for each ready knowledge review package;
+                            you read and merge it on GitHub, and nothing is published on merge
+  --knowledge-review-protect  Protect main on GitHub: pull requests only, fast and full must pass,
+                            no force pushes (asks before changing anything)
   --android                 Build the Android debug APK
   --android-run             Build, start an emulator if needed, install, and launch the app
   --desktop                 Launch the Desktop app
@@ -876,6 +922,32 @@ run_fast() {
   printf '\n== Fast tier: shared host tests, contract examples, backend tests, and offline evaluators ==\n'
   run_offline_checks
   printf '\nFast tier passed.\n'
+}
+
+# Tier 2 (inside --verify): compare the agreed retrieval and abstention metrics with the
+# committed, owner-reviewed baseline. Read-only, offline, and deterministic; it runs once
+# after --fast and before the builds, and its non-zero exit fails the tier.
+run_quality_gate() {
+  local candidate py=""
+  # A worktree created after the shared environment was built only needs the link.
+  if [[ -z "${MANIJERO_PYTHON:-}" && ! -e "$REPO_ROOT/backend/.venv" ]]; then
+    "$REPO_ROOT/scripts/python-env.sh" dev --if-present >/dev/null 2>&1 || true
+  fi
+  for candidate in "${MANIJERO_PYTHON:-}" "$REPO_ROOT/backend/.venv/bin/python" "$REPO_ROOT/.venv/bin/python" python3 python; do
+    [[ -n "$candidate" ]] || continue
+    if { [[ -x "$candidate" ]] || command -v "$candidate" >/dev/null 2>&1; } && \
+      PYTHONPATH="$REPO_ROOT/backend" "$candidate" -c 'import fastapi, httpx; import app.main' >/dev/null 2>&1; then
+      py="$candidate"
+      break
+    fi
+  done
+  if [[ -z "$py" ]]; then
+    printf 'The quality gate needs the backend environment (FastAPI and httpx).\n' >&2
+    backend_pytest_hint >&2
+    return 1
+  fi
+  printf '\n== Quality gate: reviewed baseline for the retrieval and abstention metrics ==\n'
+  "$py" "$REPO_ROOT/backend/scripts/check_quality_gate.py" check
 }
 
 # Prints the shell commands a feature spec publishes between the verify markers.
@@ -1221,6 +1293,7 @@ EOF
     ;;
   --verify|--full)
     run_fast
+    run_quality_gate
     printf '\n== Full tier: Android host tests and the Android/Desktop builds ==\n'
     # --quiet keeps task chatter out of the transcript; errors and test failures still print.
     if [[ -n "${MANIJERO_VERBOSE:-}" ]]; then

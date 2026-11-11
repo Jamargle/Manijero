@@ -1369,6 +1369,21 @@ Tests:
 cd backend && python -m pytest
 ```
 
+## Retrieval threshold calibration (report only)
+
+`backend/scripts/calibrate_retrieval_threshold.py` sweeps a minimum BM25 score over the approved golden
+and trap items through the in-process `/ask` path and writes `report.json` and `table.md`
+under `--out` (default `build/threshold-calibration/`); exit 2 invalid input, exit 1 stopped.
+
+```sh
+backend/.venv/bin/python backend/scripts/calibrate_retrieval_threshold.py \
+  --catalog knowledge/source_catalog.json --passages knowledge/passages.json \
+  --cases knowledge/pac_answer_eval.json --golden knowledge/golden_set.json \
+  --traps knowledge/trap_set.json --active-campaign 2026 --as-of 2026-11-07 --k 5
+```
+
+The recommendation is for owner approval only; see [the spec](../docs/specs/retrieval_threshold_calibration.md).
+
 ## Manual official-source monitoring
 
 `app/source_monitor.py` polls only explicitly configured HTTPS endpoints on the
@@ -2119,14 +2134,14 @@ operator's workspace. `merge` is the only function that writes canonical
 artifacts, and only after a named requested reviewer other than the author
 approves and every required check still passes.
 
-**This is a local draft, not a hosting-platform pull request.** The package is
-an inspectable directory (`package.json`, `REVIEW.md`, and after review
-`decisions.json`, `DECISION.md`, `merge.json`) that an operator can attach to a
-real repository PR. This repository has no Git/hosting API integration, so
-GitHub branch protection is **not** enforced here; the controlled `merge`
-command independently verifies the recorded approval. Direct filesystem writes
-to `knowledge/` remain possible for anyone with access, so keep the workspace
-and canonical files access-controlled and reviewable in Git.
+**This is a local draft until the owner opens it as a hosted pull request.** The
+package is an inspectable directory (`package.json`, `REVIEW.md`, and after
+review `decisions.json`, `DECISION.md`, `merge.json`) under an operator
+workspace. A ready package can be sent to GitHub from that workspace with
+`--knowledge-review-open` (below); the controlled `merge` command remains the
+local path. Direct filesystem writes to `knowledge/` remain possible for anyone
+with access, so keep the workspace and canonical files access-controlled and
+reviewable in Git.
 
 ### Prepare
 
@@ -2255,10 +2270,40 @@ owns index rebuilds, artifact/model versions, rollback, and the plainly stated c
 boundary. An approved bounded update is not
 legal-coverage or answer-quality certification.
 
+### Hosted review pull requests
+
+`app/hosted_review.py` and `backend/scripts/hosted_review.py` send ready packages
+to GitHub. The owner runs `./scripts/init.sh --knowledge-review-open` or
+`--knowledge-review-protect`.
+
+`open` fetches `origin/main`, builds the after-state in a temporary worktree, and
+commits only `knowledge/source_catalog.json`, `knowledge/passages.json` (bytes
+equal to the package's after hashes), and
+`knowledge/reviews/<package-id>/{package.json,REVIEW.md}` on
+`knowledge-review/<package-id>`. It pushes without force, runs one
+`gh pr create --base main`, and puts the fixed merge/release and report-only
+lines, before/after PAC evaluation counts, the check summary, and `REVIEW.md`
+in the body. It never merges, auto-merges, force-pushes, deletes a branch, or
+writes the owner's checkout. Only ready packages whose baseline matches
+`origin/main`, whose bound case file is unchanged, and whose after-state
+validates are sent. A recorded `pull-request.json` makes re-runs report
+`already open`, `merged on GitHub`, or `closed without merging`; an unrecorded
+remote branch is refused.
+
+`protect` reads the existing `protected-main` ruleset, states the change, asks
+for `yes`, and sends one update from
+`backend/deploy/github/protected-main-ruleset.json` (required `fast` and `full`,
+zero approvals, force pushes blocked, existing bypass actors and unrelated rules kept); it never
+creates a missing ruleset. Tests and checks use a fake `gh` and a local bare
+remote. See the [owner guide](../docs/owner-guide/knowledge-review-pull-requests.md).
+
 ### Limits
 
-- The local package is not a hosted PR, so host-enforced merge protection and
-  reviewer assignment do not exist; the `merge` command is the procedural gate.
+- `open` sends only `ready_for_review` packages, cannot protect `main` by
+  itself, and needs `git`, a GitHub `origin`, and a logged-in `gh`.
+- The live push, PR creation, and ruleset update are unexercised by agents.
+  With zero required approvals GitHub enforces no second reviewer, and the
+  committed evidence carries the names typed at `prepare`.
 - Reviewer identity and decisions are plain local records, not cryptographic
   signatures. The commands refuse known automation identities and
   self-approval, require an approver from the package's `requested_reviewers`,
@@ -2867,6 +2912,31 @@ at most 4 terms. Owner steps: [`docs/owner-guide/question-glossary-review.md`](.
   when an entry breaks the rules or a case that passes without the glossary fails with it.
 - Release gates never apply it; `evaluate_pac_answers.py` uses the served app, so it does.
 
+### Colloquial A/B comparison
+
+Offline, report-only ([spec](../docs/specs/colloquial_ab_evaluation.md); owner steps in
+[`docs/owner-guide/colloquial-variants-review.md`](../docs/owner-guide/colloquial-variants-review.md)).
+`backend/config/colloquial_variants.json` (`colloquial-variants-v1`, runtime `app/colloquial_ab.py`)
+holds one agent-drafted rewording of each approved golden question (`coll-0NN` for `golden-0NN`);
+only `approved` variants are scored. The owner lists and decides them with `--colloquial-review` /
+`--colloquial-decide`, exactly like the glossary.
+
+- Three arms: no rewriting (`None`), the approved glossary, and the glossary plus official terms
+  from the pinned local model (`mistral-small3.2:24b-instruct-2506-q4_K_M`, loopback only).
+  Corpus, campaign, `as-of`, `k`, drafting, cache state, and case order are identical; only the
+  query-expansion object differs, and nothing else on `/ask` changes.
+- `prepare` needs the pinned loopback model and writes `build/colloquial-ab/rewrites/<key>.json`
+  (ids, accepted terms, status only; no question or answer text). `run` is offline over that cache
+  and writes `build/colloquial-ab/reports/<version_id>/report.json`; `list` writes
+  `build/colloquial-ab/variants.txt`. Everything is outside `knowledge/` and Git-ignored.
+- Rule: a candidate is `adoptable` only when fixed-denominator hit@5 is strictly greater than no
+  rewriting and no approved trap got worse; incomplete review or no changed query is never
+  adoptable. Arm C vs B is information only. The command writes no default, setting, or gate.
+- Developer check (exit 0/1, ids only): `python backend/scripts/colloquial_ab.py check --catalog
+  knowledge/source_catalog.json --passages knowledge/passages.json --cases
+  knowledge/pac_answer_eval.json --golden knowledge/golden_set.json --traps
+  knowledge/trap_set.json --variants backend/config/colloquial_variants.json`.
+
 ### Grounding judge
 
 Offline, evaluation-only, report-only ([spec](../docs/specs/semantic_grounding_judge.md); owner steps in
@@ -2891,6 +2961,59 @@ the `/ask` path imports the judge, and the judge never changes an answer.
   (`accepted` = `local_used`, `rejected` = `verifier_rejected`) and case set. Judge scores are unchecked
   against human review; no accuracy claim is made. Stdout never carries question, answer, sentence, or passage text.
 - Tests: `tests/test_grounding_judge.py` uses fake generator, judge, and opener with sockets blocked.
+
+### Metrics report
+
+Offline, report-only ([spec](../docs/specs/evaluation_metrics_report.md)). `app/eval_metrics.py` and
+`scripts/evaluate_metrics.py` run the 17 reviewed `/ask` cases, the 49 approved golden items, and the 26
+approved trap items once each through the in-process app with answer inspection on, and write
+`build/eval-reports/<version_id>/metrics.json` (`eval-metrics-report-v1`). No screen, route, `/ask`, or
+contract change.
+
+```sh
+backend/.venv/bin/python backend/scripts/evaluate_metrics.py run --as-of 2026-11-10 --no-judge
+```
+
+- Flags: `--as-of` (required), `--glossary off|on` (default `off`), `--label` (default `repository`),
+  `--no-judge`, and explicit `--catalog --passages --cases --golden --traps` (defaults: `knowledge/`).
+- Blocks: retrieval hit@1/3/5 and MRR from the response inspection's top-5 ranks (a missing expected
+  passage is a miss), abstention correctness (trap items also need an acceptable reason), a separate
+  clarification block, numeric/date critical facts found verbatim, and faithfulness only when the pinned
+  local judge runs. Every block is overall, by case set, by golden question type, and by trap category;
+  values are `null` (`n/a` on the result line) when no case applies.
+- Faithfulness is `judged` with `supported_share`, verdict counts, pins, `drafts_from: local_generator`,
+  and `judge_review: unchecked_against_human_review`, or `not_judged` with a reason (`skipped`, a judge
+  abort code, `no_judged_sentences`, `judge_report_unreadable`) — never `0`.
+- Report only: no pass/fail threshold, no CI gate, no metric-dependent exit code. `knowledge/` is never
+  written; the command clears answer-affecting env keys, forces the answer cache off, restores them, and
+  writes nothing outside the reports root. Failures print one `Result:` line and exit `2` with no report.
+- `version_id` hashes the five input files, the glossary digest (or `off`), the settings, and the schema
+  versions, so the same inputs produce byte-identical files.
+- Tests: `tests/test_eval_metrics.py` and `tests/test_evaluate_metrics_command.py` use synthetic rows and
+  in-process clients with sockets blocked; no network, backend, or model is needed.
+
+### Quality gate (inside `--verify`)
+
+Developer-only and read-only ([spec](../docs/specs/ci_quality_gates.md)). `./scripts/init.sh --verify`
+runs `scripts/check_quality_gate.py check` once after `--fast` and before the builds; `--fast` alone never
+runs it. It compares the two synthetic fixture groups and the 17 reviewed cases with
+`backend/config/quality_gate_baseline.json` (`eval-quality-gate-baseline-v1`): exit `0` on equality or
+improvement, `1` when hit@1/3/5 or abstention falls or MRR drops at 4 decimals, and `2` without comparing
+when the baseline is unreviewed, invalid, or stale (input digests or settings changed). The baseline's
+`review` block (reviewer, date, reason) is the only approval read; golden, trap, numeric, and judge
+numbers never block.
+
+After the owner approves a change, `record` is the only writer (it refuses an empty reviewer or reason,
+and a drop without `--accept-regression`), lists each changed metric (`old -> new`), and writes the file
+canonically:
+
+```sh
+backend/.venv/bin/python backend/scripts/check_quality_gate.py record \
+  --reviewer "<owner>" --reason "<plain reason>" [--reviewed-on YYYY-MM-DD] [--accept-regression]
+```
+
+Commit the file with the change. `check` writes nothing, reads no golden/trap/judge file, opens no socket,
+and restores the answer-affecting environment variables it clears.
 
 ### Demo rehearsal
 
