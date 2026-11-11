@@ -291,7 +291,7 @@ def project(tmp_path: Path):
         (tmp_path / "gh.json").write_text(json.dumps(state))
 
     return {"main": main, "origin": origin, "batch": batch, "calls": calls, "gh": gh_state, "git": git,
-            "set_pr_state": set_pr_state, "worktrees": tmp_path / "Proj-worktrees"}
+            "set_pr_state": set_pr_state, "worktrees": tmp_path / "Proj-worktrees", "env": environment}
 
 
 def test_a_full_batch_runs_three_features_and_opens_one_pr(project) -> None:
@@ -393,4 +393,18 @@ def test_integrate_refuses_a_short_batch_without_partial_and_a_worktree_run(proj
     assert from_worktree.returncode == 0  # status only reads; next and integrate refuse
     refused = subprocess.run(["./" + BATCH, "integrate"], cwd=project["worktrees"] / "a", text=True,
                              capture_output=True, env=dict(os.environ, MANIJERO_PYTHON=sys.executable))
-    assert refused.returncode == bf.EXIT_ERROR and "not from a worktree" in refused.stdout
+    assert refused.returncode == bf.EXIT_ERROR and "not from a feature worktree" in refused.stdout
+
+
+def test_a_control_worktree_on_main_runs_the_batch_and_keeps_worktrees_beside_the_main_checkout(project) -> None:
+    main, git = project["main"], project["git"]
+    control = main.parent / "Proj-worktrees" / "control"
+    git("checkout", "-q", "-b", "elsewhere", cwd=main)  # the main checkout is busy with other work
+    git("worktree", "add", "-q", str(control), "main", cwd=main)
+    assert bf._main_checkout(control) == main.resolve()
+    assert bf.worktrees_root(bf._main_checkout(control)) == (main.parent / "Proj-worktrees").resolve()
+    run = subprocess.run(["./" + BATCH, "next", "--no-decisions"], cwd=control, text=True, capture_output=True,
+                         env=project["env"])
+    assert run.returncode == 0, run.stdout + run.stderr
+    assert (main.parent / "Proj-worktrees" / "a").is_dir()
+    assert not (control.parent / "control-worktrees").exists()
