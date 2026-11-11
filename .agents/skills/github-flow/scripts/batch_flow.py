@@ -35,8 +35,35 @@ def _repository_root(start: Path) -> Path:
     raise SystemExit("batch_flow.py must live inside a git checkout")
 
 
+def _main_checkout(repo_root: Path) -> Path:
+    """The main checkout that owns this repository's worktrees, even when this copy runs from a linked worktree.
+
+    A linked worktree's `.git` is a file `gitdir: <main>/.git/worktrees/<name>`; the main checkout is the
+    folder that holds that `.git` directory."""
+
+    marker = repo_root / ".git"
+    if marker.is_dir():
+        return repo_root
+    text = marker.read_text(encoding="utf-8").strip()
+    gitdir = Path(text.split(":", 1)[1].strip()) if text.startswith("gitdir:") else None
+    if gitdir is None:
+        return repo_root
+    gitdir = gitdir if gitdir.is_absolute() else (repo_root / gitdir)
+    gitdir = gitdir.resolve()
+    if gitdir.parent.name == "worktrees" and gitdir.parent.parent.name == ".git":
+        return gitdir.parent.parent.parent
+    return repo_root
+
+
+def worktrees_root(main_checkout: Path) -> Path:
+    """Feature and integration worktrees live beside the main checkout, never beside a control worktree."""
+
+    return main_checkout.parent / (main_checkout.name + "-worktrees")
+
+
 REPO_ROOT = _repository_root(Path(__file__).resolve())
-WORKTREES_ROOT = REPO_ROOT.parent / (REPO_ROOT.name + "-worktrees")
+MAIN_CHECKOUT = _main_checkout(REPO_ROOT)
+WORKTREES_ROOT = worktrees_root(MAIN_CHECKOUT)
 STATE_FILE = REPO_ROOT / "build" / "batches" / "current.json"
 BASE_BRANCH = "main"
 BATCH_SIZE = 3
@@ -347,8 +374,11 @@ def require_base_checkout() -> None:
     git_dir = Path(git("rev-parse", "--absolute-git-dir"))
     common = Path(git("rev-parse", "--git-common-dir"))
     common = common if common.is_absolute() else (REPO_ROOT / common)
-    if git_dir.resolve() != common.resolve():
-        raise Stop("Run .agents/skills/github-flow/scripts/batch.sh from the main checkout ({}), not from a worktree.".format(REPO_ROOT))
+    if git_dir.resolve() != common.resolve() and git("rev-parse", "--abbrev-ref", "HEAD") != BASE_BRANCH:
+        # A linked worktree on main is a control checkout (the main checkout may be busy with other work);
+        # a feature or integration worktree must never drive the batch.
+        raise Stop("Run .agents/skills/github-flow/scripts/batch.sh from a checkout of {} (the main checkout {} or a "
+                   "control worktree on {}), not from a feature worktree.".format(BASE_BRANCH, MAIN_CHECKOUT, BASE_BRANCH))
 
 
 def require_clean_main() -> None:
