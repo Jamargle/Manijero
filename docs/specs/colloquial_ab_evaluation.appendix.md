@@ -118,6 +118,15 @@ Inspected 2026-11-10 on branch `feature/colloquial_ab_evaluation` (base f7d851c,
 - `backend/tests/fixtures/colloquial_ab/` was intentionally not created: the tests build temporary copies and read the real `knowledge/` files read-only. This is a recorded deviation from the spec's expected-file list, not a missing artifact.
 - Acceptance is validator-final (owner decision 5); the command walkthrough is covered by `test_list_waiting_pinned_line_and_full_list_file`, `test_decide_records_replaces_and_records_nothing_on_bad_input`, and `test_missing_backend_environment_line_and_init_wiring`, all passing inside the focused block.
 
+### Owner-approved run (2026-11-11)
+
+The owner approved all 49 variants (`reviewed_by: "Jose"`, `reviewed_on: "2026-11-11"`), so `backend/config/colloquial_variants.json` now records 49 approved, 0 draft, 0 rejected; `check` prints `49 variants OK (approved=49, draft=0, rejected=0); 49 approved golden parents, 49 covered, 0 orphans`.
+
+- `prepare --as-of 2026-11-11` with the pinned loopback model `mistral-small3.2:24b-instruct-2506-q4_K_M`: 49 rewritten, 0 empty, 0 rejected, 0 skipped.
+- `run --as-of 2026-11-11`: hit@5 24/37 no rewriting, 26/37 glossary, 34/37 glossary+model (37 answered, 27 changed queries); traps worse 2 in both arms (`trap-013`, `trap-016`); verdict `not adoptable (a trap got worse)` for both arms; `version_id 0b92f9eb1cb91aa3`.
+- These counts and the two trap regressions match the 2026-11-10 rehearsal exactly, so the tooling is deterministic; this run, not the rehearsal, is the owner measurement.
+- Report only: no default, threshold, gate, or `knowledge/` change. The report stays under Git-ignored `build/colloquial-ab/`.
+
 ## Validator checklist
 
 - [ ] Scope matches the contract; every non-goal respected (no `/ask`, retrieval, glossary default, `eval_metrics`, gate, or `knowledge/` change).
