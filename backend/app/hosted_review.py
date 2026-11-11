@@ -720,6 +720,7 @@ def _cap_body(body: str, package_id: str) -> str:
 def _describe_protection(ports: Ports) -> None:
     ports.out("GitHub will protect main with the ruleset {}:".format(RULESET_NAME))
     ports.out("- only pull requests can change main, and no approval is required;")
+    ports.out("- commits GitHub cannot link to an account need no extra approval;")
     ports.out("- the checks fast and full must pass;")
     ports.out("- force pushes are blocked;")
     ports.out("- the people and apps already allowed to bypass it stay allowed;")
