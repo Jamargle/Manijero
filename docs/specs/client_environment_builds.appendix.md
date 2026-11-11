@@ -5,7 +5,7 @@
 ### Files inspected
 
 - `PROGRESS.md` "Current state" — test builds (Android debug, Desktop `run`) carry the pilot token and `Conexión`; QA has only a placeholder template; prod unconfigured.
-- `feature_list.json` — dependents `qa_real_device_check` (needs this feature) and `qa_server_deployment` (chooses the host); `private_pilot_distribution` on hold.
+- `feature_list.json` — dependents `qa_real_device_check` (needs this feature) and `qa_server_deployment` (chooses the host); `private_pilot_distribution` removed (2026-11-11).
 - `docs/specs/client_pilot_credentials.md` — token validation shape, plain error message, debug-only `onVariants` split, Desktop run-only classpath folder, `MANIJERO_PILOT_TOKEN_FILE` override, `check-pilot-token-build.sh` shape.
 - `docs/specs/local_service_connection.md` — Android `src/debug`/`src/release` gating, Desktop `manijero.testBuild` on `run` only, `ActiveServiceAddress` default-then-saved resolution, store paths.
 - `docs/specs/environment_profiles.md` and appendix "Planner decisions" — QA home `~/manijero/qa` (`MANIJERO_QA_HOME` tests only), key `credentials/qa-test-device.token` (`0600`) kept "for `client_environment_builds`", placeholder `https://qa.manijero.invalid`; non-goal "giving an app the QA token (`client_environment_builds`)".
