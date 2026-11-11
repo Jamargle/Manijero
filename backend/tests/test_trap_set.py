@@ -648,11 +648,10 @@ def test_check_passes_on_the_canonical_file_and_names_failures(capsys, tmp_path,
 
 
 def make_checkout(tmp_path, with_python):
-    (tmp_path / "scripts").mkdir()
+    # init.sh sources scripts/lib and scripts/commands, so the checkout needs the whole folder.
+    shutil.copytree(ROOT / "scripts", tmp_path / "scripts")
     (tmp_path / "backend" / "scripts").mkdir(parents=True)
     init = tmp_path / "scripts" / "init.sh"
-    init.write_text((ROOT / "scripts" / "init.sh").read_text(encoding="utf-8"), encoding="utf-8")
-    shutil.copy(ROOT / "scripts" / "java-env.sh", tmp_path / "scripts" / "java-env.sh")
     stub = tmp_path / "scripts" / "python-env.sh"
     stub.write_text("#!/usr/bin/env bash\nexit 1\n", encoding="utf-8")
     for script in (init, stub):

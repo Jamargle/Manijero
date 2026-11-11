@@ -56,10 +56,11 @@ class QaCheckGuardTest {
 
     @Test
     fun `no init tier and no other source runs or names the live qa check`() {
-        val init = root.resolve("scripts/init.sh").readText()
-        assertFalse("runDesktopQaCheck" in init, "init.sh reaches the check only through qa_check.py")
-        assertFalse("DesktopQaCheckRun" in init)
-        val fast = init.substringAfter("run_fast() {").substringBefore("\n}\n")
+        val scripts = scriptsSource()
+        assertFalse("runDesktopQaCheck" in scripts, "the commands reach the check only through qa_check.py")
+        assertFalse("DesktopQaCheckRun" in scripts)
+        val tiers = root.resolve("scripts/lib/tiers.sh").readText()
+        val fast = tiers.substringAfter("run_fast() {").substringBefore("\n}\n")
         assertFalse("qa-check" in fast || "qa_check.py" in fast, "--fast must not start the QA check")
         val script = root.resolve("backend/app/qa_check.py").readText()
         assertTrue(":shared:runDesktopQaCheck" in script)
@@ -78,6 +79,11 @@ class QaCheckGuardTest {
         }
         error("unbalanced braces after index $openIndex")
     }
+
+    private fun scriptsSource(): String = root.resolve("scripts").walkTopDown()
+        .filter { it.isFile && it.extension == "sh" }
+        .sortedBy { it.path }
+        .joinToString("\n") { it.readText() }
 
     private fun repositoryRoot(): File {
         var directory: File? = File("").absoluteFile

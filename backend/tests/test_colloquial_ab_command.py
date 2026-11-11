@@ -251,9 +251,8 @@ def test_decide_refuses_a_bad_variant_and_a_stale_golden_binding(
 
 def test_missing_backend_environment_line_and_init_wiring(tmp_path: Path) -> None:
     fake = tmp_path / "repo"
-    (fake / "scripts").mkdir(parents=True)
-    shutil.copy(INIT, fake / "scripts" / "init.sh")
-    shutil.copy(ROOT / "scripts" / "java-env.sh", fake / "scripts" / "java-env.sh")
+    # init.sh sources scripts/lib and scripts/commands, so the checkout needs the whole folder.
+    shutil.copytree(ROOT / "scripts", fake / "scripts")
 
     completed = subprocess.run(
         ["bash", str(fake / "scripts" / "init.sh"), "--colloquial-review"],
@@ -271,11 +270,13 @@ def test_missing_backend_environment_line_and_init_wiring(tmp_path: Path) -> Non
     ) in completed.stdout
     assert "did not run" in completed.stdout
 
-    source = INIT.read_text(encoding="utf-8")
+    source = "\n".join(
+        path.read_text(encoding="utf-8") for path in sorted((ROOT / "scripts").rglob("*.sh"))
+    )
     assert "--colloquial-review" in source and "--colloquial-decide" in source
     assert "colloquial_ab.py\" list" in source
     assert "colloquial_ab.py\" decide" in source
-    assert "--colloquial-review" in (ROOT / "scripts" / "init.sh").read_text(encoding="utf-8")
+    assert "commands/knowledge.sh" in (ROOT / "scripts" / "init.sh").read_text(encoding="utf-8")
 
 
 # --- prepare and run ------------------------------------------------------------------------

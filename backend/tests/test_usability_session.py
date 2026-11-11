@@ -385,6 +385,9 @@ def test_init_records_a_participant(tmp_path: Path) -> None:
 
 
 def test_init_lists_command_and_gitignore_guard() -> None:
-    text = INIT.read_text(encoding="utf-8")
-    assert text.count("--usability-record") >= 4
+    # The command is listed in the help and wired in a grouped module, both reached from init.sh.
+    source = "\n".join(
+        path.read_text(encoding="utf-8") for path in sorted((REPO_ROOT / "scripts").rglob("*.sh"))
+    )
+    assert source.count("--usability-record") >= 4
     assert "usability-results*.json" in (REPO_ROOT / ".gitignore").read_text(encoding="utf-8")

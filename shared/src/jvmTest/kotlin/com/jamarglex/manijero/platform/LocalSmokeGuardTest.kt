@@ -27,10 +27,11 @@ class LocalSmokeGuardTest {
 
     @Test
     fun `no init tier runs the live checks`() {
-        val init = root.resolve("scripts/init.sh").readText()
-        assertFalse("runDesktopLocalSmoke" in init, "init.sh reaches the Desktop check only through local_smoke.py")
-        assertFalse("connectedAndroidTest" in init, "connectedAndroidTest uninstalls the app and its data")
-        val fast = init.substringAfter("run_fast() {").substringBefore("\n}\n")
+        val scripts = scriptsSource()
+        assertFalse("runDesktopLocalSmoke" in scripts, "the commands reach the Desktop check only through local_smoke.py")
+        assertFalse("connectedAndroidTest" in scripts, "connectedAndroidTest uninstalls the app and its data")
+        val tiers = root.resolve("scripts/lib/tiers.sh").readText()
+        val fast = tiers.substringAfter("run_fast() {").substringBefore("\n}\n")
         assertFalse("local-smoke" in fast || "local_rag.py" in fast, "--fast must not start the smoke test")
     }
 
@@ -67,6 +68,11 @@ class LocalSmokeGuardTest {
         }
         assertEquals(emptyList(), offenders)
     }
+
+    private fun scriptsSource(): String = root.resolve("scripts").walkTopDown()
+        .filter { it.isFile && it.extension == "sh" }
+        .sortedBy { it.path }
+        .joinToString("\n") { it.readText() }
 
     private fun repositoryRoot(): File {
         var directory: File? = File("").absoluteFile
