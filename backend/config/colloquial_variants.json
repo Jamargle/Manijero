@@ -14,8 +14,12 @@
         "by": "agent:colloquial_ab_evaluation",
         "on": "2026-11-10"
       },
-      "review_state": "draft",
-      "decision": null
+      "review_state": "approved",
+      "decision": {
+        "decision": "approved",
+        "reviewed_by": "Jose",
+        "reviewed_on": "2026-11-11"
+      }
     },
     {
       "id": "coll-002",
@@ -30,8 +34,12 @@
         "by": "agent:colloquial_ab_evaluation",
         "on": "2026-11-10"
       },
-      "review_state": "draft",
-      "decision": null
+      "review_state": "approved",
+      "decision": {
+        "decision": "approved",
+        "reviewed_by": "Jose",
+        "reviewed_on": "2026-11-11"
+      }
     },
     {
       "id": "coll-003",
@@ -47,8 +55,12 @@
         "by": "agent:colloquial_ab_evaluation",
         "on": "2026-11-10"
       },
-      "review_state": "draft",
-      "decision": null
+      "review_state": "approved",
+      "decision": {
+        "decision": "approved",
+        "reviewed_by": "Jose",
+        "reviewed_on": "2026-11-11"
+      }
     },
     {
       "id": "coll-004",
@@ -62,8 +74,12 @@
         "by": "agent:colloquial_ab_evaluation",
         "on": "2026-11-10"
       },
-      "review_state": "draft",
-      "decision": null
+      "review_state": "approved",
+      "decision": {
+        "decision": "approved",
+        "reviewed_by": "Jose",
+        "reviewed_on": "2026-11-11"
+      }
     },
     {
       "id": "coll-005",
@@ -78,8 +94,12 @@
         "by": "agent:colloquial_ab_evaluation",
         "on": "2026-11-10"
       },
-      "review_state": "draft",
-      "decision": null
+      "review_state": "approved",
+      "decision": {
+        "decision": "approved",
+        "reviewed_by": "Jose",
+        "reviewed_on": "2026-11-11"
+      }
     },
     {
       "id": "coll-006",
@@ -94,8 +114,12 @@
         "by": "agent:colloquial_ab_evaluation",
         "on": "2026-11-10"
       },
-      "review_state": "draft",
-      "decision": null
+      "review_state": "approved",
+      "decision": {
+        "decision": "approved",
+        "reviewed_by": "Jose",
+        "reviewed_on": "2026-11-11"
+      }
     },
     {
       "id": "coll-007",
@@ -110,8 +134,12 @@
         "by": "agent:colloquial_ab_evaluation",
         "on": "2026-11-10"
       },
-      "review_state": "draft",
-      "decision": null
+      "review_state": "approved",
+      "decision": {
+        "decision": "approved",
+        "reviewed_by": "Jose",
+        "reviewed_on": "2026-11-11"
+      }
     },
     {
       "id": "coll-008",
@@ -124,8 +152,12 @@
         "by": "agent:colloquial_ab_evaluation",
         "on": "2026-11-10"
       },
-      "review_state": "draft",
-      "decision": null
+      "review_state": "approved",
+      "decision": {
+        "decision": "approved",
+        "reviewed_by": "Jose",
+        "reviewed_on": "2026-11-11"
+      }
     },
     {
       "id": "coll-009",
@@ -139,8 +171,12 @@
         "by": "agent:colloquial_ab_evaluation",
         "on": "2026-11-10"
       },
-      "review_state": "draft",
-      "decision": null
+      "review_state": "approved",
+      "decision": {
+        "decision": "approved",
+        "reviewed_by": "Jose",
+        "reviewed_on": "2026-11-11"
+      }
     },
     {
       "id": "coll-010",
@@ -155,8 +191,12 @@
         "by": "agent:colloquial_ab_evaluation",
         "on": "2026-11-10"
       },
-      "review_state": "draft",
-      "decision": null
+      "review_state": "approved",
+      "decision": {
+        "decision": "approved",
+        "reviewed_by": "Jose",
+        "reviewed_on": "2026-11-11"
+      }
     },
     {
       "id": "coll-011",
@@ -172,8 +212,12 @@
         "by": "agent:colloquial_ab_evaluation",
         "on": "2026-11-10"
       },
-      "review_state": "draft",
-      "decision": null
+      "review_state": "approved",
+      "decision": {
+        "decision": "approved",
+        "reviewed_by": "Jose",
+        "reviewed_on": "2026-11-11"
+      }
     },
     {
       "id": "coll-012",
@@ -188,8 +232,12 @@
         "by": "agent:colloquial_ab_evaluation",
         "on": "2026-11-10"
       },
-      "review_state": "draft",
-      "decision": null
+      "review_state": "approved",
+      "decision": {
+        "decision": "approved",
+        "reviewed_by": "Jose",
+        "reviewed_on": "2026-11-11"
+      }
     },
     {
       "id": "coll-013",
@@ -205,8 +253,12 @@
         "by": "agent:colloquial_ab_evaluation",
         "on": "2026-11-10"
       },
-      "review_state": "draft",
-      "decision": null
+      "review_state": "approved",
+      "decision": {
+        "decision": "approved",
+        "reviewed_by": "Jose",
+        "reviewed_on": "2026-11-11"
+      }
     },
     {
       "id": "coll-014",
@@ -221,8 +273,12 @@
         "by": "agent:colloquial_ab_evaluation",
         "on": "2026-11-10"
       },
-      "review_state": "draft",
-      "decision": null
+      "review_state": "approved",
+      "decision": {
+        "decision": "approved",
+        "reviewed_by": "Jose",
+        "reviewed_on": "2026-11-11"
+      }
     },
     {
       "id": "coll-015",
@@ -238,8 +294,12 @@
         "by": "agent:colloquial_ab_evaluation",
         "on": "2026-11-10"
       },
-      "review_state": "draft",
-      "decision": null
+      "review_state": "approved",
+      "decision": {
+        "decision": "approved",
+        "reviewed_by": "Jose",
+        "reviewed_on": "2026-11-11"
+      }
     },
     {
       "id": "coll-016",
@@ -254,8 +314,12 @@
         "by": "agent:colloquial_ab_evaluation",
         "on": "2026-11-10"
       },
-      "review_state": "draft",
-      "decision": null
+      "review_state": "approved",
+      "decision": {
+        "decision": "approved",
+        "reviewed_by": "Jose",
+        "reviewed_on": "2026-11-11"
+      }
     },
     {
       "id": "coll-017",
@@ -270,8 +334,12 @@
         "by": "agent:colloquial_ab_evaluation",
         "on": "2026-11-10"
       },
-      "review_state": "draft",
-      "decision": null
+      "review_state": "approved",
+      "decision": {
+        "decision": "approved",
+        "reviewed_by": "Jose",
+        "reviewed_on": "2026-11-11"
+      }
     },
     {
       "id": "coll-018",
@@ -287,8 +355,12 @@
         "by": "agent:colloquial_ab_evaluation",
         "on": "2026-11-10"
       },
-      "review_state": "draft",
-      "decision": null
+      "review_state": "approved",
+      "decision": {
+        "decision": "approved",
+        "reviewed_by": "Jose",
+        "reviewed_on": "2026-11-11"
+      }
     },
     {
       "id": "coll-019",
@@ -303,8 +375,12 @@
         "by": "agent:colloquial_ab_evaluation",
         "on": "2026-11-10"
       },
-      "review_state": "draft",
-      "decision": null
+      "review_state": "approved",
+      "decision": {
+        "decision": "approved",
+        "reviewed_by": "Jose",
+        "reviewed_on": "2026-11-11"
+      }
     },
     {
       "id": "coll-020",
@@ -320,8 +396,12 @@
         "by": "agent:colloquial_ab_evaluation",
         "on": "2026-11-10"
       },
-      "review_state": "draft",
-      "decision": null
+      "review_state": "approved",
+      "decision": {
+        "decision": "approved",
+        "reviewed_by": "Jose",
+        "reviewed_on": "2026-11-11"
+      }
     },
     {
       "id": "coll-021",
@@ -336,8 +416,12 @@
         "by": "agent:colloquial_ab_evaluation",
         "on": "2026-11-10"
       },
-      "review_state": "draft",
-      "decision": null
+      "review_state": "approved",
+      "decision": {
+        "decision": "approved",
+        "reviewed_by": "Jose",
+        "reviewed_on": "2026-11-11"
+      }
     },
     {
       "id": "coll-022",
@@ -352,8 +436,12 @@
         "by": "agent:colloquial_ab_evaluation",
         "on": "2026-11-10"
       },
-      "review_state": "draft",
-      "decision": null
+      "review_state": "approved",
+      "decision": {
+        "decision": "approved",
+        "reviewed_by": "Jose",
+        "reviewed_on": "2026-11-11"
+      }
     },
     {
       "id": "coll-023",
@@ -366,8 +454,12 @@
         "by": "agent:colloquial_ab_evaluation",
         "on": "2026-11-10"
       },
-      "review_state": "draft",
-      "decision": null
+      "review_state": "approved",
+      "decision": {
+        "decision": "approved",
+        "reviewed_by": "Jose",
+        "reviewed_on": "2026-11-11"
+      }
     },
     {
       "id": "coll-024",
@@ -381,8 +473,12 @@
         "by": "agent:colloquial_ab_evaluation",
         "on": "2026-11-10"
       },
-      "review_state": "draft",
-      "decision": null
+      "review_state": "approved",
+      "decision": {
+        "decision": "approved",
+        "reviewed_by": "Jose",
+        "reviewed_on": "2026-11-11"
+      }
     },
     {
       "id": "coll-025",
@@ -395,8 +491,12 @@
         "by": "agent:colloquial_ab_evaluation",
         "on": "2026-11-10"
       },
-      "review_state": "draft",
-      "decision": null
+      "review_state": "approved",
+      "decision": {
+        "decision": "approved",
+        "reviewed_by": "Jose",
+        "reviewed_on": "2026-11-11"
+      }
     },
     {
       "id": "coll-026",
@@ -411,8 +511,12 @@
         "by": "agent:colloquial_ab_evaluation",
         "on": "2026-11-10"
       },
-      "review_state": "draft",
-      "decision": null
+      "review_state": "approved",
+      "decision": {
+        "decision": "approved",
+        "reviewed_by": "Jose",
+        "reviewed_on": "2026-11-11"
+      }
     },
     {
       "id": "coll-027",
@@ -427,8 +531,12 @@
         "by": "agent:colloquial_ab_evaluation",
         "on": "2026-11-10"
       },
-      "review_state": "draft",
-      "decision": null
+      "review_state": "approved",
+      "decision": {
+        "decision": "approved",
+        "reviewed_by": "Jose",
+        "reviewed_on": "2026-11-11"
+      }
     },
     {
       "id": "coll-028",
@@ -444,8 +552,12 @@
         "by": "agent:colloquial_ab_evaluation",
         "on": "2026-11-10"
       },
-      "review_state": "draft",
-      "decision": null
+      "review_state": "approved",
+      "decision": {
+        "decision": "approved",
+        "reviewed_by": "Jose",
+        "reviewed_on": "2026-11-11"
+      }
     },
     {
       "id": "coll-029",
@@ -461,8 +573,12 @@
         "by": "agent:colloquial_ab_evaluation",
         "on": "2026-11-10"
       },
-      "review_state": "draft",
-      "decision": null
+      "review_state": "approved",
+      "decision": {
+        "decision": "approved",
+        "reviewed_by": "Jose",
+        "reviewed_on": "2026-11-11"
+      }
     },
     {
       "id": "coll-030",
@@ -477,8 +593,12 @@
         "by": "agent:colloquial_ab_evaluation",
         "on": "2026-11-10"
       },
-      "review_state": "draft",
-      "decision": null
+      "review_state": "approved",
+      "decision": {
+        "decision": "approved",
+        "reviewed_by": "Jose",
+        "reviewed_on": "2026-11-11"
+      }
     },
     {
       "id": "coll-031",
@@ -492,8 +612,12 @@
         "by": "agent:colloquial_ab_evaluation",
         "on": "2026-11-10"
       },
-      "review_state": "draft",
-      "decision": null
+      "review_state": "approved",
+      "decision": {
+        "decision": "approved",
+        "reviewed_by": "Jose",
+        "reviewed_on": "2026-11-11"
+      }
     },
     {
       "id": "coll-032",
@@ -506,8 +630,12 @@
         "by": "agent:colloquial_ab_evaluation",
         "on": "2026-11-10"
       },
-      "review_state": "draft",
-      "decision": null
+      "review_state": "approved",
+      "decision": {
+        "decision": "approved",
+        "reviewed_by": "Jose",
+        "reviewed_on": "2026-11-11"
+      }
     },
     {
       "id": "coll-033",
@@ -522,8 +650,12 @@
         "by": "agent:colloquial_ab_evaluation",
         "on": "2026-11-10"
       },
-      "review_state": "draft",
-      "decision": null
+      "review_state": "approved",
+      "decision": {
+        "decision": "approved",
+        "reviewed_by": "Jose",
+        "reviewed_on": "2026-11-11"
+      }
     },
     {
       "id": "coll-034",
@@ -537,8 +669,12 @@
         "by": "agent:colloquial_ab_evaluation",
         "on": "2026-11-10"
       },
-      "review_state": "draft",
-      "decision": null
+      "review_state": "approved",
+      "decision": {
+        "decision": "approved",
+        "reviewed_by": "Jose",
+        "reviewed_on": "2026-11-11"
+      }
     },
     {
       "id": "coll-035",
@@ -553,8 +689,12 @@
         "by": "agent:colloquial_ab_evaluation",
         "on": "2026-11-10"
       },
-      "review_state": "draft",
-      "decision": null
+      "review_state": "approved",
+      "decision": {
+        "decision": "approved",
+        "reviewed_by": "Jose",
+        "reviewed_on": "2026-11-11"
+      }
     },
     {
       "id": "coll-036",
@@ -568,8 +708,12 @@
         "by": "agent:colloquial_ab_evaluation",
         "on": "2026-11-10"
       },
-      "review_state": "draft",
-      "decision": null
+      "review_state": "approved",
+      "decision": {
+        "decision": "approved",
+        "reviewed_by": "Jose",
+        "reviewed_on": "2026-11-11"
+      }
     },
     {
       "id": "coll-037",
@@ -583,8 +727,12 @@
         "by": "agent:colloquial_ab_evaluation",
         "on": "2026-11-10"
       },
-      "review_state": "draft",
-      "decision": null
+      "review_state": "approved",
+      "decision": {
+        "decision": "approved",
+        "reviewed_by": "Jose",
+        "reviewed_on": "2026-11-11"
+      }
     },
     {
       "id": "coll-038",
@@ -598,8 +746,12 @@
         "by": "agent:colloquial_ab_evaluation",
         "on": "2026-11-10"
       },
-      "review_state": "draft",
-      "decision": null
+      "review_state": "approved",
+      "decision": {
+        "decision": "approved",
+        "reviewed_by": "Jose",
+        "reviewed_on": "2026-11-11"
+      }
     },
     {
       "id": "coll-039",
@@ -614,8 +766,12 @@
         "by": "agent:colloquial_ab_evaluation",
         "on": "2026-11-10"
       },
-      "review_state": "draft",
-      "decision": null
+      "review_state": "approved",
+      "decision": {
+        "decision": "approved",
+        "reviewed_by": "Jose",
+        "reviewed_on": "2026-11-11"
+      }
     },
     {
       "id": "coll-040",
@@ -631,8 +787,12 @@
         "by": "agent:colloquial_ab_evaluation",
         "on": "2026-11-10"
       },
-      "review_state": "draft",
-      "decision": null
+      "review_state": "approved",
+      "decision": {
+        "decision": "approved",
+        "reviewed_by": "Jose",
+        "reviewed_on": "2026-11-11"
+      }
     },
     {
       "id": "coll-041",
@@ -647,8 +807,12 @@
         "by": "agent:colloquial_ab_evaluation",
         "on": "2026-11-10"
       },
-      "review_state": "draft",
-      "decision": null
+      "review_state": "approved",
+      "decision": {
+        "decision": "approved",
+        "reviewed_by": "Jose",
+        "reviewed_on": "2026-11-11"
+      }
     },
     {
       "id": "coll-042",
@@ -663,8 +827,12 @@
         "by": "agent:colloquial_ab_evaluation",
         "on": "2026-11-10"
       },
-      "review_state": "draft",
-      "decision": null
+      "review_state": "approved",
+      "decision": {
+        "decision": "approved",
+        "reviewed_by": "Jose",
+        "reviewed_on": "2026-11-11"
+      }
     },
     {
       "id": "coll-043",
@@ -678,8 +846,12 @@
         "by": "agent:colloquial_ab_evaluation",
         "on": "2026-11-10"
       },
-      "review_state": "draft",
-      "decision": null
+      "review_state": "approved",
+      "decision": {
+        "decision": "approved",
+        "reviewed_by": "Jose",
+        "reviewed_on": "2026-11-11"
+      }
     },
     {
       "id": "coll-044",
@@ -694,8 +866,12 @@
         "by": "agent:colloquial_ab_evaluation",
         "on": "2026-11-10"
       },
-      "review_state": "draft",
-      "decision": null
+      "review_state": "approved",
+      "decision": {
+        "decision": "approved",
+        "reviewed_by": "Jose",
+        "reviewed_on": "2026-11-11"
+      }
     },
     {
       "id": "coll-045",
@@ -710,8 +886,12 @@
         "by": "agent:colloquial_ab_evaluation",
         "on": "2026-11-10"
       },
-      "review_state": "draft",
-      "decision": null
+      "review_state": "approved",
+      "decision": {
+        "decision": "approved",
+        "reviewed_by": "Jose",
+        "reviewed_on": "2026-11-11"
+      }
     },
     {
       "id": "coll-046",
@@ -727,8 +907,12 @@
         "by": "agent:colloquial_ab_evaluation",
         "on": "2026-11-10"
       },
-      "review_state": "draft",
-      "decision": null
+      "review_state": "approved",
+      "decision": {
+        "decision": "approved",
+        "reviewed_by": "Jose",
+        "reviewed_on": "2026-11-11"
+      }
     },
     {
       "id": "coll-047",
@@ -741,8 +925,12 @@
         "by": "agent:colloquial_ab_evaluation",
         "on": "2026-11-10"
       },
-      "review_state": "draft",
-      "decision": null
+      "review_state": "approved",
+      "decision": {
+        "decision": "approved",
+        "reviewed_by": "Jose",
+        "reviewed_on": "2026-11-11"
+      }
     },
     {
       "id": "coll-048",
@@ -758,8 +946,12 @@
         "by": "agent:colloquial_ab_evaluation",
         "on": "2026-11-10"
       },
-      "review_state": "draft",
-      "decision": null
+      "review_state": "approved",
+      "decision": {
+        "decision": "approved",
+        "reviewed_by": "Jose",
+        "reviewed_on": "2026-11-11"
+      }
     },
     {
       "id": "coll-049",
@@ -773,8 +965,12 @@
         "by": "agent:colloquial_ab_evaluation",
         "on": "2026-11-10"
       },
-      "review_state": "draft",
-      "decision": null
+      "review_state": "approved",
+      "decision": {
+        "decision": "approved",
+        "reviewed_by": "Jose",
+        "reviewed_on": "2026-11-11"
+      }
     }
   ]
 }

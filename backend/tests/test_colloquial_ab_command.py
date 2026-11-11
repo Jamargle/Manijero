@@ -68,7 +68,12 @@ def _result_lines(output: str) -> List[str]:
 
 
 def _copy(tmp_path: Path, *, approve_all: bool = False) -> Path:
+    # The committed file records the owner's 2026-11-11 approvals; these tests exercise the
+    # commands from a known all-draft copy, so they do not depend on the owner's live decisions.
     document = json.loads(VARIANTS.read_text(encoding="utf-8"))
+    for entry in document["variants"]:
+        entry["review_state"] = "draft"
+        entry["decision"] = None
     if approve_all:
         for entry in document["variants"]:
             entry["review_state"] = "approved"

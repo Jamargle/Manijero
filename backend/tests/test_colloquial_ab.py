@@ -70,7 +70,8 @@ def test_committed_variants_pass_all_checks_and_cover_every_approved_parent() ->
 
     assert ab.check_variants(document, golden, cases, digest, coverage["omissions"]) == []
     assert len(document["variants"]) == 49
-    assert ab.state_counts(document) == {"draft": 49, "approved": 0, "rejected": 0}
+    # The owner approved every variant on 2026-11-11; the committed set is the approved one.
+    assert ab.state_counts(document) == {"draft": 0, "approved": 49, "rejected": 0}
     approved_parents = {
         item["id"] for item in golden["items"] if item["review_state"] == "approved"
     }
