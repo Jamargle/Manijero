@@ -75,14 +75,16 @@ measurement, not evidence about legal coverage or real user questions.
 
 `source_catalog.json` contains seven official sources: six reviewed for the
 bounded Andalusia PAC 2026 slice and one for the olive-oil marketing rule of
-campaign 2026/2027, whose review and approval are recorded in the package under
-`knowledge/reviews/`. It does not mean the corpus is broad or supports questions
-outside the published coverage.
+campaign 2026/2027, whose proposed addition awaits the owner's review in the
+package under `knowledge/reviews/`; it becomes part of the corpus only when that
+review pull request is merged. It does not mean the corpus is broad or supports
+questions outside the published coverage.
 
 `passages.json` contains nine manually curated literal passages: seven already
-approved for the bounded PAC slice and two for the olive-oil marketing rule; the
-review and approval of the latter two are recorded in the same package. There is
-no automatic ingestion or chunking pipeline; the passage format
+approved for the bounded PAC slice and two proposed for the olive-oil marketing
+rule; the owner reviews those two in the same package, and merging the review
+pull request records the approval. There is no automatic ingestion or chunking
+pipeline; the passage format
 is also exercised by synthetic fixtures under `backend/tests/fixtures/`. The
 canonical passages support only the questions listed in `pac_coverage.md`.
 
