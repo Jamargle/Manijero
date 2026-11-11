@@ -156,12 +156,13 @@ def test_a_missing_clipboard_tool_gives_the_plain_message(workspace: Path) -> No
 
 
 def test_the_command_is_listed_in_the_help_and_dispatched_before_any_toolchain_step() -> None:
-    # Read the script text instead of running --help, which would go through the Android setup.
-    script = INIT.read_text()
-    usage = script[script.index("usage() {"):]
+    # Read the grouped modules instead of running --help, which would still resolve Java.
+    help_text = (INIT.parent / "lib" / "usage.sh").read_text(encoding="utf-8")
+    help_block = help_text[help_text.index("usage() {"):]
+    assert "--pilot-token-save" in help_block[: help_block.index("EOF\n}")]
 
-    assert "--pilot-token-save" in usage[: usage.index("EOF\n}")]
-    dispatch = script.index('if [[ "${1:-}" == "--pilot-token-save" ]]; then')
-    for later_step in ("python-env.sh", "local.properties", "./gradlew", "MANIJERO_VENV_ROOT"):
-        if later_step in script:
-            assert dispatch < script.index(later_step)
+    dispatcher = (INIT).read_text(encoding="utf-8")
+    assert dispatcher.index("commands/pilot-token.sh") < dispatcher.index("lib/toolchain.sh")
+    command = (INIT.parent / "commands" / "pilot-token.sh").read_text(encoding="utf-8")
+    for toolchain_step in ("python-env.sh", "local.properties", "./gradlew"):
+        assert toolchain_step not in command
