@@ -1656,6 +1656,24 @@ health dashboard shows a "Knowledge updates" box (30 h threshold in `monitoring/
 the live official sites; each run re-classifies every pending candidate with the local model; no freshness
 or coverage claim.
 
+## Nightly evaluation (report-only, with a cache check)
+
+`app/nightly_eval.py` (entry point `scripts/nightly_eval.py`, behind `./scripts/init.sh
+--nightly-eval-on|-run|-status|-off`, owner steps in
+[`docs/owner-guide/nightly-evaluation.md`](../docs/owner-guide/nightly-evaluation.md)) runs
+`scripts/evaluate_metrics.py run --as-of <Madrid date> --answer-cache-check` in a child process from the
+launchd agent `org.manijero.nightly-eval` (00:00; 3-hour limit, terminate then kill after 10 s; no retries).
+`--answer-cache-check` replays every case through a fresh in-memory `AnswerCache` and adds
+`answer_cache_check {asked, served_from_cache, reused_unchanged, differed}` to the report; the scored pass
+stays cache-off. The run keeps eight overall scores (hit@1/3/5, MRR, abstention, numbers and dates,
+faithfulness when judged, cache reuse) in `nightly-eval-ledger.jsonl` (`nightly-eval-ledger-v1`), compares
+them at 4 decimals with the previous `evaluated` run, and sends one fixed Telegram message through the QA
+alerts bot (3 tries, 10 s apart) only for a drop. State: `~/manijero/nightly-eval` (`0700`, files `0600`).
+`/metrics` carries `manijero_nightly_eval_{configured,readable,last_run_outcome,
+last_run_finished_timestamp_seconds,score,score_dropped}` and the dashboard a "Nightly evaluation" row
+(30 h threshold). Exit codes: `0` evaluated, `1` failed or stopped, `2` prerequisite missing, `3` a run is in
+progress; a drop never changes one. Tests: `tests/test_nightly_eval.py`, `tests/test_nightly_eval_commands.py`.
+
 ## Manual official-document candidate ingestion
 
 `app/document_ingestion.py` fetches the pending publication candidates produced

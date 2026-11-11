@@ -167,6 +167,7 @@ Durable MUST/MUST NOT rules for backend answer path, retrieval, generation, eval
   `build/eval-reports/`, and says faithfulness is `not_judged` with a reason (never `0`) unless judged.
   Reason: `evaluation_metrics_report` ([spec](../specs/evaluation_metrics_report.md)); unjudged or
   author-reviewed numbers must not become a false gate.
+- **MUST**: the nightly evaluation (`backend/app/nightly_eval.py`) MUST stay report-only (no score changes an exit code, a gate, a release, `/ask`, or the `ci_quality_gates` baseline), compare only with the previous `evaluated` run, store scores and fixed codes only, and its `--answer-cache-check` MUST keep the cache in one process's memory (never across processes or on disk) and leave the scored pass cache-off. Reason: [`nightly_evaluation`](../specs/nightly_evaluation.md); a failed or differently-dated run is not a fair base, and the owner limited the answer cache to memory.
 - **MUST**: the commit-time quality gate MUST compare only the two synthetic fixture groups and the
   17-case reviewed sample with a committed baseline whose review names reviewer, date, and reason;
   hit@1/3/5 and abstention are zero-tolerance, MRR MUST NOT fall, and golden/trap/numeric/judge

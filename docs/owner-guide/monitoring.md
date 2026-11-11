@@ -31,6 +31,7 @@ happening while it runs, and it does not tell you when something stops.
 | `Docker Desktop is not open ...` | Docker Desktop is closed. | Open it, wait until it says it is running, then run the command again. |
 | `Port 3000 is in use by another program.` | Another program uses the dashboard's port. | Close that program, then start again. |
 | `Knowledge updates` box says `Problem` or `Warning` | The daily [knowledge update run](knowledge-updates.md) failed or did not run for 30 hours. | Run `./scripts/init.sh --knowledge-updates-status` and do what it says. The box shows only while the local answer service runs. |
+| `Nightly evaluation` row says `Problem` or `Warning` | The [nightly evaluation](nightly-evaluation.md) failed, a score dropped, or no run finished for 30 hours. | Run `./scripts/init.sh --nightly-eval-status` and do what it says. The row shows only while the local answer service runs. |
 | Boxes say `No information yet` | The dashboard has no data yet. | Wait a minute, then run `./scripts/init.sh --monitoring-status`. |
 | `Problem ... cannot reach the answer service` for Local | The local service is not running. | Start it with `./scripts/init.sh --local-rag-start` (or `--container-start`). |
 

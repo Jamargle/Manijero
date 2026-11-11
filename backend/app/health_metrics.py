@@ -27,12 +27,13 @@ from typing import Any, Callable, Dict, Iterable, List, Mapping, Optional, Seque
 CONTENT_TYPE = "text/plain; version=0.0.4; charset=utf-8"
 SOURCE_UPDATE_STATE_DIR_ENV = "MANIJERO_SOURCE_UPDATE_STATE_DIR"
 KNOWLEDGE_OPS_STATE_DIR_ENV = "MANIJERO_KNOWLEDGE_OPS_STATE_DIR"
+NIGHTLY_EVAL_STATE_DIR_ENV = "MANIJERO_NIGHTLY_EVAL_STATE_DIR"
 PREFIX = "manijero_"
 
 # Label allowlist: the only label names a sample may carry.
 LABEL_NAMES = frozenset(
     {"profile", "version", "provider", "route", "code", "rating", "reason", "status", "outcome",
-     "problem", "release_id", "state", "job", "le"}
+     "problem", "release_id", "state", "job", "le", "metric"}
 )
 OTHER = "other"
 
@@ -60,6 +61,10 @@ CACHE_OUTCOMES = ("hit", "miss", "expired", "discarded")
 RELEASE_STATES = ("served", "refused", "repository")
 JOBS = ("monitor", "boe", "boja")
 KNOWLEDGE_OPS_OUTCOMES = ("review_ready", "failed", "stopped_at_time_limit", "interrupted")
+NIGHTLY_EVAL_OUTCOMES = ("evaluated", "failed", "stopped_at_time_limit", "interrupted")
+NIGHTLY_EVAL_SCORES = (
+    "hit_at_1", "hit_at_3", "hit_at_5", "mrr", "abstention", "numeric", "faithfulness", "cache_reuse",
+)
 RELEASE_ID = re.compile(r"^[0-9a-f]{16}$")
 BUCKETS = (0.05, 0.1, 0.25, 0.5, 1.0, 2.5, 5.0, 10.0, 30.0, 60.0)
 
@@ -92,6 +97,14 @@ FAMILIES: Dict[str, Tuple[str, str]] = {
     "knowledge_ops_last_run_outcome": ("gauge", "1 for the outcome of the last knowledge-update run."),
     "knowledge_ops_last_run_finished_timestamp_seconds": (
         "gauge", "Unix time the last knowledge-update run finished."),
+    "nightly_eval_configured": ("gauge", "1 when a nightly-evaluation folder is configured."),
+    "nightly_eval_readable": ("gauge", "1 when the nightly-evaluation ledger could be read."),
+    "nightly_eval_last_run_outcome": ("gauge", "1 for the outcome of the last nightly evaluation."),
+    "nightly_eval_last_run_finished_timestamp_seconds": (
+        "gauge", "Unix time the last nightly evaluation finished."),
+    "nightly_eval_score": ("gauge", "An overall score of the last evaluated nightly run; absent when not measured."),
+    "nightly_eval_score_dropped": (
+        "gauge", "1 when the score is lower than in the previous evaluated nightly run."),
 }
 
 
@@ -208,6 +221,7 @@ class HealthMetrics:
         release: Tuple[str, str] = ("none", "repository"),
         source_updates: Optional[Mapping[str, Any]] = None,
         knowledge_ops: Optional[Mapping[str, Any]] = None,
+        nightly_eval: Optional[Mapping[str, Any]] = None,
     ) -> str:
         """Prometheus text format 0.0.4: sorted families, each with HELP and TYPE."""
 
@@ -251,6 +265,7 @@ class HealthMetrics:
             1))
         _render_source_updates(samples, source_updates)
         _render_knowledge_ops(samples, knowledge_ops)
+        _render_nightly_eval(samples, nightly_eval)
 
         lines: List[str] = []
         for name in sorted(FAMILIES):
@@ -308,6 +323,52 @@ def _render_knowledge_ops(
     if snapshot.get("finished") is not None:
         samples["knowledge_ops_last_run_finished_timestamp_seconds"].append(
             _sample("knowledge_ops_last_run_finished_timestamp_seconds", (), snapshot["finished"]))
+
+
+def _render_nightly_eval(
+    samples: Dict[str, List[str]], snapshot: Optional[Mapping[str, Any]]
+) -> None:
+    samples["nightly_eval_configured"].append(
+        _sample("nightly_eval_configured", (), 0 if snapshot is None else 1))
+    if snapshot is None:
+        return
+    readable = bool(snapshot.get("readable"))
+    samples["nightly_eval_readable"].append(_sample("nightly_eval_readable", (), 1 if readable else 0))
+    if not readable:
+        return
+    outcome = snapshot.get("outcome")
+    for known in NIGHTLY_EVAL_OUTCOMES:
+        samples["nightly_eval_last_run_outcome"].append(
+            _sample("nightly_eval_last_run_outcome", _labels(outcome=known), 1 if outcome == known else 0))
+    if snapshot.get("finished") is not None:
+        samples["nightly_eval_last_run_finished_timestamp_seconds"].append(
+            _sample("nightly_eval_last_run_finished_timestamp_seconds", (), snapshot["finished"]))
+    scores, dropped = snapshot.get("scores") or {}, snapshot.get("dropped") or {}
+    for key in NIGHTLY_EVAL_SCORES:
+        if scores.get(key) is None:
+            continue
+        samples["nightly_eval_score"].append(
+            _sample("nightly_eval_score", _labels(metric=key), scores[key]))
+        samples["nightly_eval_score_dropped"].append(
+            _sample("nightly_eval_score_dropped", _labels(metric=key), 1 if dropped.get(key) else 0))
+
+
+def read_nightly_eval(environ: Mapping[str, str] | None = None) -> Optional[Dict[str, Any]]:
+    """Last nightly-evaluation outcome, time, scores, and drops, or ``None`` when no folder is configured.
+
+    Any failure reports ``readable`` as false; the folder path and the error text are never exposed.
+    """
+
+    source = os.environ if environ is None else environ
+    folder = (source.get(NIGHTLY_EVAL_STATE_DIR_ENV) or "").strip()
+    if not folder:
+        return None
+    try:
+        from app.nightly_eval import metrics_snapshot  # lazy: optional tooling
+
+        return metrics_snapshot(Path(folder))
+    except Exception:  # noqa: BLE001
+        return {"readable": False}
 
 
 def read_knowledge_ops(environ: Mapping[str, str] | None = None) -> Optional[Dict[str, Any]]:

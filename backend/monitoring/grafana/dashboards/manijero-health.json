@@ -1031,6 +1031,754 @@
           "valueSize": 16
         }
       }
+    },
+    {
+      "id": 14,
+      "type": "row",
+      "title": "Nightly evaluation",
+      "collapsed": false,
+      "gridPos": {
+        "x": 0,
+        "y": 40,
+        "w": 24,
+        "h": 1
+      },
+      "panels": []
+    },
+    {
+      "id": 15,
+      "type": "stat",
+      "title": "Nightly evaluation",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "manijero-prometheus"
+      },
+      "gridPos": {
+        "x": 0,
+        "y": 41,
+        "w": 24,
+        "h": 6
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "manijero:status_nightly_eval{env=\"local\"}",
+          "instant": true,
+          "legendFormat": "__auto",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "manijero-prometheus"
+          }
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "mappings": [
+            {
+              "type": "value",
+              "options": {
+                "-1": {
+                  "index": 0,
+                  "color": "text",
+                  "text": "No information yet. The nightly evaluation is on but no run has finished yet, or the result cannot be read. First thing to do: run ./scripts/init.sh --nightly-eval-status."
+                },
+                "0": {
+                  "index": 1,
+                  "color": "green",
+                  "text": "OK. The last nightly evaluation finished within the last 30 hours and no score dropped. Nothing to do here; the scores are in the boxes below."
+                },
+                "1": {
+                  "index": 2,
+                  "color": "orange",
+                  "text": "Warning. No nightly evaluation has finished in the last 30 hours; this Mac may have been asleep or off. First thing to do: run ./scripts/init.sh --nightly-eval-status."
+                },
+                "2": {
+                  "index": 3,
+                  "color": "red",
+                  "text": "Problem. The last nightly evaluation failed, ran out of time, or was interrupted, so there are no new scores. First thing to do: run ./scripts/init.sh --nightly-eval-status and do what it says."
+                },
+                "3": {
+                  "index": 4,
+                  "color": "red",
+                  "text": "Problem. At least one score is lower than in the previous nightly evaluation. First thing to do: run ./scripts/init.sh --nightly-eval-status to see which one."
+                },
+                "4": {
+                  "index": 5,
+                  "color": "text",
+                  "text": "Not set up yet. The nightly evaluation is not turned on. First thing to do: run ./scripts/init.sh --nightly-eval-status."
+                }
+              }
+            },
+            {
+              "type": "special",
+              "options": {
+                "match": "null+nan",
+                "result": {
+                  "index": 6,
+                  "color": "text",
+                  "text": "No information yet. The dashboard has not received data for this check. First thing to do: wait one minute, then run ./scripts/init.sh --monitoring-status."
+                }
+              }
+            }
+          ],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "text",
+                "value": null
+              }
+            ]
+          },
+          "color": {
+            "mode": "fixed",
+            "fixedColor": "text"
+          },
+          "noValue": "No information yet. The dashboard has not received data for this check. First thing to do: wait one minute, then run ./scripts/init.sh --monitoring-status."
+        },
+        "overrides": []
+      },
+      "options": {
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "textMode": "value",
+        "colorMode": "background",
+        "graphMode": "none",
+        "justifyMode": "left",
+        "orientation": "auto",
+        "text": {
+          "valueSize": 16
+        }
+      }
+    },
+    {
+      "id": 16,
+      "type": "stat",
+      "title": "Right source first",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "manijero-prometheus"
+      },
+      "gridPos": {
+        "x": 0,
+        "y": 47,
+        "w": 6,
+        "h": 4
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "max by (env) (manijero_nightly_eval_score{env=\"local\",metric=\"hit_at_1\"})",
+          "instant": true,
+          "legendFormat": "__auto",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "manijero-prometheus"
+          }
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "mappings": [
+            {
+              "type": "special",
+              "options": {
+                "match": "null+nan",
+                "result": {
+                  "index": 0,
+                  "color": "text",
+                  "text": "Not measured"
+                }
+              }
+            }
+          ],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "text",
+                "value": null
+              }
+            ]
+          },
+          "color": {
+            "mode": "fixed",
+            "fixedColor": "text"
+          },
+          "noValue": "Not measured",
+          "unit": "percentunit",
+          "decimals": 1
+        },
+        "overrides": []
+      },
+      "options": {
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "textMode": "value",
+        "colorMode": "none",
+        "graphMode": "none",
+        "justifyMode": "left",
+        "orientation": "auto",
+        "text": {
+          "valueSize": 24
+        }
+      }
+    },
+    {
+      "id": 17,
+      "type": "stat",
+      "title": "Right source in the top 3",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "manijero-prometheus"
+      },
+      "gridPos": {
+        "x": 6,
+        "y": 47,
+        "w": 6,
+        "h": 4
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "max by (env) (manijero_nightly_eval_score{env=\"local\",metric=\"hit_at_3\"})",
+          "instant": true,
+          "legendFormat": "__auto",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "manijero-prometheus"
+          }
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "mappings": [
+            {
+              "type": "special",
+              "options": {
+                "match": "null+nan",
+                "result": {
+                  "index": 0,
+                  "color": "text",
+                  "text": "Not measured"
+                }
+              }
+            }
+          ],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "text",
+                "value": null
+              }
+            ]
+          },
+          "color": {
+            "mode": "fixed",
+            "fixedColor": "text"
+          },
+          "noValue": "Not measured",
+          "unit": "percentunit",
+          "decimals": 1
+        },
+        "overrides": []
+      },
+      "options": {
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "textMode": "value",
+        "colorMode": "none",
+        "graphMode": "none",
+        "justifyMode": "left",
+        "orientation": "auto",
+        "text": {
+          "valueSize": 24
+        }
+      }
+    },
+    {
+      "id": 18,
+      "type": "stat",
+      "title": "Right source in the top 5",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "manijero-prometheus"
+      },
+      "gridPos": {
+        "x": 12,
+        "y": 47,
+        "w": 6,
+        "h": 4
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "max by (env) (manijero_nightly_eval_score{env=\"local\",metric=\"hit_at_5\"})",
+          "instant": true,
+          "legendFormat": "__auto",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "manijero-prometheus"
+          }
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "mappings": [
+            {
+              "type": "special",
+              "options": {
+                "match": "null+nan",
+                "result": {
+                  "index": 0,
+                  "color": "text",
+                  "text": "Not measured"
+                }
+              }
+            }
+          ],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "text",
+                "value": null
+              }
+            ]
+          },
+          "color": {
+            "mode": "fixed",
+            "fixedColor": "text"
+          },
+          "noValue": "Not measured",
+          "unit": "percentunit",
+          "decimals": 1
+        },
+        "overrides": []
+      },
+      "options": {
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "textMode": "value",
+        "colorMode": "none",
+        "graphMode": "none",
+        "justifyMode": "left",
+        "orientation": "auto",
+        "text": {
+          "valueSize": 24
+        }
+      }
+    },
+    {
+      "id": 19,
+      "type": "stat",
+      "title": "Average source rank score (MRR)",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "manijero-prometheus"
+      },
+      "gridPos": {
+        "x": 18,
+        "y": 47,
+        "w": 6,
+        "h": 4
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "max by (env) (manijero_nightly_eval_score{env=\"local\",metric=\"mrr\"})",
+          "instant": true,
+          "legendFormat": "__auto",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "manijero-prometheus"
+          }
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "mappings": [
+            {
+              "type": "special",
+              "options": {
+                "match": "null+nan",
+                "result": {
+                  "index": 0,
+                  "color": "text",
+                  "text": "Not measured"
+                }
+              }
+            }
+          ],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "text",
+                "value": null
+              }
+            ]
+          },
+          "color": {
+            "mode": "fixed",
+            "fixedColor": "text"
+          },
+          "noValue": "Not measured",
+          "unit": "none",
+          "decimals": 4
+        },
+        "overrides": []
+      },
+      "options": {
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "textMode": "value",
+        "colorMode": "none",
+        "graphMode": "none",
+        "justifyMode": "left",
+        "orientation": "auto",
+        "text": {
+          "valueSize": 24
+        }
+      }
+    },
+    {
+      "id": 20,
+      "type": "stat",
+      "title": "Correct refusals",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "manijero-prometheus"
+      },
+      "gridPos": {
+        "x": 0,
+        "y": 51,
+        "w": 6,
+        "h": 4
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "max by (env) (manijero_nightly_eval_score{env=\"local\",metric=\"abstention\"})",
+          "instant": true,
+          "legendFormat": "__auto",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "manijero-prometheus"
+          }
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "mappings": [
+            {
+              "type": "special",
+              "options": {
+                "match": "null+nan",
+                "result": {
+                  "index": 0,
+                  "color": "text",
+                  "text": "Not measured"
+                }
+              }
+            }
+          ],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "text",
+                "value": null
+              }
+            ]
+          },
+          "color": {
+            "mode": "fixed",
+            "fixedColor": "text"
+          },
+          "noValue": "Not measured",
+          "unit": "percentunit",
+          "decimals": 1
+        },
+        "overrides": []
+      },
+      "options": {
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "textMode": "value",
+        "colorMode": "none",
+        "graphMode": "none",
+        "justifyMode": "left",
+        "orientation": "auto",
+        "text": {
+          "valueSize": 24
+        }
+      }
+    },
+    {
+      "id": 21,
+      "type": "stat",
+      "title": "Numbers and dates correct",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "manijero-prometheus"
+      },
+      "gridPos": {
+        "x": 6,
+        "y": 51,
+        "w": 6,
+        "h": 4
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "max by (env) (manijero_nightly_eval_score{env=\"local\",metric=\"numeric\"})",
+          "instant": true,
+          "legendFormat": "__auto",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "manijero-prometheus"
+          }
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "mappings": [
+            {
+              "type": "special",
+              "options": {
+                "match": "null+nan",
+                "result": {
+                  "index": 0,
+                  "color": "text",
+                  "text": "Not measured"
+                }
+              }
+            }
+          ],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "text",
+                "value": null
+              }
+            ]
+          },
+          "color": {
+            "mode": "fixed",
+            "fixedColor": "text"
+          },
+          "noValue": "Not measured",
+          "unit": "percentunit",
+          "decimals": 1
+        },
+        "overrides": []
+      },
+      "options": {
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "textMode": "value",
+        "colorMode": "none",
+        "graphMode": "none",
+        "justifyMode": "left",
+        "orientation": "auto",
+        "text": {
+          "valueSize": 24
+        }
+      }
+    },
+    {
+      "id": 22,
+      "type": "stat",
+      "title": "Sentences the judge found supported",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "manijero-prometheus"
+      },
+      "gridPos": {
+        "x": 12,
+        "y": 51,
+        "w": 6,
+        "h": 4
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "max by (env) (manijero_nightly_eval_score{env=\"local\",metric=\"faithfulness\"})",
+          "instant": true,
+          "legendFormat": "__auto",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "manijero-prometheus"
+          }
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "mappings": [
+            {
+              "type": "special",
+              "options": {
+                "match": "null+nan",
+                "result": {
+                  "index": 0,
+                  "color": "text",
+                  "text": "Not measured"
+                }
+              }
+            }
+          ],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "text",
+                "value": null
+              }
+            ]
+          },
+          "color": {
+            "mode": "fixed",
+            "fixedColor": "text"
+          },
+          "noValue": "Not measured",
+          "unit": "percentunit",
+          "decimals": 1
+        },
+        "overrides": []
+      },
+      "options": {
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "textMode": "value",
+        "colorMode": "none",
+        "graphMode": "none",
+        "justifyMode": "left",
+        "orientation": "auto",
+        "text": {
+          "valueSize": 24
+        }
+      }
+    },
+    {
+      "id": 23,
+      "type": "stat",
+      "title": "Cached answers reused unchanged",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "manijero-prometheus"
+      },
+      "gridPos": {
+        "x": 18,
+        "y": 51,
+        "w": 6,
+        "h": 4
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "max by (env) (manijero_nightly_eval_score{env=\"local\",metric=\"cache_reuse\"})",
+          "instant": true,
+          "legendFormat": "__auto",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "manijero-prometheus"
+          }
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "mappings": [
+            {
+              "type": "special",
+              "options": {
+                "match": "null+nan",
+                "result": {
+                  "index": 0,
+                  "color": "text",
+                  "text": "Not measured"
+                }
+              }
+            }
+          ],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "text",
+                "value": null
+              }
+            ]
+          },
+          "color": {
+            "mode": "fixed",
+            "fixedColor": "text"
+          },
+          "noValue": "Not measured",
+          "unit": "percentunit",
+          "decimals": 1
+        },
+        "overrides": []
+      },
+      "options": {
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "textMode": "value",
+        "colorMode": "none",
+        "graphMode": "none",
+        "justifyMode": "left",
+        "orientation": "auto",
+        "text": {
+          "valueSize": 24
+        }
+      }
     }
   ]
 }

@@ -32,6 +32,14 @@ FUNCTIONS = {
 LABEL_WORDS = {"env", "le", "route", "code", "status", "outcome"}
 CHECKS = ("service", "speed", "errors", "abstentions")
 KNOWLEDGE = "knowledge_updates"
+NIGHTLY = "nightly_eval"
+SCORE_PANELS = {
+    "hit_at_1": "Right source first", "hit_at_3": "Right source in the top 3",
+    "hit_at_5": "Right source in the top 5", "mrr": "Average source rank score (MRR)",
+    "abstention": "Correct refusals", "numeric": "Numbers and dates correct",
+    "faithfulness": "Sentences the judge found supported", "cache_reuse": "Cached answers reused unchanged",
+}
+SCORE_TARGET = re.compile(r'max by \(env\) \(manijero_nightly_eval_score\{env="local",metric="([a-z_0-9]+)"\}\)')
 
 
 def load(name: str) -> Any:
@@ -42,8 +50,18 @@ def rules() -> Dict[str, str]:
     return {rule["record"]: rule["expr"] for group in load("prometheus/rules.json")["groups"] for rule in group["rules"]}
 
 
-def panels() -> List[Dict[str, Any]]:
+def all_panels() -> List[Dict[str, Any]]:
     return [panel for panel in load("grafana/dashboards/manijero-health.json")["panels"] if panel["type"] == "stat"]
+
+
+def panels() -> List[Dict[str, Any]]:
+    """The status-check panels; the nightly score panels are checked on their own."""
+
+    return [panel for panel in all_panels() if "status_" in panel["targets"][0]["expr"]]
+
+
+def score_panels() -> List[Dict[str, Any]]:
+    return [panel for panel in all_panels() if "status_" not in panel["targets"][0]["expr"]]
 
 
 def mapping_texts(panel: Dict[str, Any]) -> Dict[str, str]:
@@ -117,6 +135,8 @@ def test_rule_bounds_match_the_thresholds_file() -> None:
     assert "[{}]".format(thresholds["service"]["window"]) in expressions["manijero:status_service"]
     stale_seconds = thresholds[KNOWLEDGE]["window_hours"] * 3600
     assert "> {})".format(stale_seconds) in expressions["manijero:status_knowledge_updates"]
+    nightly_seconds = thresholds["nightly_evaluation"]["stale_hours"] * 3600
+    assert "> {})".format(nightly_seconds) in expressions["manijero:status_nightly_eval"]
 
 
 def test_every_rule_reads_only_manijero_series_and_up() -> None:
@@ -131,7 +151,7 @@ def test_every_rule_reads_only_manijero_series_and_up() -> None:
 
 def test_every_label_a_rule_or_panel_uses_is_allowlisted_or_scrape_added() -> None:
     allowed = set(LABEL_NAMES) | {"env", "job", "instance", "le"}
-    texts = list(rules().values()) + [target["expr"] for panel in panels() for target in panel["targets"]]
+    texts = list(rules().values()) + [target["expr"] for panel in all_panels() for target in panel["targets"]]
     for text in texts:
         for label in re.findall(r"(?:by \(|[{,])\s*([a-z_]+)\s*(?:=|=~|,|\))", text):
             assert label in allowed, (label, text)
@@ -149,25 +169,27 @@ def test_panels_target_only_status_rules_for_local_and_qa() -> None:
         found[(match.group(1), match.group(2))] = panel
     assert set(found) == {
         ("manijero:status_" + check, env) for check in CHECKS for env in ("local", "qa")
-    } | {("manijero:status_" + KNOWLEDGE, "local")}
+    } | {("manijero:status_" + KNOWLEDGE, "local"), ("manijero:status_" + NIGHTLY, "local")}
 
 
 def test_every_state_has_a_state_word_a_meaning_and_a_first_step() -> None:
     codes = {"service": {0, 1, 2, 3, 4}, "speed": {-1, 0, 1, 2, 4}, "errors": {-1, 0, 1, 2, 4}, "abstentions": {-1, 0, 1, 2, 4},
-             KNOWLEDGE: {-1, 0, 1, 2, 4}}
+             KNOWLEDGE: {-1, 0, 1, 2, 4}, NIGHTLY: {-1, 0, 1, 2, 3, 4}}
     words = {"-1": "Not enough data.", "0": "OK.", "1": "Warning.", "2": "Problem.", "3": "Problem.", "4": "Not set up yet."}
     for panel in panels():
         check = re.search(r"status_([a-z_]+)", panel["targets"][0]["expr"]).group(1)  # type: ignore[union-attr]
         texts = mapping_texts(panel)
         assert {int(code) for code in texts} == codes[check], panel["title"]
         for code, text in texts.items():
-            expected = "No information yet." if check == KNOWLEDGE and code == "-1" else words[code]
+            expected = "No information yet." if check in (KNOWLEDGE, NIGHTLY) and code == "-1" else words[code]
             assert text.startswith(expected), (panel["title"], code)
             assert len(text.split()) >= 6
-            if code in ("1", "2", "3") or (check == KNOWLEDGE and code in ("-1", "4")):
+            if code in ("1", "2", "3") or (check in (KNOWLEDGE, NIGHTLY) and code in ("-1", "4")):
                 assert "First thing to do:" in text, (panel["title"], code)
             if check == KNOWLEDGE and code != "0":
                 assert "./scripts/init.sh --knowledge-updates-status" in text, (panel["title"], code)
+            if check == NIGHTLY and code != "0":
+                assert "./scripts/init.sh --nightly-eval-status" in text, (panel["title"], code)
             if code == "0":
                 assert "Nothing to do" in text
         special = panel["fieldConfig"]["defaults"]["mappings"][1]
@@ -191,11 +213,13 @@ def test_panel_texts_state_the_thresholds_file_numbers() -> None:
     assert "Nothing to do until the QA service is deployed." in by_title["QA: Service"]["4"]
     assert "{} hours".format(thresholds[KNOWLEDGE]["window_hours"]) in by_title["Knowledge updates"]["0"]
     assert "{} hours".format(thresholds[KNOWLEDGE]["window_hours"]) in by_title["Knowledge updates"]["1"]
+    assert "{} hours".format(thresholds["nightly_evaluation"]["stale_hours"]) in by_title["Nightly evaluation"]["0"]
+    assert "{} hours".format(thresholds["nightly_evaluation"]["stale_hours"]) in by_title["Nightly evaluation"]["1"]
 
 
 def test_denylist_finds_nothing_in_expressions_labels_or_provisioning() -> None:
     texts = list(rules().values())
-    texts += [target["expr"] for panel in panels() for target in panel["targets"]]
+    texts += [target["expr"] for panel in all_panels() for target in panel["targets"]]
     texts += [json.dumps(load(name)) for name in FILES if name.startswith("grafana/provisioning")]
     texts += sorted(monitoring.KEPT_LABELS)
     texts += [json.dumps(monitoring.prometheus_config(8000, None))]
@@ -229,4 +253,31 @@ def test_provisioning_points_at_the_pinned_prometheus_name_and_forbids_editing()
     assert source["editable"] is False
     assert provider["allowUiUpdates"] is False
     assert dashboard["editable"] is False
-    assert all(panel["datasource"]["uid"] == source["uid"] for panel in panels())
+    assert all(panel["datasource"]["uid"] == source["uid"] for panel in all_panels())
+
+
+def test_the_nightly_rule_orders_failure_staleness_and_drops() -> None:
+    expression = rules()["manijero:status_nightly_eval"]
+    order = ["_configured) == 0) * 0 + 4", "outcome=~\"failed|stopped_at_time_limit|interrupted\"", "> 108000) * 0 + 1",
+             "_score_dropped) == 1) * 0 + 3", "outcome=\"evaluated\"}) == 1) * 0)", "_configured) * 0 - 1"]
+    positions = [expression.index(part) for part in order]
+    assert positions == sorted(positions)
+
+
+def test_there_is_one_stat_per_score_with_its_plain_label_and_not_measured_when_missing() -> None:
+    found = {}
+    for panel in score_panels():
+        (target,) = panel["targets"]
+        match = SCORE_TARGET.fullmatch(target["expr"])
+        assert match, target["expr"]
+        found[match.group(1)] = panel
+        defaults = panel["fieldConfig"]["defaults"]
+        assert defaults["noValue"] == "Not measured"
+        assert defaults["mappings"][0]["options"]["result"]["text"] == "Not measured"
+    assert {key: panel["title"] for key, panel in found.items()} == SCORE_PANELS
+    assert found["mrr"]["fieldConfig"]["defaults"]["unit"] == "none"
+    assert all(found[key]["fieldConfig"]["defaults"]["unit"] == "percentunit" for key in found if key != "mrr")
+
+
+def test_the_metric_label_is_allowlisted_in_both_places() -> None:
+    assert "metric" in LABEL_NAMES and "metric" in monitoring.KEPT_LABELS
