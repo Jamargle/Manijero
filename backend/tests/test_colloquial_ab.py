@@ -69,9 +69,12 @@ def test_committed_variants_pass_all_checks_and_cover_every_approved_parent() ->
     document = ab.read_variants(VARIANTS)
 
     assert ab.check_variants(document, golden, cases, digest, coverage["omissions"]) == []
-    assert len(document["variants"]) == 49
-    # The owner approved every variant on 2026-11-11; the committed set is the approved one.
-    assert ab.state_counts(document) == {"draft": 0, "approved": 49, "rejected": 0}
+    assert len(document["variants"]) == 53
+    # The owner approved coll-001..coll-049 on 2026-11-11; coll-050..coll-053 are drafts that wait
+    # for the owner's decision, so the committed set is not yet fully approved.
+    counts = ab.state_counts(document)
+    assert counts["rejected"] == 0
+    assert sum(counts.values()) == 53
     approved_parents = {
         item["id"] for item in golden["items"] if item["review_state"] == "approved"
     }
@@ -86,8 +89,8 @@ def test_missing_variant_duplicate_parent_and_bad_question_are_named_by_id() -> 
     dropped = json.loads(json.dumps(baseline))
     dropped["variants"].pop()
     lines = ab.check_variants(dropped, golden, cases, digest, omissions)
-    assert "coll-049: missing" in lines
-    assert any(line.startswith("$: orphan approved parents: golden-049") for line in lines)
+    assert "coll-053: missing" in lines
+    assert any(line.startswith("$: orphan approved parents: golden-053") for line in lines)
 
     shared = json.loads(json.dumps(baseline))
     shared["variants"][0]["parent_id"] = shared["variants"][1]["parent_id"]

@@ -660,3 +660,69 @@ def test_port_from_environment() -> None:
     for bad in ("0", "70000", "x", "-1"):
         with pytest.raises(svc.UsageError):
             qa.port_from_environment({"MANIJERO_QA_PORT": bad})
+
+
+# --- Knowledge release served by QA (qa_knowledge_deployment) ---------------------------------
+
+
+RELEASE = "0123456789abcdef"
+
+
+def _publish_qa_release(h: Harness, release_id: str = RELEASE) -> None:
+    """A QA release root whose ``current`` is ``release_id`` (the folder layout is what matters here)."""
+
+    root = qa.knowledge_root(h.home)
+    (root / "releases" / release_id).mkdir(parents=True)
+    os.symlink(os.path.join("releases", release_id), root / "current")
+
+
+def test_run_argv_without_a_release_is_the_image_release_exactly_as_before(h: Harness) -> None:
+    clients = profiles.credential_paths(h.home, profiles.QA_CLIENT_ID).clients
+    assert qa.run_argv(PORT, "2026", clients) == qa.run_argv(PORT, "2026", clients, None, None)
+    assert not any("knowledge" in part for part in qa.run_argv(PORT, "2026", clients))
+
+
+@pytest.mark.parametrize("op", ["deploy", "update", "rollback"])
+def test_image_commands_keep_the_published_qa_knowledge(h: Harness, op: str) -> None:
+    h.deployed()
+    h.docker.add_image(qa.TAG_PREVIOUS, "sha256:zero")
+    h.docker.add_image(lc.LOCAL_TAG, "sha256:two")
+    _publish_qa_release(h)
+    if op == "deploy":
+        h.docker.container = None
+        h.tailscale.funnel_document = {}
+    assert h.call(op) == 0, h.output
+    (argv,) = h.docker.runs()
+    clients = profiles.credential_paths(h.home, profiles.QA_CLIENT_ID).clients
+    assert argv == qa.run_argv(PORT, "2026", clients, RELEASE, qa.knowledge_root(h.home))
+    assert "org.manijero.knowledge-release=" + RELEASE in argv
+
+
+def test_image_commands_without_a_published_release_start_the_image_release(h: Harness) -> None:
+    h.deployed()
+    h.docker.add_image(lc.LOCAL_TAG, "sha256:two")
+    assert h.call("update") == 0
+    (argv,) = h.docker.runs()
+    assert not any("knowledge" in part for part in argv)
+
+
+def test_status_says_which_knowledge_qa_serves(h: Harness) -> None:
+    h.deployed()
+    assert h.call("status") == 0
+    assert any(line.startswith("OK") and "Knowledge: the release built into the image (rel1)." in line for line in h.lines)
+    h.lines.clear()
+    _publish_qa_release(h)
+    h.docker.container["labels"][lc.LABEL_RELEASE] = RELEASE
+    assert h.call("status") == 0
+    assert any(line.startswith("OK") and "Knowledge: release {} published to QA.".format(RELEASE) in line for line in h.lines)
+
+
+def test_status_reports_a_container_that_serves_other_knowledge_than_the_published_release(h: Harness) -> None:
+    h.deployed()
+    _publish_qa_release(h)
+    assert h.call("status") == 1
+    assert any(
+        line.startswith("PROBLEM") and "QA serves rel1 but the published QA release is {}.".format(RELEASE) in line
+        for line in h.lines
+    )
+    assert h.result == "Result: QA needs attention: Run ./scripts/init.sh --qa-knowledge-deploy."

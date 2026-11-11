@@ -39,6 +39,8 @@ In the order you usually need them:
     search, and switch it on or off (it ships off).
 14. [Colloquial variants review](colloquial-variants-review.md): approve or reject the everyday
     rewordings of the test questions that an offline comparison may score.
+16. [Nightly evaluation](nightly-evaluation.md): turn on the complete evaluation every night at 00:00,
+    see its scores on the health dashboard, and get a Telegram message when a score drops.
 
 
 An "Owner walkthrough" section near the end of a guide holds one-time acceptance steps whose

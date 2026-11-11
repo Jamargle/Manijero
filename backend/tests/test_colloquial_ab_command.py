@@ -106,8 +106,8 @@ def test_check_passes_on_repository_variants_and_names_failures_by_id(
     code = SCRIPT_MODULE.main(["check", *_paths(VARIANTS)])
     output = capsys.readouterr().out
     assert code == 0
-    assert "colloquial check: 49 variants OK" in output
-    assert "49 approved golden parents, 49 covered, 0 orphans" in output
+    assert "colloquial check: 53 variants OK" in output
+    assert "53 approved golden parents, 53 covered, 0 orphans" in output
 
     document = json.loads(VARIANTS.read_text(encoding="utf-8"))
     document["variants"][0]["colloquial_terms"] = ["palabra que no está"]
@@ -136,11 +136,11 @@ def test_list_waiting_pinned_line_and_full_list_file(
 
     assert code == 0
     assert output.splitlines()[-1] == (
-        "Result: 49 colloquial variants wait for your decision (0 approved, 0 rejected). "
+        "Result: 53 colloquial variants wait for your decision (0 approved, 0 rejected). "
         "The same list is in build/colloquial-ab/variants.txt."
     )
     text = (build / "variants.txt").read_text(encoding="utf-8")
-    assert text.count("[") == 49
+    assert text.count("[") == 53
     assert "The grower says:" in text
     assert "The approved question:" in text
     assert "Expected:" in text
@@ -161,7 +161,7 @@ def test_list_waiting_pinned_line_and_full_list_file(
     output = capsys.readouterr().out
     assert code == 0
     assert output.splitlines()[-1] == (
-        "Result: no colloquial variants wait for your decision (0 approved, 49 rejected)."
+        "Result: no colloquial variants wait for your decision (0 approved, 53 rejected)."
     )
 
 
@@ -178,7 +178,7 @@ def test_decide_records_replaces_and_records_nothing_on_bad_input(
     output = capsys.readouterr().out
     assert code == 0
     assert output.splitlines()[-1] == (
-        "Result: recorded approve for 1 colloquial variants by Diego. 48 still wait for your decision."
+        "Result: recorded approve for 1 colloquial variants by Diego. 52 still wait for your decision."
     )
     document = json.loads(variants.read_text(encoding="utf-8"))
     assert document["variants"][0]["review_state"] == "approved"
@@ -307,14 +307,14 @@ def test_run_writes_one_report_one_result_line_and_is_byte_identical(
     output = capsys.readouterr().out
     assert code == 0
     assert output.splitlines()[-1].startswith(
-        "Result: prepared model rewrites for 49 approved colloquial variants with "
+        "Result: prepared model rewrites for 53 approved colloquial variants with "
     )
-    assert "49 rewritten, 0 empty, 0 rejected, 0 skipped" in output
+    assert "53 rewritten, 0 empty, 0 rejected, 0 skipped" in output
     cache_files = list((report_root / "rewrites").glob("*.json"))
     assert len(cache_files) == 1
     cache = json.loads(cache_files[0].read_text(encoding="utf-8"))
     assert "question" not in cache_files[0].read_text(encoding="utf-8")
-    assert len(cache["cases"]) == 49
+    assert len(cache["cases"]) == 53
 
     code = SCRIPT_MODULE.main(
         ["run", *_paths(variants), "--as-of", "2026-11-10"],
@@ -325,9 +325,9 @@ def test_run_writes_one_report_one_result_line_and_is_byte_identical(
     lines = _result_lines(output)
     assert len(lines) == 1
     assert lines[0].startswith(
-        "Result: compared 3 ways on 49 approved colloquial variants"
+        "Result: compared 3 ways on 53 approved colloquial variants"
     )
-    assert "model rewrites: 49 rewritten, 0 empty, 0 rejected, 0 skipped" in lines[0]
+    assert "model rewrites: 53 rewritten, 0 empty, 0 rejected, 0 skipped" in lines[0]
     assert lines[0].endswith("Report only, no gate. Report: report.json.")
 
     reports = list((report_root / "reports").glob("*/report.json"))
@@ -336,9 +336,9 @@ def test_run_writes_one_report_one_result_line_and_is_byte_identical(
     assert report["schema_version"] == "colloquial-ab-report-v1"
     assert report["report_only"] is True
     assert report["defaults_changed"] is False
-    assert report["variant_counts"] == {"approved": 49, "draft": 0, "rejected": 0}
-    assert report["case_counts"] == {"colloquial": 49, "golden": 49, "trap": 26, "total": 124}
-    assert len(report["cases"]) == 3 * 124
+    assert report["variant_counts"] == {"approved": 53, "draft": 0, "rejected": 0}
+    assert report["case_counts"] == {"colloquial": 53, "golden": 53, "trap": 26, "total": 132}
+    assert len(report["cases"]) == 3 * 132
     assert report["arms"]["glossary"]["hit_at_5"]["of"] == report["arms"]["no_rewriting"]["hit_at_5"]["of"]
     assert report["adoption"]["arms"]["glossary"]["reason"] in {
         "no_gain", "trap_worse", None

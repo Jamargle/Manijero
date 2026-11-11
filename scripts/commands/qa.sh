@@ -43,6 +43,29 @@ if [[ "${1:-}" == "--qa-deploy" || "${1:-}" == "--qa-update" || "${1:-}" == "--q
   exec "$LOCAL_RAG_PYTHON" "$REPO_ROOT/backend/scripts/qa_service.py" "${1#--qa-}"
 fi
 
+# Owner commands to send the approved knowledge merged to main to QA, or take QA back to its earlier
+# knowledge (docs/owner-guide/qa.md "Send approved knowledge to QA"). Test-only variables are those above
+# plus MANIJERO_QA_KNOWLEDGE_REPO, MANIJERO_QA_KNOWLEDGE_DEV_PYTHON, MANIJERO_QA_KNOWLEDGE_HYBRID_PYTHON,
+# MANIJERO_QA_KNOWLEDGE_EMBEDDING_CONFIG, MANIJERO_QA_KNOWLEDGE_TODAY, and MANIJERO_QA_PUBLIC_PROBE_URL.
+if [[ "${1:-}" == "--qa-knowledge-deploy" || "${1:-}" == "--qa-knowledge-rollback" ]]; then
+  REPO_ROOT="$MANIJERO_ROOT"
+  if (( $# > 1 )); then
+    printf 'Run %s on its own, with nothing after it.\n' "$1" >&2
+    exit 2
+  fi
+  LOCAL_RAG_PYTHON="$REPO_ROOT/backend/.venv/bin/python"
+  if [[ ! -x "$LOCAL_RAG_PYTHON" ]] && ! "$REPO_ROOT/scripts/python-env.sh" dev --if-present >/dev/null 2>&1; then
+    printf 'The local answer tools are not set up yet. Run ./scripts/init.sh --local-rag-setup to set them up.\n'
+    if [[ "$1" == "--qa-knowledge-deploy" ]]; then
+      printf 'Result: the approved knowledge was not sent to QA. Run ./scripts/init.sh --local-rag-setup.\n'
+    else
+      printf "Result: QA's knowledge was not rolled back. Run ./scripts/init.sh --local-rag-setup.\n"
+    fi
+    exit 1
+  fi
+  exec "$LOCAL_RAG_PYTHON" "$REPO_ROOT/backend/scripts/qa_knowledge.py" "${1#--qa-knowledge-}"
+fi
+
 # Owner commands for the QA Telegram alerts (a launchd check every 5 minutes on this Mac,
 # docs/owner-guide/qa-alerts.md "Set up Telegram alerts"). Test-only variables: MANIJERO_ALERTS_HOME,
 # MANIJERO_QA_HOME, MANIJERO_LAUNCHCTL_CLI, MANIJERO_LAUNCH_AGENTS_DIR, MANIJERO_DOCKER_CLI,

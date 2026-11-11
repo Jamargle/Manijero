@@ -287,7 +287,8 @@ while keeping approval with an identified human:
    grounding, and no-regression evaluation gates, and publishes it with one atomic
    `current` swap that a single `rollback` reverses. The service reads releases
    only when `MANIJERO_KNOWLEDGE_RELEASE_ROOT` is set. It has been rehearsed only
-   locally; no host step has run. Releases never live under `knowledge/`, and this
+   locally; no host step has run. For QA, `./scripts/init.sh --qa-knowledge-deploy`
+   runs these gates and publishes the merged `main` knowledge to QA with an automatic way back. Releases never live under `knowledge/`, and this
    step never edits these canonical files. An approved update or a passed gate does
    not certify broader legal coverage or answer quality.
 

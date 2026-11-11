@@ -22,6 +22,29 @@ if [[ "${1:-}" == "--knowledge-updates-on" || "${1:-}" == "--knowledge-updates-o
   exec "$LOCAL_RAG_PYTHON" "$REPO_ROOT/backend/scripts/knowledge_ops.py" "${1#--knowledge-updates-}"
 fi
 
+# Owner commands for the nightly evaluation (a launchd run every night at 00:00 on this Mac,
+# docs/owner-guide/nightly-evaluation.md). Test-only variables: MANIJERO_NIGHTLY_EVAL_HOME,
+# MANIJERO_NIGHTLY_EVAL_CHILD_CLI, MANIJERO_NIGHTLY_EVAL_REPORTS_ROOT, MANIJERO_NIGHTLY_EVAL_NO_WAIT,
+# MANIJERO_ALERTS_HOME, MANIJERO_TELEGRAM_API, MANIJERO_LAUNCHCTL_CLI, and MANIJERO_LAUNCH_AGENTS_DIR.
+if [[ "${1:-}" == "--nightly-eval-on" || "${1:-}" == "--nightly-eval-off" || "${1:-}" == "--nightly-eval-run" || "${1:-}" == "--nightly-eval-status" ]]; then
+  REPO_ROOT="$MANIJERO_ROOT"
+  if (( $# > 1 )); then
+    printf 'Run %s on its own, with nothing after it.\n' "$1" >&2
+    exit 2
+  fi
+  LOCAL_RAG_PYTHON="$REPO_ROOT/backend/.venv/bin/python"
+  if [[ ! -x "$LOCAL_RAG_PYTHON" ]] && ! "$REPO_ROOT/scripts/python-env.sh" dev --if-present >/dev/null 2>&1; then
+    if [[ "$1" == "--nightly-eval-off" ]]; then
+      printf 'Result: the nightly evaluation was not on, so there was nothing to turn off.\n'
+      exit 0
+    fi
+    printf 'The backend tools are not set up yet. Run ./scripts/init.sh --local-rag-setup, then try again.\n'
+    printf 'Result: the nightly evaluation command did not run because the backend tools are not set up.\n'
+    exit 2
+  fi
+  exec "$LOCAL_RAG_PYTHON" "$REPO_ROOT/backend/scripts/nightly_eval.py" "${1#--nightly-eval-}"
+fi
+
 # Owner commands for hosted knowledge review pull requests (docs/owner-guide/knowledge-review-pull-requests.md).
 # Test-only variables: MANIJERO_KNOWLEDGE_REVIEW_HOME, MANIJERO_GH_CLI, and MANIJERO_HOSTED_REVIEW_REPO.
 if [[ "${1:-}" == "--knowledge-review-open" || "${1:-}" == "--knowledge-review-protect" ]]; then

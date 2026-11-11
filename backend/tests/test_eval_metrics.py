@@ -437,3 +437,34 @@ def test_reports_root_inside_knowledge_refused(tmp_path: Path) -> None:
     assert eval_metrics.check_reports_root(tmp_path / "out", (input_file,)) == (
         tmp_path / "out"
     ).resolve()
+
+
+# --- nightly_evaluation: the optional cache check block ---------------------------------
+
+
+def test_the_cache_check_is_absent_from_a_default_report_version_and_result_line(tmp_path: Path) -> None:
+    files = _version_files(tmp_path)
+    default = _version(files)
+    flagged = eval_metrics.version_block(
+        catalog=files["catalog"], passages=files["passages"], cases=files["cases"], golden=files["golden"],
+        traps=files["traps"], glossary="off", as_of="2026-11-10", active_campaign="2026", label="repository",
+        schema_versions=SCHEMA_VERSIONS, answer_cache_check=True,
+    )
+
+    assert "answer_cache_check" not in default and flagged["answer_cache_check"] is True
+    assert eval_metrics.version_id(flagged) != eval_metrics.version_id(default)
+    assert {key: value for key, value in flagged.items() if key != "answer_cache_check"} == default
+
+    skipped = eval_metrics.faithfulness_from_judge(None, "", None)
+    plain = eval_metrics.build_report(version=default, report_id="abc123", rows=[], faithfulness=skipped)
+    path = eval_metrics.REPO_ROOT / "build" / "eval-reports" / "abc123" / "metrics.json"
+    assert "answer_cache_check" not in plain
+    assert eval_metrics.result_line(plain, path).endswith("Report only, no gate. Report: build/eval-reports/abc123/metrics.json.")
+
+    block = eval_metrics.answer_cache_check_block(10, 8, 7, 1)
+    checked = eval_metrics.build_report(version=flagged, report_id="abc123", rows=[], faithfulness=skipped,
+                                        answer_cache_check=block)
+    assert checked["answer_cache_check"] == {"asked": 10, "served_from_cache": 8, "reused_unchanged": 7, "differed": 1}
+    assert {k: v for k, v in checked.items() if k != "answer_cache_check"} == {**plain, "version": flagged}
+    assert eval_metrics.result_line(checked, path).endswith(
+        "Report: build/eval-reports/abc123/metrics.json; cached answers: 7 of 10 reused unchanged (1 differed).")

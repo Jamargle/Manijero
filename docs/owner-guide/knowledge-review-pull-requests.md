@@ -43,8 +43,9 @@ counts are report-only, not a quality or legal-coverage claim. Then:
 Running the open command again only reports `already open`, `merged on GitHub`, or `closed
 without merging`; it never creates a second request for the same package.
 
-After the merge, build and publish the new release with the separate release steps in
-[`backend/README.md`](../../backend/README.md) ("Knowledge reindex and release"). A merged
+After the merge, send the knowledge to QA with `./scripts/init.sh --qa-knowledge-deploy` (see
+[`qa.md`](qa.md), "Send approved knowledge to QA"), or build and publish a release by hand with the
+separate release steps in [`backend/README.md`](../../backend/README.md) ("Knowledge reindex and release"). A merged
 request, a green check, or the evaluation counts do not prove broader legal coverage or better
 answers.
 

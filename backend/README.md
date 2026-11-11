@@ -1656,6 +1656,24 @@ health dashboard shows a "Knowledge updates" box (30 h threshold in `monitoring/
 the live official sites; each run re-classifies every pending candidate with the local model; no freshness
 or coverage claim.
 
+## Nightly evaluation (report-only, with a cache check)
+
+`app/nightly_eval.py` (entry point `scripts/nightly_eval.py`, behind `./scripts/init.sh
+--nightly-eval-on|-run|-status|-off`, owner steps in
+[`docs/owner-guide/nightly-evaluation.md`](../docs/owner-guide/nightly-evaluation.md)) runs
+`scripts/evaluate_metrics.py run --as-of <Madrid date> --answer-cache-check` in a child process from the
+launchd agent `org.manijero.nightly-eval` (00:00; 3-hour limit, terminate then kill after 10 s; no retries).
+`--answer-cache-check` replays every case through a fresh in-memory `AnswerCache` and adds
+`answer_cache_check {asked, served_from_cache, reused_unchanged, differed}` to the report; the scored pass
+stays cache-off. The run keeps eight overall scores (hit@1/3/5, MRR, abstention, numbers and dates,
+faithfulness when judged, cache reuse) in `nightly-eval-ledger.jsonl` (`nightly-eval-ledger-v1`), compares
+them at 4 decimals with the previous `evaluated` run, and sends one fixed Telegram message through the QA
+alerts bot (3 tries, 10 s apart) only for a drop. State: `~/manijero/nightly-eval` (`0700`, files `0600`).
+`/metrics` carries `manijero_nightly_eval_{configured,readable,last_run_outcome,
+last_run_finished_timestamp_seconds,score,score_dropped}` and the dashboard a "Nightly evaluation" row
+(30 h threshold). Exit codes: `0` evaluated, `1` failed or stopped, `2` prerequisite missing, `3` a run is in
+progress; a drop never changes one. Tests: `tests/test_nightly_eval.py`, `tests/test_nightly_eval_commands.py`.
+
 ## Manual official-document candidate ingestion
 
 `app/document_ingestion.py` fetches the pending publication candidates produced
@@ -2721,6 +2739,29 @@ clients file. The Tailscale forms live in one block of `qa_deployment.py`: `stat
 the owner walkthrough confirms them on a real Mac. Test-only variables: `MANIJERO_TAILSCALE_CLI`,
 `MANIJERO_DOCKER_CLI`, `MANIJERO_QA_PORT`, `MANIJERO_QA_HOME`, `MANIJERO_QA_ADDRESS_FILE`.
 Logs: `<QA home>/logs/qa-<operation>-<UTC>.log` (container output only; no tokens or question text).
+
+### QA knowledge deployment
+
+`./scripts/init.sh --qa-knowledge-deploy` and `--qa-knowledge-rollback` (owner steps in
+[`docs/owner-guide/qa.md`](../docs/owner-guide/qa.md)) run `scripts/qa_knowledge.py deploy|rollback`,
+implemented by `app/qa_knowledge.py` (operator-only; spec
+[`qa_knowledge_deployment`](../docs/specs/qa_knowledge_deployment.md)). Deploy fetches `origin/main` (read-only),
+builds in a temporary `git worktree` (always removed), and runs the worktree's `check_quality_gate.py check`,
+`manage_embeddings.py build`, and `knowledge_release.py prepare --with-vector-store --json` (the regression
+baseline is QA's current release; `--code-revision` and `--reviewed-baseline-revision` are the fetched SHA). If
+QA has no release root yet, it first adopts the release built into the image with `docker cp`. After `yes` it
+runs `knowledge_release.publish`, replaces `manijero-qa` with the same image, and checks it (ready within 120 s,
+smoke, `/metrics` `knowledge_release_info` equals the new id, public `/health`). A failed check calls
+`knowledge_release.rollback --to <old>` and restarts; if that fails too, Funnel goes off and QA stops.
+`qa_deployment.run_argv(..., release_id, release_root)` adds exactly the bind mount
+`<QA home>/knowledge-releases` at `/opt/manijero/qa-knowledge-releases`, `MANIJERO_KNOWLEDGE_RELEASE_ROOT`,
+`MANIJERO_VECTOR_STORE`, and the label `org.manijero.knowledge-release=<id>`; `--qa-deploy`, `--qa-update`,
+and `--qa-rollback` pass QA's current release, and `--qa-status` prints a `Knowledge:` line. The structured
+index stays off. Test-only variables (plus those of QA deployment): `MANIJERO_QA_KNOWLEDGE_REPO`,
+`MANIJERO_QA_KNOWLEDGE_DEV_PYTHON`, `MANIJERO_QA_KNOWLEDGE_HYBRID_PYTHON`,
+`MANIJERO_QA_KNOWLEDGE_EMBEDDING_CONFIG`, `MANIJERO_QA_KNOWLEDGE_TODAY`, `MANIJERO_QA_PUBLIC_PROBE_URL`
+(loopback only). Logs: `<QA home>/logs/qa-knowledge-<op>-<UTC>.log`. Limits: Docker, Tailscale, and GitHub are
+exercised only by fakes; whether Chroma can write to the bind-mounted store under Docker Desktop is unproven.
 
 ### QA Desktop check
 

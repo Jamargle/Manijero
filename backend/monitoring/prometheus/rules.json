@@ -47,6 +47,10 @@
         {
           "record": "manijero:status_knowledge_updates",
           "expr": "((max by (env) (manijero_knowledge_ops_configured) == 0) * 0 + 4) or ((max by (env) (manijero_knowledge_ops_last_run_outcome{outcome=~\"failed|stopped_at_time_limit|interrupted\"}) == 1) * 0 + 2) or (((time() - max by (env) (manijero_knowledge_ops_last_run_finished_timestamp_seconds)) > 108000) * 0 + 1) or ((max by (env) (manijero_knowledge_ops_last_run_outcome{outcome=\"review_ready\"}) == 1) * 0) or (max by (env) (manijero_knowledge_ops_configured) * 0 - 1)"
+        },
+        {
+          "record": "manijero:status_nightly_eval",
+          "expr": "((max by (env) (manijero_nightly_eval_configured) == 0) * 0 + 4) or ((max by (env) (manijero_nightly_eval_last_run_outcome{outcome=~\"failed|stopped_at_time_limit|interrupted\"}) == 1) * 0 + 2) or (((time() - max by (env) (manijero_nightly_eval_last_run_finished_timestamp_seconds)) > 108000) * 0 + 1) or ((max by (env) (manijero_nightly_eval_score_dropped) == 1) * 0 + 3) or ((max by (env) (manijero_nightly_eval_last_run_outcome{outcome=\"evaluated\"}) == 1) * 0) or (max by (env) (manijero_nightly_eval_configured) * 0 - 1)"
         }
       ]
     }

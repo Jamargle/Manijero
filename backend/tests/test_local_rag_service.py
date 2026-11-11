@@ -213,8 +213,11 @@ def lock_held(env: boot.Env) -> bool:
 # --- 1. Start when everything is ready -----------------------------------------------------
 
 
-def test_start_when_ready_launches_the_service_in_the_background(harness: Harness, monkeypatch) -> None:
+def test_start_when_ready_launches_the_service_in_the_background(harness: Harness, monkeypatch, tmp_path: Path) -> None:
     for key, value in {
+        # Folders of the owner's scheduled runs: never the real ones on the machine running the test.
+        "MANIJERO_KNOWLEDGE_OPS_HOME": str(tmp_path / "no-knowledge-ops"),
+        "MANIJERO_NIGHTLY_EVAL_HOME": str(tmp_path / "no-nightly-eval"),
         "MANIJERO_DEPLOYMENT_PROFILE": "pilot",
         "MANIJERO_RETENTION_DB": "/tmp/retention.db",
         "MANIJERO_GEMINI_MODEL": "gemini-x",
@@ -319,17 +322,40 @@ def test_the_launch_environment_names_the_knowledge_ops_folder_only_when_it_exis
     _, model = lrb.load_pins(ready.ctx, boot.NOW.date())
     release_id = kr.current_release_id(ready.paths.releases)
     folder = tmp_path / "ko-home"
-    inherited = {"PATH": "/bin", "MANIJERO_KNOWLEDGE_OPS_HOME": str(folder), "MANIJERO_KNOWLEDGE_OPS_STATE_DIR": "/elsewhere"}
+    inherited = {"PATH": "/bin", "HOME": str(tmp_path / "home"), "MANIJERO_KNOWLEDGE_OPS_HOME": str(folder),
+                 "MANIJERO_KNOWLEDGE_OPS_STATE_DIR": "/elsewhere"}
 
     absent = svc.launch_environment(ready.ctx, lrb.Settings("2026"), model, release_id, inherited)
     folder.mkdir()
     present = svc.launch_environment(ready.ctx, lrb.Settings("2026"), model, release_id, inherited)
-    bare = svc.launch_environment(ready.ctx, lrb.Settings("2026"), model, release_id, {"PATH": "/bin"})
+    bare = svc.launch_environment(ready.ctx, lrb.Settings("2026"), model, release_id,
+                                  {"PATH": "/bin", "HOME": str(tmp_path / "home")})
 
     assert "MANIJERO_KNOWLEDGE_OPS_STATE_DIR" not in absent and "MANIJERO_KNOWLEDGE_OPS_STATE_DIR" not in bare
     assert present["MANIJERO_KNOWLEDGE_OPS_STATE_DIR"] == str(folder)  # taken from the folder, never inherited
     assert "MANIJERO_KNOWLEDGE_OPS_HOME" not in present
     assert {k: v for k, v in present.items() if k != "MANIJERO_KNOWLEDGE_OPS_STATE_DIR"} == absent
+
+
+def test_the_launch_environment_names_the_nightly_eval_folder_only_when_it_exists(
+    ready: boot.Env, tmp_path: Path
+) -> None:
+    _, model = lrb.load_pins(ready.ctx, boot.NOW.date())
+    release_id = kr.current_release_id(ready.paths.releases)
+    folder = tmp_path / "ne-home"
+    key = "MANIJERO_NIGHTLY_EVAL_STATE_DIR"
+    inherited = {"PATH": "/bin", "HOME": str(tmp_path / "home"), "MANIJERO_NIGHTLY_EVAL_HOME": str(folder), key: "/elsewhere"}
+
+    absent = svc.launch_environment(ready.ctx, lrb.Settings("2026"), model, release_id, inherited)
+    folder.mkdir()
+    present = svc.launch_environment(ready.ctx, lrb.Settings("2026"), model, release_id, inherited)
+    bare = svc.launch_environment(ready.ctx, lrb.Settings("2026"), model, release_id,
+                                  {"PATH": "/bin", "HOME": str(tmp_path / "home")})
+
+    assert key not in absent and key not in bare
+    assert present[key] == str(folder)  # taken from the folder, never inherited
+    assert "MANIJERO_NIGHTLY_EVAL_HOME" not in present
+    assert {k: v for k, v in present.items() if k != key} == absent
 
 
 def test_the_launch_environment_states_development_and_has_no_environment_or_credential_key(
@@ -740,6 +766,7 @@ def test_the_service_never_imports_the_operator_modules() -> None:
     operator = (
         "local_rag_service", "local_rag_bootstrap", "pinned_download", "local_container", "local_smoke",
         "environment_profiles", "local_monitoring", "qa_deployment", "qa_check", "qa_alerts",
+        "qa_knowledge",
     )
     pattern = re.compile(r"^\s*(from app(\.| import )|import app\.)({})".format("|".join(operator)), re.MULTILINE)
     for path in (REPO_ROOT / "backend" / "app").glob("*.py"):
